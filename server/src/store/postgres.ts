@@ -4,6 +4,7 @@ import type {
   Account,
   CharacterRecord,
   EventRecord,
+  InjuryRecord,
   ItemData,
   ItemRecord,
   KnowledgeRecord,
@@ -71,7 +72,7 @@ export class PgStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     try {
       const { rows } = await this.pool.query<{ id: string }>(
@@ -79,7 +80,10 @@ export class PgStore implements Store {
          values ($1, $2, $3, $4, $5, $6) returning id`,
         [c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y],
       );
-      return { ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10, languages: ['common'] };
+      return {
+        ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10, languages: ['common'],
+        hp: 20, maxHp: 20, xp: 0, deathDebt: 0,
+      };
     } catch (err) {
       if ((err as { code?: string }).code === '23505') return 'character_name_taken';
       throw err;
@@ -95,6 +99,52 @@ export class PgStore implements Store {
       'update characters set bluff = coalesce($2, bluff), insight = coalesce($3, insight) where id = $1',
       [id, skills.bluff ?? null, skills.insight ?? null],
     );
+  }
+
+  async saveCharacterVitals(
+    id: string,
+    vitals: { hp?: number; xp?: number; deathDebt?: number },
+  ): Promise<void> {
+    await this.pool.query(
+      `update characters set
+         hp = coalesce($2, hp), xp = coalesce($3, xp), death_debt = coalesce($4, death_debt)
+       where id = $1`,
+      [id, vitals.hp ?? null, vitals.xp ?? null, vitals.deathDebt ?? null],
+    );
+  }
+
+  async addInjury(injury: Omit<InjuryRecord, 'id'>): Promise<InjuryRecord> {
+    const { rows } = await this.pool.query<{ id: string }>(
+      `insert into injuries (character_id, location, kind, severity)
+       values ($1, $2, $3, $4) returning id`,
+      [injury.characterId, injury.location, injury.kind, injury.severity],
+    );
+    return { ...injury, id: rows[0]!.id };
+  }
+
+  async listInjuries(characterId: string): Promise<InjuryRecord[]> {
+    const { rows } = await this.pool.query(
+      'select id, character_id, location, kind, severity from injuries where character_id = $1 order by created_at',
+      [characterId],
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      characterId: r.character_id,
+      location: r.location,
+      kind: r.kind,
+      severity: r.severity,
+    }));
+  }
+
+  async removeInjury(injuryId: string): Promise<boolean> {
+    const result = await this.pool.query('delete from injuries where id = $1', [injuryId]);
+    return result.rowCount === 1;
+  }
+
+  async downgradeInjuries(characterId: string): Promise<void> {
+    await this.pool.query(`update injuries set severity = 'minor' where character_id = $1`, [
+      characterId,
+    ]);
   }
 
   async getKnowledge(
@@ -422,5 +472,9 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     bluff: Number(r.bluff ?? 10),
     insight: Number(r.insight ?? 10),
     languages: (r.languages as string[] | null) ?? ['common'],
+    hp: Number(r.hp ?? 20),
+    maxHp: Number(r.max_hp ?? 20),
+    xp: Number(r.xp ?? 0),
+    deathDebt: Number(r.death_debt ?? 0),
   };
 }

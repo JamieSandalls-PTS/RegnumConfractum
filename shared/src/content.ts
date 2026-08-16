@@ -40,6 +40,9 @@ export const AreaSchema = z
     /** Default spawn tile; must be walkable. */
     spawn: z.object({ x: z.number().int().min(0), y: z.number().int().min(0) }),
     lighting: LightingProfileSchema.default('overcast'),
+    /** PvP tier (D-206): settled requires declared hostility with a spoken
+     * warning window; wilderness is open; endgame adds permadeath (M4b). */
+    zone: z.enum(['settled', 'wilderness', 'endgame']).default('settled'),
     /**
      * Graph edges between areas (D-103): stepping onto (x, y) moves the
      * character to (toX, toY) in toArea. The validator cross-checks targets.

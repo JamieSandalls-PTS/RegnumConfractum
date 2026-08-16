@@ -64,6 +64,7 @@ let areaName = '';
 let coin = 0;
 let inventory: Extract<ServerMessage, { t: 'inventory' }>['items'] = [];
 let currentLanguage: string | null = null; // null = common
+let status: Extract<ServerMessage, { t: 'status' }> | null = null;
 
 // ---------------------------------------------------------------------------
 // UI flow
@@ -169,6 +170,24 @@ conn.onMessage = (msg: ServerMessage) => {
     case 'area_lighting':
       scene?.applyLighting(msg.lighting);
       return;
+    case 'status': {
+      const wasGhost = status?.ghost ?? false;
+      status = msg;
+      $('hud-hp').textContent = `${msg.hp}/${msg.maxHp}`;
+      $('hud-ghost').textContent = msg.ghost ? '☽ dead — /respawn when released' : '';
+      if (msg.ghost && !wasGhost) {
+        appendSystemLine('The world goes quiet. Only the dead remain with you.');
+      } else if (!msg.ghost && wasGhost) {
+        appendSystemLine('You wake at the spawn, scarred but breathing.');
+      }
+      if (msg.injuries.length > 0) {
+        const majors = msg.injuries.filter((i) => i.severity === 'major');
+        if (majors.length > 0) {
+          $('hud-hp').textContent += ` (bleeding ×${majors.length})`;
+        }
+      }
+      return;
+    }
     case 'pong':
       return;
   }
@@ -254,6 +273,13 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       const state = event.state as WireEntity['presentation'];
       e.wire.presentation = state;
       e.visual.setPresentation(state);
+    }
+  } else if (event.type === 'entity_died') {
+    const e = entities.get(event.id as number);
+    if (e) {
+      appendSystemLine(`${e.wire.descriptor} falls.`);
+      e.visual.dispose();
+      entities.delete(event.id as number);
     }
   }
 }
@@ -380,6 +406,32 @@ function sendChat(): void {
   }
   if (raw === '/hood') {
     toggleHood();
+    return;
+  }
+  if (raw.startsWith('/hostile ')) {
+    const target = nearestOther();
+    if (target === null) return appendSystemLine('Nobody near enough to threaten.');
+    conn.send({ t: 'hostile', targetEntityId: target, text: raw.slice(9).trim() });
+    return;
+  }
+  if (raw === '/attack') {
+    const target = nearestOther();
+    if (target === null) return appendSystemLine('Nothing in reach.');
+    conn.send({ t: 'attack', targetEntityId: target });
+    return;
+  }
+  if (raw === '/treat') {
+    const target = nearestOther() ?? youId;
+    if (target === null) return;
+    conn.send({ t: 'treat', targetEntityId: target });
+    return;
+  }
+  if (raw === '/treatself') {
+    if (youId !== null) conn.send({ t: 'treat', targetEntityId: youId });
+    return;
+  }
+  if (raw === '/respawn') {
+    conn.send({ t: 'respawn' });
     return;
   }
   if (raw.startsWith('/lang')) {
@@ -520,6 +572,10 @@ window.addEventListener('keydown', (e) => {
   if (e.key === '3') you.visual.setEquipment({ weapon: !you.visual.equipment.weapon });
   if (e.key === '4') you.visual.setEquipment({ cape: !you.visual.equipment.cape });
   if (e.key === 'h') toggleHood();
+  if (e.key === 'f') {
+    const target = nearestOther();
+    if (target !== null) conn.send({ t: 'attack', targetEntityId: target });
+  }
 });
 
 // ---------------------------------------------------------------------------

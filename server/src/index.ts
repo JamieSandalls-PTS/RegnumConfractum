@@ -49,6 +49,8 @@ gameServer.onTickHook = (tick) => {
   void eventEngine.tick(tick);
 };
 gameServer.onAreaEnter = (areaId, entityId) => scriptHost.onAreaEntered(areaId, entityId);
+// Deaths feed the armed entity_death event stages (D-508).
+gameServer.onEntityDeath = (entityId) => void eventEngine.entityDied(entityId);
 
 await adminServer.start();
 console.log(`[server] game ws://localhost:${gameServer.port}  admin http://localhost:${adminServer.port}`);

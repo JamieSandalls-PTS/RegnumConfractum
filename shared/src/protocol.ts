@@ -71,6 +71,20 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('pay'), toEntityId: z.number().int(), amount: z.number().int().positive() }),
   z.object({ t: z.literal('resync') }),
   z.object({ t: z.literal('ping'), nonce: z.number().int() }),
+  /** Declared hostility (D-206): the hostile words are spoken aloud and
+   * logged with the declaration; the attack window opens afterwards. */
+  z.object({
+    t: z.literal('hostile'),
+    targetEntityId: z.number().int(),
+    text: z.string().min(1).max(400),
+  }),
+  z.object({ t: z.literal('attack'), targetEntityId: z.number().int() }),
+  z.object({
+    t: z.literal('treat'),
+    targetEntityId: z.number().int(),
+    injuryId: z.string().uuid().optional(),
+  }),
+  z.object({ t: z.literal('respawn') }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -78,6 +92,14 @@ export type ClientMessage = z.infer<typeof ClientMessageSchema>;
 // ---------------------------------------------------------------------------
 // Server → client.
 // ---------------------------------------------------------------------------
+
+export const InjurySchema = z.object({
+  id: z.string().uuid(),
+  location: z.enum(['head', 'torso', 'arms', 'legs']),
+  kind: z.enum(['cut', 'pierce', 'blunt']),
+  severity: z.enum(['minor', 'major']),
+});
+export type WireInjury = z.infer<typeof InjurySchema>;
 
 export const ErrorCodeSchema = z.enum([
   'invalid_message',
@@ -93,6 +115,12 @@ export const ErrorCodeSchema = z.enum([
   'not_adjacent',
   'no_such_item',
   'insufficient_funds',
+  'not_hostile',
+  'on_cooldown',
+  'dead',
+  'not_dead',
+  'too_soon',
+  'no_injury',
   'internal',
 ]);
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -162,6 +190,15 @@ export const SimEventSchema = z.discriminatedUnion('type', [
     id: z.number().int(),
     state: PresentationSchema,
   }),
+  z.object({
+    type: z.literal('entity_attacked'),
+    attackerId: z.number().int(),
+    targetId: z.number().int(),
+    damage: z.number().int().min(0),
+  }),
+  /** The visible death. Observers drop the entity; the ghost lives on in a
+   * world only other ghosts can see (D-203). */
+  z.object({ type: z.literal('entity_died'), id: z.number().int() }),
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
 
@@ -240,6 +277,16 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     coin: z.number().int().nonnegative(),
   }),
   z.object({ t: z.literal('pong'), nonce: z.number().int(), tick: z.number().int() }),
+  /** Your own vitals — sent on change. Others never see your numbers. */
+  z.object({
+    t: z.literal('status'),
+    hp: z.number().int(),
+    maxHp: z.number().int(),
+    xp: z.number().int().nonnegative(),
+    deathDebt: z.number().int().nonnegative(),
+    ghost: z.boolean(),
+    injuries: z.array(InjurySchema),
+  }),
 ]);
 
 export type ServerMessage = z.infer<typeof ServerMessageSchema>;

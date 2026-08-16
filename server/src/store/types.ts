@@ -28,6 +28,18 @@ export interface CharacterRecord {
   bluff: number;
   insight: number;
   languages: string[];
+  hp: number;
+  maxHp: number;
+  xp: number;
+  deathDebt: number;
+}
+
+export interface InjuryRecord {
+  id: string;
+  characterId: string;
+  location: 'head' | 'torso' | 'arms' | 'legs';
+  kind: 'cut' | 'pierce' | 'blunt';
+  severity: 'minor' | 'major';
 }
 
 export interface ItemData {
@@ -85,7 +97,7 @@ export interface Store {
 
   // Characters
   createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt'>,
   ): Promise<CharacterRecord | 'character_name_taken'>;
   setCharacterLanguages(id: string, languages: string[]): Promise<void>;
   getCharacter(id: string): Promise<CharacterRecord | null>;
@@ -94,6 +106,18 @@ export interface Store {
   saveCharacterPosition(id: string, areaId: string, x: number, y: number): Promise<void>;
   /** Skill tuning — admin/tests now, character systems (M4) later. */
   setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void>;
+  /** Immediate on death/logout, batched otherwise (D-106). */
+  saveCharacterVitals(
+    id: string,
+    vitals: { hp?: number; xp?: number; deathDebt?: number },
+  ): Promise<void>;
+
+  // Injuries (D-205)
+  addInjury(injury: Omit<InjuryRecord, 'id'>): Promise<InjuryRecord>;
+  listInjuries(characterId: string): Promise<InjuryRecord[]>;
+  removeInjury(injuryId: string): Promise<boolean>;
+  /** Death scars over: major wounds become minor (respawn path). */
+  downgradeInjuries(characterId: string): Promise<void>;
 
   // Recognition (D-218/D-219)
   /** What `observerId` knows about each of `subjectIds` in a presentation. */

@@ -1126,3 +1126,40 @@ editor and verified end-to-end by bots over the admin HTTP API — except the
 death stage, which arms correctly and waits on `EventEngine.entityDied`,
 wired when M4 gives entities death. **Still open from D-216:** invisible DM
 observation, weather control beyond lighting profiles.
+
+### D-509: M4a — combat, the death loop, and the physician dependency
+
+**Combat (D-104, D-206).** Attacks are adjacent, cooldown-paced (2s), damage
+2–6 from the seeded server rng. Zones enforce the PvP tiers: NPCs are fair
+game anywhere; players in **settled** areas can only be struck after the
+attacker has *declared hostility* — a spoken threat delivered through the
+real speech pipeline and logged verbatim — and the 10-second warning window
+has fully elapsed. Declarations expire after 5 minutes. The yard is
+wilderness (open PvP); the tavern is settled.
+
+**The death loop (D-203).** At 0 hp: the living watch you fall
+(`entity_died`) and perceive you no more; you continue as a ghost in a
+partitioned plane — **every delivery path (snapshots, deltas, speech,
+arrivals) partitions on the ghost flag in both directions**, bot-verified,
+so a dead player can never scout for the living. Death adds 100 debt
+immediately (immediate DB write); XP earned later pays debt before it
+advances the character. After the minimum ghost time, `respawn` wakes you at
+the town spawn on full hp. Ghosts do not persist across sessions: logging
+out dead means waking at the spawn next login, debt already banked
+(pragmatic call — revisit if ghost-time roleplay matters).
+
+**Injuries (D-205).** Hits roll wounds — located (head/torso/arms/legs),
+typed (cut/pierce/blunt), tiered. **Major wounds bleed** (1 hp per wound per
+30s) until treated, **and cannot be self-treated** — the physician
+dependency is mechanical, not suggested. Treatment consumes the treater's
+bandage. Death scars major wounds down to minor.
+
+**Completes M3:** the warlord-killed stage of the canonical event chain now
+fires via `onEntityDeath → EventEngine.entityDied`, bot-verified.
+
+**Deferred to M4b:** classes and skills (D-208 — WHICH 8-10 classes remains
+an open stakeholder decision), Legacy Points and voluntary permadeath
+(D-207/D-222), spirit interactions (D-204: Speak With Dead, Animate Dead,
+corpses as objects per D-224), endgame permadeath zones, richer injury types
+(burn/frost/venom/rot/curse) and treatment paths, active disguise-piercing,
+Lua on_death.

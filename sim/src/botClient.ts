@@ -40,6 +40,8 @@ export class BotClient {
   lastResyncDiffs: string[] | null = null;
   /** Every speech line this client has heard, in order. */
   readonly speeches: Extract<ServerMessage, { t: 'speech' }>[] = [];
+  /** Latest vitals (hp, ghost, injuries, debt). */
+  status: Extract<ServerMessage, { t: 'status' }> | null = null;
   area: AreaMirror | null = null;
   you: number | null = null;
   inventory: WireItem[] = [];
@@ -250,6 +252,10 @@ export class BotClient {
             const e = this.entities.get(event.id);
             if (!e) this.violations.push(`entity_presentation for unknown entity ${event.id}`);
             else e.presentation = event.state;
+          } else if (event.type === 'entity_died') {
+            if (!this.entities.delete(event.id)) {
+              this.violations.push(`entity_died for unknown entity ${event.id}`);
+            }
           }
         }
         break;
@@ -261,6 +267,10 @@ export class BotClient {
       }
       case 'speech': {
         this.speeches.push(msg);
+        break;
+      }
+      case 'status': {
+        this.status = msg;
         break;
       }
       default:

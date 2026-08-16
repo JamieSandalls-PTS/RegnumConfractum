@@ -221,6 +221,16 @@ and duplicate in place (the template library). The canonical M3 done-when chain
 is bot-verified end-to-end except the death stage, which arms and waits on
 `EventEngine.entityDied` (wired in M4).
 
-**Next per plan: M4 — character systems** (classes/skills, death loop, injuries,
-combat). **Other gaps:** invisible DM observation; active disguise-piercing
-(M4 skills); staging VPS not provisioned.
+**M4a — combat, death, injuries built (D-509).** Cooldown combat under the D-206
+zone tiers: settled areas demand a spoken, logged hostility declaration and a
+10-second window; the yard is open wilderness. Death: the living see you fall,
+you continue as a ghost in a strictly partitioned plane (every delivery path
+partitions both ways — bot-verified anti-scouting), 100 death debt banks
+immediately, XP pays debt before advancing, respawn at town after the minimum.
+Major wounds bleed and cannot be self-treated — the physician dependency is
+mechanical. The M3 event chain's death stage now fires.
+
+**M4b remaining:** classes/skills (**which 8-10 classes is an open stakeholder
+decision, D-208**), Legacy Points + voluntary permadeath, spirit interactions
+(D-204/D-224 corpses), endgame permadeath zones, richer injury/treatment types.
+**Other gaps:** invisible DM observation; staging VPS not provisioned.

@@ -35,6 +35,15 @@ authorless items: forgery is native. Raise a hood and you are a stranger again;
 lower it in view and the watcher's two memories of you merge into one. What
 remains of M2 is the human test: two writers, one tavern, ninety minutes.
 
+**M4 — character systems: the mortal parts are in.** Violence has manners: in
+settled places you must speak your threat aloud — it is logged word for word —
+and wait out ten seconds before a blow may land. The wilderness asks nothing.
+Death is not an ending but a border: the living watch you fall and see you no
+more, while you walk a grey copy of the world where only the dead speak — and
+nothing you see there can be carried back to help the living. You return at the
+town well owing the world a debt your future earnings pay first. And wounds
+matter: a major wound bleeds until someone *else* binds it. Find a physician.
+
 **M3 — scripting and the DM toolset: built.** The world is a graph — walk off the
 tavern street and you are in the Broken Yard. Areas run sandboxed Lua behind a
 controlled API; the Ferryman has a scripted keeper. A DM spawns NPCs, speaks

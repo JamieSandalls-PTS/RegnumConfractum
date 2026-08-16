@@ -1,0 +1,8 @@
+{
+  "id": "bandage",
+  "name": "Linen Bandage",
+  "description": "Boiled linen, rolled tight. Worth more than coin to a bleeding man.",
+  "category": "consumable",
+  "stackable": true,
+  "value": 4
+}

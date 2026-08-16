@@ -3,6 +3,7 @@ import type {
   Account,
   CharacterRecord,
   EventRecord,
+  InjuryRecord,
   ItemData,
   ItemRecord,
   KnowledgeRecord,
@@ -61,7 +62,7 @@ export class MemoryStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     const nameKey = c.name.toLowerCase();
     for (const existing of this.characters.values()) {
@@ -74,6 +75,10 @@ export class MemoryStore implements Store {
       bluff: 10,
       insight: 10,
       languages: ['common'],
+      hp: 20,
+      maxHp: 20,
+      xp: 0,
+      deathDebt: 0,
     };
     this.characters.set(record.id, record);
     return { ...record };
@@ -90,6 +95,41 @@ export class MemoryStore implements Store {
     if (!c) throw new Error(`setCharacterSkills: no character ${id}`);
     if (skills.bluff !== undefined) c.bluff = skills.bluff;
     if (skills.insight !== undefined) c.insight = skills.insight;
+  }
+
+  async saveCharacterVitals(
+    id: string,
+    vitals: { hp?: number; xp?: number; deathDebt?: number },
+  ): Promise<void> {
+    const c = this.characters.get(id);
+    if (!c) throw new Error(`saveCharacterVitals: no character ${id}`);
+    if (vitals.hp !== undefined) c.hp = vitals.hp;
+    if (vitals.xp !== undefined) c.xp = vitals.xp;
+    if (vitals.deathDebt !== undefined) c.deathDebt = vitals.deathDebt;
+  }
+
+  private injuries = new Map<string, InjuryRecord>();
+
+  async addInjury(injury: Omit<InjuryRecord, 'id'>): Promise<InjuryRecord> {
+    const record: InjuryRecord = { ...injury, id: randomUUID() };
+    this.injuries.set(record.id, record);
+    return { ...record };
+  }
+
+  async listInjuries(characterId: string): Promise<InjuryRecord[]> {
+    return [...this.injuries.values()]
+      .filter((i) => i.characterId === characterId)
+      .map((i) => ({ ...i }));
+  }
+
+  async removeInjury(injuryId: string): Promise<boolean> {
+    return this.injuries.delete(injuryId);
+  }
+
+  async downgradeInjuries(characterId: string): Promise<void> {
+    for (const i of this.injuries.values()) {
+      if (i.characterId === characterId) i.severity = 'minor';
+    }
   }
 
   async getKnowledge(

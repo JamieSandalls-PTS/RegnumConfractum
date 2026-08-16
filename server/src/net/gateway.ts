@@ -1,6 +1,13 @@
 import { WebSocketServer, type WebSocket } from 'ws';
 import {
+  ATTACK_COOLDOWN_TICKS,
+  ATTACK_RANGE,
+  BLEED_INTERVAL_TICKS,
+  DEATH_DEBT_PER_DEATH,
   FLUSH_INTERVAL_TICKS,
+  GHOST_MIN_TICKS,
+  HOSTILITY_EXPIRY_TICKS,
+  HOSTILITY_WINDOW_TICKS,
   INTERACT_RANGE,
   Rng,
   SESSION_TTL_MS,
@@ -19,7 +26,7 @@ import {
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
-import type { CharacterRecord, Store } from '../store/types';
+import type { CharacterRecord, InjuryRecord, Store } from '../store/types';
 import { World, toWireEntity, type WorldEntity } from '../game/world';
 import { EmoteParser } from '../game/emotes';
 import { hasLineOfSight } from '../game/los';
@@ -47,6 +54,11 @@ export interface GameServerOptions {
   defaultAreaId?: string;
   /** Seeds contest rolls — fixed in tests for reproducibility (D-114). */
   rngSeed?: number;
+  /** Combat/death pacing overrides — tests shrink these (logic is tick-based). */
+  hostilityWindowTicks?: number;
+  ghostMinTicks?: number;
+  attackCooldownTicks?: number;
+  bleedIntervalTicks?: number;
   log?: (msg: string) => void;
 }
 
@@ -56,6 +68,9 @@ interface ConnState {
   character: CharacterRecord | null;
   entityId: number | null;
   areaId: string | null;
+  /** Live vitals cache; persisted immediately on death/logout (D-106). */
+  vitals: { hp: number; maxHp: number; xp: number; deathDebt: number } | null;
+  injuries: InjuryRecord[];
   /** Serialises message handling per connection. */
   queue: Promise<void>;
 }
@@ -87,6 +102,14 @@ export class GameServer {
   /** Script-host hooks — wired by the entrypoint, no-ops otherwise. */
   onAreaEnter: ((areaId: string, entityId: number) => void) | null = null;
   onTickHook: ((tick: number) => void) | null = null;
+  /** Fires for any entity death — feeds EventEngine.entityDied (D-508). */
+  onEntityDeath: ((entityId: number) => void) | null = null;
+  /** attackerCharId|targetCharId → tick the declaration was made (D-206). */
+  private hostilities = new Map<string, number>();
+  private hostilityWindowTicks = HOSTILITY_WINDOW_TICKS;
+  private ghostMinTicks = GHOST_MIN_TICKS;
+  private attackCooldownTicks = ATTACK_COOLDOWN_TICKS;
+  private bleedIntervalTicks = BLEED_INTERVAL_TICKS;
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -95,6 +118,10 @@ export class GameServer {
     this.log = opts.log ?? (() => {});
     this.emoteParser = new EmoteParser(opts.content.emoteLexicon);
     this.contestRng = new Rng(opts.rngSeed ?? Math.floor(Math.random() * 2 ** 31));
+    this.hostilityWindowTicks = opts.hostilityWindowTicks ?? HOSTILITY_WINDOW_TICKS;
+    this.ghostMinTicks = opts.ghostMinTicks ?? GHOST_MIN_TICKS;
+    this.attackCooldownTicks = opts.attackCooldownTicks ?? ATTACK_COOLDOWN_TICKS;
+    this.bleedIntervalTicks = opts.bleedIntervalTicks ?? BLEED_INTERVAL_TICKS;
     for (const def of opts.content.areas.values()) this.world.addArea(def);
     const fallback = opts.content.areas.keys().next().value as string;
     this.defaultAreaId = opts.defaultAreaId ?? fallback;
@@ -162,14 +189,59 @@ export class GameServer {
           }
         }
       }
-      this.broadcast(areaId, { t: 'delta', tick: this.world.tick, events });
+      // Events are partitioned by plane: the living never receive a ghost's
+      // movement, and ghosts never receive the living's (D-203).
+      const livingEvents = events.filter((e) => !this.eventFromGhost(e));
+      const ghostEvents = events.filter((e) => this.eventFromGhost(e));
+      if (livingEvents.length > 0) {
+        this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: livingEvents });
+      }
+      if (ghostEvents.length > 0) {
+        this.broadcastPlane(areaId, true, { t: 'delta', tick: this.world.tick, events: ghostEvents });
+      }
     }
     for (const t of transfers) {
       await this.transferToArea(t.conn, t.toArea, t.toX, t.toY);
     }
+    if (this.world.tick % this.bleedIntervalTicks === 0) {
+      await this.bleedTick();
+    }
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
       await this.flushDirty();
+    }
+  }
+
+  private eventFromGhost(event: { type: string } & Record<string, unknown>): boolean {
+    const id =
+      event.type === 'entity_entered'
+        ? (event.entity as { id: number }).id
+        : (event.id as number | undefined) ?? (event.attackerId as number | undefined);
+    if (id === undefined) return false;
+    return this.world.getEntity(id)?.ghost ?? false;
+  }
+
+  private broadcastPlane(areaId: string, ghost: boolean, msg: ServerMessage, except?: ConnState): void {
+    const payload = JSON.stringify(msg);
+    for (const conn of this.connsByArea.get(areaId) ?? []) {
+      if (conn === except || conn.entityId === null) continue;
+      const entity = this.world.getEntity(conn.entityId);
+      if (!entity || entity.ghost !== ghost) continue;
+      if (conn.ws.readyState === conn.ws.OPEN) conn.ws.send(payload);
+    }
+  }
+
+  /** Untreated major wounds bleed (D-205) — the physician-shaped pressure. */
+  private async bleedTick(): Promise<void> {
+    for (const conn of this.conns) {
+      if (!conn.character || !conn.vitals || conn.entityId === null) continue;
+      const entity = this.world.getEntity(conn.entityId);
+      if (!entity || entity.ghost) continue;
+      const majors = conn.injuries.filter((i) => i.severity === 'major').length;
+      if (majors === 0) continue;
+      conn.vitals.hp -= majors;
+      this.sendStatus(conn);
+      if (conn.vitals.hp <= 0) await this.die(conn, 'their wounds');
     }
   }
 
@@ -199,13 +271,15 @@ export class GameServer {
       appearanceSeed: conn.character.appearanceSeed,
       pos: { x, y },
       facing: oldEntity.facing,
+      ghost: oldEntity.ghost, // the grey country has the same doors
     });
     entity.presentation = oldEntity.presentation; // the hood survives the door
     conn.entityId = entity.id;
     conn.areaId = toAreaId;
     this.entityCharacter.set(entity.id, conn.character.id);
     for (const other of this.connsByArea.get(toAreaId) ?? []) {
-      if (!other.character) continue;
+      if (!other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost !== entity.ghost) continue;
       const descriptor = await this.descriptorFor(other, entity);
       this.send(other, {
         t: 'delta',
@@ -255,6 +329,8 @@ export class GameServer {
       character: null,
       entityId: null,
       areaId: null,
+      vitals: null,
+      injuries: [],
       queue: Promise.resolve(),
     };
     this.conns.add(conn);
@@ -308,12 +384,315 @@ export class GameServer {
         return this.handleGive(conn, msg);
       case 'pay':
         return this.handlePay(conn, msg);
+      case 'hostile':
+        return this.handleHostile(conn, msg);
+      case 'attack':
+        return this.handleAttack(conn, msg);
+      case 'treat':
+        return this.handleTreat(conn, msg);
+      case 'respawn':
+        return this.handleRespawn(conn);
       case 'resync':
         return this.handleResync(conn);
       case 'ping':
         this.send(conn, { t: 'pong', nonce: msg.nonce, tick: this.world.tick });
         return;
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Combat, death, and treatment (D-104, D-203, D-205, D-206)
+  // -------------------------------------------------------------------------
+
+  private sendStatus(conn: ConnState): void {
+    if (!conn.vitals || conn.entityId === null) return;
+    const entity = this.world.getEntity(conn.entityId);
+    this.send(conn, {
+      t: 'status',
+      hp: conn.vitals.hp,
+      maxHp: conn.vitals.maxHp,
+      xp: conn.vitals.xp,
+      deathDebt: conn.vitals.deathDebt,
+      ghost: entity?.ghost ?? false,
+      injuries: conn.injuries.map((i) => ({
+        id: i.id,
+        location: i.location,
+        kind: i.kind,
+        severity: i.severity,
+      })),
+    });
+  }
+
+  /** XP pays down death debt before it advances the character (D-203). */
+  private gainXp(conn: ConnState, amount: number): void {
+    if (!conn.vitals) return;
+    const paid = Math.min(conn.vitals.deathDebt, amount);
+    conn.vitals.deathDebt -= paid;
+    conn.vitals.xp += amount - paid;
+  }
+
+  /**
+   * Declared hostility (D-206): the intent is spoken aloud through the real
+   * speech pipeline and logged verbatim; the attack window opens only after
+   * the wait — space for roleplay, or for running.
+   */
+  private async handleHostile(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'hostile' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead declare nothing');
+    const target = this.world.getEntity(msg.targetEntityId);
+    if (!target || target.characterId === null || target.characterId === conn.character.id ||
+        this.world.getEntityAreaId(target.id) !== conn.areaId || target.ghost) {
+      return this.fail(conn, 'bad_target', 'no such quarry');
+    }
+    this.hostilities.set(`${conn.character.id}|${target.characterId}`, this.world.tick);
+    await this.deliverSpeech({
+      speaker: self,
+      areaId: conn.areaId,
+      speakerConn: conn,
+      channel: 'say',
+      text: msg.text,
+      languageId: 'common',
+    });
+    await this.store.appendEvent('hostility_declared', {
+      attacker: conn.character.id,
+      target: target.characterId,
+      areaId: conn.areaId,
+      text: msg.text,
+    });
+  }
+
+  private async handleAttack(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'attack' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId || !conn.vitals) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead cannot fight');
+    const target = this.world.getEntity(msg.targetEntityId);
+    if (!target || target.id === self.id || target.ghost ||
+        this.world.getEntityAreaId(target.id) !== conn.areaId) {
+      return this.fail(conn, 'bad_target', 'no such target');
+    }
+    if (chebyshev(self.pos, target.pos) > ATTACK_RANGE) {
+      return this.fail(conn, 'not_adjacent', 'out of reach');
+    }
+    if (this.world.tick < self.attackReadyAt) {
+      return this.fail(conn, 'on_cooldown', 'not ready');
+    }
+    // Zone rules (D-206): NPCs are fair game; players are protected in
+    // settled zones unless hostility was declared and the window has passed.
+    if (target.characterId !== null) {
+      const zone = this.world.getAreaDef(conn.areaId).zone;
+      if (zone === 'settled') {
+        const declaredAt = this.hostilities.get(`${conn.character.id}|${target.characterId}`);
+        const age = declaredAt === undefined ? -1 : this.world.tick - declaredAt;
+        if (age < this.hostilityWindowTicks || age > HOSTILITY_EXPIRY_TICKS) {
+          return this.fail(conn, 'not_hostile', 'declare your hostility and wait out the warning');
+        }
+      }
+    }
+
+    self.attackReadyAt = this.world.tick + this.attackCooldownTicks;
+    const damage = this.contestRng.int(2, 6);
+    this.broadcastPlane(conn.areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_attacked', attackerId: self.id, targetId: target.id, damage }],
+    });
+
+    if (target.characterId === null) {
+      target.hp -= damage;
+      if (target.hp <= 0) {
+        const targetId = target.id;
+        this.broadcastPlane(conn.areaId, false, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [{ type: 'entity_died', id: targetId }],
+        });
+        this.world.despawn(targetId);
+        this.gainXp(conn, 10);
+        this.sendStatus(conn);
+        await this.store.appendEvent('npc_death', {
+          entityId: targetId,
+          killer: conn.character.id,
+          areaId: conn.areaId,
+        });
+        this.onEntityDeath?.(targetId);
+      }
+      return;
+    }
+
+    const targetConn = [...(this.connsByArea.get(conn.areaId) ?? [])].find(
+      (c) => c.entityId === target.id,
+    );
+    if (!targetConn?.vitals) return;
+    targetConn.vitals.hp -= damage;
+    // Wounds land where the dice say (D-205); heavy hits maim.
+    const injuryChance = damage >= 5 ? 0.5 : 0.25;
+    if (this.contestRng.float() < injuryChance) {
+      const injury = await this.store.addInjury({
+        characterId: targetConn.character!.id,
+        location: this.contestRng.pick(['head', 'torso', 'arms', 'legs'] as const),
+        kind: this.contestRng.pick(['cut', 'pierce', 'blunt'] as const),
+        severity: damage >= 5 ? 'major' : 'minor',
+      });
+      targetConn.injuries.push(injury);
+    }
+    this.sendStatus(targetConn);
+    if (targetConn.vitals.hp <= 0) {
+      this.gainXp(conn, 25);
+      this.sendStatus(conn);
+      await this.die(targetConn, conn.character.name);
+    }
+  }
+
+  /** Death (D-203): the visible fall for the living; a quiet second world
+   * for the ghost. Debt goes on the books immediately. */
+  private async die(conn: ConnState, cause: string): Promise<void> {
+    if (!conn.character || !conn.vitals || conn.entityId === null || !conn.areaId) return;
+    const entity = this.world.getEntity(conn.entityId)!;
+    conn.vitals.hp = 0;
+    conn.vitals.deathDebt += DEATH_DEBT_PER_DEATH;
+    entity.ghost = true;
+    entity.intent = null;
+    entity.diedAtTick = this.world.tick;
+    for (const key of [...this.hostilities.keys()]) {
+      if (key.includes(conn.character.id)) this.hostilities.delete(key);
+    }
+    // The living watch them fall and see them no more.
+    this.broadcastPlane(conn.areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_died', id: entity.id }],
+    }, conn);
+    // Ghosts already present greet a new arrival to their plane.
+    for (const other of this.connsByArea.get(conn.areaId) ?? []) {
+      if (other === conn || !other.character || other.entityId === null) continue;
+      if (!this.world.getEntity(other.entityId)?.ghost) continue;
+      const descriptor = await this.descriptorFor(other, entity);
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(entity, descriptor) }],
+      });
+    }
+    await this.store.saveCharacterVitals(conn.character.id, {
+      hp: 0,
+      deathDebt: conn.vitals.deathDebt,
+    });
+    await this.store.appendEvent('death', {
+      characterId: conn.character.id,
+      areaId: conn.areaId,
+      cause,
+    });
+    await this.sendSnapshot(conn); // the ghost's world: only other ghosts
+    this.sendStatus(conn);
+    this.onEntityDeath?.(entity.id);
+  }
+
+  /** Self-respawn at the town spawn after the minimum ghost time (D-203). */
+  private async handleRespawn(conn: ConnState): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.vitals || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const entity = this.world.getEntity(conn.entityId)!;
+    if (!entity.ghost) return this.fail(conn, 'not_dead', 'you are alive');
+    if (entity.diedAtTick !== null && this.world.tick - entity.diedAtTick < this.ghostMinTicks) {
+      return this.fail(conn, 'too_soon', 'the grey country does not release you yet');
+    }
+    // Leave the ghost plane…
+    const leftEvent = this.world.despawn(entity.id);
+    this.entityCharacter.delete(entity.id);
+    this.connsByArea.get(conn.areaId)?.delete(conn);
+    if (leftEvent) {
+      this.broadcastPlane(conn.areaId, true, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
+    }
+    // …and wake at the town spawn, scarred but breathing.
+    conn.vitals.hp = conn.vitals.maxHp;
+    await this.store.downgradeInjuries(conn.character.id);
+    conn.injuries = await this.store.listInjuries(conn.character.id);
+    const home = this.defaultAreaId;
+    const spawn = this.world.getAreaDef(home).spawn;
+    const { entity: revived } = this.world.spawn(home, {
+      characterId: conn.character.id,
+      name: conn.character.name,
+      appearanceSeed: conn.character.appearanceSeed,
+      pos: { x: spawn.x, y: spawn.y },
+    });
+    conn.entityId = revived.id;
+    conn.areaId = home;
+    this.entityCharacter.set(revived.id, conn.character.id);
+    let byArea = this.connsByArea.get(home);
+    if (!byArea) this.connsByArea.set(home, (byArea = new Set()));
+    byArea.add(conn);
+    for (const other of byArea) {
+      if (other === conn || !other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost) continue;
+      const descriptor = await this.descriptorFor(other, revived);
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(revived, descriptor) }],
+      });
+    }
+    this.dirtyCharacters.set(conn.character.id, { areaId: home, x: spawn.x, y: spawn.y });
+    await this.store.saveCharacterVitals(conn.character.id, { hp: conn.vitals.hp });
+    await this.store.appendEvent('respawn', { characterId: conn.character.id, areaId: home });
+    await this.sendSnapshot(conn);
+    this.sendStatus(conn);
+    this.onAreaEnter?.(home, revived.id);
+  }
+
+  /** Treatment (D-205): minor wounds you may bind yourself; a major wound
+   * needs another pair of hands. Bandages are consumed by the treater. */
+  private async handleTreat(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'treat' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead mend nothing');
+    const target = this.world.getEntity(msg.targetEntityId);
+    if (!target || target.ghost || target.characterId === null ||
+        this.world.getEntityAreaId(target.id) !== conn.areaId ||
+        chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
+      return this.fail(conn, 'bad_target', 'nobody there to tend');
+    }
+    const targetConn =
+      target.id === self.id
+        ? conn
+        : [...(this.connsByArea.get(conn.areaId) ?? [])].find((c) => c.entityId === target.id);
+    if (!targetConn) return this.fail(conn, 'bad_target', 'nobody there to tend');
+    const injury =
+      (msg.injuryId && targetConn.injuries.find((i) => i.id === msg.injuryId)) ||
+      targetConn.injuries.find((i) => i.severity === 'major') ||
+      targetConn.injuries[0];
+    if (!injury) return this.fail(conn, 'no_injury', 'no wound to treat');
+    if (injury.severity === 'major' && targetConn === conn) {
+      return this.fail(conn, 'no_injury', 'a major wound cannot be self-treated — find help');
+    }
+    const hasBandage = await this.store.consumeOneItem(conn.character.id, 'bandage');
+    if (!hasBandage) return this.fail(conn, 'no_such_item', 'you need a bandage');
+    await this.store.removeInjury(injury.id);
+    targetConn.injuries = targetConn.injuries.filter((i) => i.id !== injury.id);
+    this.sendStatus(targetConn);
+    await this.sendInventory(conn);
+    await this.store.appendEvent('treated', {
+      treater: conn.character.id,
+      patient: targetConn.character!.id,
+      injuryId: injury.id,
+      severity: injury.severity,
+    });
   }
 
   private async handleDisconnect(conn: ConnState): Promise<void> {
@@ -330,6 +709,13 @@ export class GameServer {
         // Immediate write on logout (D-106).
         this.dirtyCharacters.delete(conn.character.id);
         try {
+          if (conn.vitals) {
+            await this.store.saveCharacterVitals(conn.character.id, {
+              hp: entity.ghost ? 0 : conn.vitals.hp,
+              xp: conn.vitals.xp,
+              deathDebt: conn.vitals.deathDebt,
+            });
+          }
           await this.store.saveCharacterPosition(
             conn.character.id,
             conn.areaId,
@@ -452,6 +838,13 @@ export class GameServer {
       return this.fail(conn, 'already_in_world', 'character is already online');
     }
     const areaId = this.world.hasArea(character.areaId) ? character.areaId : this.defaultAreaId;
+    // Ghosts do not persist across sessions: leaving as a ghost means waking
+    // at the respawn point, debt already on the books (recorded call, D-509).
+    if (character.hp <= 0) {
+      character.hp = character.maxHp;
+      await this.store.saveCharacterVitals(character.id, { hp: character.hp });
+      await this.store.downgradeInjuries(character.id);
+    }
     const { entity } = this.world.spawn(areaId, {
       characterId: character.id,
       name: character.name,
@@ -461,12 +854,20 @@ export class GameServer {
     conn.character = character;
     conn.entityId = entity.id;
     conn.areaId = areaId;
+    conn.vitals = {
+      hp: character.hp,
+      maxHp: character.maxHp,
+      xp: character.xp,
+      deathDebt: character.deathDebt,
+    };
+    conn.injuries = await this.store.listInjuries(character.id);
     this.entityCharacter.set(entity.id, character.id);
     this.onlineCharacters.add(character.id);
     // entity_entered is personalized: each observer gets the arrival under
     // the descriptor THEY know (D-219) — a name if learned, else what they see.
     for (const other of this.connsByArea.get(areaId) ?? []) {
-      if (other === conn || !other.character) continue;
+      if (other === conn || !other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost !== entity.ghost) continue;
       const descriptor = await this.descriptorFor(other, entity);
       this.send(other, {
         t: 'delta',
@@ -479,6 +880,7 @@ export class GameServer {
     byArea.add(conn);
     await this.store.appendEvent('enter_world', { characterId: character.id, areaId });
     await this.sendSnapshot(conn);
+    this.sendStatus(conn);
     this.onAreaEnter?.(areaId, entity.id);
   }
 
@@ -492,7 +894,10 @@ export class GameServer {
     const def = this.world.getAreaDef(areaId);
     const items = await this.store.getItemsByCharacter(conn.character!.id);
     const coin = await this.store.getCoin(conn.character!.id);
-    const entities = this.world.entitiesIn(areaId);
+    // Your snapshot contains only your plane: ghosts see ghosts, the living
+    // see the living, and neither can prove the other exists (D-203).
+    const selfGhost = this.world.getEntity(conn.entityId!)?.ghost ?? false;
+    const entities = this.world.entitiesIn(areaId).filter((e) => e.ghost === selfGhost);
     const descriptors = await this.descriptorsFor(conn, entities);
     this.send(conn, {
       t: 'snapshot',
@@ -659,6 +1064,7 @@ export class GameServer {
     for (const listener of this.connsByArea.get(areaId) ?? []) {
       if (!listener.character || listener.entityId === null) continue;
       const listenerEntity = this.world.getEntity(listener.entityId)!;
+      if (listenerEntity.ghost !== speaker.ghost) continue; // planes never overhear
       const isSelf = listener === speakerConn;
       let seen = true;
       if (!isSelf) {
@@ -765,7 +1171,7 @@ export class GameServer {
       appearanceSeed: opts.appearanceSeed ?? Math.abs((opts.x * 7919) ^ (opts.y * 104729)),
       pos: { x: opts.x, y: opts.y },
     });
-    this.broadcast(areaId, {
+    this.broadcastPlane(areaId, false, {
       t: 'delta',
       tick: this.world.tick,
       events: [{ type: 'entity_entered', entity: toWireEntity(entity, opts.descriptor) }],

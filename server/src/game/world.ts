@@ -33,6 +33,17 @@ export interface WorldEntity {
   facing: Direction;
   posture: Posture;
   presentation: Presentation;
+  /** NPC hit points (players keep theirs on the character record). */
+  hp: number;
+  /**
+   * The dead walk apart (D-203): ghosts see and hear ONLY other ghosts, and
+   * the living never perceive ghosts. Every delivery path partitions on this
+   * flag — relaxing it turns dead players into free scouts.
+   */
+  ghost: boolean;
+  /** Tick at which the next attack may be made. */
+  attackReadyAt: number;
+  diedAtTick: number | null;
   /** Tick at which the next tile step may be taken. */
   readyAtTick: number;
   /** Latest movement intent; overwritten by newer intents, cleared when applied. */
@@ -119,6 +130,8 @@ export class World {
       appearanceSeed?: number;
       pos: Vec2;
       facing?: Direction;
+      hp?: number;
+      ghost?: boolean;
     },
   ): { entity: WorldEntity } {
     const area = this.mustArea(areaId);
@@ -133,6 +146,10 @@ export class World {
       facing: opts.facing ?? 's',
       posture: 'standing',
       presentation: 'normal',
+      hp: opts.hp ?? 10,
+      ghost: opts.ghost ?? false,
+      attackReadyAt: this.tick,
+      diedAtTick: null,
       readyAtTick: this.tick,
       intent: null,
     };
@@ -226,7 +243,7 @@ export function hashWorld(world: World): string {
   for (const areaId of [...world.areaIds()].sort()) {
     for (const e of world.entitiesIn(areaId).sort((a, b) => a.id - b.id)) {
       parts.push(
-        `${areaId}/${e.id}:${e.characterId ?? 'npc'}:${e.pos.x},${e.pos.y}:${e.facing}:${e.posture}:${e.presentation}:${e.readyAtTick}:${e.intent ?? '-'}`,
+        `${areaId}/${e.id}:${e.characterId ?? 'npc'}:${e.pos.x},${e.pos.y}:${e.facing}:${e.posture}:${e.presentation}:${e.hp}:${e.ghost ? 'g' : 'l'}:${e.readyAtTick}:${e.intent ?? '-'}`,
       );
     }
   }
