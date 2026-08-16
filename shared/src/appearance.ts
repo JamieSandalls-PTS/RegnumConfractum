@@ -102,6 +102,23 @@ export function describeAppearance(a: Appearance): string {
   return `${build} ${dress}`;
 }
 
+/**
+ * A hooded figure hides face and hair, not build — archetypes ARE silhouettes
+ * (D-402), and silhouette is one of the channels disguise cannot fully close
+ * (D-219). Height and bulk stay readable.
+ */
+export function describeHooded(a: Appearance): string {
+  const build =
+    a.archetype === 'brute'
+      ? 'heavy-built'
+      : a.archetype === 'soldier'
+        ? 'square-shouldered'
+        : a.archetype === 'rogue'
+          ? 'slight'
+          : 'tall and spare';
+  return `a hooded ${build} figure`;
+}
+
 export function generateAppearance(seed: number): Appearance {
   const rnd = mulberry32(seed);
   const archetype = pick(rnd, ARCHETYPE_NAMES);

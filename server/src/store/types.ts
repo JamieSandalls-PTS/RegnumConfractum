@@ -27,6 +27,12 @@ export interface CharacterRecord {
   coin: number;
   bluff: number;
   insight: number;
+  languages: string[];
+}
+
+export interface ItemData {
+  title?: string;
+  text?: string;
 }
 
 /** What one character knows about another's observed identity (D-219). */
@@ -44,6 +50,7 @@ export interface ItemRecord {
   templateId: string;
   ownerCharacterId: string;
   qty: number;
+  data: ItemData | null;
 }
 
 export interface SessionRecord {
@@ -71,8 +78,9 @@ export interface Store {
 
   // Characters
   createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages'>,
   ): Promise<CharacterRecord | 'character_name_taken'>;
+  setCharacterLanguages(id: string, languages: string[]): Promise<void>;
   getCharacter(id: string): Promise<CharacterRecord | null>;
   getCharactersByAccount(accountId: string): Promise<CharacterRecord[]>;
   /** Batched dirty-flag flush target; also called immediately on logout (D-106). */
@@ -81,13 +89,32 @@ export interface Store {
   setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void>;
 
   // Recognition (D-218/D-219)
-  /** What `observerId` knows about each of `subjectIds` (presentation 'normal'). */
-  getKnowledge(observerId: string, subjectIds: string[]): Promise<Map<string, KnowledgeRecord>>;
+  /** What `observerId` knows about each of `subjectIds` in a presentation. */
+  getKnowledge(
+    observerId: string,
+    subjectIds: string[],
+    presentation?: string,
+  ): Promise<Map<string, KnowledgeRecord>>;
   upsertKnowledge(k: KnowledgeRecord): Promise<void>;
+  /**
+   * The merge event (D-219): the observer has connected the subject's hooded
+   * identity to the real one. The hooded thread folds into 'normal' (normal's
+   * name wins when both exist) and is deleted.
+   */
+  mergeKnowledge(observerId: string, subjectId: string, fromPresentation: string): Promise<void>;
 
   // Items & coin
-  grantItem(ownerCharacterId: string, templateId: string, qty: number): Promise<ItemRecord>;
+  grantItem(
+    ownerCharacterId: string,
+    templateId: string,
+    qty: number,
+    data?: ItemData,
+  ): Promise<ItemRecord>;
+  getItem(itemId: string): Promise<ItemRecord | null>;
   getItemsByCharacter(characterId: string): Promise<ItemRecord[]>;
+  /** Removes one unit of a template from the owner (decrement or delete).
+   * False if they hold none. Atomic — the writing-material sink. */
+  consumeOneItem(ownerCharacterId: string, templateId: string): Promise<boolean>;
   /** True iff the item existed AND belonged to `from` at transfer time. Atomic. */
   transferItem(itemId: string, fromCharacterId: string, toCharacterId: string): Promise<boolean>;
   /** Test/admin faucet — production coin enters via player trade only (D-220). */

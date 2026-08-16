@@ -87,6 +87,14 @@
   #chat-log .emote-text { color: #b79a6e; font-style: italic; }
   #chat-log .impression { color: #b0685c; font-style: italic; font-size: 12.5px; }
   #chat-log .system { color: var(--dim); font-style: italic; font-size: 12.5px; }
+  #chat-log .tongue { color: #8b95a5; font-style: italic; }
+  /* In-world documents render as pages: serif, per D-306. */
+  #chat-log .document {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #1b1712; border: 1px solid #3a3427; border-radius: 2px;
+    padding: 8px 12px; margin: 5px 0; color: #cfc2a8; white-space: pre-wrap;
+  }
+  #chat-log .document .doc-title { color: #dcc99c; font-weight: 600; margin-bottom: 4px; }
   #chat-bar {
     display: none; gap: 6px; margin-top: 6px; pointer-events: auto;
   }

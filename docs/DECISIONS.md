@@ -1011,3 +1011,47 @@ as items); hooded/disguised presentation states and the thread-merge on
 pierce (the data model — knowledge keyed by observer × subject ×
 presentation — is already shaped for it); third-party introductions
 ("this is X"); live emote highlighting in the composer.
+
+### D-506: M2 completed — languages, writing, hoods, introductions, the tavern
+
+**Languages.** Speech carries a language id; the speaker must know it.
+Listeners without it receive text scrambled **server-side** — the original
+words never reach their client, so no client mod can un-hear a tongue.
+Scrambling is deterministic per (language, word): recurring words stay
+recognisable across sentences and speakers, making the sound of a language
+itself roleplay material. Emote spans pass through — actions are seen, not
+heard. **Names propagate only through comprehension**: a declaration or
+introduction in a tongue you lack teaches you nothing.
+
+**In-world writing.** `/write` consumes one parchment (base material — the
+writing sink) and creates a `written-note` item carrying title and text in
+`items.data` (migration 0003). Notes are given hand-to-hand like any item and
+read only by their holder. Authorship is deliberately NOT recorded on the
+wire: a signature is just text you chose to write, which makes forgery
+(D-213's stealable coordinates, unsigned threats, planted letters) native.
+The full text is logged in the event log (D-215).
+
+**Presentation threads.** `set_presentation` toggles normal/hooded. A hood
+hides face and hair; build stays readable (archetypes are silhouettes,
+D-402/D-219). Names declared while hooded attach to the hooded thread.
+**Lowering the hood in an observer's line of sight is the pierce**: that
+observer's hooded thread merges into normal — the normal name wins a
+collision, and the hooded row is deleted. Limitation, recorded: one name per
+thread means a merge discards the hooded alias when both exist. Active
+piercing (Perception vs Disguise, at range, without consent) waits for M4's
+skill system.
+
+**Introductions.** `introduce` on speech attaches a name to a present target
+for every comprehending listener, provenance `third_party`, never
+overwriting a held name. Misattribution is possible by design (D-201).
+
+**The tavern.** `hanged-ferryman` (64×64): common room with bar, snug and
+pillars, street outside with well and crates — the first-slice stage. New
+characters start there. Tile kinds grew `wood` and `table` (waist-high:
+blocks movement, not sight). Interior lighting profile brightened after the
+same albedo lesson a third time: mid-tone sources or the palette starves.
+
+**Now missing for the full first slice:** nothing mechanical. The go/no-go
+test (two writers, ninety minutes) is a human evaluation. Area transitions
+(D-103's graph edges) are the next engineering gap — characters currently
+stay in the area they spawned in.

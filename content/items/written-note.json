@@ -1,0 +1,8 @@
+{
+  "id": "written-note",
+  "name": "Written Note",
+  "description": "Words committed to parchment. Whether they are true is another matter.",
+  "category": "valuable",
+  "stackable": false,
+  "value": 1
+}

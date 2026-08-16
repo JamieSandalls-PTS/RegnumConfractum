@@ -17,7 +17,11 @@ interface WireArea {
 }
 
 const FLOOR_SHADES = [0x625d57, 0x6e6862, 0x534e49, 0x7a736b];
+// Mid-tone albedo, deliberately: lighting and the quantiser darken the final
+// image — near-black sources leave the palette nothing to bite on.
+const WOOD_SHADES = [0x705a43, 0x7d654b, 0x66523e, 0x8a7052];
 const WALL_SHADES = [0x57524b, 0x615b53, 0x4c4841];
+const TABLE_SHADES = [0x4e3d2c, 0x5a4633];
 const WATER_COLOR = 0x24303c;
 
 export class Terrain {
@@ -29,9 +33,8 @@ export class Terrain {
       const row = area.tiles[y]!;
       for (let x = 0; x < area.width; x++) {
         const def = area.legend[row[x]!]!;
-        const kind = def.kind === 'floor' || def.kind === 'wall' || def.kind === 'water'
-          ? def.kind
-          : def.walkable ? 'floor' : 'wall';
+        const known = ['floor', 'wood', 'wall', 'water', 'table'];
+        const kind = known.includes(def.kind) ? def.kind : def.walkable ? 'floor' : 'wall';
         tiles.push({ x, y, kind });
       }
     }
@@ -59,6 +62,28 @@ export class Terrain {
         const h = 0.45 + rnd() * 0.3;
         m.makeScale(1, h, 1).setPosition(t.x, h / 2 - 0.02, t.y);
         return WALL_SHADES[Math.floor(rnd() * WALL_SHADES.length)]!;
+      },
+      { castShadow: true, receiveShadow: true },
+    );
+
+    this.addInstanced(
+      tiles.filter((t) => t.kind === 'wood'),
+      new THREE.BoxGeometry(0.98, 0.1, 0.98),
+      (t, rnd, m) => {
+        m.makeTranslation(t.x, -0.05, t.y);
+        return WOOD_SHADES[Math.floor(rnd() * WOOD_SHADES.length)]!;
+      },
+      { receiveShadow: true },
+    );
+
+    // Tables and counters: waist height, sight passes over, movement doesn't.
+    this.addInstanced(
+      tiles.filter((t) => t.kind === 'table'),
+      new THREE.BoxGeometry(0.92, 1.0, 0.92),
+      (t, rnd, m) => {
+        const h = 0.34 + rnd() * 0.05;
+        m.makeScale(1, h, 1).setPosition(t.x, h / 2, t.y);
+        return TABLE_SHADES[Math.floor(rnd() * TABLE_SHADES.length)]!;
       },
       { castShadow: true, receiveShadow: true },
     );

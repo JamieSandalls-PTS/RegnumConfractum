@@ -1,0 +1,22 @@
+[
+  {
+    "id": "common",
+    "name": "Common",
+    "description": "The trade tongue of the broken realm. Everyone speaks it; nobody loves it."
+  },
+  {
+    "id": "old-imperial",
+    "name": "Old Imperial",
+    "description": "The dead empire's court speech. Scholars, priests, and forgers of old documents keep it alive."
+  },
+  {
+    "id": "hill-tongue",
+    "name": "Hill Tongue",
+    "description": "The talk of the herding clans beyond the walls. Blunt, practical, and full of weather."
+  },
+  {
+    "id": "crypt-cant",
+    "name": "Crypt Cant",
+    "description": "A whispering argot of grave-robbers, cultists, and worse. Knowing it says something about you."
+  }
+]

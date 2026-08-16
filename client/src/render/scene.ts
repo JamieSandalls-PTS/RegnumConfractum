@@ -38,9 +38,9 @@ const LIGHTING: Record<LightingProfile, LightingParams> = {
   },
   interior: {
     background: 0x16130f, fogNear: 24, fogFar: 48,
-    hemiSky: 0x8f9aa8, hemiGround: 0x4a3b2c, hemiIntensity: 3.6,
-    keyColor: 0xffe4b8, keyIntensity: 4.4,
-    rimColor: 0x8fb8d8, rimIntensity: 1.4,
+    hemiSky: 0xa8a49c, hemiGround: 0x5c4936, hemiIntensity: 4.8,
+    keyColor: 0xffe4b8, keyIntensity: 5.6,
+    rimColor: 0x8fb8d8, rimIntensity: 1.6,
   },
   underground: {
     background: 0x0c0b10, fogNear: 24, fogFar: 48,

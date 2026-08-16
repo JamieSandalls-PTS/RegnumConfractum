@@ -7,6 +7,7 @@ import {
   TICK_MS,
   chebyshev,
   describeAppearance,
+  describeHooded,
   generateAppearance,
   parseClientMessage,
   type Channel,
@@ -22,6 +23,7 @@ import { World, toWireEntity, type WorldEntity } from '../game/world';
 import { EmoteParser } from '../game/emotes';
 import { hasLineOfSight } from '../game/los';
 import { resolveNameContest } from '../game/contest';
+import { scrambleSpeech } from '../game/language';
 
 /** Earshot per channel, chebyshev tiles. Whisper and speech need line of
  * sight; a shout carries around walls — you hear it without seeing who. */
@@ -215,6 +217,12 @@ export class GameServer {
         return this.handleMove(conn, msg);
       case 'say':
         return this.handleSay(conn, msg);
+      case 'set_presentation':
+        return this.handleSetPresentation(conn, msg);
+      case 'write':
+        return this.handleWrite(conn, msg);
+      case 'read_item':
+        return this.handleReadItem(conn, msg);
       case 'give':
         return this.handleGive(conn, msg);
       case 'pay':
@@ -418,7 +426,7 @@ export class GameServer {
         tiles: def.tiles,
       },
       entities: entities.map((e) => toWireEntity(e, descriptors.get(e.id)!)),
-      inventory: items.map((i) => ({ id: i.id, templateId: i.templateId, qty: i.qty })),
+      inventory: items.map(toWireItem),
       coin,
     });
   }
@@ -434,21 +442,30 @@ export class GameServer {
     entities: WorldEntity[],
   ): Promise<Map<number, string>> {
     const out = new Map<number, string>();
-    const strangers: WorldEntity[] = [];
+    // Knowledge is per observed identity: character × presentation (D-219).
+    const strangersByPresentation = new Map<string, WorldEntity[]>();
     for (const e of entities) {
-      if (e.characterId === observer.character!.id) out.set(e.id, observer.character!.name);
-      else strangers.push(e);
+      if (e.characterId === observer.character!.id) {
+        out.set(e.id, observer.character!.name);
+      } else {
+        let group = strangersByPresentation.get(e.presentation);
+        if (!group) strangersByPresentation.set(e.presentation, (group = []));
+        group.push(e);
+      }
     }
-    if (strangers.length > 0) {
+    for (const [presentation, group] of strangersByPresentation) {
       const knowledge = await this.store.getKnowledge(
         observer.character!.id,
-        strangers.map((e) => e.characterId),
+        group.map((e) => e.characterId),
+        presentation,
       );
-      for (const e of strangers) {
+      for (const e of group) {
         const known = knowledge.get(e.characterId);
+        const appearance = generateAppearance(e.appearanceSeed);
         out.set(
           e.id,
-          known?.knownName ?? describeAppearance(generateAppearance(e.appearanceSeed)),
+          known?.knownName ??
+            (presentation === 'hooded' ? describeHooded(appearance) : describeAppearance(appearance)),
         );
       }
     }
@@ -501,6 +518,20 @@ export class GameServer {
       });
     }
 
+    // Language: the speaker must know the tongue they are using.
+    const languageId = msg.language ?? 'common';
+    const language = this.content.languages.get(languageId);
+    if (!language) return this.fail(conn, 'invalid_message', 'no such language');
+    if (!conn.character.languages.includes(languageId)) {
+      return this.fail(conn, 'invalid_message', 'you do not speak that tongue');
+    }
+
+    // Third-party introduction target must be present in the area.
+    const introTarget = msg.introduce ? this.world.getEntity(msg.introduce.entityId) : null;
+    if (msg.introduce && (!introTarget || this.world.getEntityAreaId(introTarget.id) !== conn.areaId)) {
+      return this.fail(conn, 'bad_target', 'they are not here to introduce');
+    }
+
     const range = CHANNEL_RANGE[msg.channel];
     const declaring = msg.declareAs !== undefined;
     const truthful = declaring
@@ -519,6 +550,11 @@ export class GameServer {
         if (!seen && msg.channel !== 'shout') continue;
       }
 
+      // Comprehension: unknown tongues arrive scrambled — the real words
+      // never reach that client. Names only propagate through understanding.
+      const understands = isSelf || listener.character.languages.includes(languageId);
+      const heardText = understands ? msg.text : scrambleSpeech(msg.text, languageId);
+
       // Resolve the descriptor BEFORE any knowledge update: the line reads as
       // the listener knew the speaker at the moment of hearing.
       const descriptor = isSelf
@@ -528,7 +564,7 @@ export class GameServer {
           : 'a voice from somewhere unseen';
 
       let impression: 'rings_false' | 'certain_false' | undefined;
-      if (declaring && !isSelf && seen) {
+      if (declaring && !isSelf && seen && understands) {
         const result = resolveNameContest({
           truthful,
           speakerBluff: conn.character.bluff,
@@ -536,33 +572,146 @@ export class GameServer {
           rng: this.contestRng,
         });
         impression = result ?? undefined;
+        // The name attaches to the speaker AS PRESENTED — a name given while
+        // hooded belongs to the hooded thread (D-219).
         await this.store.upsertKnowledge({
           observerCharacterId: listener.character.id,
           subjectCharacterId: conn.character.id,
-          presentation: 'normal',
+          presentation: speaker.presentation,
           knownName: msg.declareAs!,
           provenance: 'self_claimed',
           impression: result,
         });
       }
 
+      // "This is X": attaches to the target's presented identity, provenance
+      // third_party, never overwriting a name the listener already holds.
+      if (msg.introduce && introTarget && !isSelf && seen && understands &&
+          listener.character.id !== introTarget.characterId) {
+        const existing = await this.store.getKnowledge(
+          listener.character.id,
+          [introTarget.characterId],
+          introTarget.presentation,
+        );
+        if (!existing.get(introTarget.characterId)?.knownName) {
+          await this.store.upsertKnowledge({
+            observerCharacterId: listener.character.id,
+            subjectCharacterId: introTarget.characterId,
+            presentation: introTarget.presentation,
+            knownName: msg.introduce.name,
+            provenance: 'third_party',
+            impression: null,
+          });
+        }
+      }
+
       this.send(listener, {
         t: 'speech',
         speakerId: speaker.id,
         channel: msg.channel,
-        text: msg.text,
+        text: heardText,
+        language: understands ? language.name : 'unknown',
         speakerDescriptor: descriptor,
         ...(impression ? { impression } : {}),
       });
     }
 
-    // Chat is logged in full (D-215): moderation is an evidence problem.
+    // Chat is logged in full and in the original tongue (D-215).
     await this.store.appendEvent('speech', {
       characterId: conn.character.id,
       areaId: conn.areaId,
       channel: msg.channel,
+      language: languageId,
       text: msg.text,
       ...(declaring ? { declaredAs: msg.declareAs, truthful } : {}),
+      ...(msg.introduce && introTarget
+        ? { introduced: introTarget.characterId, asName: msg.introduce.name }
+        : {}),
+    });
+  }
+
+  /** Hood up, hood down (D-219). Lowering the hood in view IS the pierce:
+   * everyone watching merges the hooded thread into the real one. */
+  private async handleSetPresentation(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'set_presentation' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const entity = this.world.getEntity(conn.entityId)!;
+    if (entity.presentation === msg.state) return;
+    const wasHooded = entity.presentation === 'hooded';
+    entity.presentation = msg.state;
+    const areaDef = this.world.getAreaDef(conn.areaId);
+
+    this.broadcast(conn.areaId, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_presentation', id: entity.id, state: msg.state }],
+    });
+
+    for (const other of this.connsByArea.get(conn.areaId) ?? []) {
+      if (other === conn || !other.character || other.entityId === null) continue;
+      const otherEntity = this.world.getEntity(other.entityId)!;
+      const sees = hasLineOfSight(areaDef, otherEntity.pos, entity.pos);
+      if (wasHooded && msg.state === 'normal' && sees) {
+        await this.store.mergeKnowledge(other.character.id, conn.character.id, 'hooded');
+      }
+      // Refresh what this observer calls them, post-merge.
+      this.send(other, {
+        t: 'descriptor',
+        entityId: entity.id,
+        descriptor: await this.descriptorFor(other, entity),
+      });
+    }
+    await this.store.appendEvent('presentation_change', {
+      characterId: conn.character.id,
+      state: msg.state,
+      areaId: conn.areaId,
+    });
+  }
+
+  /** Writing consumes parchment and produces a note carrying its words —
+   * a physical, givable, stealable object (M2; D-213 rides this later). */
+  private async handleWrite(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'write' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const consumed = await this.store.consumeOneItem(conn.character.id, 'parchment');
+    if (!consumed) return this.fail(conn, 'no_such_item', 'nothing to write on');
+    await this.store.grantItem(conn.character.id, 'written-note', 1, {
+      title: msg.title,
+      text: msg.text,
+    });
+    await this.store.appendEvent('item_written', {
+      characterId: conn.character.id,
+      title: msg.title,
+      text: msg.text,
+    });
+    await this.sendInventory(conn);
+  }
+
+  private async handleReadItem(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'read_item' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const item = await this.store.getItem(msg.itemId);
+    if (!item || item.ownerCharacterId !== conn.character.id) {
+      return this.fail(conn, 'no_such_item', 'you do not hold that');
+    }
+    if (!item.data?.text) return this.fail(conn, 'no_such_item', 'nothing is written on it');
+    this.send(conn, {
+      t: 'item_text',
+      itemId: item.id,
+      title: item.data.title ?? '',
+      text: item.data.text,
     });
   }
 
@@ -634,11 +783,7 @@ export class GameServer {
     if (!conn.character) return;
     const items = await this.store.getItemsByCharacter(conn.character.id);
     const coin = await this.store.getCoin(conn.character.id);
-    this.send(conn, {
-      t: 'inventory',
-      items: items.map((i) => ({ id: i.id, templateId: i.templateId, qty: i.qty })),
-      coin,
-    });
+    this.send(conn, { t: 'inventory', items: items.map(toWireItem), coin });
   }
 
   // -------------------------------------------------------------------------
@@ -661,6 +806,20 @@ export class GameServer {
   private fail(conn: ConnState, code: ErrorCode, message: string): void {
     this.send(conn, { t: 'error', code, message });
   }
+}
+
+function toWireItem(i: {
+  id: string;
+  templateId: string;
+  qty: number;
+  data: { title?: string } | null;
+}): { id: string; templateId: string; qty: number; label?: string } {
+  return {
+    id: i.id,
+    templateId: i.templateId,
+    qty: i.qty,
+    ...(i.data?.title ? { label: i.data.title } : {}),
+  };
 }
 
 function toSummary(c: CharacterRecord): CharacterSummary {

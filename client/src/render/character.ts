@@ -4,6 +4,7 @@ import {
   type Appearance,
   type Direction,
   type Posture,
+  type Presentation,
   type TransientAnim,
 } from '@rc/shared';
 import { Cloth, HairSet } from './cloth';
@@ -64,8 +65,10 @@ export class CharacterVisual {
   private helmGroup: THREE.Group | null = null;
   private pauldronGroup: THREE.Group | null = null;
   private weaponGroup: THREE.Group | null = null;
+  private cowlGroup: THREE.Group | null = null;
   private cape: Cloth | null = null;
   private hair: HairSet | null = null;
+  presentation: Presentation = 'normal';
 
   private targetAngle = 0;
   private currentAngle = 0;
@@ -254,6 +257,24 @@ export class CharacterVisual {
 
   setPosture(posture: Posture): void {
     this.posture = posture;
+  }
+
+  /** A deep cowl hides head and hair; build stays readable (D-219). */
+  setPresentation(presentation: Presentation): void {
+    if (this.presentation === presentation) return;
+    this.presentation = presentation;
+    const { headH } = this.dims;
+    if (this.cowlGroup) {
+      this.head.remove(this.cowlGroup);
+      this.cowlGroup = null;
+    }
+    if (presentation === 'hooded') {
+      this.cowlGroup = new THREE.Group();
+      this.head.add(this.cowlGroup);
+      this.box(this.cowlGroup, headH * 0.9, headH * 0.95, headH * 0.85, 0x241f1c, [0, headH * 0.45, -headH * 0.06]);
+      this.box(this.cowlGroup, headH * 0.86, headH * 0.4, headH * 0.3, 0x1c1815, [0, headH * 0.2, headH * 0.28]);
+    }
+    if (this.hair) this.hair.group.visible = presentation !== 'hooded';
   }
 
   /** Queues one-shot emote animations (D-202 transients). */

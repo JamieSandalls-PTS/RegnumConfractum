@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { DIRECTIONS } from './types';
-import { PostureSchema, TransientAnimSchema } from './content';
+import { ContentIdSchema, PostureSchema, PresentationSchema, TransientAnimSchema } from './content';
 
 /**
  * The wire protocol, defined once and consumed by both server and client
@@ -33,13 +33,30 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
     t: z.literal('say'),
     channel: ChannelSchema,
     text: z.string().min(1).max(400),
+    /** Spoken language; the speaker must know it. Defaults to 'common'. */
+    language: ContentIdSchema.optional(),
     /**
      * Explicit name declaration (D-218). True or false, it propagates to
      * everyone in earshot, contested per listener by Insight against the
      * speaker's Bluff. The flag itself is never echoed to observers.
      */
     declareAs: CharacterNameSchema.optional(),
+    /**
+     * Third-party introduction (D-201): "this is X", attaching a name to a
+     * present target for everyone in earshot, provenance 'third_party'.
+     * Never overwrites a name a listener already holds.
+     */
+    introduce: z
+      .object({ entityId: z.number().int(), name: CharacterNameSchema })
+      .optional(),
   }),
+  z.object({ t: z.literal('set_presentation'), state: PresentationSchema }),
+  z.object({
+    t: z.literal('write'),
+    title: z.string().min(1).max(80),
+    text: z.string().min(1).max(2000),
+  }),
+  z.object({ t: z.literal('read_item'), itemId: z.string().uuid() }),
   z.object({ t: z.literal('register'), username: UsernameSchema, password: PasswordSchema }),
   z.object({ t: z.literal('login'), username: UsernameSchema, password: z.string().max(128) }),
   z.object({ t: z.literal('resume'), token: z.string().max(128) }),
@@ -94,6 +111,7 @@ export const WireEntitySchema = z.object({
   y: z.number().int(),
   facing: DirectionSchema,
   posture: PostureSchema,
+  presentation: PresentationSchema,
   /** Drives client-side procedural appearance (D-402). */
   appearanceSeed: z.number().int().nonnegative(),
 });
@@ -103,6 +121,8 @@ export const WireItemSchema = z.object({
   id: UuidSchema,
   templateId: z.string(),
   qty: z.number().int().positive(),
+  /** Display label for written/inscribed items (the note's title). */
+  label: z.string().optional(),
 });
 export type WireItem = z.infer<typeof WireItemSchema>;
 
@@ -136,6 +156,11 @@ export const SimEventSchema = z.discriminatedUnion('type', [
     id: z.number().int(),
     posture: PostureSchema.optional(),
     transients: z.array(TransientAnimSchema).max(3),
+  }),
+  z.object({
+    type: z.literal('entity_presentation'),
+    id: z.number().int(),
+    state: PresentationSchema,
   }),
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
@@ -178,7 +203,11 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     t: z.literal('speech'),
     speakerId: z.number().int(),
     channel: ChannelSchema,
+    /** Scrambled server-side when this listener lacks the language — the
+     * original words never reach their client. */
     text: z.string(),
+    /** Display name of the language if the listener knows it, else 'unknown'. */
+    language: z.string(),
     /** The speaker as THIS listener knew them at the moment of hearing. */
     speakerDescriptor: z.string(),
     /**
@@ -188,6 +217,14 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
      */
     impression: ImpressionSchema.optional(),
   }),
+  z.object({
+    t: z.literal('item_text'),
+    itemId: UuidSchema,
+    title: z.string(),
+    text: z.string(),
+  }),
+  /** Per-observer descriptor refresh (e.g. after a presentation change). */
+  z.object({ t: z.literal('descriptor'), entityId: z.number().int(), descriptor: z.string() }),
   z.object({
     t: z.literal('inventory'),
     items: z.array(WireItemSchema),

@@ -8,6 +8,8 @@ export interface ServerConfig {
   adminHost: string;
   adminToken: string | undefined;
   contentDir: string;
+  /** Where new characters begin. The first slice starts them at the tavern. */
+  defaultAreaId: string;
 }
 
 /** Reads .env (if present) into process.env without overriding real env vars. */
@@ -34,5 +36,6 @@ export function loadConfig(): ServerConfig {
     adminHost: process.env.ADMIN_HOST ?? '127.0.0.1',
     adminToken: process.env.ADMIN_TOKEN,
     contentDir: process.env.CONTENT_DIR ?? resolve(process.cwd(), 'content'),
+    defaultAreaId: process.env.DEFAULT_AREA_ID ?? 'hanged-ferryman',
   };
 }

@@ -1,0 +1,8 @@
+{
+  "id": "parchment",
+  "name": "Parchment",
+  "description": "A cured blank sheet. Everything on it is still true.",
+  "category": "base_material",
+  "stackable": true,
+  "value": 1
+}

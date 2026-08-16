@@ -4,6 +4,7 @@ import type {
   Account,
   CharacterRecord,
   EventRecord,
+  ItemData,
   ItemRecord,
   KnowledgeRecord,
   SessionRecord,
@@ -70,7 +71,7 @@ export class PgStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     try {
       const { rows } = await this.pool.query<{ id: string }>(
@@ -78,11 +79,15 @@ export class PgStore implements Store {
          values ($1, $2, $3, $4, $5, $6) returning id`,
         [c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y],
       );
-      return { ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10 };
+      return { ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10, languages: ['common'] };
     } catch (err) {
       if ((err as { code?: string }).code === '23505') return 'character_name_taken';
       throw err;
     }
+  }
+
+  async setCharacterLanguages(id: string, languages: string[]): Promise<void> {
+    await this.pool.query('update characters set languages = $2 where id = $1', [id, languages]);
   }
 
   async setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void> {
@@ -95,13 +100,14 @@ export class PgStore implements Store {
   async getKnowledge(
     observerId: string,
     subjectIds: string[],
+    presentation = 'normal',
   ): Promise<Map<string, KnowledgeRecord>> {
     if (subjectIds.length === 0) return new Map();
     const { rows } = await this.pool.query(
       `select * from identity_knowledge
-       where observer_character_id = $1 and presentation = 'normal'
+       where observer_character_id = $1 and presentation = $3
          and subject_character_id = any($2::uuid[])`,
-      [observerId, subjectIds],
+      [observerId, subjectIds, presentation],
     );
     const out = new Map<string, KnowledgeRecord>();
     for (const r of rows) {
@@ -157,25 +163,63 @@ export class PgStore implements Store {
     ]);
   }
 
-  async grantItem(ownerCharacterId: string, templateId: string, qty: number): Promise<ItemRecord> {
+  async grantItem(
+    ownerCharacterId: string,
+    templateId: string,
+    qty: number,
+    data?: ItemData,
+  ): Promise<ItemRecord> {
     const { rows } = await this.pool.query<{ id: string }>(
-      'insert into items (template_id, owner_character_id, qty) values ($1, $2, $3) returning id',
-      [templateId, ownerCharacterId, qty],
+      'insert into items (template_id, owner_character_id, qty, data) values ($1, $2, $3, $4) returning id',
+      [templateId, ownerCharacterId, qty, data ? JSON.stringify(data) : null],
     );
-    return { id: rows[0]!.id, templateId, ownerCharacterId, qty };
+    return { id: rows[0]!.id, templateId, ownerCharacterId, qty, data: data ?? null };
+  }
+
+  async getItem(itemId: string): Promise<ItemRecord | null> {
+    const { rows } = await this.pool.query(
+      'select id, template_id, owner_character_id, qty, data from items where id = $1',
+      [itemId],
+    );
+    return rows[0] ? rowToItem(rows[0]) : null;
   }
 
   async getItemsByCharacter(characterId: string): Promise<ItemRecord[]> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, qty from items where owner_character_id = $1 order by created_at',
+      'select id, template_id, owner_character_id, qty, data from items where owner_character_id = $1 order by created_at',
       [characterId],
     );
-    return rows.map((r) => ({
-      id: r.id,
-      templateId: r.template_id,
-      ownerCharacterId: r.owner_character_id,
-      qty: r.qty,
-    }));
+    return rows.map(rowToItem);
+  }
+
+  async consumeOneItem(ownerCharacterId: string, templateId: string): Promise<boolean> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('begin');
+      const { rows } = await client.query<{ id: string; qty: number }>(
+        `select id, qty from items
+         where owner_character_id = $1 and template_id = $2
+         order by created_at limit 1 for update`,
+        [ownerCharacterId, templateId],
+      );
+      const row = rows[0];
+      if (!row) {
+        await client.query('rollback');
+        return false;
+      }
+      if (row.qty > 1) {
+        await client.query('update items set qty = qty - 1 where id = $1', [row.id]);
+      } else {
+        await client.query('delete from items where id = $1', [row.id]);
+      }
+      await client.query('commit');
+      return true;
+    } catch (err) {
+      await client.query('rollback');
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   async transferItem(
@@ -248,6 +292,42 @@ export class PgStore implements Store {
     }
   }
 
+  async mergeKnowledge(
+    observerId: string,
+    subjectId: string,
+    fromPresentation: string,
+  ): Promise<void> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('begin');
+      // Fold the disguised thread into 'normal' unless normal already holds a
+      // name, then drop the disguised row (D-219 merge).
+      await client.query(
+        `insert into identity_knowledge
+           (observer_character_id, subject_character_id, presentation, known_name, provenance, impression)
+         select observer_character_id, subject_character_id, 'normal', known_name, provenance, impression
+         from identity_knowledge
+         where observer_character_id = $1 and subject_character_id = $2 and presentation = $3
+         on conflict (observer_character_id, subject_character_id, presentation)
+         do update set
+           known_name = coalesce(identity_knowledge.known_name, excluded.known_name),
+           updated_at = now()`,
+        [observerId, subjectId, fromPresentation],
+      );
+      await client.query(
+        `delete from identity_knowledge
+         where observer_character_id = $1 and subject_character_id = $2 and presentation = $3`,
+        [observerId, subjectId, fromPresentation],
+      );
+      await client.query('commit');
+    } catch (err) {
+      await client.query('rollback');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
   async appendEvent(type: string, data: Record<string, unknown>): Promise<void> {
     await this.pool.query('insert into event_log (type, data) values ($1, $2)', [
       type,
@@ -279,6 +359,16 @@ export class PgStore implements Store {
   }
 }
 
+function rowToItem(r: Record<string, unknown>): ItemRecord {
+  return {
+    id: r.id as string,
+    templateId: r.template_id as string,
+    ownerCharacterId: r.owner_character_id as string,
+    qty: r.qty as number,
+    data: (r.data as ItemData | null) ?? null,
+  };
+}
+
 function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
   return {
     id: r.id as string,
@@ -291,5 +381,6 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     coin: Number(r.coin),
     bluff: Number(r.bluff ?? 10),
     insight: Number(r.insight ?? 10),
+    languages: (r.languages as string[] | null) ?? ['common'],
   };
 }

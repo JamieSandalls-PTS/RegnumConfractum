@@ -5,9 +5,11 @@ import {
   EMPTY_LEXICON,
   EmoteLexiconSchema,
   ItemTemplateSchema,
+  LanguagesFileSchema,
   type AreaDef,
   type EmoteLexicon,
   type ItemTemplate,
+  type Language,
 } from '@rc/shared';
 
 /**
@@ -20,6 +22,7 @@ export interface Content {
   areas: Map<string, AreaDef>;
   itemTemplates: Map<string, ItemTemplate>;
   emoteLexicon: EmoteLexicon;
+  languages: Map<string, Language>;
 }
 
 function readJsonFiles(dir: string): { file: string; data: unknown }[] {
@@ -76,6 +79,24 @@ export function loadContent(contentDir: string): Content {
     // No lexicon file: emotes render as plain text, nothing animates (D-202).
   }
 
+  const languages = new Map<string, Language>();
+  const languagesPath = join(contentDir, 'languages', 'languages.json');
+  try {
+    const raw = JSON.parse(readFileSync(languagesPath, 'utf8'));
+    const parsed = LanguagesFileSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error(`${languagesPath}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    for (const lang of parsed.data) languages.set(lang.id, lang);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    languages.set('common', {
+      id: 'common',
+      name: 'Common',
+      description: 'The default trade tongue.',
+    });
+  }
+
   if (areas.size === 0) throw new Error(`no areas found under ${contentDir}/areas`);
-  return { areas, itemTemplates, emoteLexicon };
+  return { areas, itemTemplates, emoteLexicon, languages };
 }

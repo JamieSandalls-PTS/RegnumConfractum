@@ -62,6 +62,8 @@ const entities = new Map<number, EntityState>();
 let youId: number | null = null;
 let areaName = '';
 let coin = 0;
+let inventory: Extract<ServerMessage, { t: 'inventory' }>['items'] = [];
+let currentLanguage: string | null = null; // null = common
 
 // ---------------------------------------------------------------------------
 // UI flow
@@ -143,10 +145,19 @@ conn.onMessage = (msg: ServerMessage) => {
       return;
     case 'inventory':
       coin = msg.coin;
+      inventory = msg.items;
       return;
     case 'speech':
       appendSpeech(msg);
       return;
+    case 'item_text':
+      appendDocument(msg.title, msg.text);
+      return;
+    case 'descriptor': {
+      const e = entities.get(msg.entityId);
+      if (e) e.wire.descriptor = msg.descriptor;
+      return;
+    }
     case 'pong':
       return;
   }
@@ -174,6 +185,8 @@ function addEntity(wire: WireEntity): void {
   const visual = new CharacterVisual(wire.appearanceSeed, s.scene);
   visual.setPosition(wire.x, wire.y);
   visual.setFacing(wire.facing);
+  visual.setPosture(wire.posture);
+  visual.setPresentation(wire.presentation);
   entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
 }
 
@@ -224,6 +237,13 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       }
       e.visual.playTransients(event.transients as Parameters<typeof e.visual.playTransients>[0]);
     }
+  } else if (event.type === 'entity_presentation') {
+    const e = entities.get(event.id as number);
+    if (e) {
+      const state = event.state as WireEntity['presentation'];
+      e.wire.presentation = state;
+      e.visual.setPresentation(state);
+    }
   }
 }
 
@@ -253,8 +273,21 @@ function appendSpeech(msg: Extract<ServerMessage, { t: 'speech' }>): void {
   const who = document.createElement('span');
   who.className = 'who';
   const verb = msg.channel === 'whisper' ? 'whispers' : msg.channel === 'shout' ? 'shouts' : 'says';
-  who.textContent = `${msg.speakerDescriptor} ${verb}: `;
+  const tongue =
+    msg.language === 'unknown'
+      ? ' in an unfamiliar tongue'
+      : msg.language !== 'Common'
+        ? ` in ${msg.language}`
+        : '';
+  who.textContent = `${msg.speakerDescriptor} ${verb}`;
   line.appendChild(who);
+  if (tongue) {
+    const t = document.createElement('span');
+    t.className = 'tongue';
+    t.textContent = tongue;
+    line.appendChild(t);
+  }
+  line.appendChild(document.createTextNode(': '));
   renderSpeechText(line, msg.text);
   chatLog.appendChild(line);
   if (msg.impression) {
@@ -277,15 +310,76 @@ function appendSystemLine(text: string): void {
   trimAndScrollChat();
 }
 
+function appendDocument(title: string, text: string): void {
+  const doc = document.createElement('div');
+  doc.className = 'document';
+  if (title) {
+    const t = document.createElement('div');
+    t.className = 'doc-title';
+    t.textContent = title;
+    doc.appendChild(t);
+  }
+  doc.appendChild(document.createTextNode(text));
+  chatLog.appendChild(doc);
+  trimAndScrollChat();
+}
+
 function trimAndScrollChat(): void {
   while (chatLog.childElementCount > 200) chatLog.firstElementChild!.remove();
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
 function sendChat(): void {
-  let text = chatInput.value.trim();
-  if (!text) return;
+  const raw = chatInput.value.trim();
+  if (!raw) return;
+  chatInput.value = '';
+
+  // Slash commands — the placeholder UI until real inventory/interaction
+  // panels exist. /w /y are channels; the rest are actions.
+  if (raw.startsWith('/write ')) {
+    const body = raw.slice(7);
+    const sep = body.indexOf('|');
+    const title = (sep >= 0 ? body.slice(0, sep) : 'A note').trim();
+    const text = (sep >= 0 ? body.slice(sep + 1) : body).trim();
+    if (text) conn.send({ t: 'write', title, text });
+    return;
+  }
+  if (raw === '/read' || raw.startsWith('/read ')) {
+    const wanted = raw.slice(5).trim().toLowerCase();
+    const item = inventory.find(
+      (i) => i.label && (wanted === '' || i.label.toLowerCase().includes(wanted)),
+    );
+    if (item) conn.send({ t: 'read_item', itemId: item.id });
+    else appendSystemLine('You carry nothing written.');
+    return;
+  }
+  if (raw.startsWith('/introduce ')) {
+    const name = raw.slice(11).trim();
+    const target = nearestOther();
+    if (!name) return appendSystemLine('Introduce them as what?');
+    if (!target) return appendSystemLine('There is nobody close enough to introduce.');
+    conn.send({
+      t: 'say',
+      channel: 'say',
+      text: `This is ${name}.`,
+      introduce: { entityId: target, name },
+      ...(currentLanguage ? { language: currentLanguage } : {}),
+    });
+    return;
+  }
+  if (raw === '/hood') {
+    toggleHood();
+    return;
+  }
+  if (raw.startsWith('/lang')) {
+    const lang = raw.slice(5).trim();
+    currentLanguage = lang === '' || lang === 'common' ? null : lang;
+    appendSystemLine(`You will speak ${currentLanguage ?? 'common'}.`);
+    return;
+  }
+
   let channel: Channel = 'say';
+  let text = raw;
   if (text.startsWith('/w ')) {
     channel = 'whisper';
     text = text.slice(3).trim();
@@ -295,10 +389,43 @@ function sendChat(): void {
   }
   if (!text) return;
   const declareAs = declareInput.value.trim();
-  conn.send({ t: 'say', channel, text, ...(declareAs ? { declareAs } : {}) });
-  chatInput.value = '';
+  conn.send({
+    t: 'say',
+    channel,
+    text,
+    ...(currentLanguage ? { language: currentLanguage } : {}),
+    ...(declareAs ? { declareAs } : {}),
+  });
   declareInput.value = '';
   declareInput.classList.remove('armed');
+}
+
+/** Nearest other entity by chebyshev distance, within speech range. */
+function nearestOther(): number | null {
+  if (youId === null) return null;
+  const you = entities.get(youId);
+  if (!you) return null;
+  let best: number | null = null;
+  let bestDist = 11;
+  for (const [id, e] of entities) {
+    if (id === youId) continue;
+    const d = Math.max(Math.abs(e.wire.x - you.wire.x), Math.abs(e.wire.y - you.wire.y));
+    if (d < bestDist) {
+      bestDist = d;
+      best = id;
+    }
+  }
+  return best;
+}
+
+function toggleHood(): void {
+  if (youId === null) return;
+  const you = entities.get(youId);
+  if (!you) return;
+  conn.send({
+    t: 'set_presentation',
+    state: you.wire.presentation === 'hooded' ? 'normal' : 'hooded',
+  });
 }
 
 function chatOpen(): boolean {
@@ -381,6 +508,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key === '2') you.visual.setEquipment({ pauldrons: !you.visual.equipment.pauldrons });
   if (e.key === '3') you.visual.setEquipment({ weapon: !you.visual.equipment.weapon });
   if (e.key === '4') you.visual.setEquipment({ cape: !you.visual.equipment.cape });
+  if (e.key === 'h') toggleHood();
 });
 
 // ---------------------------------------------------------------------------

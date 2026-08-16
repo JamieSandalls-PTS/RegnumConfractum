@@ -138,3 +138,28 @@ export const EmoteLexiconSchema = z.object({
 export type EmoteLexicon = z.infer<typeof EmoteLexiconSchema>;
 
 export const EMPTY_LEXICON: EmoteLexicon = { negators: [], postures: {}, transients: {} };
+
+/**
+ * Languages (M2): speech in a language a listener does not know arrives
+ * scrambled — deterministically per word, so recurring words stay
+ * recognisable and can themselves become roleplay material.
+ */
+export const LanguageSchema = z.object({
+  id: ContentIdSchema,
+  name: z.string().min(1),
+  description: z.string().min(1),
+});
+export type Language = z.infer<typeof LanguageSchema>;
+export const LanguagesFileSchema = z
+  .array(LanguageSchema)
+  .refine((list) => list.some((l) => l.id === 'common'), {
+    message: "the language list must include 'common'",
+  })
+  .refine((list) => new Set(list.map((l) => l.id)).size === list.length, {
+    message: 'duplicate language ids',
+  });
+
+/** Presentation states (D-219). The observed identity is character × state. */
+export const PRESENTATIONS = ['normal', 'hooded'] as const;
+export const PresentationSchema = z.enum(PRESENTATIONS);
+export type Presentation = z.infer<typeof PresentationSchema>;

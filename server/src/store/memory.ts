@@ -3,6 +3,7 @@ import type {
   Account,
   CharacterRecord,
   EventRecord,
+  ItemData,
   ItemRecord,
   KnowledgeRecord,
   SessionRecord,
@@ -60,15 +61,28 @@ export class MemoryStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     const nameKey = c.name.toLowerCase();
     for (const existing of this.characters.values()) {
       if (existing.name.toLowerCase() === nameKey) return 'character_name_taken';
     }
-    const record: CharacterRecord = { ...c, id: randomUUID(), coin: 0, bluff: 10, insight: 10 };
+    const record: CharacterRecord = {
+      ...c,
+      id: randomUUID(),
+      coin: 0,
+      bluff: 10,
+      insight: 10,
+      languages: ['common'],
+    };
     this.characters.set(record.id, record);
     return { ...record };
+  }
+
+  async setCharacterLanguages(id: string, languages: string[]): Promise<void> {
+    const c = this.characters.get(id);
+    if (!c) throw new Error(`setCharacterLanguages: no character ${id}`);
+    c.languages = [...languages];
   }
 
   async setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void> {
@@ -81,10 +95,11 @@ export class MemoryStore implements Store {
   async getKnowledge(
     observerId: string,
     subjectIds: string[],
+    presentation = 'normal',
   ): Promise<Map<string, KnowledgeRecord>> {
     const out = new Map<string, KnowledgeRecord>();
     for (const subjectId of subjectIds) {
-      const k = this.knowledge.get(`${observerId}|${subjectId}|normal`);
+      const k = this.knowledge.get(`${observerId}|${subjectId}|${presentation}`);
       if (k) out.set(subjectId, { ...k });
     }
     return out;
@@ -94,6 +109,22 @@ export class MemoryStore implements Store {
     this.knowledge.set(`${k.observerCharacterId}|${k.subjectCharacterId}|${k.presentation}`, {
       ...k,
     });
+  }
+
+  async mergeKnowledge(
+    observerId: string,
+    subjectId: string,
+    fromPresentation: string,
+  ): Promise<void> {
+    const fromKey = `${observerId}|${subjectId}|${fromPresentation}`;
+    const toKey = `${observerId}|${subjectId}|normal`;
+    const from = this.knowledge.get(fromKey);
+    if (!from) return;
+    const to = this.knowledge.get(toKey);
+    if (!to || to.knownName === null) {
+      this.knowledge.set(toKey, { ...from, presentation: 'normal' });
+    }
+    this.knowledge.delete(fromKey);
   }
 
   async getCharacter(id: string): Promise<CharacterRecord | null> {
@@ -115,13 +146,40 @@ export class MemoryStore implements Store {
     c.y = y;
   }
 
-  async grantItem(ownerCharacterId: string, templateId: string, qty: number): Promise<ItemRecord> {
+  async grantItem(
+    ownerCharacterId: string,
+    templateId: string,
+    qty: number,
+    data?: ItemData,
+  ): Promise<ItemRecord> {
     if (!this.characters.has(ownerCharacterId)) {
       throw new Error(`grantItem: no character ${ownerCharacterId}`);
     }
-    const item: ItemRecord = { id: randomUUID(), templateId, ownerCharacterId, qty };
+    const item: ItemRecord = {
+      id: randomUUID(),
+      templateId,
+      ownerCharacterId,
+      qty,
+      data: data ?? null,
+    };
     this.items.set(item.id, item);
     return { ...item };
+  }
+
+  async getItem(itemId: string): Promise<ItemRecord | null> {
+    const item = this.items.get(itemId);
+    return item ? { ...item } : null;
+  }
+
+  async consumeOneItem(ownerCharacterId: string, templateId: string): Promise<boolean> {
+    for (const item of this.items.values()) {
+      if (item.ownerCharacterId === ownerCharacterId && item.templateId === templateId) {
+        if (item.qty > 1) item.qty -= 1;
+        else this.items.delete(item.id);
+        return true;
+      }
+    }
+    return false;
   }
 
   async getItemsByCharacter(characterId: string): Promise<ItemRecord[]> {

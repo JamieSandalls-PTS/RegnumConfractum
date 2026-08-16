@@ -25,14 +25,17 @@ from each character's appearance seed, palette-quantised isometric rendering, an
 real-time movement between browsers. Art direction awaits stakeholder ratification
 (D-406).
 
-**M2 — the roleplay core: spine built.** Nobody has a name until they give one.
-Strangers appear as descriptions; a spoken name — true or false — propagates to
-everyone in earshot and is silently contested by each listener's Insight, which is
-graded, fallible, and never reveals the truth. Emotes animate from asterisk text
-via a content lexicon ("*doesn't flinch*" correctly does nothing). Still to come
-in M2: languages, in-world writing, disguises and thread-merging.
+**M2 — the roleplay core: mechanically complete.** Nobody has a name until they
+give one. Strangers appear as descriptions; a spoken name — true or false —
+propagates to everyone in earshot and is silently contested by each listener's
+Insight, which is graded, fallible, and never reveals the truth. Emotes animate
+from asterisk text ("*doesn't flinch*" correctly does nothing). Unknown tongues
+arrive scrambled — the real words never leave the server. Letters are physical,
+authorless items: forgery is native. Raise a hood and you are a stranger again;
+lower it in view and the watcher's two memories of you merge into one. What
+remains of M2 is the human test: two writers, one tavern, ninety minutes.
 
-![The Broken Yard, overcast](docs/media/m2-overcast-yard.png)
+![The Hanged Ferryman](docs/media/m2-hanged-ferryman.png)
 
 See [`docs/DEV.md`](docs/DEV.md) to run it. The renderer approach was validated by
 a working prototype rather than adopted on argument — see `prototypes/`.

@@ -16,6 +16,7 @@ const gameServer = new GameServer({
   store,
   content,
   port: config.port,
+  defaultAreaId: config.defaultAreaId,
   log: (msg) => console.log(`[server] ${msg}`),
 });
 const adminServer = new AdminServer({

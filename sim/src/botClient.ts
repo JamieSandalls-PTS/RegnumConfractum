@@ -236,6 +236,10 @@ export class BotClient {
             } else if (event.posture) {
               e.posture = event.posture;
             }
+          } else if (event.type === 'entity_presentation') {
+            const e = this.entities.get(event.id);
+            if (!e) this.violations.push(`entity_presentation for unknown entity ${event.id}`);
+            else e.presentation = event.state;
           }
         }
         break;

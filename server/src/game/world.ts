@@ -6,6 +6,7 @@ import {
   type AreaDef,
   type Direction,
   type Posture,
+  type Presentation,
   type SimEvent,
   type Vec2,
   type WireEntity,
@@ -27,6 +28,7 @@ export interface WorldEntity {
   pos: Vec2;
   facing: Direction;
   posture: Posture;
+  presentation: Presentation;
   /** Tick at which the next tile step may be taken. */
   readyAtTick: number;
   /** Latest movement intent; overwritten by newer intents, cleared when applied. */
@@ -48,6 +50,7 @@ export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
     y: e.pos.y,
     facing: e.facing,
     posture: e.posture,
+    presentation: e.presentation,
     appearanceSeed: e.appearanceSeed,
   };
 }
@@ -113,6 +116,7 @@ export class World {
       pos: { ...at },
       facing: opts.facing ?? 's',
       posture: 'standing',
+      presentation: 'normal',
       readyAtTick: this.tick,
       intent: null,
     };
@@ -206,7 +210,7 @@ export function hashWorld(world: World): string {
   for (const areaId of [...world.areaIds()].sort()) {
     for (const e of world.entitiesIn(areaId).sort((a, b) => a.id - b.id)) {
       parts.push(
-        `${areaId}/${e.id}:${e.characterId}:${e.pos.x},${e.pos.y}:${e.facing}:${e.posture}:${e.readyAtTick}:${e.intent ?? '-'}`,
+        `${areaId}/${e.id}:${e.characterId}:${e.pos.x},${e.pos.y}:${e.facing}:${e.posture}:${e.presentation}:${e.readyAtTick}:${e.intent ?? '-'}`,
       );
     }
   }
