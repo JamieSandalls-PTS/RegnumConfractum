@@ -1,6 +1,7 @@
 import { loadConfig } from './config';
 import { loadContent } from './content';
 import { AdminServer } from './admin/http';
+import { EventEngine } from './dm/events';
 import { GameServer } from './net/gateway';
 import { ScriptHost } from './script/host';
 import { PgStore } from './store/postgres';
@@ -20,9 +21,12 @@ const gameServer = new GameServer({
   defaultAreaId: config.defaultAreaId,
   log: (msg) => console.log(`[server] ${msg}`),
 });
+// DM event engine (D-216): interprets editor-authored event documents.
+const eventEngine = new EventEngine(gameServer, store, (msg) => console.log(`[events] ${msg}`));
 const adminServer = new AdminServer({
   gameServer,
   store,
+  events: eventEngine,
   port: config.adminPort,
   host: config.adminHost,
   token: config.adminToken,
@@ -40,7 +44,10 @@ for (const area of content.areas.values()) {
     );
   }
 }
-gameServer.onTickHook = (tick) => scriptHost.tick(tick);
+gameServer.onTickHook = (tick) => {
+  scriptHost.tick(tick);
+  void eventEngine.tick(tick);
+};
 gameServer.onAreaEnter = (areaId, entityId) => scriptHost.onAreaEntered(areaId, entityId);
 
 await adminServer.start();

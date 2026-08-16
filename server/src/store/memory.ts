@@ -223,6 +223,35 @@ export class MemoryStore implements Store {
     return true;
   }
 
+  private dmEvents = new Map<string, { id: string; name: string; doc: unknown; enabled: boolean }>();
+
+  async createDmEvent(name: string, doc: unknown) {
+    const record = { id: randomUUID(), name, doc, enabled: true };
+    this.dmEvents.set(record.id, record);
+    return { ...record };
+  }
+
+  async listDmEvents() {
+    return [...this.dmEvents.values()].map((e) => ({ ...e }));
+  }
+
+  async getDmEvent(id: string) {
+    const e = this.dmEvents.get(id);
+    return e ? { ...e } : null;
+  }
+
+  async updateDmEvent(id: string, patch: { name?: string; doc?: unknown; enabled?: boolean }) {
+    const e = this.dmEvents.get(id);
+    if (!e) throw new Error(`no dm event ${id}`);
+    if (patch.name !== undefined) e.name = patch.name;
+    if (patch.doc !== undefined) e.doc = patch.doc;
+    if (patch.enabled !== undefined) e.enabled = patch.enabled;
+  }
+
+  async deleteDmEvent(id: string) {
+    this.dmEvents.delete(id);
+  }
+
   async appendEvent(type: string, data: Record<string, unknown>): Promise<void> {
     this.events.push({ id: this.nextEventId++, type, data });
   }

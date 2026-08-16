@@ -328,6 +328,46 @@ export class PgStore implements Store {
     }
   }
 
+  async createDmEvent(name: string, doc: unknown) {
+    const { rows } = await this.pool.query<{ id: string }>(
+      'insert into dm_events (name, doc) values ($1, $2) returning id',
+      [name, JSON.stringify(doc)],
+    );
+    return { id: rows[0]!.id, name, doc, enabled: true };
+  }
+
+  async listDmEvents() {
+    const { rows } = await this.pool.query(
+      'select id, name, doc, enabled from dm_events order by created_at',
+    );
+    return rows.map((r) => ({ id: r.id, name: r.name, doc: r.doc, enabled: r.enabled }));
+  }
+
+  async getDmEvent(id: string) {
+    const { rows } = await this.pool.query(
+      'select id, name, doc, enabled from dm_events where id = $1',
+      [id],
+    );
+    const r = rows[0];
+    return r ? { id: r.id, name: r.name, doc: r.doc, enabled: r.enabled } : null;
+  }
+
+  async updateDmEvent(id: string, patch: { name?: string; doc?: unknown; enabled?: boolean }) {
+    await this.pool.query(
+      `update dm_events set
+         name = coalesce($2, name),
+         doc = coalesce($3, doc),
+         enabled = coalesce($4, enabled),
+         updated_at = now()
+       where id = $1`,
+      [id, patch.name ?? null, patch.doc !== undefined ? JSON.stringify(patch.doc) : null, patch.enabled ?? null],
+    );
+  }
+
+  async deleteDmEvent(id: string) {
+    await this.pool.query('delete from dm_events where id = $1', [id]);
+  }
+
   async appendEvent(type: string, data: Record<string, unknown>): Promise<void> {
     await this.pool.query('insert into event_log (type, data) values ($1, $2)', [
       type,

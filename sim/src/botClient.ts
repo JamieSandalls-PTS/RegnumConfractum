@@ -21,10 +21,12 @@ import {
 
 interface AreaMirror {
   id: string;
+  name: string;
   width: number;
   height: number;
   legend: Record<string, { walkable: boolean; kind: string }>;
   tiles: string[];
+  transitions: { x: number; y: number }[];
 }
 
 export class BotClient {

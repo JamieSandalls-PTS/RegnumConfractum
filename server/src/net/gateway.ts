@@ -80,6 +80,10 @@ export class GameServer {
   private dirtyCharacters = new Map<string, { areaId: string; x: number; y: number }>();
   /** DM lighting overrides, on top of the authored profile. */
   private lightingOverrides = new Map<string, AreaDef['lighting']>();
+  /** Runtime transition overlays (into temporary areas), per host area. */
+  private runtimeTransitions = new Map<string, AreaDef['transitions']>();
+  /** Temporary (DM/event-spawned) areas, removable at rollback. */
+  private tempAreaDefs = new Map<string, AreaDef>();
   /** Script-host hooks — wired by the entrypoint, no-ops otherwise. */
   onAreaEnter: ((areaId: string, entityId: number) => void) | null = null;
   onTickHook: ((tick: number) => void) | null = null;
@@ -149,7 +153,7 @@ export class GameServer {
             this.dirtyCharacters.set(characterId, { areaId, x: event.x, y: event.y });
           }
           // Stepping onto a transition tile crosses to the linked area (D-103).
-          const tr = def.transitions.find((t) => t.x === event.x && t.y === event.y);
+          const tr = this.transitionsFor(areaId).find((t) => t.x === event.x && t.y === event.y);
           if (tr) {
             const conn = [...(this.connsByArea.get(areaId) ?? [])].find(
               (c) => c.entityId === event.id,
@@ -502,7 +506,7 @@ export class GameServer {
         height: def.height,
         legend: def.legend,
         tiles: def.tiles,
-        transitions: def.transitions.map(({ x, y }) => ({ x, y })),
+        transitions: this.transitionsFor(areaId).map(({ x, y }) => ({ x, y })),
       },
       entities: entities.map((e) => toWireEntity(e, descriptors.get(e.id)!)),
       inventory: items.map(toWireItem),
@@ -822,6 +826,94 @@ export class GameServer {
 
   playerCountIn(areaId: string): number {
     return this.connsByArea.get(areaId)?.size ?? 0;
+  }
+
+  private transitionsFor(areaId: string): AreaDef['transitions'] {
+    const def = this.world.getAreaDef(areaId);
+    const overlay = this.runtimeTransitions.get(areaId);
+    return overlay ? [...def.transitions, ...overlay] : def.transitions;
+  }
+
+  getAreaLightingOverride(areaId: string): AreaDef['lighting'] | null {
+    return this.lightingOverrides.get(areaId) ?? null;
+  }
+
+  /** Reverts to the authored profile (rollback path). */
+  clearAreaLighting(areaId: string): void {
+    this.lightingOverrides.delete(areaId);
+    if (this.world.hasArea(areaId)) {
+      this.broadcast(areaId, { t: 'area_lighting', lighting: this.world.getAreaDef(areaId).lighting });
+    }
+  }
+
+  /**
+   * Spawns a temporary area cloned from a content area, linked by a runtime
+   * way-marker in a host area (D-216). Travellers arrive at the clone's
+   * spawn; a back-exit sits beside it, returning next to the host marker.
+   */
+  async spawnTempArea(
+    fromAreaId: string,
+    tempId: string,
+    name: string,
+    link: { areaId: string; x: number; y: number },
+  ): Promise<void> {
+    const source = this.content.areas.get(fromAreaId);
+    if (!source) throw new Error(`no such source area '${fromAreaId}'`);
+    if (this.world.hasArea(tempId)) throw new Error(`area id '${tempId}' already exists`);
+    if (!this.world.hasArea(link.areaId)) throw new Error(`no such host area '${link.areaId}'`);
+
+    const walkable = (def: AreaDef, x: number, y: number) =>
+      x >= 0 && y >= 0 && x < def.width && y < def.height &&
+      def.legend[def.tiles[y]![x]!]!.walkable;
+    const neighborOf = (def: AreaDef, x: number, y: number) => {
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        if (walkable(def, x + dx, y + dy)) return { x: x + dx, y: y + dy };
+      }
+      return { x: def.spawn.x, y: def.spawn.y };
+    };
+
+    const hostDef = this.world.getAreaDef(link.areaId);
+    if (!walkable(hostDef, link.x, link.y)) {
+      throw new Error(`link tile (${link.x},${link.y}) in '${link.areaId}' is not walkable`);
+    }
+    const backExit = neighborOf(source, source.spawn.x, source.spawn.y);
+    const returnTo = neighborOf(hostDef, link.x, link.y);
+    const def: AreaDef = {
+      ...source,
+      id: tempId,
+      name,
+      transitions: [{ x: backExit.x, y: backExit.y, toArea: link.areaId, toX: returnTo.x, toY: returnTo.y }],
+      scripts: [],
+    };
+    this.world.addArea(def);
+    this.tempAreaDefs.set(tempId, def);
+    let overlay = this.runtimeTransitions.get(link.areaId);
+    if (!overlay) this.runtimeTransitions.set(link.areaId, (overlay = []));
+    overlay.push({ x: link.x, y: link.y, toArea: tempId, toX: source.spawn.x, toY: source.spawn.y });
+    // Host-area players see the new way-marker via a fresh snapshot.
+    for (const conn of this.connsByArea.get(link.areaId) ?? []) await this.sendSnapshot(conn);
+  }
+
+  /** Tears a temporary area down: evacuate players, unlink, remove (rollback). */
+  async removeTempArea(tempId: string): Promise<void> {
+    if (!this.tempAreaDefs.has(tempId)) return;
+    for (const conn of [...(this.connsByArea.get(tempId) ?? [])]) {
+      const home = this.world.hasArea(this.defaultAreaId) ? this.defaultAreaId : tempId;
+      const spawn = this.world.getAreaDef(home).spawn;
+      await this.transferToArea(conn, home, spawn.x, spawn.y);
+    }
+    this.connsByArea.delete(tempId);
+    for (const entity of this.world.entitiesIn(tempId)) this.world.despawn(entity.id);
+    this.world.removeArea(tempId);
+    this.tempAreaDefs.delete(tempId);
+    this.lightingOverrides.delete(tempId);
+    for (const [hostId, overlay] of this.runtimeTransitions) {
+      const kept = overlay.filter((t) => t.toArea !== tempId);
+      if (kept.length !== overlay.length) {
+        this.runtimeTransitions.set(hostId, kept);
+        for (const conn of this.connsByArea.get(hostId) ?? []) await this.sendSnapshot(conn);
+      }
+    }
   }
 
   /** Hood up, hood down (D-219). Lowering the hood in view IS the pierce:

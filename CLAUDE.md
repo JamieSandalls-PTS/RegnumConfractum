@@ -211,6 +211,16 @@ all tick-driven and deterministic; errors contained. DM verbs live on the admin
 server (spawn, possess, narrate, lighting), logged. The tavern has a scripted
 keeper (`content/scripts/ferryman-keeper.lua`).
 
-**M3b remaining:** visual form-based event editor, rehearsal mode, templates,
-rollback, death/item triggers (blocked on M4). **Other gaps:** active
-disguise-piercing (M4 skills); staging VPS not provisioned.
+**M3b — the DM event system built (D-508).** A form-based editor in the admin UI
+produces schema-validated event documents: chained stages (immediate / at_hour /
+after_seconds / player_count / entity_death triggers) firing actions (narrate,
+spawn NPC, possessed speech, lighting, spawn a temporary linked area, despawn).
+Runs track everything they spawn; rollback evacuates and erases. Rehearsal = run
+now with [rehearsal] prefixes + one-click rollback. Events persist in `dm_events`
+and duplicate in place (the template library). The canonical M3 done-when chain
+is bot-verified end-to-end except the death stage, which arms and waits on
+`EventEngine.entityDied` (wired in M4).
+
+**Next per plan: M4 — character systems** (classes/skills, death loop, injuries,
+combat). **Other gaps:** invisible DM observation; active disguise-piercing
+(M4 skills); staging VPS not provisioned.

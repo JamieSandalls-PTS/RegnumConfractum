@@ -1,5 +1,7 @@
 import { createServer, type Server } from 'node:http';
 import type { GameServer } from '../net/gateway';
+import type { EventEngine } from '../dm/events';
+import { EventDocSchema } from '../dm/schema';
 import type { Store } from '../store/types';
 
 /**
@@ -11,6 +13,8 @@ import type { Store } from '../store/types';
 export interface AdminServerOptions {
   gameServer: GameServer;
   store: Store;
+  /** The DM event engine; the events panel is inert without it. */
+  events?: EventEngine;
   port: number;
   /** When set, requests must carry it (?token= or X-Admin-Token). */
   token?: string;
@@ -42,6 +46,13 @@ export class AdminServer {
           const result = await this.handleDmAction(url.pathname, body);
           res.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' });
           res.end(JSON.stringify(result));
+          return;
+        }
+        if (url.pathname === '/api/dm/events' && req.method === 'GET') {
+          const events = await store.listDmEvents();
+          const runs = this.opts.events?.listRuns() ?? [];
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ events, runs }));
           return;
         }
         if (url.pathname === '/api/state') {
@@ -141,6 +152,38 @@ export class AdminServer {
           await this.opts.store.appendEvent('dm_lighting', body);
           return { ok: true };
         }
+        case '/api/dm/events/create': {
+          const doc = EventDocSchema.parse(body.doc);
+          const record = await this.opts.store.createDmEvent(doc.name, doc);
+          return { ok: true, id: record.id };
+        }
+        case '/api/dm/events/update': {
+          const patch: { name?: string; doc?: unknown; enabled?: boolean } = {};
+          if (body.doc !== undefined) {
+            const doc = EventDocSchema.parse(body.doc);
+            patch.doc = doc;
+            patch.name = doc.name;
+          }
+          if (body.enabled !== undefined) patch.enabled = Boolean(body.enabled);
+          await this.opts.store.updateDmEvent(String(body.id), patch);
+          return { ok: true };
+        }
+        case '/api/dm/events/delete': {
+          await this.opts.store.deleteDmEvent(String(body.id));
+          return { ok: true };
+        }
+        case '/api/dm/events/run': {
+          if (!this.opts.events) return { ok: false, error: 'event engine not wired' };
+          const run = await this.opts.events.start(String(body.id), {
+            rehearsal: Boolean(body.rehearse),
+          });
+          return { ok: true, runId: run.runId };
+        }
+        case '/api/dm/events/rollback': {
+          if (!this.opts.events) return { ok: false, error: 'event engine not wired' };
+          const ok = await this.opts.events.rollback(String(body.runId));
+          return { ok };
+        }
         default:
           return { ok: false, error: 'unknown dm action' };
       }
@@ -222,8 +265,155 @@ const PAGE = `<!doctype html>
   <button onclick="dm('lighting', {areaId: v('li-area'), lighting: v('li-prof')})">Set</button>
 </fieldset>
 
+<h1>Events — build, run, rehearse, roll back</h1>
+<div class="muted" style="margin-bottom:0.5rem">
+  An event is a chain of stages; each stage waits for its trigger, fires its
+  actions, and arms the next. Rehearse runs it immediately, announced as a
+  rehearsal, ready to roll back.
+</div>
+<div id="ev-list"></div>
+<div id="ev-runs"></div>
+<fieldset><legend>New event</legend>
+  <input id="ev-name" placeholder="event name" size="30">
+  <button onclick="addStage()">+ stage</button>
+  <button onclick="saveEvent()">Save event</button>
+  <div id="ev-stages"></div>
+</fieldset>
+
 <h1>Recent events</h1>
 <pre id="events">…</pre>
+
+<script>
+  // ── Event builder: forms in, document out. DMs never write code (D-216).
+  const TRIGGER_FIELDS = {
+    immediate: [],
+    at_hour: [['hour', 'number', 'game hour 0-23']],
+    after_seconds: [['seconds', 'number', 'seconds after arming']],
+    player_count: [['area', 'text', 'areaId or $alias'], ['count', 'number', 'players']],
+    entity_death: [['alias', 'text', 'npc alias']],
+  };
+  const ACTION_FIELDS = {
+    narrate: [['scope', 'select:area,global', ''], ['area', 'text', 'areaId or $alias'], ['text', 'text', 'scene text']],
+    spawn_npc: [['area', 'text', 'areaId or $alias'], ['x', 'number', 'x'], ['y', 'number', 'y'], ['descriptor', 'text', 'what players see'], ['alias', 'text', 'alias (optional)']],
+    npc_say: [['alias', 'text', 'npc alias'], ['text', 'text', 'words']],
+    set_lighting: [['area', 'text', 'areaId or $alias'], ['lighting', 'select:overcast,night,underground,interior', '']],
+    spawn_area: [['from', 'text', 'clone which areaId'], ['alias', 'text', 'alias'], ['name', 'text', 'shown name'], ['link.area', 'text', 'host areaId'], ['link.x', 'number', 'marker x'], ['link.y', 'number', 'marker y']],
+    despawn: [['alias', 'text', 'alias']],
+  };
+  let stages = [];
+
+  function addStage() {
+    stages.push({ trigger: { type: 'immediate' }, actions: [] });
+    renderStages();
+  }
+  function addAction(si) {
+    stages[si].actions.push({ type: 'narrate', scope: 'area', text: '' });
+    renderStages();
+  }
+  function fieldInputs(spec, obj, onchange) {
+    return spec.map(([key, kind, hint]) => {
+      const val = key.split('.').reduce((o, k) => (o || {})[k], obj) ?? '';
+      if (kind.startsWith('select:')) {
+        const opts = kind.slice(7).split(',').map((o) =>
+          '<option' + (o === val ? ' selected' : '') + '>' + o + '</option>').join('');
+        return '<select onchange="' + onchange + '(this,\\'' + key + '\\')">' + opts + '</select>';
+      }
+      return '<input size="' + (kind === 'number' ? 4 : 16) + '" placeholder="' + hint +
+        '" value="' + String(val).replace(/"/g, '&quot;') + '" data-kind="' + kind +
+        '" onchange="' + onchange + '(this,\\'' + key + '\\')">';
+    }).join(' ');
+  }
+  function setDeep(obj, key, el) {
+    const parts = key.split('.');
+    let o = obj;
+    for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]] = o[parts[i]] || {};
+    const raw = el.value;
+    o[parts[parts.length - 1]] = el.dataset && el.dataset.kind === 'number' ? Number(raw) : raw;
+  }
+  window._sel = { s: 0, a: 0 };
+  function stTrig(el, key) { setDeep(stages[el.closest('[data-si]').dataset.si].trigger, key, el); }
+  function stAct(el, key) {
+    const holder = el.closest('[data-si]');
+    setDeep(stages[holder.dataset.si].actions[holder.dataset.ai], key, el);
+  }
+  function changeTrigType(el) {
+    const si = el.closest('[data-si]').dataset.si;
+    stages[si].trigger = { type: el.value };
+    renderStages();
+  }
+  function changeActType(el) {
+    const holder = el.closest('[data-si]');
+    stages[holder.dataset.si].actions[holder.dataset.ai] = { type: el.value };
+    renderStages();
+  }
+  function renderStages() {
+    document.getElementById('ev-stages').innerHTML = stages.map((st, si) =>
+      '<fieldset data-si="' + si + '"><legend>stage ' + (si + 1) + '</legend>' +
+      'when <select onchange="changeTrigType(this)">' +
+        Object.keys(TRIGGER_FIELDS).map((t) =>
+          '<option' + (t === st.trigger.type ? ' selected' : '') + '>' + t + '</option>').join('') +
+      '</select> ' + fieldInputs(TRIGGER_FIELDS[st.trigger.type], st.trigger, 'stTrig') +
+      '<button onclick="stages.splice(' + si + ',1);renderStages()">✕ stage</button>' +
+      st.actions.map((a, ai) =>
+        '<div data-si="' + si + '" data-ai="' + ai + '" style="margin:0.3rem 0 0 1.5rem">do ' +
+        '<select onchange="changeActType(this)">' +
+          Object.keys(ACTION_FIELDS).map((t) =>
+            '<option' + (t === a.type ? ' selected' : '') + '>' + t + '</option>').join('') +
+        '</select> ' + fieldInputs(ACTION_FIELDS[a.type], a, 'stAct') +
+        '<button onclick="stages[' + si + '].actions.splice(' + ai + ',1);renderStages()">✕</button></div>'
+      ).join('') +
+      '<div style="margin:0.3rem 0 0 1.5rem"><button onclick="addAction(' + si + ')">+ action</button></div>' +
+      '</fieldset>'
+    ).join('');
+  }
+  async function saveEvent() {
+    const doc = { name: v('ev-name'), stages };
+    const r = await fetch('/api/dm/events/create' + location.search, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ doc }),
+    });
+    const out = await r.json();
+    document.getElementById('dm-result').textContent = 'save: ' + JSON.stringify(out);
+    if (out.ok) { stages = []; document.getElementById('ev-name').value = ''; renderStages(); refreshEvents(); }
+  }
+  async function evAction(action, payload) {
+    const r = await fetch('/api/dm/events/' + action + location.search, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    document.getElementById('dm-result').textContent = action + ': ' + JSON.stringify(await r.json());
+    refreshEvents();
+  }
+  let knownEvents = [];
+  async function dupEvent(id) {
+    const source = knownEvents.find((e) => e.id === id);
+    if (!source) return;
+    const doc = JSON.parse(JSON.stringify(source.doc));
+    doc.name = source.name + ' (copy)';
+    await evAction('create', { doc });
+  }
+  async function refreshEvents() {
+    const data = await (await fetch('/api/dm/events' + location.search)).json();
+    knownEvents = data.events;
+    document.getElementById('ev-list').innerHTML = data.events.length === 0
+      ? '<div class="muted">no saved events</div>'
+      : '<table><tr><th>event</th><th>stages</th><th></th></tr>' + data.events.map((e) =>
+        '<tr><td>' + e.name + (e.enabled ? '' : ' <span class="muted">(disabled)</span>') +
+        '</td><td>' + (e.doc.stages ? e.doc.stages.length : '?') + '</td><td>' +
+        '<button onclick="evAction(\\'run\\', {id: \\'' + e.id + '\\'})">Run</button>' +
+        '<button onclick="evAction(\\'run\\', {id: \\'' + e.id + '\\', rehearse: true})">Rehearse</button>' +
+        '<button onclick="dupEvent(\\'' + e.id + '\\')">Duplicate</button>' +
+        '<button onclick="evAction(\\'delete\\', {id: \\'' + e.id + '\\'})">Delete</button>' +
+        '</td></tr>').join('') + '</table>';
+    document.getElementById('ev-runs').innerHTML = data.runs.length === 0 ? '' :
+      '<table><tr><th>run</th><th>stage</th><th></th></tr>' + data.runs.map((r) =>
+        '<tr><td>' + r.eventName + (r.rehearsal ? ' [rehearsal]' : '') +
+        (r.done ? ' <span class="muted">done</span>' : '') + '</td><td>' + r.stageIndex + '</td><td>' +
+        '<button onclick="evAction(\\'rollback\\', {runId: \\'' + r.runId + '\\'})">Rollback</button>' +
+        '</td></tr>').join('') + '</table>';
+  }
+  refreshEvents();
+</script>
 <script>
   const v = (id) => document.getElementById(id).value;
   async function dm(action, payload) {

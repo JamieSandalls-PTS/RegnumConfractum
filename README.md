@@ -35,13 +35,14 @@ authorless items: forgery is native. Raise a hood and you are a stranger again;
 lower it in view and the watcher's two memories of you merge into one. What
 remains of M2 is the human test: two writers, one tavern, ninety minutes.
 
-**M3 — scripting and the DM toolset: spine built.** The world is now a graph —
-walk off the tavern street and you are in the Broken Yard. Areas run sandboxed
-Lua behind a controlled API: the Ferryman has a scripted keeper who greets
-arrivals and grumbles at crowds. A DM can spawn an NPC, speak through it (the
-words go through the same earshot/sight/language rules as everyone else's),
-narrate a scene, and change an area's weather-light — all from the admin console,
-all logged. Still to come: the visual event editor, rehearsal mode, rollback.
+**M3 — scripting and the DM toolset: built.** The world is a graph — walk off the
+tavern street and you are in the Broken Yard. Areas run sandboxed Lua behind a
+controlled API; the Ferryman has a scripted keeper. A DM spawns NPCs, speaks
+through them (same earshot/sight/language rules as everyone else), narrates, and
+changes the light — and builds **events** in a form editor: chained stages that
+wait for a trigger (a game hour, a crowd, a death) and fire consequences,
+including spawning whole temporary areas linked into the world. Rehearse it,
+run it, roll it all back. Death triggers arm today and fire when M4 brings death.
 
 ![The Hanged Ferryman](docs/media/m2-hanged-ferryman.png)
 

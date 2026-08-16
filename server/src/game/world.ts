@@ -74,6 +74,16 @@ export class World {
     return this.areas.has(areaId);
   }
 
+  /** Removes a (temporary) area. Callers must evacuate entities first. */
+  removeArea(areaId: string): void {
+    const area = this.areas.get(areaId);
+    if (!area) return;
+    if (area.entities.size > 0) {
+      throw new Error(`removeArea '${areaId}': ${area.entities.size} entities remain`);
+    }
+    this.areas.delete(areaId);
+  }
+
   getAreaDef(areaId: string): AreaDef {
     return this.mustArea(areaId).def;
   }

@@ -1092,3 +1092,37 @@ admin UI. Every DM action lands in the event log.
 code), trigger persistence, rehearsal mode, event templates, rollback,
 entity-death and item-acquired triggers (need M4's combat/death), invisible
 DM observation, and DM-authored trigger chains from the console.
+
+### D-508: M3b — the DM event system
+
+**Design call:** the "script underneath" the form editor (D-216) is a
+**declarative event document**, not generated Lua. A document is
+schema-validated before it can run, every spawn it makes is tracked for
+rollback, and a rehearsal is just a run that announces itself. Lua remains
+the power tool for content authors; events are the DM's instrument.
+
+**The model:** an event is a chain of stages; each stage waits for its
+trigger — immediate, at_hour (48-min game day), after_seconds,
+player_count, entity_death — fires its actions — narrate, spawn_npc,
+npc_say, set_lighting, spawn_area, despawn — and arms the next. Spawned
+areas and NPCs bind `$alias` names later stages reference. Temporary areas
+clone a content area under a run-scoped id and link into a host area via a
+runtime way-marker; players present see the marker appear, and rollback
+evacuates them before the area vanishes.
+
+**Persistence:** documents live in `dm_events` (migration 0004), duplicable
+in place — that IS the template library. Runs are in-memory: a restart
+clears live runs (acceptable: a DM re-runs the event; revisit if events grow
+long-lived). Every start/stage/rollback is event-logged.
+
+**Rehearsal, honestly stated:** BUILD_PLAN imagined rehearsal against a
+staging server. With one server, rehearsal = run now, prefixed
+`[rehearsal]` in every narration, one-click rollback. True staging rehearsal
+becomes possible when the VPS exists.
+
+**M3 done-when status:** the canonical chain (announce → spawn location →
+5-players trigger → spawn warband → warlord-killed → reward) is built in the
+editor and verified end-to-end by bots over the admin HTTP API — except the
+death stage, which arms correctly and waits on `EventEngine.entityDied`,
+wired when M4 gives entities death. **Still open from D-216:** invisible DM
+observation, weather control beyond lighting profiles.

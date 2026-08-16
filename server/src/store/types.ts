@@ -65,6 +65,13 @@ export interface EventRecord {
   data: Record<string, unknown>;
 }
 
+export interface DmEventRecord {
+  id: string;
+  name: string;
+  doc: unknown;
+  enabled: boolean;
+}
+
 export interface Store {
   init(): Promise<void>;
   close(): Promise<void>;
@@ -122,6 +129,16 @@ export interface Store {
   getCoin(characterId: string): Promise<number>;
   /** True iff `from` had at least `amount`. Atomic, never overdraws. */
   transferCoin(fromCharacterId: string, toCharacterId: string, amount: number): Promise<boolean>;
+
+  // DM events (D-216) — editor documents, validated against EventDocSchema
+  createDmEvent(name: string, doc: unknown): Promise<DmEventRecord>;
+  listDmEvents(): Promise<DmEventRecord[]>;
+  getDmEvent(id: string): Promise<DmEventRecord | null>;
+  updateDmEvent(
+    id: string,
+    patch: { name?: string; doc?: unknown; enabled?: boolean },
+  ): Promise<void>;
+  deleteDmEvent(id: string): Promise<void>;
 
   // Event log (append-only, D-106)
   appendEvent(type: string, data: Record<string, unknown>): Promise<void>;
