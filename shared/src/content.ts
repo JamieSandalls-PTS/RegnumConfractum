@@ -15,7 +15,17 @@ export const TileDefSchema = z.object({
   walkable: z.boolean(),
   /** Render/logic hint: 'floor', 'wall', 'water', ... Free-form for now. */
   kind: z.string().min(1),
+  /** Blocks line of sight. Defaults to true for kind 'wall', else false. */
+  opaque: z.boolean().optional(),
 });
+
+export function isTileOpaque(def: { kind: string; opaque?: boolean }): boolean {
+  return def.opaque ?? def.kind === 'wall';
+}
+
+/** Per-area lighting profile (D-504, feeding D-305). */
+export const LightingProfileSchema = z.enum(['overcast', 'night', 'underground', 'interior']);
+export type LightingProfile = z.infer<typeof LightingProfileSchema>;
 
 export const AreaSchema = z
   .object({
@@ -29,6 +39,7 @@ export const AreaSchema = z
     tiles: z.array(z.string()),
     /** Default spawn tile; must be walkable. */
     spawn: z.object({ x: z.number().int().min(0), y: z.number().int().min(0) }),
+    lighting: LightingProfileSchema.default('overcast'),
   })
   .superRefine((area, ctx) => {
     if (area.tiles.length !== area.height) {
@@ -98,3 +109,32 @@ export const ItemTemplateSchema = z.object({
 });
 
 export type ItemTemplate = z.infer<typeof ItemTemplateSchema>;
+
+/**
+ * Emote lexicon (D-202): a data-defined mapping from spoken phrases to
+ * animations, extendable by DMs without a deploy. Postures persist until
+ * movement; transients play once. Unmatched text is fine — it renders as
+ * plain emote text and never errors.
+ */
+
+export const POSTURES = ['standing', 'sitting', 'kneeling'] as const;
+export const PostureSchema = z.enum(POSTURES);
+export type Posture = z.infer<typeof PostureSchema>;
+
+/** Transient animations the client can play; lexicon keys must stay inside this. */
+export const TRANSIENT_ANIMS = ['bow', 'wave', 'laugh', 'point', 'shrug'] as const;
+export const TransientAnimSchema = z.enum(TRANSIENT_ANIMS);
+export type TransientAnim = z.infer<typeof TransientAnimSchema>;
+
+const SynonymsSchema = z.array(z.string().min(1)).min(1);
+
+export const EmoteLexiconSchema = z.object({
+  /** Words that cancel a following match: "*doesn't flinch*" must not flinch. */
+  negators: z.array(z.string().min(1)),
+  postures: z.record(PostureSchema, SynonymsSchema),
+  transients: z.record(TransientAnimSchema, SynonymsSchema),
+});
+
+export type EmoteLexicon = z.infer<typeof EmoteLexiconSchema>;
+
+export const EMPTY_LEXICON: EmoteLexicon = { negators: [], postures: {}, transients: {} };

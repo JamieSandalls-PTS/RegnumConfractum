@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
   DIRECTION_VECTORS,
+  type Channel,
   type CharacterSummary,
   type Direction,
   type ServerMessage,
@@ -29,6 +30,12 @@ const charForm = $('char-form');
 const statusMsg = $('status-msg');
 const charList = $<HTMLUListElement>('char-list');
 const hud = $('hud');
+const chat = $('chat');
+const chatLog = $('chat-log');
+const chatBar = $('chat-bar');
+const chatHint = $('chat-hint');
+const chatInput = $<HTMLInputElement>('in-chat');
+const declareInput = $<HTMLInputElement>('in-declare');
 
 const defaultServer = `ws://${location.hostname || 'localhost'}:8080`;
 $<HTMLInputElement>('in-server').value = localStorage.getItem('rc.server') ?? defaultServer;
@@ -107,6 +114,8 @@ conn.onClose = (reason) => {
   loginForm.classList.remove('hidden');
   charForm.classList.add('hidden');
   hud.classList.add('hidden');
+  chat.classList.add('hidden');
+  chatHint.classList.add('hidden');
   clearWorld();
   setStatus(`disconnected: ${reason}`);
 };
@@ -134,6 +143,9 @@ conn.onMessage = (msg: ServerMessage) => {
       return;
     case 'inventory':
       coin = msg.coin;
+      return;
+    case 'speech':
+      appendSpeech(msg);
       return;
     case 'pong':
       return;
@@ -168,6 +180,7 @@ function addEntity(wire: WireEntity): void {
 function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   const s = ensureScene();
   clearWorld();
+  s.applyLighting(snap.area.lighting);
   terrain = new Terrain(snap.area, s.scene);
   for (const e of snap.entities) addEntity(e);
   youId = snap.you;
@@ -175,7 +188,10 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   coin = snap.coin;
   overlay.classList.add('hidden');
   hud.classList.remove('hidden');
+  chat.classList.remove('hidden');
+  chatHint.classList.remove('hidden');
   $('hud-area').textContent = areaName;
+  appendSystemLine(`${snap.area.name}.`);
 }
 
 function applyEvent(event: { type: string } & Record<string, unknown>): void {
@@ -194,10 +210,104 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       e.wire.x = event.x as number;
       e.wire.y = event.y as number;
       e.wire.facing = event.facing as Direction;
+      e.wire.posture = 'standing';
       e.visual.setFacing(e.wire.facing);
+      e.visual.setPosture('standing');
+    }
+  } else if (event.type === 'entity_emote') {
+    const e = entities.get(event.id as number);
+    if (e) {
+      const posture = event.posture as WireEntity['posture'] | undefined;
+      if (posture) {
+        e.wire.posture = posture;
+        e.visual.setPosture(posture);
+      }
+      e.visual.playTransients(event.transients as Parameters<typeof e.visual.playTransients>[0]);
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Chat (D-306: a reading application first)
+// ---------------------------------------------------------------------------
+
+/** Renders *emote spans* italic-amber; everything else plain text. */
+function renderSpeechText(target: HTMLElement, text: string): void {
+  const parts = text.split(/(\*[^*]+\*)/g);
+  for (const part of parts) {
+    if (part.length === 0) continue;
+    const span = document.createElement('span');
+    if (part.startsWith('*') && part.endsWith('*')) {
+      span.className = 'emote-text';
+      span.textContent = part;
+    } else {
+      span.textContent = part;
+    }
+    target.appendChild(span);
+  }
+}
+
+function appendSpeech(msg: Extract<ServerMessage, { t: 'speech' }>): void {
+  const line = document.createElement('div');
+  line.className = `line ${msg.channel}`;
+  const who = document.createElement('span');
+  who.className = 'who';
+  const verb = msg.channel === 'whisper' ? 'whispers' : msg.channel === 'shout' ? 'shouts' : 'says';
+  who.textContent = `${msg.speakerDescriptor} ${verb}: `;
+  line.appendChild(who);
+  renderSpeechText(line, msg.text);
+  chatLog.appendChild(line);
+  if (msg.impression) {
+    const imp = document.createElement('div');
+    imp.className = 'line impression';
+    imp.textContent =
+      msg.impression === 'certain_false'
+        ? 'You are certain that name is not their own.'
+        : 'Something about that rings false.';
+    chatLog.appendChild(imp);
+  }
+  trimAndScrollChat();
+}
+
+function appendSystemLine(text: string): void {
+  const line = document.createElement('div');
+  line.className = 'line system';
+  line.textContent = text;
+  chatLog.appendChild(line);
+  trimAndScrollChat();
+}
+
+function trimAndScrollChat(): void {
+  while (chatLog.childElementCount > 200) chatLog.firstElementChild!.remove();
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+function sendChat(): void {
+  let text = chatInput.value.trim();
+  if (!text) return;
+  let channel: Channel = 'say';
+  if (text.startsWith('/w ')) {
+    channel = 'whisper';
+    text = text.slice(3).trim();
+  } else if (text.startsWith('/y ') || text.startsWith('/shout ')) {
+    channel = 'shout';
+    text = text.slice(text.indexOf(' ') + 1).trim();
+  }
+  if (!text) return;
+  const declareAs = declareInput.value.trim();
+  conn.send({ t: 'say', channel, text, ...(declareAs ? { declareAs } : {}) });
+  chatInput.value = '';
+  declareInput.value = '';
+  declareInput.classList.remove('armed');
+}
+
+function chatOpen(): boolean {
+  return chatBar.classList.contains('open');
+}
+
+declareInput.addEventListener('input', () => {
+  declareInput.classList.toggle('armed', declareInput.value.trim().length > 0);
+});
 
 // ---------------------------------------------------------------------------
 // Input → intent
@@ -205,10 +315,41 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
 
 const held = new Set<string>();
 window.addEventListener('keydown', (e) => {
-  if (overlay.classList.contains('hidden')) held.add(e.key.toLowerCase());
+  if (overlay.classList.contains('hidden') && !isTyping()) held.add(e.key.toLowerCase());
 });
 window.addEventListener('keyup', (e) => held.delete(e.key.toLowerCase()));
 window.addEventListener('blur', () => held.clear());
+
+function isTyping(): boolean {
+  return document.activeElement instanceof HTMLInputElement;
+}
+
+// Enter opens the composer / sends; Escape closes it. Movement keys are
+// ignored while typing.
+window.addEventListener('keydown', (e) => {
+  if (!overlay.classList.contains('hidden')) return;
+  if (e.key === 'Enter') {
+    if (!chatOpen()) {
+      chatBar.classList.add('open');
+      chatHint.classList.add('hidden');
+      chatInput.focus();
+    } else if (isTyping()) {
+      sendChat();
+      chatInput.blur();
+      chatBar.classList.remove('open');
+      chatHint.classList.remove('hidden');
+    } else {
+      chatInput.focus();
+    }
+    e.preventDefault();
+  } else if (e.key === 'Escape' && chatOpen()) {
+    chatBar.classList.remove('open');
+    chatHint.classList.remove('hidden');
+    chatInput.blur();
+    declareInput.blur();
+    held.clear();
+  }
+});
 
 function heldDirection(): Direction | null {
   const n = held.has('w') || held.has('arrowup');
@@ -233,7 +374,7 @@ setInterval(() => {
 // equipment is geometry on bones, swappable live). Inventory drives this
 // from M5.
 window.addEventListener('keydown', (e) => {
-  if (youId === null) return;
+  if (youId === null || isTyping()) return;
   const you = entities.get(youId);
   if (!you) return;
   if (e.key === '1') you.visual.setEquipment({ helm: !you.visual.equipment.helm });

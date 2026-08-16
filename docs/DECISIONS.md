@@ -959,3 +959,55 @@ without relying on requestAnimationFrame. First-light capture:
 
 **Still open (D-406):** art direction is implemented but NOT ratified — the
 stakeholder has not yet judged the look by eye.
+
+### D-504: Art direction — partial ratification, and per-area lighting profiles
+**Progresses D-406.**
+
+**Stakeholder verdict on the M1 render (2026-08-16):** the dark, grim look is
+right *for an underground or enclosed location* — the test render "seems like
+a cave." Outdoor and bright locations must read much brighter and more
+colourful. Not worth deep investment in the look yet; **models and animations
+need work** (matches the gap D-406 predicted — tracked as its own work item,
+not blocking systems milestones).
+
+**Decision:** areas declare a `lighting` profile in their content file
+(`overcast`, `night`, `underground`, `interior` — extendable). The client maps
+the profile to hemisphere/key/rim intensities, background and fog. This slots
+directly under D-305 (light and weather as mechanical inputs): time-of-day and
+weather will later modulate the same parameters. A handful of brighter,
+still-desaturated entries were added to the palette so daylight scenes have
+somewhere to land (D-404: mood retuning is a palette edit, and D-308's
+restraint still applies).
+
+### D-505: M2 core implemented — names leave the wire; speech is per-observer
+
+**What is built (the roleplay core's spine):**
+
+- **Names are no longer objective wire data.** `WireEntity` carries a
+  per-observer `descriptor` — a learned name, or a generated description of
+  what the observer sees ("a broad, heavy-built figure in worn cloth").
+  Snapshots and arrival events are personalized per connection; movement and
+  emotes stay broadcast because they are objective.
+- **Proximity speech** — whisper (1 tile), say (10), shout (40) — with
+  Bresenham line of sight; whispers and speech require sight, shouts carry
+  around walls attributed to "a voice from somewhere unseen".
+- **Name declaration** (D-218): an explicit `declareAs` flag on speech. The
+  claimed name — true or false — is stored per listener with provenance
+  `self_claimed`. Contested per listener (D-219): Insight+d20 vs Bluff+d20;
+  win by 6+ reads a lie with certainty, narrow margins are noisy in both
+  directions (12% within ±2). The wire message shape is identical whether or
+  not a declaration fired, verified by test — the mechanic is invisible.
+- **Emotes** (D-202): asterisk spans parsed against
+  `content/emotes/lexicon.json` (synonym groups, negators — "*doesn't
+  laugh*" does not laugh). Postures (sit/kneel/stand) persist on the entity
+  and appear in late joiners' snapshots; transients (bow, wave, laugh, point,
+  shrug) play once. Movement returns posture to standing.
+- **Chat is fully logged** in the event log, including declarations and their
+  truthfulness (D-215) — moderation is an evidence problem.
+
+**Deliberately deferred from this slice (still M2 scope, next in line):**
+languages (scrambled when unknown); in-world writing (books, notes, letters
+as items); hooded/disguised presentation states and the thread-merge on
+pierce (the data model — knowledge keyed by observer × subject ×
+presentation — is already shaped for it); third-party introductions
+("this is X"); live emote highlighting in the composer.

@@ -67,10 +67,57 @@
     pointer-events: none;
   }
   #hud b { color: var(--text); font-weight: 400; }
+
+  /* Chat: the most-used surface in the game — legibility beats atmosphere
+     here (D-306). */
+  #chat {
+    position: absolute; left: 12px; bottom: 64px; width: 460px; max-width: 60vw;
+    display: flex; flex-direction: column; gap: 2px; pointer-events: none;
+    font-size: 13.5px; line-height: 1.45;
+  }
+  #chat-log {
+    overflow-y: auto; max-height: 34vh; padding: 6px 10px;
+    background: rgba(11, 10, 12, 0.72); border-radius: 3px;
+    pointer-events: auto; scrollbar-width: thin;
+  }
+  #chat-log .line { margin: 2px 0; color: var(--text); overflow-wrap: break-word; }
+  #chat-log .who { color: #d9cdb4; }
+  #chat-log .whisper { color: #948d9e; font-style: italic; }
+  #chat-log .shout .who, #chat-log .shout { color: #d8a05c; }
+  #chat-log .emote-text { color: #b79a6e; font-style: italic; }
+  #chat-log .impression { color: #b0685c; font-style: italic; font-size: 12.5px; }
+  #chat-log .system { color: var(--dim); font-style: italic; font-size: 12.5px; }
+  #chat-bar {
+    display: none; gap: 6px; margin-top: 6px; pointer-events: auto;
+  }
+  #chat-bar.open { display: flex; }
+  #chat-bar input {
+    background: rgba(15, 14, 18, 0.92); color: var(--text);
+    border: 1px solid var(--line); padding: 7px 10px; font: inherit;
+    border-radius: 2px; outline: none;
+  }
+  #chat-bar input:focus { border-color: var(--warm); }
+  #in-declare { width: 120px; }
+  #in-declare.armed { border-color: var(--warm); color: #e8c88f; }
+  #in-chat { flex: 1; }
+  #chat-hint {
+    position: absolute; left: 12px; bottom: 40px; color: var(--dim);
+    font-size: 11.5px; pointer-events: none;
+  }
 </style>
 </head>
 <body>
   <div id="stage"></div>
+  <div id="chat" class="hidden">
+    <div id="chat-log"></div>
+    <div id="chat-bar">
+      <input id="in-declare" placeholder="declare as…" spellcheck="false" autocomplete="off"
+             title="Speak under a name — yours, or any other. Listeners may see through it.">
+      <input id="in-chat" placeholder="say something… (*emotes* animate; /w whisper, /y shout)"
+             spellcheck="false" autocomplete="off" maxlength="400">
+    </div>
+  </div>
+  <div id="chat-hint" class="hidden">Enter to speak</div>
   <div id="hud" class="hidden">
     <span id="hud-area"></span>
     <span>pos <b id="hud-pos">–</b></span>

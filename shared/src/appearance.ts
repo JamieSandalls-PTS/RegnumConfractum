@@ -1,4 +1,4 @@
-import { mulberry32 } from '@rc/shared';
+import { mulberry32 } from './rng';
 
 /**
  * Appearance generation (D-402): a character's look derives deterministically
@@ -76,6 +76,31 @@ export interface Appearance {
 const rangePick = (rnd: () => number, r: readonly [number, number]) => r[0] + rnd() * (r[1] - r[0]);
 const pick = <T>(rnd: () => number, arr: readonly T[]): T =>
   arr[Math.floor(rnd() * arr.length) % arr.length]!;
+
+/**
+ * What a stranger sees (D-201/D-219): until a name is learned, an entity is
+ * described, never named. Deterministic from the appearance, so every client
+ * and the server agree on how a stranger reads. Deliberately ungendered —
+ * the appearance model carries no gender.
+ */
+export function describeAppearance(a: Appearance): string {
+  const build =
+    a.archetype === 'brute'
+      ? a.height > 1.95 ? 'a towering, heavy-built figure' : 'a broad, heavy-built figure'
+      : a.archetype === 'soldier'
+        ? 'an upright, square-shouldered figure'
+        : a.archetype === 'rogue'
+          ? 'a slight, quick-looking figure'
+          : a.height > 1.74 ? 'a tall, spare figure' : 'a lean, austere figure';
+  const dress = a.helm
+    ? 'in a battered helm'
+    : a.hairLen > 0.35
+      ? 'with long unkempt hair'
+      : a.hasCape
+        ? 'in a travel-stained cloak'
+        : 'in worn cloth';
+  return `${build} ${dress}`;
+}
 
 export function generateAppearance(seed: number): Appearance {
   const rnd = mulberry32(seed);

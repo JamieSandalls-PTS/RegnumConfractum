@@ -5,6 +5,7 @@ import {
   isTileWalkable,
   type AreaDef,
   type Direction,
+  type Posture,
   type SimEvent,
   type Vec2,
   type WireEntity,
@@ -19,10 +20,13 @@ import {
 export interface WorldEntity {
   id: number;
   characterId: string;
+  /** The character's true name — server-side knowledge only. What observers
+   * see is resolved per observer via identity knowledge (D-219). */
   name: string;
   appearanceSeed: number;
   pos: Vec2;
   facing: Direction;
+  posture: Posture;
   /** Tick at which the next tile step may be taken. */
   readyAtTick: number;
   /** Latest movement intent; overwritten by newer intents, cleared when applied. */
@@ -34,14 +38,16 @@ interface AreaRuntime {
   entities: Map<number, WorldEntity>;
 }
 
-export function toWireEntity(e: WorldEntity): WireEntity {
+/** Wire form for a specific observer — the descriptor is their knowledge. */
+export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
   return {
     id: e.id,
-    name: e.name,
+    descriptor,
     kind: 'player',
     x: e.pos.x,
     y: e.pos.y,
     facing: e.facing,
+    posture: e.posture,
     appearanceSeed: e.appearanceSeed,
   };
 }
@@ -96,7 +102,7 @@ export class World {
       pos: Vec2;
       facing?: Direction;
     },
-  ): { entity: WorldEntity; event: SimEvent } {
+  ): { entity: WorldEntity } {
     const area = this.mustArea(areaId);
     const at = isTileWalkable(area.def, opts.pos) ? opts.pos : area.def.spawn;
     const entity: WorldEntity = {
@@ -106,12 +112,21 @@ export class World {
       appearanceSeed: opts.appearanceSeed ?? 0,
       pos: { ...at },
       facing: opts.facing ?? 's',
+      posture: 'standing',
       readyAtTick: this.tick,
       intent: null,
     };
     area.entities.set(entity.id, entity);
     this.entityArea.set(entity.id, areaId);
-    return { entity, event: { type: 'entity_entered', entity: toWireEntity(entity) } };
+    return { entity };
+  }
+
+  /** Applies an emote's posture change; returns the broadcast event. */
+  setPosture(entityId: number, posture: Posture): SimEvent | null {
+    const entity = this.getEntity(entityId);
+    if (!entity || entity.posture === posture) return null;
+    entity.posture = posture;
+    return { type: 'entity_emote', id: entityId, posture, transients: [] };
   }
 
   despawn(entityId: number): SimEvent | null {
@@ -145,6 +160,7 @@ export class World {
         const target = this.moveTarget(area.def, entity.pos, dir);
         if (target === null) continue; // blocked: face the direction, stay put
         entity.pos = target;
+        entity.posture = 'standing'; // moving implies standing (protocol rule)
         entity.readyAtTick = this.tick + MOVE_COOLDOWN_TICKS;
         (events ??= []).push({
           type: 'entity_moved',
@@ -190,7 +206,7 @@ export function hashWorld(world: World): string {
   for (const areaId of [...world.areaIds()].sort()) {
     for (const e of world.entitiesIn(areaId).sort((a, b) => a.id - b.id)) {
       parts.push(
-        `${areaId}/${e.id}:${e.characterId}:${e.pos.x},${e.pos.y}:${e.facing}:${e.readyAtTick}:${e.intent ?? '-'}`,
+        `${areaId}/${e.id}:${e.characterId}:${e.pos.x},${e.pos.y}:${e.facing}:${e.posture}:${e.readyAtTick}:${e.intent ?? '-'}`,
       );
     }
   }

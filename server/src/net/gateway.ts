@@ -2,20 +2,30 @@ import { WebSocketServer, type WebSocket } from 'ws';
 import {
   FLUSH_INTERVAL_TICKS,
   INTERACT_RANGE,
+  Rng,
   SESSION_TTL_MS,
   TICK_MS,
   chebyshev,
+  describeAppearance,
+  generateAppearance,
   parseClientMessage,
+  type Channel,
   type CharacterSummary,
   type ClientMessage,
   type ErrorCode,
   type ServerMessage,
-  type SimEvent,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
 import type { CharacterRecord, Store } from '../store/types';
-import { World, toWireEntity } from '../game/world';
+import { World, toWireEntity, type WorldEntity } from '../game/world';
+import { EmoteParser } from '../game/emotes';
+import { hasLineOfSight } from '../game/los';
+import { resolveNameContest } from '../game/contest';
+
+/** Earshot per channel, chebyshev tiles. Whisper and speech need line of
+ * sight; a shout carries around walls — you hear it without seeing who. */
+const CHANNEL_RANGE: Record<Channel, number> = { whisper: 1, say: 10, shout: 40 };
 
 /**
  * The WebSocket gateway: owns the World, the tick loop, and all connections.
@@ -32,6 +42,8 @@ export interface GameServerOptions {
    * this to run faster without changing semantics. Defaults to TICK_MS. */
   tickIntervalMs?: number;
   defaultAreaId?: string;
+  /** Seeds contest rolls — fixed in tests for reproducibility (D-114). */
+  rngSeed?: number;
   log?: (msg: string) => void;
 }
 
@@ -55,6 +67,8 @@ export class GameServer {
 
   private wss: WebSocketServer | null = null;
   private tickTimer: NodeJS.Timeout | null = null;
+  private emoteParser: EmoteParser;
+  private contestRng: Rng;
   private conns = new Set<ConnState>();
   private connsByArea = new Map<string, Set<ConnState>>();
   private onlineCharacters = new Set<string>();
@@ -67,6 +81,8 @@ export class GameServer {
     this.content = opts.content;
     this.tickIntervalMs = opts.tickIntervalMs ?? TICK_MS;
     this.log = opts.log ?? (() => {});
+    this.emoteParser = new EmoteParser(opts.content.emoteLexicon);
+    this.contestRng = new Rng(opts.rngSeed ?? Math.floor(Math.random() * 2 ** 31));
     for (const def of opts.content.areas.values()) this.world.addArea(def);
     const fallback = opts.content.areas.keys().next().value as string;
     this.defaultAreaId = opts.defaultAreaId ?? fallback;
@@ -197,6 +213,8 @@ export class GameServer {
         return this.handleEnterWorld(conn, msg);
       case 'move':
         return this.handleMove(conn, msg);
+      case 'say':
+        return this.handleSay(conn, msg);
       case 'give':
         return this.handleGive(conn, msg);
       case 'pay':
@@ -345,7 +363,7 @@ export class GameServer {
       return this.fail(conn, 'already_in_world', 'character is already online');
     }
     const areaId = this.world.hasArea(character.areaId) ? character.areaId : this.defaultAreaId;
-    const { entity, event } = this.world.spawn(areaId, {
+    const { entity } = this.world.spawn(areaId, {
       characterId: character.id,
       name: character.name,
       appearanceSeed: character.appearanceSeed,
@@ -356,7 +374,17 @@ export class GameServer {
     conn.areaId = areaId;
     this.entityCharacter.set(entity.id, character.id);
     this.onlineCharacters.add(character.id);
-    this.broadcast(areaId, { t: 'delta', tick: this.world.tick, events: [event] }, conn);
+    // entity_entered is personalized: each observer gets the arrival under
+    // the descriptor THEY know (D-219) — a name if learned, else what they see.
+    for (const other of this.connsByArea.get(areaId) ?? []) {
+      if (other === conn || !other.character) continue;
+      const descriptor = await this.descriptorFor(other, entity);
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(entity, descriptor) }],
+      });
+    }
     let byArea = this.connsByArea.get(areaId);
     if (!byArea) this.connsByArea.set(areaId, (byArea = new Set()));
     byArea.add(conn);
@@ -374,6 +402,8 @@ export class GameServer {
     const def = this.world.getAreaDef(areaId);
     const items = await this.store.getItemsByCharacter(conn.character!.id);
     const coin = await this.store.getCoin(conn.character!.id);
+    const entities = this.world.entitiesIn(areaId);
+    const descriptors = await this.descriptorsFor(conn, entities);
     this.send(conn, {
       t: 'snapshot',
       tick: this.world.tick,
@@ -381,15 +411,52 @@ export class GameServer {
       area: {
         id: def.id,
         name: def.name,
+        lighting: def.lighting,
         width: def.width,
         height: def.height,
         legend: def.legend,
         tiles: def.tiles,
       },
-      entities: this.world.entitiesIn(areaId).map(toWireEntity),
+      entities: entities.map((e) => toWireEntity(e, descriptors.get(e.id)!)),
       inventory: items.map((i) => ({ id: i.id, templateId: i.templateId, qty: i.qty })),
       coin,
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // Recognition (D-201, D-218, D-219)
+  // -------------------------------------------------------------------------
+
+  /** What `observer` calls each entity: own name for self, a learned name if
+   * known, else a generated description of what they see. */
+  private async descriptorsFor(
+    observer: ConnState,
+    entities: WorldEntity[],
+  ): Promise<Map<number, string>> {
+    const out = new Map<number, string>();
+    const strangers: WorldEntity[] = [];
+    for (const e of entities) {
+      if (e.characterId === observer.character!.id) out.set(e.id, observer.character!.name);
+      else strangers.push(e);
+    }
+    if (strangers.length > 0) {
+      const knowledge = await this.store.getKnowledge(
+        observer.character!.id,
+        strangers.map((e) => e.characterId),
+      );
+      for (const e of strangers) {
+        const known = knowledge.get(e.characterId);
+        out.set(
+          e.id,
+          known?.knownName ?? describeAppearance(generateAppearance(e.appearanceSeed)),
+        );
+      }
+    }
+    return out;
+  }
+
+  private async descriptorFor(observer: ConnState, entity: WorldEntity): Promise<string> {
+    return (await this.descriptorsFor(observer, [entity])).get(entity.id)!;
   }
 
   // -------------------------------------------------------------------------
@@ -399,6 +466,104 @@ export class GameServer {
   private handleMove(conn: ConnState, msg: Extract<ClientMessage, { t: 'move' }>): void {
     if (conn.entityId === null) return this.fail(conn, 'not_in_world', 'enter the world first');
     this.world.setMoveIntent(conn.entityId, msg.dir);
+  }
+
+  /**
+   * Speech (M2): proximity channels with line of sight; asterisk emotes
+   * animate (D-202); an explicit declareAs flag propagates a name — true or
+   * false — to everyone in earshot, contested per listener by Insight against
+   * Bluff (D-218, D-219). Nothing in any outbound message reveals that the
+   * declaration mechanic fired.
+   */
+  private async handleSay(conn: ConnState, msg: Extract<ClientMessage, { t: 'say' }>): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const speaker = this.world.getEntity(conn.entityId)!;
+    const areaDef = this.world.getAreaDef(conn.areaId);
+
+    // Emotes: postures persist on the entity, transients play once. Objective
+    // and broadcast to the whole area.
+    const emotes = this.emoteParser.parse(msg.text);
+    if (emotes.posture || emotes.transients.length > 0) {
+      if (emotes.posture) speaker.posture = emotes.posture;
+      this.broadcast(conn.areaId, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [
+          {
+            type: 'entity_emote',
+            id: speaker.id,
+            posture: emotes.posture ?? undefined,
+            transients: emotes.transients,
+          },
+        ],
+      });
+    }
+
+    const range = CHANNEL_RANGE[msg.channel];
+    const declaring = msg.declareAs !== undefined;
+    const truthful = declaring
+      ? msg.declareAs!.toLowerCase() === conn.character.name.toLowerCase()
+      : true;
+
+    for (const listener of this.connsByArea.get(conn.areaId) ?? []) {
+      if (!listener.character || listener.entityId === null) continue;
+      const listenerEntity = this.world.getEntity(listener.entityId)!;
+      const isSelf = listener === conn;
+      let seen = true;
+      if (!isSelf) {
+        if (chebyshev(speaker.pos, listenerEntity.pos) > range) continue;
+        seen = hasLineOfSight(areaDef, listenerEntity.pos, speaker.pos);
+        // Whispers and speech need sight; a shout carries around walls.
+        if (!seen && msg.channel !== 'shout') continue;
+      }
+
+      // Resolve the descriptor BEFORE any knowledge update: the line reads as
+      // the listener knew the speaker at the moment of hearing.
+      const descriptor = isSelf
+        ? conn.character.name
+        : seen
+          ? await this.descriptorFor(listener, speaker)
+          : 'a voice from somewhere unseen';
+
+      let impression: 'rings_false' | 'certain_false' | undefined;
+      if (declaring && !isSelf && seen) {
+        const result = resolveNameContest({
+          truthful,
+          speakerBluff: conn.character.bluff,
+          listenerInsight: listener.character.insight,
+          rng: this.contestRng,
+        });
+        impression = result ?? undefined;
+        await this.store.upsertKnowledge({
+          observerCharacterId: listener.character.id,
+          subjectCharacterId: conn.character.id,
+          presentation: 'normal',
+          knownName: msg.declareAs!,
+          provenance: 'self_claimed',
+          impression: result,
+        });
+      }
+
+      this.send(listener, {
+        t: 'speech',
+        speakerId: speaker.id,
+        channel: msg.channel,
+        text: msg.text,
+        speakerDescriptor: descriptor,
+        ...(impression ? { impression } : {}),
+      });
+    }
+
+    // Chat is logged in full (D-215): moderation is an evidence problem.
+    await this.store.appendEvent('speech', {
+      characterId: conn.character.id,
+      areaId: conn.areaId,
+      channel: msg.channel,
+      text: msg.text,
+      ...(declaring ? { declaredAs: msg.declareAs, truthful } : {}),
+    });
   }
 
   private async handleGive(

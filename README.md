@@ -25,13 +25,19 @@ from each character's appearance seed, palette-quantised isometric rendering, an
 real-time movement between browsers. Art direction awaits stakeholder ratification
 (D-406).
 
-![Two players in The Broken Yard](docs/media/m1-two-players.png)
+**M2 — the roleplay core: spine built.** Nobody has a name until they give one.
+Strangers appear as descriptions; a spoken name — true or false — propagates to
+everyone in earshot and is silently contested by each listener's Insight, which is
+graded, fallible, and never reveals the truth. Emotes animate from asterisk text
+via a content lexicon ("*doesn't flinch*" correctly does nothing). Still to come
+in M2: languages, in-world writing, disguises and thread-merging.
+
+![The Broken Yard, overcast](docs/media/m2-overcast-yard.png)
 
 See [`docs/DEV.md`](docs/DEV.md) to run it. The renderer approach was validated by
 a working prototype rather than adopted on argument — see `prototypes/`.
 
-Next milestone is **M2 — the roleplay core**, the project's go/no-go gate.
-See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md).
+See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) for the milestone map.
 
 ---
 

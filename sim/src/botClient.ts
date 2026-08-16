@@ -36,6 +36,8 @@ export class BotClient {
    * what the server says. A non-empty array IS a desync.
    */
   lastResyncDiffs: string[] | null = null;
+  /** Every speech line this client has heard, in order. */
+  readonly speeches: Extract<ServerMessage, { t: 'speech' }>[] = [];
   area: AreaMirror | null = null;
   you: number | null = null;
   inventory: WireItem[] = [];
@@ -220,11 +222,19 @@ export class BotClient {
             e.x = event.x;
             e.y = event.y;
             e.facing = event.facing;
+            e.posture = 'standing'; // protocol rule: moving implies standing
           } else if (event.type === 'entity_entered') {
             this.entities.set(event.entity.id, { ...event.entity });
           } else if (event.type === 'entity_left') {
             if (!this.entities.delete(event.id)) {
               this.violations.push(`entity_left for unknown entity ${event.id}`);
+            }
+          } else if (event.type === 'entity_emote') {
+            const e = this.entities.get(event.id);
+            if (!e) {
+              this.violations.push(`entity_emote for unknown entity ${event.id}`);
+            } else if (event.posture) {
+              e.posture = event.posture;
             }
           }
         }
@@ -233,6 +243,10 @@ export class BotClient {
       case 'inventory': {
         this.inventory = msg.items;
         this.coin = msg.coin;
+        break;
+      }
+      case 'speech': {
+        this.speeches.push(msg);
         break;
       }
       default:
@@ -248,7 +262,7 @@ export class BotClient {
       seen.add(e.id);
       const mine = this.entities.get(e.id);
       if (!mine) {
-        diffs.push(`server has entity ${e.id} (${e.name}) missing from mirror`);
+        diffs.push(`server has entity ${e.id} (${e.descriptor}) missing from mirror`);
       } else if (mine.x !== e.x || mine.y !== e.y) {
         diffs.push(`entity ${e.id}: mirror (${mine.x},${mine.y}) vs server (${e.x},${e.y})`);
       }

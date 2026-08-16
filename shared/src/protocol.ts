@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DIRECTIONS } from './types';
+import { PostureSchema, TransientAnimSchema } from './content';
 
 /**
  * The wire protocol, defined once and consumed by both server and client
@@ -24,7 +25,21 @@ const UuidSchema = z.string().uuid();
 // Client → server. The client sends intent only (D-102).
 // ---------------------------------------------------------------------------
 
+export const ChannelSchema = z.enum(['whisper', 'say', 'shout']);
+export type Channel = z.infer<typeof ChannelSchema>;
+
 export const ClientMessageSchema = z.discriminatedUnion('t', [
+  z.object({
+    t: z.literal('say'),
+    channel: ChannelSchema,
+    text: z.string().min(1).max(400),
+    /**
+     * Explicit name declaration (D-218). True or false, it propagates to
+     * everyone in earshot, contested per listener by Insight against the
+     * speaker's Bluff. The flag itself is never echoed to observers.
+     */
+    declareAs: CharacterNameSchema.optional(),
+  }),
   z.object({ t: z.literal('register'), username: UsernameSchema, password: PasswordSchema }),
   z.object({ t: z.literal('login'), username: UsernameSchema, password: z.string().max(128) }),
   z.object({ t: z.literal('resume'), token: z.string().max(128) }),
@@ -67,11 +82,18 @@ export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
 
 export const WireEntitySchema = z.object({
   id: z.number().int(),
-  name: CharacterNameSchema,
+  /**
+   * What THIS observer calls the entity: a learned name, or a generated
+   * description (D-201/D-219). Never the objective character name — names are
+   * knowledge, and knowledge is per-observer. Snapshots and entity_entered
+   * are therefore personalized per connection.
+   */
+  descriptor: z.string().min(1).max(120),
   kind: z.enum(['player']),
   x: z.number().int(),
   y: z.number().int(),
   facing: DirectionSchema,
+  posture: PostureSchema,
   /** Drives client-side procedural appearance (D-402). */
   appearanceSeed: z.number().int().nonnegative(),
 });
@@ -94,7 +116,11 @@ export const CharacterSummarySchema = z.object({
 });
 export type CharacterSummary = z.infer<typeof CharacterSummarySchema>;
 
-/** Per-tick simulation events, broadcast to everyone in the area. */
+/**
+ * Simulation events. Movement, departure and emotes are objective and are
+ * broadcast; entity_entered carries a descriptor and is sent per connection.
+ * A move implies posture returns to standing.
+ */
 export const SimEventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('entity_moved'),
@@ -105,8 +131,18 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   }),
   z.object({ type: z.literal('entity_entered'), entity: WireEntitySchema }),
   z.object({ type: z.literal('entity_left'), id: z.number().int() }),
+  z.object({
+    type: z.literal('entity_emote'),
+    id: z.number().int(),
+    posture: PostureSchema.optional(),
+    transients: z.array(TransientAnimSchema).max(3),
+  }),
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
+
+/** Graded, fallible Insight readings (D-218). Absence means "you cannot tell". */
+export const ImpressionSchema = z.enum(['rings_false', 'certain_false']);
+export type Impression = z.infer<typeof ImpressionSchema>;
 
 export const ServerMessageSchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('error'), code: ErrorCodeSchema, message: z.string() }),
@@ -124,6 +160,7 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     area: z.object({
       id: z.string(),
       name: z.string(),
+      lighting: z.enum(['overcast', 'night', 'underground', 'interior']),
       width: z.number().int(),
       height: z.number().int(),
       legend: z.record(
@@ -137,6 +174,20 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     coin: z.number().int().nonnegative(),
   }),
   z.object({ t: z.literal('delta'), tick: z.number().int(), events: z.array(SimEventSchema) }),
+  z.object({
+    t: z.literal('speech'),
+    speakerId: z.number().int(),
+    channel: ChannelSchema,
+    text: z.string(),
+    /** The speaker as THIS listener knew them at the moment of hearing. */
+    speakerDescriptor: z.string(),
+    /**
+     * Insight reading, present only when a contested declaration produced
+     * one. There is deliberately no field saying a declaration occurred —
+     * the mechanic is invisible to observers (D-218).
+     */
+    impression: ImpressionSchema.optional(),
+  }),
   z.object({
     t: z.literal('inventory'),
     items: z.array(WireItemSchema),

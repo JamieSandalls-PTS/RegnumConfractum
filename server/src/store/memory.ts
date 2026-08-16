@@ -4,6 +4,7 @@ import type {
   CharacterRecord,
   EventRecord,
   ItemRecord,
+  KnowledgeRecord,
   SessionRecord,
   Store,
 } from './types';
@@ -19,6 +20,7 @@ export class MemoryStore implements Store {
   private sessions = new Map<string, SessionRecord>();
   private characters = new Map<string, CharacterRecord>();
   private items = new Map<string, ItemRecord>();
+  private knowledge = new Map<string, KnowledgeRecord>(); // key: observer|subject|presentation
   private events: EventRecord[] = [];
   private nextEventId = 1;
 
@@ -58,15 +60,40 @@ export class MemoryStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     const nameKey = c.name.toLowerCase();
     for (const existing of this.characters.values()) {
       if (existing.name.toLowerCase() === nameKey) return 'character_name_taken';
     }
-    const record: CharacterRecord = { ...c, id: randomUUID(), coin: 0 };
+    const record: CharacterRecord = { ...c, id: randomUUID(), coin: 0, bluff: 10, insight: 10 };
     this.characters.set(record.id, record);
     return { ...record };
+  }
+
+  async setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void> {
+    const c = this.characters.get(id);
+    if (!c) throw new Error(`setCharacterSkills: no character ${id}`);
+    if (skills.bluff !== undefined) c.bluff = skills.bluff;
+    if (skills.insight !== undefined) c.insight = skills.insight;
+  }
+
+  async getKnowledge(
+    observerId: string,
+    subjectIds: string[],
+  ): Promise<Map<string, KnowledgeRecord>> {
+    const out = new Map<string, KnowledgeRecord>();
+    for (const subjectId of subjectIds) {
+      const k = this.knowledge.get(`${observerId}|${subjectId}|normal`);
+      if (k) out.set(subjectId, { ...k });
+    }
+    return out;
+  }
+
+  async upsertKnowledge(k: KnowledgeRecord): Promise<void> {
+    this.knowledge.set(`${k.observerCharacterId}|${k.subjectCharacterId}|${k.presentation}`, {
+      ...k,
+    });
   }
 
   async getCharacter(id: string): Promise<CharacterRecord | null> {

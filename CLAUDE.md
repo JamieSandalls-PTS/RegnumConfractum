@@ -190,8 +190,17 @@ procedural animation, interpolation of authoritative positions. Pure logic
 verification hook. Verified live: two accounts in two browser tabs saw each other
 move in real time. First light: `docs/media/m1-two-players.png`.
 
-**Still open:** staging deployment to a VPS (compose file exists; no VPS
-provisioned); **art direction ratification by the stakeholder (D-406)** — run
-`npm run dev:server` + `npm run dev:client` and judge by eye.
-**Next: M2 — the roleplay core**, the project's real go/no-go gate. See
-`docs/BUILD_PLAN.md`.
+**M2 — the roleplay core: spine built (D-505).** Names are per-observer knowledge,
+never wire facts: strangers are described, learned names persist in
+`identity_knowledge`. Proximity channels with line of sight; explicit name
+declaration contested per listener by graded, fallible Insight (D-218); emotes from
+a content lexicon with negation, postures and transients; chat fully logged. Art
+feedback recorded in D-504: per-area lighting profiles added; models/animations
+flagged for a quality pass (separate task).
+
+**Still in M2, not yet built:** languages (scrambled), in-world writing,
+disguise/presentation states + thread merge, third-party introductions. See D-505.
+
+**Still open:** staging deployment to a VPS; final art ratification (D-406/D-504).
+**The M2 go/no-go test** (BUILD_PLAN): two writers in the tavern for ninety
+minutes — needs the tavern area authored and the deferred M2 items above.

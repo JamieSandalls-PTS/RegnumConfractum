@@ -1,0 +1,15 @@
+{
+  "negators": ["not", "no", "never", "doesn't", "dont", "don't", "without", "hardly", "barely", "refuses"],
+  "postures": {
+    "sitting": ["sit", "sits", "sits down", "sitting", "sat", "slumps", "slumps down"],
+    "kneeling": ["kneel", "kneels", "kneels down", "kneeling", "genuflects"],
+    "standing": ["stand", "stands", "stands up", "standing", "rises", "gets up"]
+  },
+  "transients": {
+    "bow": ["bow", "bows", "bowing", "bows deeply", "curtsies", "curtseys"],
+    "wave": ["wave", "waves", "waving", "waves a hand", "beckons"],
+    "laugh": ["laugh", "laughs", "laughing", "chuckles", "cackles", "guffaws", "snickers"],
+    "point": ["point", "points", "pointing", "gestures at", "jabs a finger"],
+    "shrug": ["shrug", "shrugs", "shrugging"]
+  }
+}

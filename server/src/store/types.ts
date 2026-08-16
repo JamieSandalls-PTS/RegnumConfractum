@@ -25,6 +25,18 @@ export interface CharacterRecord {
   x: number;
   y: number;
   coin: number;
+  bluff: number;
+  insight: number;
+}
+
+/** What one character knows about another's observed identity (D-219). */
+export interface KnowledgeRecord {
+  observerCharacterId: string;
+  subjectCharacterId: string;
+  presentation: string;
+  knownName: string | null;
+  provenance: 'self_claimed' | 'third_party' | 'verified';
+  impression: 'rings_false' | 'certain_false' | null;
 }
 
 export interface ItemRecord {
@@ -59,12 +71,19 @@ export interface Store {
 
   // Characters
   createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight'>,
   ): Promise<CharacterRecord | 'character_name_taken'>;
   getCharacter(id: string): Promise<CharacterRecord | null>;
   getCharactersByAccount(accountId: string): Promise<CharacterRecord[]>;
   /** Batched dirty-flag flush target; also called immediately on logout (D-106). */
   saveCharacterPosition(id: string, areaId: string, x: number, y: number): Promise<void>;
+  /** Skill tuning — admin/tests now, character systems (M4) later. */
+  setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void>;
+
+  // Recognition (D-218/D-219)
+  /** What `observerId` knows about each of `subjectIds` (presentation 'normal'). */
+  getKnowledge(observerId: string, subjectIds: string[]): Promise<Map<string, KnowledgeRecord>>;
+  upsertKnowledge(k: KnowledgeRecord): Promise<void>;
 
   // Items & coin
   grantItem(ownerCharacterId: string, templateId: string, qty: number): Promise<ItemRecord>;

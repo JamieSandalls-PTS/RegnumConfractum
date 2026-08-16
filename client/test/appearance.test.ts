@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ARCHETYPES, generateAppearance } from '../src/game/appearance';
+import { ARCHETYPES, describeAppearance, generateAppearance } from '@rc/shared';
 
 describe('appearance generation (D-402)', () => {
   it('is deterministic: same seed, same appearance', () => {
@@ -27,5 +27,15 @@ describe('appearance generation (D-402)', () => {
     const seen = new Set<string>();
     for (let seed = 1; seed < 500; seed++) seen.add(generateAppearance(seed).archetype);
     expect([...seen].sort()).toEqual(['ascetic', 'brute', 'rogue', 'soldier']);
+  });
+
+  it('describes strangers deterministically and without gendered terms', () => {
+    for (let seed = 1; seed < 300; seed++) {
+      const a = generateAppearance(seed);
+      const d = describeAppearance(a);
+      expect(d).toBe(describeAppearance(a));
+      expect(d).toMatch(/figure/);
+      expect(d).not.toMatch(/\b(man|woman|he|she)\b/i);
+    }
   });
 });

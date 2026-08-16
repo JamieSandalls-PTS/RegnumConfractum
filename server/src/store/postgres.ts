@@ -5,6 +5,7 @@ import type {
   CharacterRecord,
   EventRecord,
   ItemRecord,
+  KnowledgeRecord,
   SessionRecord,
   Store,
 } from './types';
@@ -69,7 +70,7 @@ export class PgStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     try {
       const { rows } = await this.pool.query<{ id: string }>(
@@ -77,11 +78,61 @@ export class PgStore implements Store {
          values ($1, $2, $3, $4, $5, $6) returning id`,
         [c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y],
       );
-      return { ...c, id: rows[0]!.id, coin: 0 };
+      return { ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10 };
     } catch (err) {
       if ((err as { code?: string }).code === '23505') return 'character_name_taken';
       throw err;
     }
+  }
+
+  async setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void> {
+    await this.pool.query(
+      'update characters set bluff = coalesce($2, bluff), insight = coalesce($3, insight) where id = $1',
+      [id, skills.bluff ?? null, skills.insight ?? null],
+    );
+  }
+
+  async getKnowledge(
+    observerId: string,
+    subjectIds: string[],
+  ): Promise<Map<string, KnowledgeRecord>> {
+    if (subjectIds.length === 0) return new Map();
+    const { rows } = await this.pool.query(
+      `select * from identity_knowledge
+       where observer_character_id = $1 and presentation = 'normal'
+         and subject_character_id = any($2::uuid[])`,
+      [observerId, subjectIds],
+    );
+    const out = new Map<string, KnowledgeRecord>();
+    for (const r of rows) {
+      out.set(r.subject_character_id, {
+        observerCharacterId: r.observer_character_id,
+        subjectCharacterId: r.subject_character_id,
+        presentation: r.presentation,
+        knownName: r.known_name,
+        provenance: r.provenance,
+        impression: r.impression,
+      });
+    }
+    return out;
+  }
+
+  async upsertKnowledge(k: KnowledgeRecord): Promise<void> {
+    await this.pool.query(
+      `insert into identity_knowledge
+         (observer_character_id, subject_character_id, presentation, known_name, provenance, impression)
+       values ($1, $2, $3, $4, $5, $6)
+       on conflict (observer_character_id, subject_character_id, presentation)
+       do update set known_name = $4, provenance = $5, impression = $6, updated_at = now()`,
+      [
+        k.observerCharacterId,
+        k.subjectCharacterId,
+        k.presentation,
+        k.knownName,
+        k.provenance,
+        k.impression,
+      ],
+    );
   }
 
   async getCharacter(id: string): Promise<CharacterRecord | null> {
@@ -238,5 +289,7 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     x: r.x as number,
     y: r.y as number,
     coin: Number(r.coin),
+    bluff: Number(r.bluff ?? 10),
+    insight: Number(r.insight ?? 10),
   };
 }

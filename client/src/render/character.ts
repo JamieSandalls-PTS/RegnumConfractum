@@ -1,6 +1,11 @@
 import * as THREE from 'three';
-import type { Direction } from '@rc/shared';
-import { generateAppearance, type Appearance } from '../game/appearance';
+import {
+  generateAppearance,
+  type Appearance,
+  type Direction,
+  type Posture,
+  type TransientAnim,
+} from '@rc/shared';
 import { Cloth, HairSet } from './cloth';
 
 /**
@@ -65,8 +70,12 @@ export class CharacterVisual {
   private targetAngle = 0;
   private currentAngle = 0;
   private walkPhase: number;
-  /** Set by the emote system (M2); null means idle/walk from movement. */
-  overrideAnim: ((c: CharacterVisual, t: number) => void) | null = null;
+  posture: Posture = 'standing';
+  private transientQueue: TransientAnim[] = [];
+  private currentTransient: { name: TransientAnim; until: number } | null = null;
+
+  /** Seconds a transient emote plays for. */
+  private static TRANSIENT_SECONDS = 1.4;
 
   constructor(seed: number, private parent: THREE.Object3D) {
     this.appearance = generateAppearance(seed);
@@ -243,6 +252,17 @@ export class CharacterVisual {
     this.root.position.set(x, 0, z);
   }
 
+  setPosture(posture: Posture): void {
+    this.posture = posture;
+  }
+
+  /** Queues one-shot emote animations (D-202 transients). */
+  playTransients(names: readonly TransientAnim[]): void {
+    for (const name of names) {
+      if (this.transientQueue.length < 4) this.transientQueue.push(name);
+    }
+  }
+
   update(dt: number, t: number, moving: boolean, wind: number): void {
     // shortest-path turn toward facing
     let diff = this.targetAngle - this.currentAngle;
@@ -251,14 +271,39 @@ export class CharacterVisual {
     this.currentAngle += diff * Math.min(1, dt * 12);
     this.root.rotation.y = this.currentAngle;
 
+    // Transients pre-empt everything except walking; movement cancels them.
+    if (moving && (this.currentTransient || this.transientQueue.length > 0)) {
+      this.currentTransient = null;
+      this.transientQueue.length = 0;
+    }
+    if (this.currentTransient && t >= this.currentTransient.until) this.currentTransient = null;
+    if (!this.currentTransient && this.transientQueue.length > 0) {
+      this.currentTransient = {
+        name: this.transientQueue.shift()!,
+        until: t + CharacterVisual.TRANSIENT_SECONDS,
+      };
+    }
+
     this.resetPose();
-    if (this.overrideAnim) this.overrideAnim(this, t);
-    else if (moving) this.animWalk(t);
+    if (moving) this.animWalk(t);
+    else if (this.currentTransient) this.animTransient(this.currentTransient.name, t);
+    else if (this.posture === 'sitting') this.animSit(t);
+    else if (this.posture === 'kneeling') this.animKneel(t);
     else this.animIdle(t);
 
     this.root.updateMatrixWorld(true);
     if (this.cape) this.cape.step(dt, wind, t, this.chest.matrixWorld);
     if (this.hair) this.hair.step(dt, wind, t, this.head.matrixWorld);
+  }
+
+  private animTransient(name: TransientAnim, t: number): void {
+    switch (name) {
+      case 'bow': return this.animBow(t);
+      case 'wave': return this.animWave(t);
+      case 'laugh': return this.animLaugh(t);
+      case 'point': return this.animPoint(t);
+      case 'shrug': return this.animShrug(t);
+    }
   }
 
   private resetPose(): void {
@@ -288,6 +333,116 @@ export class CharacterVisual {
       c.arms[s].sh.rotation.z = sg * (0.1 + Math.sin(t * 1.2) * 0.015);
       c.arms[s].el.rotation.x = -0.18 - Math.sin(t * 1.4) * 0.02;
     }
+  }
+
+  private animSit(t: number): void {
+    const c = this;
+    const br = Math.sin(t * 1.3) * 0.012;
+    c.pelvis.position.y = c.dims.hipY * 0.52;
+    c.pelvis.rotation.x = 0.06;
+    c.spine.rotation.x = 0.1 + br;
+    c.chest.rotation.x = -0.05;
+    c.head.rotation.y = Math.sin(t * 0.4 + this.walkPhase) * 0.22;
+    for (const s of ['L', 'R'] as const) {
+      const sg = s === 'L' ? 1 : -1;
+      c.legs[s].hip.rotation.x = 1.42;
+      c.legs[s].knee.rotation.x = -1.5;
+      c.legs[s].foot.rotation.x = 0.16;
+      c.arms[s].sh.rotation.x = 0.34;
+      c.arms[s].sh.rotation.z = sg * 0.2;
+      c.arms[s].el.rotation.x = -0.85;
+    }
+  }
+
+  private animKneel(t: number): void {
+    const c = this;
+    const br = Math.sin(t * 1.1) * 0.01;
+    c.pelvis.position.y = c.dims.hipY * 0.48;
+    c.spine.rotation.x = 0.18 + br;
+    c.head.rotation.x = 0.1;
+    c.legs.L.hip.rotation.x = 1.35;
+    c.legs.L.knee.rotation.x = -1.55;
+    c.legs.L.foot.rotation.x = 0.3;
+    c.legs.R.hip.rotation.x = -0.15;
+    c.legs.R.knee.rotation.x = -1.75;
+    c.legs.R.foot.rotation.x = 0.9;
+    for (const s of ['L', 'R'] as const) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.x = 0.15;
+      c.arms[s].sh.rotation.z = sg * 0.16;
+      c.arms[s].el.rotation.x = -0.55;
+    }
+  }
+
+  private animBow(t: number): void {
+    const c = this;
+    const k = Math.sin(t * 1.6) * 0.5 + 0.5;
+    const d = 0.35 + k * 0.55;
+    c.spine.rotation.x = d * 0.75;
+    c.chest.rotation.x = d * 0.35;
+    c.head.rotation.x = -d * 0.45;
+    c.pelvis.position.y = c.dims.hipY - d * 0.045;
+    for (const s of ['L', 'R'] as const) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.x = -d * 0.3;
+      c.arms[s].sh.rotation.z = sg * (0.16 + d * 0.22);
+      c.arms[s].el.rotation.x = -0.35 - d * 0.5;
+      c.legs[s].hip.rotation.x = -d * 0.12;
+      c.legs[s].knee.rotation.x = -d * 0.1;
+    }
+  }
+
+  private animWave(t: number): void {
+    this.animIdle(t * 0.6);
+    const c = this;
+    c.arms.R.sh.rotation.z = -2.0;
+    c.arms.R.sh.rotation.x = -0.25;
+    c.arms.R.el.rotation.x = -0.5;
+    c.arms.R.el.rotation.z = Math.sin(t * 7) * 0.45;
+    c.chest.rotation.y = -0.12;
+    c.head.rotation.y = -0.15;
+  }
+
+  private animLaugh(t: number): void {
+    this.animIdle(t);
+    const c = this;
+    const j = Math.sin(t * 11) * 0.5 + 0.5;
+    c.spine.rotation.x = -0.16 - j * 0.1;
+    c.chest.rotation.x = -0.1;
+    c.head.rotation.x = -0.3 - j * 0.1;
+    c.pelvis.position.y = c.dims.hipY + j * 0.02;
+    for (const s of ['L', 'R'] as const) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.z = sg * (0.2 + j * 0.06);
+      c.arms[s].sh.rotation.x = 0.3;
+      c.arms[s].el.rotation.x = -1.15;
+    }
+  }
+
+  private animPoint(t: number): void {
+    this.animIdle(t * 0.5);
+    const c = this;
+    const s = Math.sin(t * 2) * 0.04;
+    c.arms.R.sh.rotation.z = -1.45 + s;
+    c.arms.R.sh.rotation.x = -0.15;
+    c.arms.R.el.rotation.x = -0.05;
+    c.chest.rotation.y = -0.28;
+    c.head.rotation.y = -0.34;
+  }
+
+  private animShrug(t: number): void {
+    this.animIdle(t * 0.4);
+    const c = this;
+    const k = Math.sin(t * 1.8) * 0.5 + 0.5;
+    for (const s of ['L', 'R'] as const) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.z = sg * (0.55 + k * 0.45);
+      c.arms[s].sh.rotation.x = 0.2;
+      c.arms[s].el.rotation.x = -1.25 - k * 0.25;
+      c.arms[s].el.rotation.z = sg * 0.45;
+    }
+    c.chest.position.y = this.dims.torsoH * 0.34 + k * 0.02;
+    c.head.rotation.x = k * 0.1;
   }
 
   private animWalk(t: number): void {

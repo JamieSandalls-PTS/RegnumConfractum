@@ -1,6 +1,14 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { AreaSchema, ItemTemplateSchema, type AreaDef, type ItemTemplate } from '@rc/shared';
+import {
+  AreaSchema,
+  EMPTY_LEXICON,
+  EmoteLexiconSchema,
+  ItemTemplateSchema,
+  type AreaDef,
+  type EmoteLexicon,
+  type ItemTemplate,
+} from '@rc/shared';
 
 /**
  * Loads and validates world content (D-110). The server refuses to start on
@@ -11,6 +19,7 @@ import { AreaSchema, ItemTemplateSchema, type AreaDef, type ItemTemplate } from 
 export interface Content {
   areas: Map<string, AreaDef>;
   itemTemplates: Map<string, ItemTemplate>;
+  emoteLexicon: EmoteLexicon;
 }
 
 function readJsonFiles(dir: string): { file: string; data: unknown }[] {
@@ -53,6 +62,20 @@ export function loadContent(contentDir: string): Content {
     itemTemplates.set(parsed.data.id, parsed.data);
   }
 
+  let emoteLexicon: EmoteLexicon = EMPTY_LEXICON;
+  const lexiconPath = join(contentDir, 'emotes', 'lexicon.json');
+  try {
+    const raw = JSON.parse(readFileSync(lexiconPath, 'utf8'));
+    const parsed = EmoteLexiconSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error(`${lexiconPath}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    emoteLexicon = parsed.data;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    // No lexicon file: emotes render as plain text, nothing animates (D-202).
+  }
+
   if (areas.size === 0) throw new Error(`no areas found under ${contentDir}/areas`);
-  return { areas, itemTemplates };
+  return { areas, itemTemplates, emoteLexicon };
 }

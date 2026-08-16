@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { LightingProfile } from '@rc/shared';
 import { PixelPost } from './palette';
 
 /**
@@ -10,12 +11,59 @@ import { PixelPost } from './palette';
 const FRUSTUM = 5.2; // vertical half-extent in world units (1 unit = 1 tile)
 const CAMERA_OFFSET = new THREE.Vector3(9, 8.5, 9); // |offset| ≈ 15.3 < fog near 19
 
+/**
+ * Per-area lighting profiles (D-504, feeding D-305). The stakeholder's
+ * ruling: the dark look suits enclosed spaces; outdoors must read brighter
+ * and more colourful. Time-of-day and weather will modulate these later.
+ */
+interface LightingParams {
+  background: number;
+  fogNear: number;
+  fogFar: number;
+  hemiSky: number;
+  hemiGround: number;
+  hemiIntensity: number;
+  keyColor: number;
+  keyIntensity: number;
+  rimColor: number;
+  rimIntensity: number;
+}
+
+const LIGHTING: Record<LightingProfile, LightingParams> = {
+  overcast: {
+    background: 0x2a2f38, fogNear: 26, fogFar: 54,
+    hemiSky: 0xbccbdb, hemiGround: 0x6a5c4a, hemiIntensity: 5.6,
+    keyColor: 0xfff2dd, keyIntensity: 6.2,
+    rimColor: 0x9db8d2, rimIntensity: 2.2,
+  },
+  interior: {
+    background: 0x16130f, fogNear: 24, fogFar: 48,
+    hemiSky: 0x8f9aa8, hemiGround: 0x4a3b2c, hemiIntensity: 3.6,
+    keyColor: 0xffe4b8, keyIntensity: 4.4,
+    rimColor: 0x8fb8d8, rimIntensity: 1.4,
+  },
+  underground: {
+    background: 0x0c0b10, fogNear: 24, fogFar: 48,
+    hemiSky: 0x9cc0dd, hemiGround: 0x40332a, hemiIntensity: 2.9,
+    keyColor: 0xffeed2, keyIntensity: 4.6,
+    rimColor: 0x8fb8d8, rimIntensity: 1.5,
+  },
+  night: {
+    background: 0x0a0c14, fogNear: 24, fogFar: 46,
+    hemiSky: 0x36485e, hemiGround: 0x1e1813, hemiIntensity: 2.0,
+    keyColor: 0xa8c0e0, keyIntensity: 2.4,
+    rimColor: 0x4a5f78, rimIntensity: 1.2,
+  },
+};
+
 export class GameScene {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
   readonly camera: THREE.OrthographicCamera;
   readonly post = new PixelPost();
   private key: THREE.DirectionalLight;
+  private hemi: THREE.HemisphereLight;
+  private rim: THREE.DirectionalLight;
   private focus = new THREE.Vector3();
 
   constructor(private stage: HTMLElement) {
@@ -24,7 +72,6 @@ export class GameScene {
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     stage.appendChild(this.renderer.domElement);
 
-    this.scene.background = new THREE.Color(0x0c0b10);
     // Camera orbits at ~15.3 units and the visible play field extends ~13
     // units beyond the focus at this frustum — fog must start past their sum
     // or the far half of the yard washes to background (the prototype's
@@ -34,7 +81,8 @@ export class GameScene {
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 
     // cold ambient + warm key + cool rim — tuned in the prototype
-    this.scene.add(new THREE.HemisphereLight(0x9cc0dd, 0x40332a, 2.9));
+    this.hemi = new THREE.HemisphereLight(0x9cc0dd, 0x40332a, 2.9);
+    this.scene.add(this.hemi);
     this.key = new THREE.DirectionalLight(0xffeed2, 4.6);
     this.key.castShadow = true;
     this.key.shadow.mapSize.set(2048, 2048);
@@ -43,12 +91,26 @@ export class GameScene {
     sc.left = -10; sc.right = 10; sc.top = 10; sc.bottom = -10; sc.near = 1; sc.far = 40;
     this.scene.add(this.key);
     this.scene.add(this.key.target);
-    const rim = new THREE.DirectionalLight(0x8fb8d8, 1.5);
-    rim.position.set(-7, 4, -6);
-    this.scene.add(rim);
+    this.rim = new THREE.DirectionalLight(0x8fb8d8, 1.5);
+    this.rim.position.set(-7, 4, -6);
+    this.scene.add(this.rim);
+    this.applyLighting('underground');
 
     window.addEventListener('resize', () => this.resize());
     this.resize();
+  }
+
+  applyLighting(profile: LightingProfile): void {
+    const p = LIGHTING[profile];
+    this.scene.background = new THREE.Color(p.background);
+    this.scene.fog = new THREE.Fog(p.background, p.fogNear, p.fogFar);
+    this.hemi.color.setHex(p.hemiSky);
+    this.hemi.groundColor.setHex(p.hemiGround);
+    this.hemi.intensity = p.hemiIntensity;
+    this.key.color.setHex(p.keyColor);
+    this.key.intensity = p.keyIntensity;
+    this.rim.color.setHex(p.rimColor);
+    this.rim.intensity = p.rimIntensity;
   }
 
   resize(): void {

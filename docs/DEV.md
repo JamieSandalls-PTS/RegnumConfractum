@@ -11,7 +11,11 @@ npm run dev:client       # the game client — http://localhost:5173
 
 Open http://localhost:5173 in two browser windows to see two characters in the
 same world. Move with WASD/arrows; keys 1–4 toggle equipment on your own
-character (debug, until the inventory drives it).
+character (debug, until the inventory drives it). **Enter** opens the chat
+composer: `/w` whispers (1 tile), plain text speaks (10 tiles, line of sight),
+`/y` shouts across the area. Text in `*asterisks*` animates via the emote
+lexicon. The small **declare as…** field speaks the line under a name — yours
+or anyone's; listeners' Insight may or may not see through it.
 
 Configuration comes from `.env` (copy `.env.example`) or real environment
 variables. Migrations run automatically on server start; `npm run db:migrate`

@@ -114,6 +114,50 @@ describe.skipIf(!DATABASE_URL)('persistence across server restart (Postgres)', (
     expect(await store.getCoin(b.id)).toBe(30);
   });
 
+  it('identity knowledge survives in the database (D-219)', async () => {
+    const account = await store.createAccount(`knower_${runTag}`, 'hash');
+    if (account === 'username_taken') throw new Error('unreachable');
+    const observer = await store.createCharacter({
+      accountId: account.id, name: `Observer Ode ${letterTag}`, appearanceSeed: 5,
+      areaId: 'broken-yard', x: 2, y: 2,
+    });
+    const subject = await store.createCharacter({
+      accountId: account.id, name: `Subject Sil ${letterTag}`, appearanceSeed: 6,
+      areaId: 'broken-yard', x: 2, y: 2,
+    });
+    if (typeof observer === 'string' || typeof subject === 'string') throw new Error('unreachable');
+
+    await store.upsertKnowledge({
+      observerCharacterId: observer.id,
+      subjectCharacterId: subject.id,
+      presentation: 'normal',
+      knownName: 'The Grey Pilgrim',
+      provenance: 'self_claimed',
+      impression: 'rings_false',
+    });
+    const known = await store.getKnowledge(observer.id, [subject.id]);
+    expect(known.get(subject.id)).toMatchObject({
+      knownName: 'The Grey Pilgrim',
+      provenance: 'self_claimed',
+      impression: 'rings_false',
+    });
+    // Upsert replaces: a later, better-supported claim overwrites.
+    await store.upsertKnowledge({
+      observerCharacterId: observer.id,
+      subjectCharacterId: subject.id,
+      presentation: 'normal',
+      knownName: `Subject Sil ${letterTag}`,
+      provenance: 'verified',
+      impression: null,
+    });
+    const after = await store.getKnowledge(observer.id, [subject.id]);
+    expect(after.get(subject.id)).toMatchObject({
+      knownName: `Subject Sil ${letterTag}`,
+      provenance: 'verified',
+      impression: null,
+    });
+  });
+
   it('the event log is append-only at the database level (D-106)', async () => {
     await store.appendEvent('tamper_probe', { runTag });
     await expect(

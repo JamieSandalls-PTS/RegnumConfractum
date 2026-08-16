@@ -23,6 +23,9 @@ export const PALETTE = [
   0x8a6a52, 0xb08a68,
   // warm mid-greys so stone has somewhere to land
   0x4a443e, 0x5c554d,
+  // daylight extension (D-504): brighter but still desaturated, so overcast
+  // exteriors have somewhere to land without breaking D-308's restraint
+  0xb3ab9d, 0xc7bfae, 0x8fa3b0, 0x66735c,
 ];
 
 export class PixelPost {
