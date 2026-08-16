@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Procedural Character Prototype</title>
+<style>
+  :root {
+    --ink: #0b0a0c;
+    --panel: #16151a;
+    --line: #2a2830;
+    --text: #b9b2a6;
+    --dim: #6d6760;
+    --warm: #c4703a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; background: var(--ink); color: var(--text);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; overflow:hidden; }
+  #stage { position:absolute; inset:0; }
+  canvas { display:block; width:100%; height:100%; image-rendering: pixelated; }
+
+  #panel {
+    position:absolute; top:0; left:0; width:250px; height:100%;
+    background: var(--panel); border-right:1px solid var(--line);
+    padding:16px; overflow-y:auto; font-size:11px; line-height:1.5;
+  }
+  #panel h1 { font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--warm); margin:0 0 4px; font-weight:600; }
+  #panel .sub { color:var(--dim); font-size:10px; margin-bottom:18px; }
+  .group { margin-bottom:18px; }
+  .group > label { display:block; color:var(--dim); text-transform:uppercase;
+    letter-spacing:.1em; font-size:9px; margin-bottom:6px; }
+  button {
+    background:#211f26; color:var(--text); border:1px solid var(--line);
+    padding:6px 8px; font:inherit; font-size:10px; cursor:pointer; margin:0 3px 3px 0;
+    border-radius:2px;
+  }
+  button:hover { background:#2c2933; color:#e0d8c8; }
+  button.on { background:var(--warm); color:#140d07; border-color:var(--warm); }
+  #regen { width:100%; padding:9px; margin-bottom:4px; background:#2c2933; }
+  input[type=range] { width:100%; accent-color:var(--warm); }
+  .row { display:flex; justify-content:space-between; color:var(--dim); font-size:10px; }
+  .stat { color:var(--dim); font-size:10px; }
+  .stat b { color:var(--text); font-weight:400; }
+  #err { position:absolute; bottom:0; left:250px; right:0; background:#3a1010;
+    color:#ffb4b4; padding:8px 12px; font-size:11px; display:none; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="panel">
+  <h1>Procedural Characters</h1>
+  <div class="sub">Rule-built geometry · procedural animation · verlet cloth · palette-quantised</div>
+
+  <div class="group">
+    <button id="regen">⟳ Regenerate Population</button>
+    <div class="stat" id="seedinfo"></div>
+  </div>
+
+  <div class="group">
+    <label>Animation</label>
+    <div id="anims"></div>
+  </div>
+
+  <div class="group">
+    <label>Wind <span id="windv" class="stat"></span></label>
+    <input type="range" id="wind" min="0" max="100" value="30">
+  </div>
+
+  <div class="group">
+    <label>Pixel scale <span id="pixv" class="stat"></span></label>
+    <input type="range" id="pix" min="1" max="8" value="4">
+  </div>
+
+  <div class="group">
+    <label>Render</label>
+    <button id="tPalette" class="on">Palette</button>
+    <button id="tDither" class="on">Dither</button>
+    <button id="tRotate" class="on">Turntable</button>
+  </div>
+
+  <div class="group">
+    <label>Frame</label>
+    <div class="row"><span>fps</span><span class="stat"><b id="fps">–</b></span></div>
+    <div class="row"><span>internal res</span><span class="stat"><b id="res">–</b></span></div>
+    <div class="row"><span>tris</span><span class="stat"><b id="tris">–</b></span></div>
+  </div>
+
+  <div class="group" style="border-top:1px solid var(--line); padding-top:12px;">
+    <div class="stat" style="line-height:1.6">
+      Every character here is generated from a
+      parameter vector — no meshes, no keyframes,
+      no sprite sheets. Cape and hair are verlet
+      chains solved each frame.
+    </div>
+  </div>
+</div>
+<div id="err"></div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const errEl = document.getElementById('err');
+window.addEventListener('error', e => {
+  errEl.style.display = 'block';
+  errEl.textContent = 'Error: ' + e.message;
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   SEEDED RANDOM — so a character is reproducible from an integer.
+   In the real game this seed would live on the character record.
+   ══════════════════════════════════════════════════════════════════ */
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ARCHETYPES — hand-authored parameter ranges.
+   Pure random generation produces mush; constrained ranges per
+   archetype produce recognisable silhouettes. This is the key to
+   avoiding "procedural sameness".
+   ══════════════════════════════════════════════════════════════════ */
+const ARCHETYPES = {
+  brute:   { height:[1.85,2.05], bulk:[0.55,0.75], shoulder:[0.34,0.42], limb:[0.95,1.05], headScale:[0.88,0.98], capeChance:0.25, hair:[0.0,0.25] },
+  soldier: { height:[1.70,1.82], bulk:[0.34,0.46], shoulder:[0.27,0.32], limb:[1.0,1.06],  headScale:[0.95,1.02], capeChance:0.55, hair:[0.05,0.3] },
+  rogue:   { height:[1.62,1.74], bulk:[0.22,0.30], shoulder:[0.22,0.26], limb:[1.04,1.12], headScale:[0.97,1.04], capeChance:0.75, hair:[0.15,0.45] },
+  ascetic: { height:[1.66,1.80], bulk:[0.20,0.28], shoulder:[0.21,0.25], limb:[1.06,1.16], headScale:[1.0,1.08],  capeChance:0.85, hair:[0.3,0.6] },
+};
+
+/* Gritty limited palette — desaturated earth, cold shadow, warm firelight */
+const PALETTE = [
+  // warm-neutral ramp — carries stone, cloth and most of the frame
+  0x0a090b, 0x141317, 0x1f1d21, 0x2b282d, 0x38343a,
+  0x474248, 0x575058, 0x685f66, 0x7a7077, 0x8d8288, 0xa0959a,
+  // cold shadow
+  0x1a2028, 0x252f3a, 0x33404e,
+  // firelight ramp
+  0x4d3320, 0x744d2a, 0x9c6733, 0xc2853f, 0xe0a85c, 0xf2cd8f,
+  // skin
+  0x8a6a52, 0xb08a68,
+  // extra warm mid-greys so stone has somewhere to land
+  0x4a443e, 0x5c554d,
+];
+
+/* Base albedo is deliberately MID-TONE. The palette quantiser and the
+   lighting are what push the final image dark and gritty — if the source
+   colours are already near-black there is nothing left to shade. */
+const CLOTH_COLORS = [0x6d6154, 0x565f68, 0x7a6248, 0x5d6a54, 0x6b5259, 0x4e5666, 0x84725a];
+const METAL_COLORS = [0x9aa0a8, 0xa8a094, 0x8894a0, 0xb0aa9e];
+const SKIN_COLORS  = [0xc9a583, 0xb8916f, 0xa07c5e, 0xd8bb9a, 0x8a6a50];
+const ACCENT       = [0xb5713c, 0x6d8695, 0x94582f, 0x54697a, 0xd1904a];
+
+const rangePick = (rnd, r) => r[0] + rnd() * (r[1] - r[0]);
+const pick = (rnd, arr) => arr[Math.floor(rnd() * arr.length) % arr.length];
+
+/* ══════════════════════════════════════════════════════════════════
+   CHARACTER — built entirely from boxes at runtime.
+   A "bone" is a THREE.Group; geometry hangs off it. Equipment is
+   just more boxes parented to the same bones, which is why the
+   sprite-sheet combinatorial explosion never happens here.
+   ══════════════════════════════════════════════════════════════════ */
+class Character {
+  constructor(seed) {
+    this.seed = seed;
+    const rnd = mulberry32(seed);
+    this.rnd = rnd;
+
+    const names = Object.keys(ARCHETYPES);
+    this.archetype = names[Math.floor(rnd() * names.length) % names.length];
+    const A = ARCHETYPES[this.archetype];
+
+    const p = this.params = {
+      height:    rangePick(rnd, A.height),
+      bulk:      rangePick(rnd, A.bulk),
+      shoulder:  rangePick(rnd, A.shoulder),
+      limb:      rangePick(rnd, A.limb),
+      headScale: rangePick(rnd, A.headScale),
+      hairLen:   rangePick(rnd, A.hair),
+      hasCape:   rnd() < A.capeChance,
+      skin:      pick(rnd, SKIN_COLORS),
+      cloth:     pick(rnd, CLOTH_COLORS),
+      metal:     pick(rnd, METAL_COLORS),
+      accent:    pick(rnd, ACCENT),
+      helm:      rnd() < 0.45,
+      pauldrons: rnd() < 0.5,
+      weapon:    rnd() < 0.7,
+      cloak:     rnd() < 0.4,
+    };
+
+    this.root = new THREE.Group();
+    this.phase = rnd() * Math.PI * 2;
+    this.build();
+  }
+
+  mat(color, rough = 0.95) {
+    return new THREE.MeshLambertMaterial({ color });
+  }
+
+  // box helper: creates a mesh offset so it grows in a chosen direction
+  box(parent, w, h, d, color, pos = [0,0,0]) {
+    const g = new THREE.BoxGeometry(w, h, d);
+    const m = new THREE.Mesh(g, this.mat(color));
+    m.position.set(pos[0], pos[1], pos[2]);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    parent.add(m);
+    return m;
+  }
+
+  joint(parent, pos = [0,0,0]) {
+    const j = new THREE.Group();
+    j.position.set(pos[0], pos[1], pos[2]);
+    parent.add(j);
+    return j;
+  }
+
+  build() {
+    const p = this.params;
+    const H = p.height;
+
+    // proportions derived from height — a 7.5-head figure, not chibi.
+    const headH   = H / 7.5 * p.headScale;
+    const legLen  = H * 0.47 * p.limb;
+    const torsoH  = H * 0.30;
+    const upperLeg = legLen * 0.52, lowerLeg = legLen * 0.48;
+    const armLen  = H * 0.40 * p.limb;
+    const upperArm = armLen * 0.5, lowerArm = armLen * 0.5;
+    const hipY = legLen;
+
+    this.dims = { headH, legLen, torsoH, upperLeg, lowerLeg, upperArm, lowerArm, hipY };
+
+    const bodyW = p.bulk, bodyD = p.bulk * 0.62;
+
+    // ── pelvis (root of the skeleton)
+    this.pelvis = this.joint(this.root, [0, hipY, 0]);
+    this.box(this.pelvis, bodyW * 0.95, torsoH * 0.3, bodyD, p.cloth, [0, torsoH * 0.1, 0]);
+
+    // ── spine → chest
+    this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
+    this.box(this.spine, bodyW * 0.88, torsoH * 0.34, bodyD * 0.92, p.cloth, [0, torsoH * 0.16, 0]);
+
+    this.chest = this.joint(this.spine, [0, torsoH * 0.34, 0]);
+    this.box(this.chest, p.shoulder * 2, torsoH * 0.40, bodyD, p.metal, [0, torsoH * 0.18, 0]);
+    // chest strap detail
+    this.box(this.chest, p.shoulder * 2.05, torsoH * 0.08, bodyD * 1.04, p.accent, [0, torsoH * 0.10, 0]);
+
+    // ── neck → head
+    this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
+    this.box(this.neck, bodyW * 0.30, headH * 0.22, bodyD * 0.45, p.skin, [0, headH * 0.11, 0]);
+
+    this.head = this.joint(this.neck, [0, headH * 0.22, 0]);
+    this.box(this.head, headH * 0.68, headH * 0.78, headH * 0.66, p.skin, [0, headH * 0.39, 0]);
+    if (p.helm) {
+      this.box(this.head, headH * 0.76, headH * 0.44, headH * 0.74, p.metal, [0, headH * 0.60, 0]);
+      this.box(this.head, headH * 0.14, headH * 0.34, headH * 0.80, p.metal, [0, headH * 0.42, 0.01]);
+    }
+
+    // ── arms
+    this.arms = {};
+    for (const side of ['L','R']) {
+      const s = side === 'L' ? 1 : -1;
+      const sh = this.joint(this.chest, [s * p.shoulder, torsoH * 0.32, 0]);
+      if (p.pauldrons) this.box(sh, bodyW * 0.42, bodyW * 0.30, bodyW * 0.46, p.metal, [s * 0.02, 0.01, 0]);
+      this.box(sh, bodyW * 0.26, upperArm, bodyW * 0.26, p.cloth, [0, -upperArm / 2, 0]);
+      const el = this.joint(sh, [0, -upperArm, 0]);
+      this.box(el, bodyW * 0.23, lowerArm, bodyW * 0.23, p.skin, [0, -lowerArm / 2, 0]);
+      const hand = this.joint(el, [0, -lowerArm, 0]);
+      this.box(hand, bodyW * 0.24, bodyW * 0.22, bodyW * 0.24, p.skin, [0, -bodyW * 0.1, 0]);
+      this.arms[side] = { sh, el, hand };
+    }
+
+    // weapon in the right hand — parented to the bone, so it inherits
+    // every animation automatically. No per-weapon rendering required.
+    if (p.weapon) {
+      const h = this.arms.R.hand;
+      this.box(h, 0.045, 0.11, 0.045, 0x2a231d, [0, -bodyW * 0.28, 0]);          // grip
+      this.box(h, 0.20, 0.035, 0.05, p.metal, [0, -bodyW * 0.34, 0]);            // crossguard
+      this.box(h, 0.055, 0.78, 0.022, 0x74808c, [0, -bodyW * 0.34 - 0.40, 0]);   // blade
+    }
+
+    // ── legs
+    this.legs = {};
+    for (const side of ['L','R']) {
+      const s = side === 'L' ? 1 : -1;
+      const hip = this.joint(this.pelvis, [s * bodyW * 0.26, 0, 0]);
+      this.box(hip, bodyW * 0.30, upperLeg, bodyW * 0.30, p.cloth, [0, -upperLeg / 2, 0]);
+      const knee = this.joint(hip, [0, -upperLeg, 0]);
+      this.box(knee, bodyW * 0.27, lowerLeg, bodyW * 0.27, p.cloth, [0, -lowerLeg / 2, 0]);
+      const foot = this.joint(knee, [0, -lowerLeg, 0]);
+      this.box(foot, bodyW * 0.30, bodyW * 0.16, bodyW * 0.52, 0x241e19, [0, -bodyW * 0.06, bodyW * 0.10]);
+      this.legs[side] = { hip, knee, foot };
+    }
+
+    // ── verlet cape + hair
+    this.cape = p.hasCape ? new Cloth(this, 7, 9, p.shoulder * 1.9, H * 0.46, pick(this.rnd, ACCENT)) : null;
+    this.hair = p.hairLen > 0.08 ? new HairSet(this, p.hairLen, headH) : null;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CLOTH — position-based verlet. ~60 lines, no physics engine.
+   Top row is pinned to the shoulders each frame in world space.
+   ══════════════════════════════════════════════════════════════════ */
+class Cloth {
+  constructor(owner, cols, rows, width, height, color) {
+    this.owner = owner; this.cols = cols; this.rows = rows;
+    this.width = width; this.height = height;
+
+    this.pos = []; this.prev = [];
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const v = new THREE.Vector3(
+          (x / (cols - 1) - 0.5) * width, -y / (rows - 1) * height, 0);
+        this.pos.push(v); this.prev.push(v.clone());
+      }
+    }
+
+    this.constraints = [];
+    const idx = (x, y) => y * cols + x;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      if (x < cols - 1) this.addC(idx(x,y), idx(x+1,y));
+      if (y < rows - 1) this.addC(idx(x,y), idx(x,y+1));
+      if (x < cols - 1 && y < rows - 1) this.addC(idx(x,y), idx(x+1,y+1)); // shear
+    }
+
+    this.geom = new THREE.PlaneGeometry(width, height, cols - 1, rows - 1);
+    this.mesh = new THREE.Mesh(this.geom, new THREE.MeshLambertMaterial({
+      color, side: THREE.DoubleSide }));
+    this.mesh.castShadow = true;
+    this._anchors = [];
+  }
+
+  addC(a, b) {
+    this.constraints.push({ a, b, len: this.pos[a].distanceTo(this.pos[b]) });
+  }
+
+  step(dt, wind, t, chestMatrix) {
+    const cols = this.cols;
+    const gravity = new THREE.Vector3(0, -9.0, 0);
+    const w = new THREE.Vector3(
+      Math.sin(t * 1.7) * 0.6 + 0.5, Math.sin(t * 2.3) * 0.2, Math.cos(t * 1.1) * 0.6 + 0.3
+    ).multiplyScalar(wind * 7.0);
+
+    // integrate
+    const acc = new THREE.Vector3();
+    for (let i = cols; i < this.pos.length; i++) {   // row 0 is pinned
+      const p = this.pos[i], pr = this.prev[i];
+      acc.copy(gravity).add(w);
+      const vx = (p.x - pr.x) * 0.97, vy = (p.y - pr.y) * 0.97, vz = (p.z - pr.z) * 0.97;
+      pr.copy(p);
+      p.x += vx + acc.x * dt * dt;
+      p.y += vy + acc.y * dt * dt;
+      p.z += vz + acc.z * dt * dt;
+    }
+
+    // pin top row to the shoulders, in world space
+    for (let x = 0; x < cols; x++) {
+      const local = new THREE.Vector3((x / (cols - 1) - 0.5) * this.width, 0, -0.04);
+      local.applyMatrix4(chestMatrix);
+      this.pos[x].copy(local);
+      this.prev[x].copy(local);
+    }
+
+    // satisfy constraints
+    const d = new THREE.Vector3();
+    for (let iter = 0; iter < 6; iter++) {
+      for (const c of this.constraints) {
+        const pa = this.pos[c.a], pb = this.pos[c.b];
+        d.subVectors(pb, pa);
+        const dist = d.length() || 1e-6;
+        const diff = (dist - c.len) / dist * 0.5;
+        d.multiplyScalar(diff);
+        if (c.a >= cols) pa.add(d);
+        if (c.b >= cols) pb.sub(d);
+      }
+      // collide with a capsule approximating the torso
+      const torso = new THREE.Vector3(0,0,0).applyMatrix4(chestMatrix);
+      for (let i = cols; i < this.pos.length; i++) {
+        const p = this.pos[i];
+        const dy = THREE.MathUtils.clamp(p.y, torso.y - this.height * 0.55, torso.y);
+        const cx = torso.x, cz = torso.z;
+        const ddx = p.x - cx, ddz = p.z - cz;
+        const rad = 0.20;
+        const len = Math.hypot(ddx, ddz);
+        if (len < rad && p.y < torso.y + 0.05 && p.y > torso.y - this.height * 0.6) {
+          const s = rad / (len || 1e-6);
+          p.x = cx + ddx * s; p.z = cz + ddz * s;
+        }
+      }
+    }
+
+    // write to geometry
+    const arr = this.geom.attributes.position.array;
+    for (let i = 0; i < this.pos.length; i++) {
+      arr[i*3] = this.pos[i].x; arr[i*3+1] = this.pos[i].y; arr[i*3+2] = this.pos[i].z;
+    }
+    this.geom.attributes.position.needsUpdate = true;
+    this.geom.computeVertexNormals();
+  }
+}
+
+/* Hair — a handful of verlet strands pinned to the skull */
+class HairSet {
+  constructor(owner, len, headH) {
+    this.strands = [];
+    this.len = len; this.headH = headH;
+    const N = 7, SEG = 5;
+    this.group = new THREE.Group();
+    for (let s = 0; s < N; s++) {
+      const ang = (s / N) * Math.PI * 2;
+      const off = new THREE.Vector3(
+        Math.cos(ang) * headH * 0.26, headH * 0.62, Math.sin(ang) * headH * 0.24);
+      const pos = [], prev = [];
+      for (let i = 0; i <= SEG; i++) {
+        const v = new THREE.Vector3(off.x, off.y - i * (len / SEG), off.z);
+        pos.push(v); prev.push(v.clone());
+      }
+      const geom = new THREE.BufferGeometry();
+      geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array((SEG+1)*3), 3));
+      const mesh = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0x1e1a17 }));
+      this.strands.push({ pos, prev, off, geom, mesh, seg: SEG });
+      this.group.add(mesh);
+    }
+  }
+  step(dt, wind, t, headMatrix) {
+    const g = new THREE.Vector3(0, -9.0, 0);
+    const w = new THREE.Vector3(Math.sin(t*2.1)*0.6+0.4, 0, Math.cos(t*1.4)*0.5)
+      .multiplyScalar(wind * 5.0);
+    for (const st of this.strands) {
+      const anchor = st.off.clone().applyMatrix4(headMatrix);
+      st.pos[0].copy(anchor); st.prev[0].copy(anchor);
+      for (let i = 1; i < st.pos.length; i++) {
+        const p = st.pos[i], pr = st.prev[i];
+        const vx=(p.x-pr.x)*0.94, vy=(p.y-pr.y)*0.94, vz=(p.z-pr.z)*0.94;
+        pr.copy(p);
+        p.x += vx + (g.x+w.x)*dt*dt; p.y += vy + g.y*dt*dt; p.z += vz + (g.z+w.z)*dt*dt;
+      }
+      const segLen = this.len / st.seg;
+      for (let it = 0; it < 8; it++) {
+        for (let i = 0; i < st.pos.length - 1; i++) {
+          const a = st.pos[i], b = st.pos[i+1];
+          const d = new THREE.Vector3().subVectors(b, a);
+          const dist = d.length() || 1e-6;
+          d.multiplyScalar((dist - segLen) / dist * (i === 0 ? 1.0 : 0.5));
+          if (i !== 0) a.add(d);
+          b.sub(d.clone().multiplyScalar(i === 0 ? 1.0 : 1.0));
+        }
+      }
+      const arr = st.geom.attributes.position.array;
+      for (let i = 0; i < st.pos.length; i++) {
+        arr[i*3]=st.pos[i].x; arr[i*3+1]=st.pos[i].y; arr[i*3+2]=st.pos[i].z;
+      }
+      st.geom.attributes.position.needsUpdate = true;
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PROCEDURAL ANIMATION
+   Each "animation" is a function of time and body parameters.
+   Adding a new emote costs ~8 lines. This is the entire argument
+   against a purchased animation set with a fixed ceiling.
+   ══════════════════════════════════════════════════════════════════ */
+const ANIMS = {
+  idle(c, t) {
+    const b = Math.sin(t * 1.4) * 0.5 + 0.5;
+    c.spine.rotation.x = 0.02 + b * 0.02;
+    c.chest.rotation.x = -0.02 - b * 0.015;
+    c.head.rotation.y = Math.sin(t * 0.5) * 0.18;
+    c.head.rotation.x = Math.sin(t * 0.9) * 0.03;
+    c.pelvis.position.y = c.dims.hipY + Math.sin(t * 1.4) * 0.008;
+    c.pelvis.rotation.z = Math.sin(t * 0.4) * 0.02;
+    for (const s of ['L','R']) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.x = Math.sin(t * 1.4 + sg) * 0.03;
+      c.arms[s].sh.rotation.z = sg * (0.10 + Math.sin(t * 1.2) * 0.015);
+      c.arms[s].el.rotation.x = -0.18 - Math.sin(t*1.4)*0.02;
+      c.legs[s].hip.rotation.x = 0; c.legs[s].knee.rotation.x = 0;
+      c.legs[s].foot.rotation.x = 0;
+    }
+  },
+
+  walk(c, t) {
+    const sp = 4.2, ph = t * sp + c.phase;
+    c.pelvis.position.y = c.dims.hipY + Math.abs(Math.sin(ph)) * 0.035 - 0.02;
+    c.pelvis.rotation.y = Math.sin(ph) * 0.10;
+    c.pelvis.rotation.z = Math.sin(ph) * 0.045;
+    c.spine.rotation.y = -Math.sin(ph) * 0.06;
+    c.chest.rotation.y = -Math.sin(ph) * 0.10;
+    c.chest.rotation.x = 0.06;
+    c.head.rotation.y = Math.sin(ph) * 0.05;
+    for (const s of ['L','R']) {
+      const o = s === 'L' ? 0 : Math.PI, sg = s === 'L' ? 1 : -1;
+      const swing = Math.sin(ph + o);
+      c.legs[s].hip.rotation.x = swing * 0.62;
+      c.legs[s].knee.rotation.x = -Math.max(0, Math.sin(ph + o + 1.1)) * 0.95 - 0.05;
+      c.legs[s].foot.rotation.x = -swing * 0.22 + 0.1;
+      c.arms[s].sh.rotation.x = -swing * 0.55;
+      c.arms[s].sh.rotation.z = sg * 0.11;
+      c.arms[s].el.rotation.x = -0.30 - Math.max(0, -swing) * 0.35;
+    }
+  },
+
+  /* ── the five emotes PVGames does not ship ───────────────── */
+  wave(c, t) {
+    ANIMS.idle(c, t * 0.6);
+    c.arms.R.sh.rotation.z = -2.0;
+    c.arms.R.sh.rotation.x = -0.25;
+    c.arms.R.el.rotation.x = -0.5;
+    c.arms.R.el.rotation.z = Math.sin(t * 7) * 0.45;
+    c.chest.rotation.y = -0.12;
+    c.head.rotation.y = -0.15;
+  },
+
+  bow(c, t) {
+    const k = (Math.sin(t * 1.6) * 0.5 + 0.5);
+    const d = 0.35 + k * 0.55;
+    c.spine.rotation.x = d * 0.75;
+    c.chest.rotation.x = d * 0.35;
+    c.head.rotation.x = -d * 0.45;
+    c.pelvis.position.y = c.dims.hipY - d * 0.045;
+    for (const s of ['L','R']) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.x = -d * 0.30;
+      c.arms[s].sh.rotation.z = sg * (0.16 + d * 0.22);
+      c.arms[s].el.rotation.x = -0.35 - d * 0.5;
+      c.legs[s].hip.rotation.x = -d * 0.12;
+      c.legs[s].knee.rotation.x = -d * 0.10;
+    }
+  },
+
+  laugh(c, t) {
+    ANIMS.idle(c, t);
+    const j = Math.sin(t * 11) * 0.5 + 0.5;
+    c.spine.rotation.x = -0.16 - j * 0.10;
+    c.chest.rotation.x = -0.10;
+    c.head.rotation.x = -0.30 - j * 0.10;
+    c.pelvis.position.y = c.dims.hipY + j * 0.02;
+    for (const s of ['L','R']) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.z = sg * (0.20 + j * 0.06);
+      c.arms[s].sh.rotation.x = 0.30;
+      c.arms[s].el.rotation.x = -1.15;
+    }
+  },
+
+  point(c, t) {
+    ANIMS.idle(c, t * 0.5);
+    const s = Math.sin(t * 2) * 0.04;
+    c.arms.R.sh.rotation.z = -1.45 + s;
+    c.arms.R.sh.rotation.x = -0.15;
+    c.arms.R.el.rotation.x = -0.05;
+    c.chest.rotation.y = -0.28;
+    c.head.rotation.y = -0.34;
+  },
+
+  shrug(c, t) {
+    ANIMS.idle(c, t * 0.4);
+    const k = Math.sin(t * 1.8) * 0.5 + 0.5;
+    for (const s of ['L','R']) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.z = sg * (0.55 + k * 0.45);
+      c.arms[s].sh.rotation.x = 0.20;
+      c.arms[s].el.rotation.x = -1.25 - k * 0.25;
+      c.arms[s].el.rotation.z = sg * 0.45;
+    }
+    c.chest.position.y = k * 0.02;
+    c.head.rotation.x = k * 0.10;
+  },
+
+  sit(c, t) {
+    const br = Math.sin(t * 1.3) * 0.012;
+    c.pelvis.position.y = c.dims.hipY * 0.52;
+    c.pelvis.rotation.x = 0.06;
+    c.spine.rotation.x = 0.10 + br;
+    c.chest.rotation.x = -0.05;
+    c.head.rotation.y = Math.sin(t * 0.4) * 0.22;
+    for (const s of ['L','R']) {
+      const sg = s === 'L' ? 1 : -1;
+      c.legs[s].hip.rotation.x = 1.42;
+      c.legs[s].knee.rotation.x = -1.50;
+      c.legs[s].foot.rotation.x = 0.16;
+      c.arms[s].sh.rotation.x = 0.34;
+      c.arms[s].sh.rotation.z = sg * 0.20;
+      c.arms[s].el.rotation.x = -0.85;
+    }
+  },
+
+  kneel(c, t) {
+    const br = Math.sin(t * 1.1) * 0.01;
+    c.pelvis.position.y = c.dims.hipY * 0.48;
+    c.spine.rotation.x = 0.18 + br;
+    c.head.rotation.x = 0.10;
+    c.legs.L.hip.rotation.x = 1.35; c.legs.L.knee.rotation.x = -1.55; c.legs.L.foot.rotation.x = 0.3;
+    c.legs.R.hip.rotation.x = -0.15; c.legs.R.knee.rotation.x = -1.75; c.legs.R.foot.rotation.x = 0.9;
+    for (const s of ['L','R']) {
+      const sg = s === 'L' ? 1 : -1;
+      c.arms[s].sh.rotation.x = 0.15; c.arms[s].sh.rotation.z = sg * 0.16;
+      c.arms[s].el.rotation.x = -0.55;
+    }
+  },
+};
+
+const ANIM_NAMES = ['idle','walk','wave','bow','laugh','point','shrug','sit','kneel'];
+
+function resetPose(c) {
+  const zero = o => { o.rotation.set(0,0,0); };
+  zero(c.pelvis); zero(c.spine); zero(c.chest); zero(c.neck); zero(c.head);
+  c.chest.position.y = c.dims.torsoH * 0.34;
+  for (const s of ['L','R']) {
+    zero(c.arms[s].sh); zero(c.arms[s].el); zero(c.arms[s].hand);
+    zero(c.legs[s].hip); zero(c.legs[s].knee); zero(c.legs[s].foot);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SCENE
+   ══════════════════════════════════════════════════════════════════ */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0c0b10);
+/* NOTE: the camera orbits at ~19 units, so fog MUST start beyond that or
+   the whole scene washes to background. This was the original bug. */
+scene.fog = new THREE.Fog(0x0c0b10, 19, 40);
+
+const FRUSTUM = 2.9;
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+camera.position.set(9, 8.5, 9);
+camera.lookAt(0, 0.9, 0);
+
+// lighting: cold ambient + warm key + firelight fill.
+// three.js r155+ uses physical light units — these numbers are much
+// larger than pre-r155 examples would suggest.
+scene.add(new THREE.HemisphereLight(0x9cc0dd, 0x40332a, 2.9));
+const key = new THREE.DirectionalLight(0xffeed2, 4.6);
+key.position.set(8, 6.5, 5);
+key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024);
+key.shadow.bias = -0.0015;
+const sc = key.shadow.camera;
+sc.left = -7; sc.right = 7; sc.top = 7; sc.bottom = -7; sc.near = 1; sc.far = 30;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0x8fb8d8, 1.5);
+rim.position.set(-7, 4, -6);
+scene.add(rim);
+const torch = new THREE.PointLight(0xffa055, 9, 8, 2);
+torch.position.set(-2.0, 1.1, 1.4);
+scene.add(torch);
+
+// ── ground: procedural flagstones
+const groundGroup = new THREE.Group();
+(function buildGround() {
+  const rnd = mulberry32(99);
+  const tile = 0.62;
+  for (let x = -8; x <= 8; x++) {
+    for (let z = -8; z <= 8; z++) {
+      if (Math.hypot(x, z) > 8.6) continue;
+      const shade = [0x625d57, 0x6e6862, 0x534e49, 0x7a736b][Math.floor(rnd()*4)];
+      const g = new THREE.BoxGeometry(tile*0.94, 0.12 + rnd()*0.05, tile*0.94);
+      const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: shade }));
+      m.position.set(x*tile, -0.06 + rnd()*0.015, z*tile);
+      m.receiveShadow = true;
+      groundGroup.add(m);
+    }
+  }
+  // a few broken pillars for silhouette and scale
+  for (let i = 0; i < 7; i++) {
+    const a = rnd()*Math.PI*2, r = 3.4 + rnd()*1.8;
+    const h = 0.6 + rnd()*1.9;
+    const g = new THREE.BoxGeometry(0.34, h, 0.34);
+    const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: 0x6a645c }));
+    m.position.set(Math.cos(a)*r, h/2, Math.sin(a)*r);
+    m.rotation.y = rnd()*0.5;
+    m.castShadow = true; m.receiveShadow = true;
+    groundGroup.add(m);
+  }
+})();
+scene.add(groundGroup);
+
+// ── population
+const world = new THREE.Group();
+scene.add(world);
+let characters = [];
+let baseSeed = 1207;
+
+function populate(seed) {
+  for (const c of characters) {
+    world.remove(c.root);
+    if (c.cape) world.remove(c.cape.mesh);
+    if (c.hair) world.remove(c.hair.group);
+  }
+  characters = [];
+  const layout = [[0,0],[-1.75,0.75],[1.70,0.60],[-0.95,-1.70],[1.05,-1.60],[0.10,1.90]];
+  layout.forEach((pos, i) => {
+    const c = new Character(seed + i * 7919);
+    c.root.position.set(pos[0], 0, pos[1]);
+    c.root.rotation.y = mulberry32(seed + i)() * Math.PI * 2;
+    world.add(c.root);
+    if (c.cape) world.add(c.cape.mesh);
+    if (c.hair) world.add(c.hair.group);
+    c.anim = i === 0 ? 'idle' : ANIM_NAMES[(i * 3) % ANIM_NAMES.length];
+    characters.push(c);
+  });
+  document.getElementById('seedinfo').textContent =
+    `seed ${seed} · ${characters.length} characters · ${characters.map(c=>c.archetype[0].toUpperCase()).join('')}`;
+}
+populate(baseSeed);
+
+/* ══════════════════════════════════════════════════════════════════
+   POST — render small, quantise to palette, dither, upscale nearest.
+   This is what turns "low-poly 3D" into "gritty pixel art".
+   ══════════════════════════════════════════════════════════════════ */
+let rt = new THREE.WebGLRenderTarget(320, 200, {
+  minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
+
+const palArray = new Float32Array(PALETTE.length * 3);
+PALETTE.forEach((hex, i) => {
+  palArray[i*3]   = ((hex >> 16) & 255) / 255;
+  palArray[i*3+1] = ((hex >> 8) & 255) / 255;
+  palArray[i*3+2] = (hex & 255) / 255;
+});
+
+const postMat = new THREE.ShaderMaterial({
+  uniforms: {
+    tDiffuse:  { value: rt.texture },
+    uPalette:  { value: palArray },
+    uUsePal:   { value: 1.0 },
+    uDither:   { value: 1.0 },
+    uRes:      { value: new THREE.Vector2(320, 200) },
+    uTime:     { value: 0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
+  `,
+  fragmentShader: `
+    precision highp float;
+    varying vec2 vUv;
+    uniform sampler2D tDiffuse;
+    uniform vec3 uPalette[${PALETTE.length}];
+    uniform float uUsePal, uDither, uTime;
+    uniform vec2 uRes;
+
+    float bayer(vec2 p){
+      // 4x4 ordered dither matrix
+      int x = int(mod(p.x, 4.0));
+      int y = int(mod(p.y, 4.0));
+      int i = y * 4 + x;
+      float m[16];
+      m[0]=0.0;  m[1]=8.0;  m[2]=2.0;  m[3]=10.0;
+      m[4]=12.0; m[5]=4.0;  m[6]=14.0; m[7]=6.0;
+      m[8]=3.0;  m[9]=11.0; m[10]=1.0; m[11]=9.0;
+      m[12]=15.0;m[13]=7.0; m[14]=13.0;m[15]=5.0;
+      for(int k=0;k<16;k++){ if(k==i) return m[k]/16.0 - 0.5; }
+      return 0.0;
+    }
+
+    void main(){
+      vec3 c = texture2D(tDiffuse, vUv).rgb;
+      vec2 px = vUv * uRes;
+
+      // vignette FIRST — applying it after quantisation would push colours
+      // back off the palette and undo the whole effect.
+      c *= 1.18;                       // exposure
+      vec2 q = vUv - 0.5;
+      c *= 1.0 - dot(q,q) * 0.26;
+
+      // slight contrast lift so the palette has something to bite on
+      c = clamp((c - 0.5) * 1.12 + 0.5, 0.0, 1.0);
+
+      if (uDither > 0.5) c += bayer(px) * 0.030;
+
+      if (uUsePal > 0.5) {
+        float best = 1e9; vec3 bc = c;
+        for (int i = 0; i < ${PALETTE.length}; i++) {
+          vec3 d = uPalette[i] - c;
+          // perceptual-ish weighting keeps skin from snapping to blue
+          float dist = d.r*d.r*0.50 + d.g*d.g*0.58 + d.b*d.b*0.42;
+          if (dist < best) { best = dist; bc = uPalette[i]; }
+        }
+        c = bc;
+      }
+
+      gl_FragColor = vec4(c, 1.0);
+    }
+  `
+});
+
+const postScene = new THREE.Scene();
+const postCam = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), postMat));
+
+/* ── sizing ─────────────────────────────────────────────────── */
+let pixelScale = 4;
+function resize() {
+  const w = stage.clientWidth || window.innerWidth;
+  const h = stage.clientHeight || window.innerHeight;
+  renderer.setPixelRatio(1);
+  renderer.setSize(w, h, false);
+
+  const iw = Math.max(80, Math.floor(w / pixelScale));
+  const ih = Math.max(60, Math.floor(h / pixelScale));
+  rt.setSize(iw, ih);
+  postMat.uniforms.uRes.value.set(iw, ih);
+  postMat.uniforms.tDiffuse.value = rt.texture;
+
+  const aspect = iw / ih;
+  camera.left = -FRUSTUM * aspect; camera.right = FRUSTUM * aspect;
+  camera.top = FRUSTUM; camera.bottom = -FRUSTUM;
+  camera.updateProjectionMatrix();
+
+  document.getElementById('res').textContent = `${iw}×${ih}`;
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ── UI ─────────────────────────────────────────────────────── */
+const animsEl = document.getElementById('anims');
+let currentAnim = null;   // null = each character does its own
+const allBtn = document.createElement('button');
+allBtn.textContent = 'mixed'; allBtn.className = 'on';
+allBtn.onclick = () => { currentAnim = null; syncBtns(); };
+animsEl.appendChild(allBtn);
+const animBtns = {};
+ANIM_NAMES.forEach(n => {
+  const b = document.createElement('button');
+  b.textContent = n;
+  b.onclick = () => { currentAnim = n; syncBtns(); };
+  animsEl.appendChild(b); animBtns[n] = b;
+});
+function syncBtns() {
+  allBtn.className = currentAnim === null ? 'on' : '';
+  for (const k in animBtns) animBtns[k].className = currentAnim === k ? 'on' : '';
+}
+
+document.getElementById('regen').onclick = () => {
+  baseSeed = Math.floor(Math.random() * 100000);
+  populate(baseSeed);
+};
+
+const windEl = document.getElementById('wind');
+const windV = document.getElementById('windv');
+let wind = 0.30;
+windEl.oninput = () => { wind = windEl.value / 100; windV.textContent = windEl.value + '%'; };
+windV.textContent = '30%';
+
+const pixEl = document.getElementById('pix');
+const pixV = document.getElementById('pixv');
+pixEl.oninput = () => { pixelScale = +pixEl.value; pixV.textContent = '×' + pixelScale; resize(); };
+pixV.textContent = '×4';
+
+let rotate = true;
+document.getElementById('tPalette').onclick = e => {
+  const on = postMat.uniforms.uUsePal.value < 0.5;
+  postMat.uniforms.uUsePal.value = on ? 1 : 0; e.target.className = on ? 'on' : '';
+};
+document.getElementById('tDither').onclick = e => {
+  const on = postMat.uniforms.uDither.value < 0.5;
+  postMat.uniforms.uDither.value = on ? 1 : 0; e.target.className = on ? 'on' : '';
+};
+document.getElementById('tRotate').onclick = e => {
+  rotate = !rotate; e.target.className = rotate ? 'on' : '';
+};
+
+/* ── loop ───────────────────────────────────────────────────── */
+const clock = new THREE.Clock();
+let t = 0, frames = 0, fpsT = 0;
+const fpsEl = document.getElementById('fps');
+const trisEl = document.getElementById('tris');
+const tmpM = new THREE.Matrix4();
+
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), 0.033);
+  t += dt;
+
+  if (rotate) {
+    const a = t * 0.16;
+    camera.position.set(Math.cos(a) * 10, 7.2, Math.sin(a) * 10);
+    camera.lookAt(0, 0.85, 0);
+  }
+
+  torch.intensity = 8.5 + Math.sin(t * 9.3) * 1.1 + Math.sin(t * 21.7) * 0.6;
+
+  for (const c of characters) {
+    resetPose(c);
+    const name = currentAnim || c.anim;
+    (ANIMS[name] || ANIMS.idle)(c, t);
+
+    c.root.updateMatrixWorld(true);
+    if (c.cape) {
+      tmpM.copy(c.chest.matrixWorld);
+      c.cape.step(dt, wind, t, tmpM);
+    }
+    if (c.hair) {
+      tmpM.copy(c.head.matrixWorld);
+      c.hair.step(dt, wind, t, tmpM);
+    }
+  }
+
+  postMat.uniforms.uTime.value = t;
+
+  renderer.setRenderTarget(rt);
+  renderer.render(scene, camera);
+  const sceneTris = renderer.info.render.triangles;   // read BEFORE the post pass
+  renderer.setRenderTarget(null);
+  renderer.render(postScene, postCam);
+
+  frames++; fpsT += dt;
+  if (fpsT > 0.5) {
+    fpsEl.textContent = Math.round(frames / fpsT);
+    trisEl.textContent = sceneTris.toLocaleString();
+    frames = 0; fpsT = 0;
+  }
+}
+loop();
+
+window.__ready = true;
+</script>
+</body>
+</html>

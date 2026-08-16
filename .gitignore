@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# build output
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# prototype build intermediates
+prototypes/_app.js
+prototypes/_bundle.js
+prototypes/shot_*.png
+prototypes/diag_*.png
+prototypes/package.json
+prototypes/package-lock.json
+
+# environment / secrets
+.env
+.env.*
+!.env.example
+
+# database
+*.sqlite
+*.sqlite3
+pgdata/
+backups/
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# generated content caches
+.cache/
+.turbo/
+coverage/
