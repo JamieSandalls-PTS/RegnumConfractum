@@ -4,7 +4,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
-    include: ['{shared,server,sim,tools}/test/**/*.test.ts'],
+    include: ['{shared,server,sim,tools,client}/test/**/*.test.ts'],
     environment: 'node',
     testTimeout: 30_000,
     hookTimeout: 30_000,

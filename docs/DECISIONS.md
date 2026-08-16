@@ -931,3 +931,31 @@ mirror-vs-snapshot desync checks, and restart survival.
 **Also locked by test:** the event log's append-only property is enforced by
 a Postgres trigger and there is a test that attempts UPDATE/DELETE and
 expects rejection.
+
+### D-503: M1 renderer — wire carries the appearance seed; walls are ruined stubs
+
+**Decision (wire):** `WireEntity` carries `appearanceSeed`, so every client
+generates identical appearance geometry from the character record (D-402)
+with no asset transfer. Appearance generation and movement interpolation are
+pure modules under `client/src/game/`, tested headlessly in CI; Three.js code
+is confined to `client/src/render/`.
+
+**Decision (walls):** wall tiles render as knee-to-waist rubble stubs, not
+full-height walls. At the isometric camera's ~34° elevation a wall of height
+h occludes ~1.5h tiles of floor behind it, and full-height walls fully
+swallowed characters standing beside them. Stubs can never hide a person and
+suit the decayed setting; proper tall walls need a camera-side cutaway,
+deferred to the M5 area pipeline.
+
+**Fog lesson, second occurrence:** the prototype's fog band (19→40) was
+correct for its ~6-unit stage but washed the game's ~13-unit visible field to
+black; the band is now 24→48. Rule of thumb recorded: fog near must exceed
+camera distance PLUS the visible field radius.
+
+**Verification hook:** the client exposes `window.__rc` (step one frame, dump
+entity mirror) so automated checks can pump frames and read canvas output
+without relying on requestAnimationFrame. First-light capture:
+`docs/media/m1-two-players.png`.
+
+**Still open (D-406):** art direction is implemented but NOT ratified — the
+stakeholder has not yet judged the look by eye.

@@ -182,7 +182,16 @@ in `server/`, headless bots and the determinism harness in `sim/`, content valid
 `sim/test/persistence.pg.test.ts` and `sim/test/bots.invariants.test.ts`.
 Dev workflow: `docs/DEV.md`. Implementation decisions: D-501, D-502.
 
-**Still open from M0:** staging deployment to a VPS (compose file exists; no VPS
-provisioned). **Next: M1 — the renderer.** See `docs/BUILD_PLAN.md`.
+**M1 — the renderer: built.** Three.js client in `client/`: orthographic isometric
+camera, palette-quantised low-res post (D-404), terrain from area data, characters
+generated from the wire `appearanceSeed` (D-402, D-503), verlet cloth/hair, walk/idle
+procedural animation, interpolation of authoritative positions. Pure logic
+(appearance, interpolation) is headlessly tested; `window.__rc` is the client's
+verification hook. Verified live: two accounts in two browser tabs saw each other
+move in real time. First light: `docs/media/m1-two-players.png`.
 
-Open questions are listed at the end of `DECISIONS.md`. None block M1.
+**Still open:** staging deployment to a VPS (compose file exists; no VPS
+provisioned); **art direction ratification by the stakeholder (D-406)** — run
+`npm run dev:server` + `npm run dev:client` and judge by eye.
+**Next: M2 — the roleplay core**, the project's real go/no-go gate. See
+`docs/BUILD_PLAN.md`.

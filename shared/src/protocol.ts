@@ -72,6 +72,8 @@ export const WireEntitySchema = z.object({
   x: z.number().int(),
   y: z.number().int(),
   facing: DirectionSchema,
+  /** Drives client-side procedural appearance (D-402). */
+  appearanceSeed: z.number().int().nonnegative(),
 });
 export type WireEntity = z.infer<typeof WireEntitySchema>;
 

@@ -18,12 +18,20 @@ kind peaks around 100–200, and the binding constraint has never been hardware.
 shared wire protocol, Postgres persistence with a trigger-enforced append-only
 event log, and a headless bot harness that proves the invariants — no item
 duplication, no coin creation, no desync, and positions/inventories surviving a
-full server restart. See [`docs/DEV.md`](docs/DEV.md) to run it.
+full server restart.
 
-The renderer approach was validated by a working prototype rather than adopted on
-argument — see `prototypes/`.
+**M1 — the renderer: built.** Browser client with procedural characters generated
+from each character's appearance seed, palette-quantised isometric rendering, and
+real-time movement between browsers. Art direction awaits stakeholder ratification
+(D-406).
 
-Next milestone is **M1 — the renderer**. See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md).
+![Two players in The Broken Yard](docs/media/m1-two-players.png)
+
+See [`docs/DEV.md`](docs/DEV.md) to run it. The renderer approach was validated by
+a working prototype rather than adopted on argument — see `prototypes/`.
+
+Next milestone is **M2 — the roleplay core**, the project's go/no-go gate.
+See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md).
 
 ---
 

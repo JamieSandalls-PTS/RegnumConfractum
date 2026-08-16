@@ -19,7 +19,14 @@ function scriptedRun(seed: number, ticks: number): string[] {
   const rng = new Rng(seed);
   const ids: number[] = [];
   for (let i = 0; i < 4; i++) {
-    ids.push(world.spawn('broken-yard', `char-${i}`, 'Scripted Bot', { x: 2 + i, y: 2 }).entity.id);
+    ids.push(
+      world.spawn('broken-yard', {
+        characterId: `char-${i}`,
+        name: 'Scripted Bot',
+        appearanceSeed: seed + i,
+        pos: { x: 2 + i, y: 2 },
+      }).entity.id,
+    );
   }
   const hashes: string[] = [];
   for (let t = 1; t <= ticks; t++) {
@@ -49,7 +56,12 @@ describe('deterministic simulation harness', () => {
     world.addArea(areaDef);
     const rng = new Rng('walkability-sweep');
     const ids = [1, 2, 3, 4].map(
-      (i) => world.spawn('broken-yard', `c${i}`, 'Sweeper Bot', { x: 2, y: 2 + i }).entity.id,
+      (i) =>
+        world.spawn('broken-yard', {
+          characterId: `c${i}`,
+          name: 'Sweeper Bot',
+          pos: { x: 2, y: 2 + i },
+        }).entity.id,
     );
     const walkable = (x: number, y: number) => {
       const ch = areaDef.tiles[y]?.[x];

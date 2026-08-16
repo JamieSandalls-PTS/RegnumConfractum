@@ -345,9 +345,11 @@ export class GameServer {
       return this.fail(conn, 'already_in_world', 'character is already online');
     }
     const areaId = this.world.hasArea(character.areaId) ? character.areaId : this.defaultAreaId;
-    const { entity, event } = this.world.spawn(areaId, character.id, character.name, {
-      x: character.x,
-      y: character.y,
+    const { entity, event } = this.world.spawn(areaId, {
+      characterId: character.id,
+      name: character.name,
+      appearanceSeed: character.appearanceSeed,
+      pos: { x: character.x, y: character.y },
     });
     conn.character = character;
     conn.entityId = entity.id;

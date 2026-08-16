@@ -6,7 +6,12 @@ Prerequisites: **Node 22+**, **Docker** (for Postgres), git.
 npm install
 npm run db:up            # Postgres 16 in Docker, host port 5433
 npm run dev:server       # game ws://localhost:8080, admin http://localhost:8081
+npm run dev:client       # the game client — http://localhost:5173
 ```
+
+Open http://localhost:5173 in two browser windows to see two characters in the
+same world. Move with WASD/arrows; keys 1–4 toggle equipment on your own
+character (debug, until the inventory drives it).
 
 Configuration comes from `.env` (copy `.env.example`) or real environment
 variables. Migrations run automatically on server start; `npm run db:migrate`

@@ -20,6 +20,7 @@ export interface WorldEntity {
   id: number;
   characterId: string;
   name: string;
+  appearanceSeed: number;
   pos: Vec2;
   facing: Direction;
   /** Tick at which the next tile step may be taken. */
@@ -34,7 +35,15 @@ interface AreaRuntime {
 }
 
 export function toWireEntity(e: WorldEntity): WireEntity {
-  return { id: e.id, name: e.name, kind: 'player', x: e.pos.x, y: e.pos.y, facing: e.facing };
+  return {
+    id: e.id,
+    name: e.name,
+    kind: 'player',
+    x: e.pos.x,
+    y: e.pos.y,
+    facing: e.facing,
+    appearanceSeed: e.appearanceSeed,
+  };
 }
 
 export class World {
@@ -80,19 +89,23 @@ export class World {
    */
   spawn(
     areaId: string,
-    characterId: string,
-    name: string,
-    pos: Vec2,
-    facing: Direction = 's',
+    opts: {
+      characterId: string;
+      name: string;
+      appearanceSeed?: number;
+      pos: Vec2;
+      facing?: Direction;
+    },
   ): { entity: WorldEntity; event: SimEvent } {
     const area = this.mustArea(areaId);
-    const at = isTileWalkable(area.def, pos) ? pos : area.def.spawn;
+    const at = isTileWalkable(area.def, opts.pos) ? opts.pos : area.def.spawn;
     const entity: WorldEntity = {
       id: this.nextEntityId++,
-      characterId,
-      name,
+      characterId: opts.characterId,
+      name: opts.name,
+      appearanceSeed: opts.appearanceSeed ?? 0,
       pos: { ...at },
-      facing,
+      facing: opts.facing ?? 's',
       readyAtTick: this.tick,
       intent: null,
     };
