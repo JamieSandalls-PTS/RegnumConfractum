@@ -890,3 +890,44 @@ It suits D-302's decayed empire, and it is original naming, which D-209 requires
 
 **Resolved elsewhere:** milestone sequencing and the first playable slice are now
 specified in `BUILD_PLAN.md`.
+
+---
+
+## Phase 5 — Implementation record
+
+> Decisions made while building, appended per the ADR convention. These are
+> narrower than design decisions but are recorded for the same reason: an
+> unwritten choice will be re-litigated.
+
+### D-501: Node 22 + npm; tsx execution, no build step; path-alias monorepo
+
+**Decision:** D-105 left "Bun or Node" open. Resolved to **Node 22 with npm**:
+the development machine has Node 22 installed and Bun absent, and nothing in
+the design needs Bun. All code runs from TypeScript source via `tsx` — dev
+server, Docker image, migration CLI alike — with `tsc --noEmit` as the type
+gate and Vitest as the test runner. There is no compile step to orchestrate
+and no `dist/` to drift from source.
+
+**Monorepo shape:** a single npm package with multiple source roots
+(`shared/`, `server/`, `sim/`, `tools/`) joined by `@rc/*` path aliases in one
+root `tsconfig.json` — not npm workspaces. One `npm install`, one typecheck,
+one test run. The D-105 requirement stands in substance: the wire protocol
+lives only in `shared/src/protocol.ts` and a shape change breaks the
+typecheck on both sides.
+
+**Reversal cost:** LOW. Introducing real workspaces or a build step later is
+mechanical; the import paths would not change.
+
+### D-502: M0 conservation invariants are enforced in the store, verified by bots
+
+**Decision:** Item and coin transfer are single atomic operations on the
+Store interface (`transferItem`, `transferCoin`) — a conditional UPDATE and a
+transaction with lock ordering in Postgres. Game code cannot express
+"duplicate an item" because ownership mutation only exists as a
+transfer-or-fail primitive. Headless bots (D-114) then verify the invariants
+end-to-end over real WebSockets: racing double-gives, overdraw attempts,
+mirror-vs-snapshot desync checks, and restart survival.
+
+**Also locked by test:** the event log's append-only property is enforced by
+a Postgres trigger and there is a test that attempts UPDATE/DELETE and
+expects rejection.

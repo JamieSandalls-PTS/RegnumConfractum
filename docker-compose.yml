@@ -1,0 +1,38 @@
+# Dev + single-VPS deployment shape (D-111). `docker compose up -d db` for local
+# development; the server service is behind a profile so it only runs when asked.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: rc
+      POSTGRES_PASSWORD: rc
+      POSTGRES_DB: regnum
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rc -d regnum"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  server:
+    profiles: ["server"]
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment:
+      DATABASE_URL: postgres://rc:rc@db:5432/regnum
+      PORT: 8080
+      ADMIN_PORT: 8081
+      ADMIN_HOST: 0.0.0.0  # in-container; compose maps it to host loopback only
+    ports:
+      - "8080:8080"
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

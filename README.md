@@ -14,12 +14,16 @@ kind peaks around 100–200, and the binding constraint has never been hardware.
 
 ## Status
 
-**Design complete. Implementation not started.**
+**M0 — foundation and harness: built and green.** Authoritative 10Hz server,
+shared wire protocol, Postgres persistence with a trigger-enforced append-only
+event log, and a headless bot harness that proves the invariants — no item
+duplication, no coin creation, no desync, and positions/inventories surviving a
+full server restart. See [`docs/DEV.md`](docs/DEV.md) to run it.
 
 The renderer approach was validated by a working prototype rather than adopted on
 argument — see `prototypes/`.
 
-Next milestone is **M0 — foundation and harness**. See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md).
+Next milestone is **M1 — the renderer**. See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md).
 
 ---
 

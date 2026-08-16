@@ -1,0 +1,87 @@
+/**
+ * Persistence interface (D-106). Two implementations: PgStore (production —
+ * Postgres is the source of truth) and MemoryStore (deterministic tests).
+ *
+ * Contract notes that matter for correctness:
+ * - transferItem / transferCoin are ATOMIC. They either fully happen or fully
+ *   don't, and they must be safe under concurrent calls — these are the
+ *   operations behind the no-duplication / no-creation invariants.
+ * - appendEvent is append-only. Nothing in the codebase updates or deletes
+ *   event rows, and the Postgres schema enforces that with a trigger (D-106).
+ */
+
+export interface Account {
+  id: string;
+  username: string;
+  passHash: string;
+}
+
+export interface CharacterRecord {
+  id: string;
+  accountId: string;
+  name: string;
+  appearanceSeed: number;
+  areaId: string;
+  x: number;
+  y: number;
+  coin: number;
+}
+
+export interface ItemRecord {
+  id: string;
+  templateId: string;
+  ownerCharacterId: string;
+  qty: number;
+}
+
+export interface SessionRecord {
+  token: string;
+  accountId: string;
+  expiresAt: number; // epoch ms
+}
+
+export interface EventRecord {
+  id: number;
+  type: string;
+  data: Record<string, unknown>;
+}
+
+export interface Store {
+  init(): Promise<void>;
+  close(): Promise<void>;
+
+  // Accounts & sessions
+  createAccount(username: string, passHash: string): Promise<Account | 'username_taken'>;
+  getAccountByUsername(username: string): Promise<Account | null>;
+  createSession(session: SessionRecord): Promise<void>;
+  getSession(token: string): Promise<SessionRecord | null>;
+  deleteSession(token: string): Promise<void>;
+
+  // Characters
+  createCharacter(
+    c: Omit<CharacterRecord, 'id' | 'coin'>,
+  ): Promise<CharacterRecord | 'character_name_taken'>;
+  getCharacter(id: string): Promise<CharacterRecord | null>;
+  getCharactersByAccount(accountId: string): Promise<CharacterRecord[]>;
+  /** Batched dirty-flag flush target; also called immediately on logout (D-106). */
+  saveCharacterPosition(id: string, areaId: string, x: number, y: number): Promise<void>;
+
+  // Items & coin
+  grantItem(ownerCharacterId: string, templateId: string, qty: number): Promise<ItemRecord>;
+  getItemsByCharacter(characterId: string): Promise<ItemRecord[]>;
+  /** True iff the item existed AND belonged to `from` at transfer time. Atomic. */
+  transferItem(itemId: string, fromCharacterId: string, toCharacterId: string): Promise<boolean>;
+  /** Test/admin faucet — production coin enters via player trade only (D-220). */
+  grantCoin(characterId: string, amount: number): Promise<void>;
+  getCoin(characterId: string): Promise<number>;
+  /** True iff `from` had at least `amount`. Atomic, never overdraws. */
+  transferCoin(fromCharacterId: string, toCharacterId: string, amount: number): Promise<boolean>;
+
+  // Event log (append-only, D-106)
+  appendEvent(type: string, data: Record<string, unknown>): Promise<void>;
+  listRecentEvents(limit: number): Promise<EventRecord[]>;
+
+  // Invariant probes for the harness (D-114)
+  totalCoin(): Promise<number>;
+  countItems(): Promise<number>;
+}

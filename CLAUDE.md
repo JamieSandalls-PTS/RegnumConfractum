@@ -175,6 +175,14 @@ above them for wilderness travel and settlement coordinates (D-301).
 Design is complete through all phases. The renderer approach was validated by prototype
 (`prototypes/procedural-characters.html`) rather than adopted on argument.
 
-**Next: M0 — foundation and harness.** See `docs/BUILD_PLAN.md`.
+**M0 — foundation and harness: built.** Wire protocol in `shared/`, deterministic
+10Hz sim + WS gateway + Postgres persistence (append-only event log, trigger-enforced)
+in `server/`, headless bots and the determinism harness in `sim/`, content validator in
+`tools/`, CI in `.github/workflows/ci.yml`. The M0 definition of done is covered by
+`sim/test/persistence.pg.test.ts` and `sim/test/bots.invariants.test.ts`.
+Dev workflow: `docs/DEV.md`. Implementation decisions: D-501, D-502.
 
-Open questions are listed at the end of `DECISIONS.md`. None block M0.
+**Still open from M0:** staging deployment to a VPS (compose file exists; no VPS
+provisioned). **Next: M1 — the renderer.** See `docs/BUILD_PLAN.md`.
+
+Open questions are listed at the end of `DECISIONS.md`. None block M1.

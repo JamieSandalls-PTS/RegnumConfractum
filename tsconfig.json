@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@rc/shared": ["shared/src/index.ts"],
+      "@rc/shared/*": ["shared/src/*"],
+      "@rc/server/*": ["server/src/*"],
+      "@rc/sim/*": ["sim/src/*"]
+    }
+  },
+  "include": [
+    "shared/src/**/*.ts",
+    "shared/test/**/*.ts",
+    "server/src/**/*.ts",
+    "server/test/**/*.ts",
+    "sim/src/**/*.ts",
+    "sim/test/**/*.ts",
+    "tools/src/**/*.ts",
+    "tools/test/**/*.ts",
+    "vitest.config.ts"
+  ]
+}

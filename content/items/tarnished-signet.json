@@ -1,0 +1,8 @@
+{
+  "id": "tarnished-signet",
+  "name": "Tarnished Signet Ring",
+  "description": "A dead house's seal in blackened silver. Sell it, or wear it where the wrong people can see.",
+  "category": "valuable",
+  "stackable": false,
+  "value": 25
+}

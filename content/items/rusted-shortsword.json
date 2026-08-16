@@ -1,0 +1,8 @@
+{
+  "id": "rusted-shortsword",
+  "name": "Rusted Shortsword",
+  "description": "Imperial issue, two owners ago at least. The edge is bad but the point still works.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 8
+}
