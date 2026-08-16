@@ -68,6 +68,7 @@ export function validateContent(contentDir: string): ValidationResult {
   const errors: string[] = [];
   let checked = 0;
 
+  const parsedAreas = new Map<string, AreaDef>();
   const areaIds = new Set<string>();
   for (const file of listJson(join(contentDir, 'areas'))) {
     checked++;
@@ -88,6 +89,7 @@ export function validateContent(contentDir: string): ValidationResult {
       continue;
     }
     areaIds.add(parsed.data.id);
+    parsedAreas.set(parsed.data.id, parsed.data);
     const missing = unreachableTiles(parsed.data);
     if (missing.length > 0) {
       const sample = missing.slice(0, 5).map((p) => `(${p.x},${p.y})`).join(' ');
@@ -117,6 +119,42 @@ export function validateContent(contentDir: string): ValidationResult {
       continue;
     }
     itemIds.add(parsed.data.id);
+  }
+
+  // Cross-area checks: transitions must land on walkable tiles in areas that
+  // exist (D-103), and referenced scripts must exist (D-109).
+  const walkableAt = (area: AreaDef, x: number, y: number): boolean =>
+    x >= 0 && y >= 0 && x < area.width && y < area.height &&
+    area.legend[area.tiles[y]![x]!]!.walkable;
+  let scriptIds = new Set<string>();
+  try {
+    scriptIds = new Set(
+      readdirSync(join(contentDir, 'scripts'))
+        .filter((f) => f.endsWith('.lua'))
+        .map((f) => f.replace(/\.lua$/, '')),
+    );
+  } catch {
+    // no scripts directory — fine unless something references one
+  }
+  for (const area of parsedAreas.values()) {
+    for (const tr of area.transitions) {
+      const target = parsedAreas.get(tr.toArea);
+      if (!target) {
+        errors.push(`area '${area.id}': transition targets unknown area '${tr.toArea}'`);
+      } else if (!walkableAt(target, tr.toX, tr.toY)) {
+        errors.push(
+          `area '${area.id}': transition lands on unwalkable (${tr.toX},${tr.toY}) in '${tr.toArea}'`,
+        );
+      }
+      if (!walkableAt(area, tr.x, tr.y)) {
+        errors.push(`area '${area.id}': transition source (${tr.x},${tr.y}) is not walkable`);
+      }
+    }
+    for (const scriptId of area.scripts) {
+      if (!scriptIds.has(scriptId)) {
+        errors.push(`area '${area.id}': references missing script '${scriptId}'`);
+      }
+    }
   }
 
   if (checked === 0) errors.push(`no content files found under ${contentDir}`);

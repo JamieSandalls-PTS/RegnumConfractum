@@ -2,6 +2,7 @@ import { loadConfig } from './config';
 import { loadContent } from './content';
 import { AdminServer } from './admin/http';
 import { GameServer } from './net/gateway';
+import { ScriptHost } from './script/host';
 import { PgStore } from './store/postgres';
 
 const config = loadConfig();
@@ -28,6 +29,20 @@ const adminServer = new AdminServer({
 });
 
 await gameServer.start();
+
+// Sandboxed Lua (D-109): area scripts run behind the controlled API only.
+const scriptHost = new ScriptHost(gameServer, (msg) => console.log(`[lua] ${msg}`));
+for (const area of content.areas.values()) {
+  if (area.scripts.length > 0) {
+    await scriptHost.loadAreaScripts(
+      area.id,
+      area.scripts.map((id) => ({ id, source: content.scripts.get(id)! })),
+    );
+  }
+}
+gameServer.onTickHook = (tick) => scriptHost.tick(tick);
+gameServer.onAreaEnter = (areaId, entityId) => scriptHost.onAreaEntered(areaId, entityId);
+
 await adminServer.start();
 console.log(`[server] game ws://localhost:${gameServer.port}  admin http://localhost:${adminServer.port}`);
 console.log(`[server] areas: ${[...content.areas.keys()].join(', ')}`);
@@ -37,6 +52,7 @@ async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`[server] ${signal} — flushing and stopping`);
+  scriptHost.dispose();
   await gameServer.stop();
   await adminServer.stop();
   await store.close();

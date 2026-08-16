@@ -40,6 +40,23 @@ export const AreaSchema = z
     /** Default spawn tile; must be walkable. */
     spawn: z.object({ x: z.number().int().min(0), y: z.number().int().min(0) }),
     lighting: LightingProfileSchema.default('overcast'),
+    /**
+     * Graph edges between areas (D-103): stepping onto (x, y) moves the
+     * character to (toX, toY) in toArea. The validator cross-checks targets.
+     */
+    transitions: z
+      .array(
+        z.object({
+          x: z.number().int().min(0),
+          y: z.number().int().min(0),
+          toArea: ContentIdSchema,
+          toX: z.number().int().min(0),
+          toY: z.number().int().min(0),
+        }),
+      )
+      .default([]),
+    /** Lua scripts (content/scripts/<id>.lua) attached to this area (D-109). */
+    scripts: z.array(ContentIdSchema).default([]),
   })
   .superRefine((area, ctx) => {
     if (area.tiles.length !== area.height) {

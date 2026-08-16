@@ -10,6 +10,7 @@ import {
   describeHooded,
   generateAppearance,
   parseClientMessage,
+  type AreaDef,
   type Channel,
   type CharacterSummary,
   type ClientMessage,
@@ -77,6 +78,11 @@ export class GameServer {
   private entityCharacter = new Map<number, string>();
   /** Characters whose position changed since the last flush (D-106). */
   private dirtyCharacters = new Map<string, { areaId: string; x: number; y: number }>();
+  /** DM lighting overrides, on top of the authored profile. */
+  private lightingOverrides = new Map<string, AreaDef['lighting']>();
+  /** Script-host hooks — wired by the entrypoint, no-ops otherwise. */
+  onAreaEnter: ((areaId: string, entityId: number) => void) | null = null;
+  onTickHook: ((tick: number) => void) | null = null;
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -133,20 +139,91 @@ export class GameServer {
 
   private async onTick(): Promise<void> {
     const eventsByArea = this.world.step();
+    const transfers: { conn: ConnState; toArea: string; toX: number; toY: number }[] = [];
     for (const [areaId, events] of eventsByArea) {
+      const def = this.world.getAreaDef(areaId);
       for (const event of events) {
         if (event.type === 'entity_moved') {
           const characterId = this.entityCharacter.get(event.id);
           if (characterId) {
             this.dirtyCharacters.set(characterId, { areaId, x: event.x, y: event.y });
           }
+          // Stepping onto a transition tile crosses to the linked area (D-103).
+          const tr = def.transitions.find((t) => t.x === event.x && t.y === event.y);
+          if (tr) {
+            const conn = [...(this.connsByArea.get(areaId) ?? [])].find(
+              (c) => c.entityId === event.id,
+            );
+            if (conn) transfers.push({ conn, toArea: tr.toArea, toX: tr.toX, toY: tr.toY });
+          }
         }
       }
       this.broadcast(areaId, { t: 'delta', tick: this.world.tick, events });
     }
+    for (const t of transfers) {
+      await this.transferToArea(t.conn, t.toArea, t.toX, t.toY);
+    }
+    this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
       await this.flushDirty();
     }
+  }
+
+  /** Moves a player between areas: despawn, respawn, fresh snapshot (D-103). */
+  private async transferToArea(
+    conn: ConnState,
+    toAreaId: string,
+    x: number,
+    y: number,
+  ): Promise<void> {
+    if (!conn.character || conn.entityId === null || !conn.areaId) return;
+    if (!this.world.hasArea(toAreaId)) {
+      this.log(`transition to unknown area '${toAreaId}' ignored`);
+      return;
+    }
+    const oldAreaId = conn.areaId;
+    const oldEntity = this.world.getEntity(conn.entityId)!;
+    const leftEvent = this.world.despawn(conn.entityId);
+    this.entityCharacter.delete(conn.entityId);
+    this.connsByArea.get(oldAreaId)?.delete(conn);
+    if (leftEvent) {
+      this.broadcast(oldAreaId, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
+    }
+    const { entity } = this.world.spawn(toAreaId, {
+      characterId: conn.character.id,
+      name: conn.character.name,
+      appearanceSeed: conn.character.appearanceSeed,
+      pos: { x, y },
+      facing: oldEntity.facing,
+    });
+    entity.presentation = oldEntity.presentation; // the hood survives the door
+    conn.entityId = entity.id;
+    conn.areaId = toAreaId;
+    this.entityCharacter.set(entity.id, conn.character.id);
+    for (const other of this.connsByArea.get(toAreaId) ?? []) {
+      if (!other.character) continue;
+      const descriptor = await this.descriptorFor(other, entity);
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(entity, descriptor) }],
+      });
+    }
+    let byArea = this.connsByArea.get(toAreaId);
+    if (!byArea) this.connsByArea.set(toAreaId, (byArea = new Set()));
+    byArea.add(conn);
+    this.dirtyCharacters.set(conn.character.id, {
+      areaId: toAreaId,
+      x: entity.pos.x,
+      y: entity.pos.y,
+    });
+    await this.store.appendEvent('area_transition', {
+      characterId: conn.character.id,
+      from: oldAreaId,
+      to: toAreaId,
+    });
+    await this.sendSnapshot(conn);
+    this.onAreaEnter?.(toAreaId, entity.id);
   }
 
   private async flushDirty(): Promise<void> {
@@ -398,6 +475,7 @@ export class GameServer {
     byArea.add(conn);
     await this.store.appendEvent('enter_world', { characterId: character.id, areaId });
     await this.sendSnapshot(conn);
+    this.onAreaEnter?.(areaId, entity.id);
   }
 
   private async handleResync(conn: ConnState): Promise<void> {
@@ -419,11 +497,12 @@ export class GameServer {
       area: {
         id: def.id,
         name: def.name,
-        lighting: def.lighting,
+        lighting: this.lightingOverrides.get(areaId) ?? def.lighting,
         width: def.width,
         height: def.height,
         legend: def.legend,
         tiles: def.tiles,
+        transitions: def.transitions.map(({ x, y }) => ({ x, y })),
       },
       entities: entities.map((e) => toWireEntity(e, descriptors.get(e.id)!)),
       inventory: items.map(toWireItem),
@@ -445,7 +524,10 @@ export class GameServer {
     // Knowledge is per observed identity: character × presentation (D-219).
     const strangersByPresentation = new Map<string, WorldEntity[]>();
     for (const e of entities) {
-      if (e.characterId === observer.character!.id) {
+      if (e.characterId === null) {
+        // NPCs wear one public face for everyone (D-507).
+        out.set(e.id, e.npcDescriptor ?? describeAppearance(generateAppearance(e.appearanceSeed)));
+      } else if (e.characterId === observer.character!.id) {
         out.set(e.id, observer.character!.name);
       } else {
         let group = strangersByPresentation.get(e.presentation);
@@ -456,11 +538,11 @@ export class GameServer {
     for (const [presentation, group] of strangersByPresentation) {
       const knowledge = await this.store.getKnowledge(
         observer.character!.id,
-        group.map((e) => e.characterId),
+        group.map((e) => e.characterId!),
         presentation,
       );
       for (const e of group) {
-        const known = knowledge.get(e.characterId);
+        const known = knowledge.get(e.characterId!);
         const appearance = generateAppearance(e.appearanceSeed);
         out.set(
           e.id,
@@ -532,33 +614,65 @@ export class GameServer {
       return this.fail(conn, 'bad_target', 'they are not here to introduce');
     }
 
-    const range = CHANNEL_RANGE[msg.channel];
-    const declaring = msg.declareAs !== undefined;
-    const truthful = declaring
-      ? msg.declareAs!.toLowerCase() === conn.character.name.toLowerCase()
-      : true;
+    await this.deliverSpeech({
+      speaker,
+      areaId: conn.areaId,
+      speakerConn: conn,
+      channel: msg.channel,
+      text: msg.text,
+      languageId,
+      declareAs: msg.declareAs,
+      introduce: msg.introduce && introTarget ? { target: introTarget, name: msg.introduce.name } : undefined,
+    });
+  }
 
-    for (const listener of this.connsByArea.get(conn.areaId) ?? []) {
+  /**
+   * The speech pipeline, shared by players, possessed NPCs (DM console) and
+   * scripts. Declarations and introductions require a speaking character —
+   * NPC speech carries neither.
+   */
+  private async deliverSpeech(opts: {
+    speaker: WorldEntity;
+    areaId: string;
+    speakerConn?: ConnState;
+    channel: Channel;
+    text: string;
+    languageId: string;
+    declareAs?: string;
+    introduce?: { target: WorldEntity; name: string };
+  }): Promise<void> {
+    const { speaker, areaId, speakerConn, channel, text, languageId } = opts;
+    const language = this.content.languages.get(languageId)!;
+    const areaDef = this.world.getAreaDef(areaId);
+    const speakerCharacter = speakerConn?.character ?? null;
+    const range = CHANNEL_RANGE[channel];
+    const declaring = opts.declareAs !== undefined && speakerCharacter !== null;
+    const truthful = declaring
+      ? opts.declareAs!.toLowerCase() === speakerCharacter!.name.toLowerCase()
+      : true;
+    const introTarget = opts.introduce?.target ?? null;
+
+    for (const listener of this.connsByArea.get(areaId) ?? []) {
       if (!listener.character || listener.entityId === null) continue;
       const listenerEntity = this.world.getEntity(listener.entityId)!;
-      const isSelf = listener === conn;
+      const isSelf = listener === speakerConn;
       let seen = true;
       if (!isSelf) {
         if (chebyshev(speaker.pos, listenerEntity.pos) > range) continue;
         seen = hasLineOfSight(areaDef, listenerEntity.pos, speaker.pos);
         // Whispers and speech need sight; a shout carries around walls.
-        if (!seen && msg.channel !== 'shout') continue;
+        if (!seen && channel !== 'shout') continue;
       }
 
       // Comprehension: unknown tongues arrive scrambled — the real words
       // never reach that client. Names only propagate through understanding.
       const understands = isSelf || listener.character.languages.includes(languageId);
-      const heardText = understands ? msg.text : scrambleSpeech(msg.text, languageId);
+      const heardText = understands ? text : scrambleSpeech(text, languageId);
 
       // Resolve the descriptor BEFORE any knowledge update: the line reads as
       // the listener knew the speaker at the moment of hearing.
       const descriptor = isSelf
-        ? conn.character.name
+        ? speakerCharacter!.name
         : seen
           ? await this.descriptorFor(listener, speaker)
           : 'a voice from somewhere unseen';
@@ -567,7 +681,7 @@ export class GameServer {
       if (declaring && !isSelf && seen && understands) {
         const result = resolveNameContest({
           truthful,
-          speakerBluff: conn.character.bluff,
+          speakerBluff: speakerCharacter!.bluff,
           listenerInsight: listener.character.insight,
           rng: this.contestRng,
         });
@@ -576,9 +690,9 @@ export class GameServer {
         // hooded belongs to the hooded thread (D-219).
         await this.store.upsertKnowledge({
           observerCharacterId: listener.character.id,
-          subjectCharacterId: conn.character.id,
+          subjectCharacterId: speakerCharacter!.id,
           presentation: speaker.presentation,
-          knownName: msg.declareAs!,
+          knownName: opts.declareAs!,
           provenance: 'self_claimed',
           impression: result,
         });
@@ -586,8 +700,8 @@ export class GameServer {
 
       // "This is X": attaches to the target's presented identity, provenance
       // third_party, never overwriting a name the listener already holds.
-      if (msg.introduce && introTarget && !isSelf && seen && understands &&
-          listener.character.id !== introTarget.characterId) {
+      if (opts.introduce && introTarget && introTarget.characterId !== null && !isSelf && seen &&
+          understands && listener.character.id !== introTarget.characterId) {
         const existing = await this.store.getKnowledge(
           listener.character.id,
           [introTarget.characterId],
@@ -598,7 +712,7 @@ export class GameServer {
             observerCharacterId: listener.character.id,
             subjectCharacterId: introTarget.characterId,
             presentation: introTarget.presentation,
-            knownName: msg.introduce.name,
+            knownName: opts.introduce.name,
             provenance: 'third_party',
             impression: null,
           });
@@ -608,7 +722,7 @@ export class GameServer {
       this.send(listener, {
         t: 'speech',
         speakerId: speaker.id,
-        channel: msg.channel,
+        channel,
         text: heardText,
         language: understands ? language.name : 'unknown',
         speakerDescriptor: descriptor,
@@ -618,16 +732,96 @@ export class GameServer {
 
     // Chat is logged in full and in the original tongue (D-215).
     await this.store.appendEvent('speech', {
-      characterId: conn.character.id,
-      areaId: conn.areaId,
-      channel: msg.channel,
+      ...(speakerCharacter ? { characterId: speakerCharacter.id } : { npcEntityId: speaker.id }),
+      areaId,
+      channel,
       language: languageId,
-      text: msg.text,
-      ...(declaring ? { declaredAs: msg.declareAs, truthful } : {}),
-      ...(msg.introduce && introTarget
-        ? { introduced: introTarget.characterId, asName: msg.introduce.name }
+      text,
+      ...(declaring ? { declaredAs: opts.declareAs, truthful } : {}),
+      ...(opts.introduce && introTarget
+        ? { introduced: introTarget.characterId, asName: opts.introduce.name }
         : {}),
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // DM & script surface (D-109, D-216) — used by the Lua host and the admin
+  // console. Everything here is server-authoritative narration and staging.
+  // -------------------------------------------------------------------------
+
+  spawnNpc(
+    areaId: string,
+    opts: { x: number; y: number; descriptor: string; appearanceSeed?: number },
+  ): number {
+    if (!this.world.hasArea(areaId)) throw new Error(`no such area '${areaId}'`);
+    const { entity } = this.world.spawn(areaId, {
+      characterId: null,
+      name: opts.descriptor,
+      npcDescriptor: opts.descriptor,
+      appearanceSeed: opts.appearanceSeed ?? Math.abs((opts.x * 7919) ^ (opts.y * 104729)),
+      pos: { x: opts.x, y: opts.y },
+    });
+    this.broadcast(areaId, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_entered', entity: toWireEntity(entity, opts.descriptor) }],
+    });
+    return entity.id;
+  }
+
+  despawnEntity(entityId: number): boolean {
+    const entity = this.world.getEntity(entityId);
+    if (!entity || entity.characterId !== null) return false; // players leave by disconnecting
+    const areaId = this.world.getEntityAreaId(entityId)!;
+    const event = this.world.despawn(entityId);
+    if (event) this.broadcast(areaId, { t: 'delta', tick: this.world.tick, events: [event] });
+    return true;
+  }
+
+  /** Possessed or scripted speech: the NPC speaks through the same pipeline
+   * players use — earshot, sight, and languages all apply (D-216 puppeteering). */
+  async speakAs(entityId: number, text: string, channel: Channel = 'say'): Promise<boolean> {
+    const speaker = this.world.getEntity(entityId);
+    const areaId = this.world.getEntityAreaId(entityId);
+    if (!speaker || !areaId || speaker.characterId !== null) return false;
+    const emotes = this.emoteParser.parse(text);
+    if (emotes.posture || emotes.transients.length > 0) {
+      if (emotes.posture) speaker.posture = emotes.posture;
+      this.broadcast(areaId, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_emote', id: speaker.id, posture: emotes.posture ?? undefined, transients: emotes.transients }],
+      });
+    }
+    await this.deliverSpeech({ speaker, areaId, channel, text, languageId: 'common' });
+    return true;
+  }
+
+  moveEntity(entityId: number, dir: Parameters<World['setMoveIntent']>[1]): void {
+    this.world.setMoveIntent(entityId, dir);
+  }
+
+  /** Scene narration with no in-world speaker (D-216). */
+  narrate(scope: 'global' | 'area', text: string, areaId?: string): void {
+    const message = { t: 'narrate' as const, text };
+    if (scope === 'global') {
+      for (const conn of this.conns) {
+        if (conn.entityId !== null) this.send(conn, message);
+      }
+    } else if (areaId) {
+      this.broadcast(areaId, message);
+    }
+  }
+
+  /** DM mood/weather control: overrides the area's authored lighting live. */
+  setAreaLighting(areaId: string, lighting: AreaDef['lighting']): void {
+    if (!this.world.hasArea(areaId)) throw new Error(`no such area '${areaId}'`);
+    this.lightingOverrides.set(areaId, lighting);
+    this.broadcast(areaId, { t: 'area_lighting', lighting });
+  }
+
+  playerCountIn(areaId: string): number {
+    return this.connsByArea.get(areaId)?.size ?? 0;
   }
 
   /** Hood up, hood down (D-219). Lowering the hood in view IS the pierce:
@@ -772,6 +966,11 @@ export class GameServer {
     }
     if (chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
       this.fail(conn, 'not_adjacent', 'too far away');
+      return null;
+    }
+    if (target.characterId === null) {
+      // NPCs have no inventory or purse yet — trade with them arrives in M5.
+      this.fail(conn, 'bad_target', 'they cannot take that');
       return null;
     }
     const targetConn =

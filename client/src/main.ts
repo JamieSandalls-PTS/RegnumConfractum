@@ -158,6 +158,17 @@ conn.onMessage = (msg: ServerMessage) => {
       if (e) e.wire.descriptor = msg.descriptor;
       return;
     }
+    case 'narrate': {
+      const line = document.createElement('div');
+      line.className = 'line narration';
+      line.textContent = msg.text;
+      chatLog.appendChild(line);
+      trimAndScrollChat();
+      return;
+    }
+    case 'area_lighting':
+      scene?.applyLighting(msg.lighting);
+      return;
     case 'pong':
       return;
   }
@@ -562,6 +573,10 @@ declare global {
       step: (dt: number) => void;
       entities: () => { id: number; x: number; y: number; rx: number; ry: number }[];
       you: () => number | null;
+      /** Sends through the real connection — background tabs throttle the
+       * input timers, so automated checks inject intents directly. The
+       * server validates everything regardless (D-102). */
+      send: (msg: Parameters<Connection['send']>[0]) => void;
     };
   }
 }
@@ -576,4 +591,5 @@ window.__rc = {
       ry: e.render.y,
     })),
   you: () => youId,
+  send: (msg) => conn.send(msg),
 };

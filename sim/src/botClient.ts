@@ -143,6 +143,14 @@ export class BotClient {
     });
   }
 
+  /** Discards buffered messages of a type — e.g. stale snapshots before a
+   * resync assertion. */
+  drain(t: ServerMessage['t']): void {
+    for (let i = this.inbox.length - 1; i >= 0; i--) {
+      if (this.inbox[i]!.t === t) this.inbox.splice(i, 1);
+    }
+  }
+
   close(): void {
     if (!this.closed) this.ws.close();
   }

@@ -92,5 +92,17 @@
     "x": 30,
     "y": 53
   },
-  "lighting": "interior"
+  "lighting": "interior",
+  "transitions": [
+    {
+      "x": 1,
+      "y": 53,
+      "toArea": "broken-yard",
+      "toX": 29,
+      "toY": 16
+    }
+  ],
+  "scripts": [
+    "ferryman-keeper"
+  ]
 }

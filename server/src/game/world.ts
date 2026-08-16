@@ -20,10 +20,14 @@ import {
 
 export interface WorldEntity {
   id: number;
-  characterId: string;
+  /** Null for NPCs — they have no character record or connection. */
+  characterId: string | null;
   /** The character's true name — server-side knowledge only. What observers
    * see is resolved per observer via identity knowledge (D-219). */
   name: string;
+  /** NPCs carry a fixed public descriptor, the same for every observer.
+   * (NPC identity mechanics deferred — see D-507.) */
+  npcDescriptor?: string;
   appearanceSeed: number;
   pos: Vec2;
   facing: Direction;
@@ -45,7 +49,7 @@ export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
   return {
     id: e.id,
     descriptor,
-    kind: 'player',
+    kind: e.characterId === null ? 'npc' : 'player',
     x: e.pos.x,
     y: e.pos.y,
     facing: e.facing,
@@ -99,8 +103,9 @@ export class World {
   spawn(
     areaId: string,
     opts: {
-      characterId: string;
+      characterId: string | null;
       name: string;
+      npcDescriptor?: string;
       appearanceSeed?: number;
       pos: Vec2;
       facing?: Direction;
@@ -112,6 +117,7 @@ export class World {
       id: this.nextEntityId++,
       characterId: opts.characterId,
       name: opts.name,
+      ...(opts.npcDescriptor ? { npcDescriptor: opts.npcDescriptor } : {}),
       appearanceSeed: opts.appearanceSeed ?? 0,
       pos: { ...at },
       facing: opts.facing ?? 's',
@@ -210,7 +216,7 @@ export function hashWorld(world: World): string {
   for (const areaId of [...world.areaIds()].sort()) {
     for (const e of world.entitiesIn(areaId).sort((a, b) => a.id - b.id)) {
       parts.push(
-        `${areaId}/${e.id}:${e.characterId}:${e.pos.x},${e.pos.y}:${e.facing}:${e.posture}:${e.presentation}:${e.readyAtTick}:${e.intent ?? '-'}`,
+        `${areaId}/${e.id}:${e.characterId ?? 'npc'}:${e.pos.x},${e.pos.y}:${e.facing}:${e.posture}:${e.presentation}:${e.readyAtTick}:${e.intent ?? '-'}`,
       );
     }
   }

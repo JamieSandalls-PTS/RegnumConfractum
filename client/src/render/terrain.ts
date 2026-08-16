@@ -14,6 +14,7 @@ interface WireArea {
   height: number;
   legend: Record<string, { walkable: boolean; kind: string }>;
   tiles: string[];
+  transitions: { x: number; y: number }[];
 }
 
 const FLOOR_SHADES = [0x625d57, 0x6e6862, 0x534e49, 0x7a736b];
@@ -94,6 +95,18 @@ export class Terrain {
       (t, _rnd, m) => {
         m.makeTranslation(t.x, -0.1, t.y);
         return WATER_COLOR;
+      },
+      { receiveShadow: true },
+    );
+
+    // Way-markers on transition tiles: a worn threshold stone, warm-toned so
+    // exits read at a glance.
+    this.addInstanced(
+      area.transitions,
+      new THREE.BoxGeometry(0.8, 0.05, 0.8),
+      (t, _rnd, m) => {
+        m.makeTranslation(t.x, 0.03, t.y);
+        return 0x9c6733;
       },
       { receiveShadow: true },
     );

@@ -106,7 +106,7 @@ export const WireEntitySchema = z.object({
    * are therefore personalized per connection.
    */
   descriptor: z.string().min(1).max(120),
-  kind: z.enum(['player']),
+  kind: z.enum(['player', 'npc']),
   x: z.number().int(),
   y: z.number().int(),
   facing: DirectionSchema,
@@ -193,6 +193,8 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
         z.object({ walkable: z.boolean(), kind: z.string() }),
       ),
       tiles: z.array(z.string()),
+      /** Where the exits are — targets stay server-side. */
+      transitions: z.array(z.object({ x: z.number().int(), y: z.number().int() })),
     }),
     entities: z.array(WireEntitySchema),
     inventory: z.array(WireItemSchema),
@@ -225,6 +227,13 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
   }),
   /** Per-observer descriptor refresh (e.g. after a presentation change). */
   z.object({ t: z.literal('descriptor'), entityId: z.number().int(), descriptor: z.string() }),
+  /** DM/script narration (D-216): scene text with no speaker in the world. */
+  z.object({ t: z.literal('narrate'), text: z.string() }),
+  /** Live lighting change for the current area (DM weather/mood control). */
+  z.object({
+    t: z.literal('area_lighting'),
+    lighting: z.enum(['overcast', 'night', 'underground', 'interior']),
+  }),
   z.object({
     t: z.literal('inventory'),
     items: z.array(WireItemSchema),

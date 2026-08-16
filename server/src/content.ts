@@ -23,6 +23,8 @@ export interface Content {
   itemTemplates: Map<string, ItemTemplate>;
   emoteLexicon: EmoteLexicon;
   languages: Map<string, Language>;
+  /** Lua sources by script id (content/scripts/<id>.lua), D-109. */
+  scripts: Map<string, string>;
 }
 
 function readJsonFiles(dir: string): { file: string; data: unknown }[] {
@@ -97,6 +99,27 @@ export function loadContent(contentDir: string): Content {
     });
   }
 
+  const scripts = new Map<string, string>();
+  try {
+    for (const f of readdirSync(join(contentDir, 'scripts')).filter((f) => f.endsWith('.lua'))) {
+      scripts.set(f.replace(/\.lua$/, ''), readFileSync(join(contentDir, 'scripts', f), 'utf8'));
+    }
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+  }
+  for (const area of areas.values()) {
+    for (const scriptId of area.scripts) {
+      if (!scripts.has(scriptId)) {
+        throw new Error(`area '${area.id}' references missing script '${scriptId}'`);
+      }
+    }
+    for (const tr of area.transitions) {
+      if (!areas.has(tr.toArea)) {
+        throw new Error(`area '${area.id}' transition targets unknown area '${tr.toArea}'`);
+      }
+    }
+  }
+
   if (areas.size === 0) throw new Error(`no areas found under ${contentDir}/areas`);
-  return { areas, itemTemplates, emoteLexicon, languages };
+  return { areas, itemTemplates, emoteLexicon, languages, scripts };
 }

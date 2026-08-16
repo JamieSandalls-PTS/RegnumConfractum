@@ -53,11 +53,16 @@ Single npm package, multiple source roots joined by `@rc/*` path aliases in
 | `tools/` | content validator CLI |
 | `content/` | versioned world data — areas, item templates (D-110) |
 
-## The admin UI
+## The admin UI and DM console
 
 `http://localhost:8081` — live world state (tick, connections, entities per
-area) and the recent event log. Read-only. Set `ADMIN_TOKEN` to require a
-token outside local dev.
+area), the recent event log, and the **DM console**: spawn an NPC, speak and
+move as it (possession), narrate to an area or the world, change an area's
+lighting. Set `ADMIN_TOKEN` to require a token outside local dev.
+
+Area scripts are Lua files in `content/scripts/`, attached via the area's
+`scripts` list — see `ferryman-keeper.lua` for the API in use. Transitions
+between areas are declared per-area in content and validated in CI.
 
 ## Deploying (single VPS, D-111)
 

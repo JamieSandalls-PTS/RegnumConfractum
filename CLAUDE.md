@@ -203,6 +203,14 @@ starting area. All of it is exercised by headless bots (96 tests).
 for ninety minutes (BUILD_PLAN). That judgement — and art ratification
 (D-406/D-504) — belongs to the stakeholder.
 
-**Known engineering gaps:** area transitions (D-103's graph edges — characters
-stay where they spawn); active disguise-piercing waits for M4 skills; staging VPS
-not provisioned. **Next per plan: M3 — scripting and the DM toolset.**
+**M3a — scripting spine built (D-507).** Area transitions link the world (yard ↔
+tavern, validated in CI). NPCs are connectionless entities with fixed public
+descriptors. Sandboxed Lua (wasmoon) runs per-area scripts through a controlled
+API — spawn/say/narrate/lighting, on_enter/on_player_count/on_hour/delay/every —
+all tick-driven and deterministic; errors contained. DM verbs live on the admin
+server (spawn, possess, narrate, lighting), logged. The tavern has a scripted
+keeper (`content/scripts/ferryman-keeper.lua`).
+
+**M3b remaining:** visual form-based event editor, rehearsal mode, templates,
+rollback, death/item triggers (blocked on M4). **Other gaps:** active
+disguise-piercing (M4 skills); staging VPS not provisioned.

@@ -36,6 +36,14 @@ export class AdminServer {
             return;
           }
         }
+        // ── DM console actions (D-216): POST, token-gated like everything here.
+        if (req.method === 'POST' && url.pathname.startsWith('/api/dm/')) {
+          const body = await readJsonBody(req);
+          const result = await this.handleDmAction(url.pathname, body);
+          res.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' });
+          res.end(JSON.stringify(result));
+          return;
+        }
         if (url.pathname === '/api/state') {
           const world = gameServer.world;
           const state = {
@@ -84,6 +92,80 @@ export class AdminServer {
     await new Promise<void>((resolve) => this.server?.close(() => resolve()));
     this.server = null;
   }
+
+  /** DM verbs (D-216): spawn, despawn, possess-speech, move, narrate,
+   * lighting. Rehearsal mode and the form-based event editor are M3b. */
+  private async handleDmAction(
+    pathname: string,
+    body: Record<string, unknown>,
+  ): Promise<{ ok: boolean; [k: string]: unknown }> {
+    const gs = this.opts.gameServer;
+    try {
+      switch (pathname) {
+        case '/api/dm/spawn-npc': {
+          const entityId = gs.spawnNpc(String(body.areaId), {
+            x: Number(body.x),
+            y: Number(body.y),
+            descriptor: String(body.descriptor ?? 'a stranger'),
+            ...(body.seed !== undefined ? { appearanceSeed: Number(body.seed) } : {}),
+          });
+          await this.opts.store.appendEvent('dm_spawn_npc', { entityId, ...body });
+          return { ok: true, entityId };
+        }
+        case '/api/dm/despawn': {
+          const ok = gs.despawnEntity(Number(body.entityId));
+          if (ok) await this.opts.store.appendEvent('dm_despawn', { entityId: body.entityId });
+          return { ok };
+        }
+        case '/api/dm/say': {
+          const ok = await gs.speakAs(
+            Number(body.entityId),
+            String(body.text),
+            (body.channel as 'say' | 'whisper' | 'shout') ?? 'say',
+          );
+          if (ok) await this.opts.store.appendEvent('dm_say', body);
+          return { ok };
+        }
+        case '/api/dm/move': {
+          gs.moveEntity(Number(body.entityId), body.dir as never);
+          return { ok: true };
+        }
+        case '/api/dm/narrate': {
+          const scope = body.scope === 'global' ? 'global' : 'area';
+          gs.narrate(scope, String(body.text), body.areaId as string | undefined);
+          await this.opts.store.appendEvent('dm_narrate', body);
+          return { ok: true };
+        }
+        case '/api/dm/lighting': {
+          gs.setAreaLighting(String(body.areaId), body.lighting as never);
+          await this.opts.store.appendEvent('dm_lighting', body);
+          return { ok: true };
+        }
+        default:
+          return { ok: false, error: 'unknown dm action' };
+      }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message };
+    }
+  }
+}
+
+function readJsonBody(req: import('node:http').IncomingMessage): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    req.on('data', (c) => {
+      raw += c;
+      if (raw.length > 64 * 1024) reject(new Error('body too large'));
+    });
+    req.on('end', () => {
+      try {
+        resolve(raw ? (JSON.parse(raw) as Record<string, unknown>) : {});
+      } catch {
+        reject(new Error('invalid JSON body'));
+      }
+    });
+    req.on('error', reject);
+  });
 }
 
 const PAGE = `<!doctype html>
@@ -97,12 +179,65 @@ const PAGE = `<!doctype html>
   th { color: #e8b25c; font-weight: 600; }
   .muted { color: #7d7460; }
   pre { background: #100e0a; padding: 0.75rem; overflow-x: auto; }
+  fieldset { border: 1px solid #3a3427; margin: 0 0 1rem; padding: 0.75rem; }
+  legend { color: #e8b25c; font-size: 0.85rem; padding: 0 0.5rem; }
+  input, select, button {
+    background: #100e0a; color: #d8cdb8; border: 1px solid #3a3427;
+    padding: 0.3rem 0.5rem; font: inherit; margin: 0.15rem 0.25rem 0.15rem 0;
+  }
+  button { cursor: pointer; }
+  button:hover { border-color: #e8b25c; }
+  #dm-result { color: #7d7460; font-size: 0.85rem; min-height: 1.2rem; }
 </style>
 <h1>Regnum Confractum — world state</h1>
 <div id="meta" class="muted">connecting…</div>
 <div id="areas"></div>
+
+<h1>DM console</h1>
+<div id="dm-result"></div>
+<fieldset><legend>Spawn NPC</legend>
+  <input id="sp-area" placeholder="areaId" size="16">
+  <input id="sp-x" placeholder="x" size="3"> <input id="sp-y" placeholder="y" size="3">
+  <input id="sp-desc" placeholder="descriptor (what players see)" size="34">
+  <button onclick="dm('spawn-npc', {areaId: v('sp-area'), x: +v('sp-x'), y: +v('sp-y'), descriptor: v('sp-desc')})">Spawn</button>
+</fieldset>
+<fieldset><legend>Possess — speak as entity</legend>
+  <input id="say-id" placeholder="entityId" size="6">
+  <select id="say-ch"><option>say</option><option>whisper</option><option>shout</option></select>
+  <input id="say-text" placeholder="words (asterisk emotes animate)" size="46">
+  <button onclick="dm('say', {entityId: +v('say-id'), channel: v('say-ch'), text: v('say-text')})">Speak</button>
+  <select id="mv-dir"><option>n</option><option>ne</option><option>e</option><option>se</option><option>s</option><option>sw</option><option>w</option><option>nw</option></select>
+  <button onclick="dm('move', {entityId: +v('say-id'), dir: v('mv-dir')})">Step</button>
+  <button onclick="dm('despawn', {entityId: +v('say-id')})">Despawn</button>
+</fieldset>
+<fieldset><legend>Narrate</legend>
+  <select id="nar-scope"><option>area</option><option>global</option></select>
+  <input id="nar-area" placeholder="areaId (for area scope)" size="16">
+  <input id="nar-text" placeholder="scene text" size="46">
+  <button onclick="dm('narrate', {scope: v('nar-scope'), areaId: v('nar-area'), text: v('nar-text')})">Narrate</button>
+</fieldset>
+<fieldset><legend>Lighting</legend>
+  <input id="li-area" placeholder="areaId" size="16">
+  <select id="li-prof"><option>overcast</option><option>night</option><option>underground</option><option>interior</option></select>
+  <button onclick="dm('lighting', {areaId: v('li-area'), lighting: v('li-prof')})">Set</button>
+</fieldset>
+
 <h1>Recent events</h1>
 <pre id="events">…</pre>
+<script>
+  const v = (id) => document.getElementById(id).value;
+  async function dm(action, payload) {
+    const r = await fetch('/api/dm/' + action + location.search, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const out = await r.json();
+    document.getElementById('dm-result').textContent =
+      action + ': ' + JSON.stringify(out);
+    refresh();
+  }
+</script>
 <script>
   const qs = location.search;
   async function refresh() {

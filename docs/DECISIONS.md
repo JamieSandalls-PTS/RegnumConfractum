@@ -1055,3 +1055,40 @@ same albedo lesson a third time: mid-tone sources or the palette starves.
 test (two writers, ninety minutes) is a human evaluation. Area transitions
 (D-103's graph edges) are the next engineering gap — characters currently
 stay in the area they spawned in.
+
+### D-507: M3a — transitions, NPCs, the Lua sandbox, and the DM verbs
+
+**Area transitions (closes the D-103 gap).** Areas declare transition tiles
+in content (`{x, y, toArea, toX, toY}`), cross-validated in CI (target area
+exists, both ends walkable). Stepping on one despawns, respawns, and
+snapshots the player in the linked area; the hood survives the door; the
+position write is immediate. The yard and the tavern are now linked, and
+exits render as worn threshold stones.
+
+**NPCs.** Connectionless world entities (`characterId: null`, wire kind
+`npc`) with one fixed public descriptor for every observer. Deliberate
+simplification, recorded: NPCs are outside the recognition system for now —
+no per-observer names, no disguises. Revisit when NPCs matter socially
+(named innkeepers, D-216 recurring characters).
+
+**Sandboxed Lua (D-109).** wasmoon (Lua 5.4 in WASM), one engine per
+scripted area, `os/io/require/load/debug/package` stripped before any script
+runs. The controlled API: `spawn_npc, despawn, say, move, narrate,
+narrate_global, set_lighting, player_count, game_hour, log`, plus triggers
+`on_enter`, `on_player_count` (fires on the crossing, re-arms when the crowd
+thins), `on_hour`, and `delay`/`every`. **All time is server ticks** — never
+the wall clock — so scripted worlds replay deterministically (D-114). The
+game clock runs a 48-minute day (1200 ticks per game hour). Script errors
+are logged and contained; a broken script cannot take the server down, and
+later scripts still load. Possessed/scripted speech goes through the same
+pipeline as players — earshot, sight, languages, emote parsing all apply.
+
+**DM verbs (first slice of D-216).** Token-gated POST endpoints on the admin
+server — spawn-npc, despawn (NPCs only; players cannot be despawned), say
+(possession), move, narrate (area/global), lighting — with forms in the
+admin UI. Every DM action lands in the event log.
+
+**Deferred to M3b:** the visual form-based event editor (DMs must not write
+code), trigger persistence, rehearsal mode, event templates, rollback,
+entity-death and item-acquired triggers (need M4's combat/death), invisible
+DM observation, and DM-authored trigger chains from the console.

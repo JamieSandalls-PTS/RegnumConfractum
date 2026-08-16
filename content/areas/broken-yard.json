@@ -54,5 +54,14 @@
   "spawn": {
     "x": 2,
     "y": 2
-  }
+  },
+  "transitions": [
+    {
+      "x": 30,
+      "y": 16,
+      "toArea": "hanged-ferryman",
+      "toX": 2,
+      "toY": 53
+    }
+  ]
 }
