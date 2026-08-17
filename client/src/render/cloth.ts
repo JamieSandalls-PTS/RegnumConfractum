@@ -54,10 +54,12 @@ export class Cloth {
     wind: number,
     t: number,
     pinMatrix: THREE.Matrix4,
-    /** The BODY the cloth must not pass through — the pin point is at the
-     * upper back, so colliding around it protected nothing (review round 6:
-     * capes swung straight through the chest). */
-    collider?: { matrix: THREE.Matrix4; radius: number; height: number },
+    /** The BODY volumes the cloth must not pass through — torso AND pelvis
+     * (round 7: one waist-up cylinder let the cape clip the buttocks). */
+    colliders?: { matrix: THREE.Matrix4; radius: number; height: number }[],
+    /** Half-space constraint: cloth stays BEHIND the wearer's coronal plane
+     * (local z ≤ maxZ). Cylinders alone let the cape orbit to the front. */
+    backPlane?: { matrix: THREE.Matrix4; maxZ: number },
   ): void {
     const cols = this.cols;
     const gravity = new THREE.Vector3(0, -9.0, 0);
@@ -103,13 +105,22 @@ export class Cloth {
         if (c.a >= cols) pa.add(d);
         if (c.b >= cols) pb.sub(d);
       }
-      if (collider) {
-        // Push nodes out of a body-sized cylinder centred on the TORSO,
-        // spanning from below the waist up past the shoulders.
+      if (backPlane) {
+        const inv = new THREE.Matrix4().copy(backPlane.matrix).invert();
+        const local = new THREE.Vector3();
+        for (let i = cols; i < this.pos.length; i++) {
+          local.copy(this.pos[i]!).applyMatrix4(inv);
+          if (local.z > backPlane.maxZ) {
+            local.z = backPlane.maxZ;
+            this.pos[i]!.copy(local).applyMatrix4(backPlane.matrix);
+          }
+        }
+      }
+      for (const collider of colliders ?? []) {
         torso.setFromMatrixPosition(collider.matrix);
         for (let i = cols; i < this.pos.length; i++) {
           const p = this.pos[i]!;
-          if (p.y < torso.y - this.height * 0.55 || p.y > torso.y + collider.height) continue;
+          if (p.y < torso.y - collider.height || p.y > torso.y + collider.height) continue;
           const ddx = p.x - torso.x;
           const ddz = p.z - torso.z;
           const len = Math.hypot(ddx, ddz);
@@ -187,13 +198,14 @@ export class SolidHair {
     cap.position.set(0, headH * 0.55, -headH * 0.04);
     cap.castShadow = true;
     this.capGroup.add(cap);
-    // Fringe: a curved shell hugging the brow, not a plank.
+    // Fringe: a slim band at the HAIRLINE, high on the forehead — round 7's
+    // reference shows the face fully open, hair framing it from above.
     const fringe = new THREE.Mesh(
       // phi centred on π/2 = the +Z face in three.js's sphere convention.
-      new THREE.SphereGeometry(headH * 0.38, 16, 10, Math.PI * 0.08, Math.PI * 0.84, Math.PI * 0.28, Math.PI * 0.22),
+      new THREE.SphereGeometry(headH * 0.375, 16, 10, Math.PI * 0.08, Math.PI * 0.84, Math.PI * 0.2, Math.PI * 0.14),
       mat(),
     );
-    fringe.position.set(0, headH * 0.46, -headH * 0.02);
+    fringe.position.set(0, headH * 0.5, -headH * 0.02);
     fringe.castShadow = true;
     this.capGroup.add(fringe);
 

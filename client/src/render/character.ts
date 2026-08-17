@@ -264,7 +264,16 @@ export class CharacterVisual {
       [hipW * 0.49, torsoH * 0.13],
       [seamHip, torsoH * 0.24],
     ], p.cloth, { count: 7, amp: 0.035 });
-    pelvisMesh.scale.z = 0.8;
+    // Reference check (round 7): the human front line is near-FLAT — mass
+    // sits at the sides and rear. Flatten and pull the volume back, then
+    // give the rear its projection with glute masses.
+    pelvisMesh.scale.z = 0.68;
+    pelvisMesh.position.z = -hipW * 0.06;
+    for (const s of [1, -1]) {
+      const glute = this.addMesh(this.pelvis, new THREE.SphereGeometry(hipW * 0.22, 10, 8), p.cloth,
+        [s * hipW * 0.16, torsoH * 0.0, -hipW * 0.26]);
+      glute.scale.set(1.0, 0.95, 0.75);
+    }
 
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
     const belly = this.lathe(this.spine, [
@@ -272,11 +281,12 @@ export class CharacterVisual {
       [waistW * 0.52, torsoH * 0.18],
       [seamWaist, torsoH * 0.35],
     ], p.cloth, { count: 6, amp: 0.025 });
-    belly.scale.z = 0.78;
+    belly.scale.z = 0.68; // flat-fronted, like the reference — not a pot
+    belly.position.z = -waistW * 0.04;
     // Abdominal mass: one soft flattened swell, not carved bands.
-    const abs = this.addMesh(this.spine, new THREE.SphereGeometry(waistW * 0.3, 12, 9), p.cloth,
-      [0, torsoH * 0.18, this.frontZ() * 0.4]);
-    abs.scale.set(1.0, 1.2, 0.3);
+    const abs = this.addMesh(this.spine, new THREE.SphereGeometry(waistW * 0.28, 12, 9), p.cloth,
+      [0, torsoH * 0.18, this.frontZ() * 0.3]);
+    abs.scale.set(1.0, 1.2, 0.22);
 
     // The torso garment is ONE material (cloth) so the body reads as a
     // single form; metal is reserved for actual armour pieces.
@@ -338,8 +348,11 @@ export class CharacterVisual {
     this.addMesh(this.head,
       new THREE.CapsuleGeometry(headH * 0.35, headH * 0.14, 4, 10),
       p.skin, [0, headH * 0.42, 0]);
-    this.addMesh(this.head, new THREE.BoxGeometry(headH * 0.48, headH * 0.28, headH * 0.38),
+    // Jaw: narrower and softer on the female build (reference: oval face).
+    const jaw = this.addMesh(this.head,
+      new THREE.BoxGeometry(headH * (fem ? 0.4 : 0.48), headH * 0.28, headH * 0.36),
       p.skin, [0, headH * 0.2, headH * 0.05]);
+    jaw.rotation.x = 0.02;
     this.buildFace(headH);
 
     this.arms = {
@@ -642,13 +655,26 @@ export class CharacterVisual {
     this.root.updateMatrixWorld(true);
     this.stepBust(dt);
     if (this.cape) {
-      // Collider = the torso CORE, not the full shoulder span: the cloth
-      // must be able to rest against the back, only never pass through.
-      this.cape.step(dt, wind, t, (this.capeAnchor ?? this.chest).matrixWorld, {
-        matrix: this.chest.matrixWorld,
-        radius: this.dims.bodyW * 0.45,
-        height: this.dims.torsoH * 0.55,
-      });
+      // Colliders = torso core AND pelvis: the cloth rests on the back and
+      // drapes over the buttocks instead of clipping through them.
+      this.cape.step(
+        dt, wind, t,
+        (this.capeAnchor ?? this.chest).matrixWorld,
+        [
+          {
+            matrix: this.chest.matrixWorld,
+            radius: this.dims.bodyW * 0.45,
+            height: this.dims.torsoH * 0.55,
+          },
+          {
+            matrix: this.pelvis.matrixWorld,
+            radius: this.dims.hipW * 0.5,
+            height: this.dims.torsoH * 0.35,
+          },
+        ],
+        // A pinned cape can never cross its wearer's coronal plane.
+        { matrix: this.chest.matrixWorld, maxZ: -this.dims.bodyW * 0.12 },
+      );
     }
     if (this.hair) this.hair.step(dt, wind, t, this.head.matrixWorld);
   }
