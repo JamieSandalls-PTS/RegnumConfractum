@@ -250,9 +250,11 @@ export class CharacterVisual {
     const shoulderW = p.shoulder * (fem ? 0.72 : 0.87);
     const hipW = bodyW * (fem ? 1.12 : 0.86); // male hips clearly inside the shoulders
     const waistW = bodyW * (fem ? 0.68 : 0.82);
-    // Shoulder joints sit just below the chest TOP (real ~0.82·H) — round 4
-    // found them 15cm low, which lengthened the neck and the apparent arms.
-    this.dims = { hipY, torsoH, headH, shoulderW, hipW, bodyW, baseShY: torsoH * 0.4 };
+    // Feet stand ON the ground: the ankle joint sits a foot's height above
+    // it (stakeholder: the model sat below the floor to the ankles).
+    const hipYAdj = hipY + hipW * 0.11;
+    // Shoulder height and arm seating stakeholder-tuned via editor export 2.
+    this.dims = { hipY: hipYAdj, torsoH, headH, shoulderW, hipW, bodyW, baseShY: torsoH * 0.32 };
 
     // --- Torso (review round 2): three lathe-turned volumes — pelvis,
     // abdomen, ribcage — whose seam radii MATCH, flattened front-to-back,
@@ -261,7 +263,7 @@ export class CharacterVisual {
     const seamHip = hipW * 0.47; // pelvis top = abdomen bottom
     const seamWaist = waistW * 0.58; // abdomen top = ribcage bottom
 
-    this.pelvis = this.joint(this.root, [0, hipY, 0]);
+    this.pelvis = this.joint(this.root, [0, hipYAdj, 0]);
     this.nm('pelvis');
     // The pelvis DROPS between the thighs (review round 3): a V-profile
     // whose centre descends past the hip joints, so the crotch reads as
@@ -274,17 +276,16 @@ export class CharacterVisual {
       [hipW * 0.49, torsoH * 0.13],
       [seamHip, torsoH * 0.24],
     ], p.cloth, { count: 7, amp: 0.035 });
-    // Reference check (round 7): the human front line is near-FLAT — mass
-    // sits at the sides and rear. Flatten and pull the volume back, then
-    // give the rear its projection with glute masses.
-    pelvisMesh.scale.z = 0.68;
-    pelvisMesh.position.z = -hipW * 0.06;
+    // Reference check (round 7) + editor export 2: near-flat front, mass at
+    // the sides and rear.
+    pelvisMesh.scale.set(0.96, 1, 0.6);
+    pelvisMesh.position.z = -hipW * 0.04;
     // One wide flattened mass under the cloth, faintly creased by the fold
     // ripples — two bare spheres read as exactly that (round 8).
     this.nm('buttocks');
     const glutes = this.addMesh(this.pelvis, new THREE.SphereGeometry(hipW * 0.26, 14, 10), p.cloth,
-      [0, torsoH * 0.01, -hipW * 0.2]);
-    glutes.scale.set(1.5, 0.85, 0.62);
+      [0, torsoH * 0.07, -hipW * 0.2]); // editor export 2: higher, wider
+    glutes.scale.set(1.74, 0.85, 0.7);
 
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
     this.nm('abdomen');
@@ -293,13 +294,10 @@ export class CharacterVisual {
       [waistW * 0.52, torsoH * 0.18],
       [seamWaist, torsoH * 0.35],
     ], p.cloth, { count: 6, amp: 0.025 });
-    belly.scale.z = 0.68; // flat-fronted, like the reference — not a pot
+    belly.scale.set(0.97, 1, 0.62); // flat-fronted (editor export 2)
     belly.position.z = -waistW * 0.04;
-    // Abdominal mass: one soft flattened swell, not carved bands.
-    this.nm('stomach');
-    const abs = this.addMesh(this.spine, new THREE.SphereGeometry(waistW * 0.28, 12, 9), p.cloth,
-      [0, torsoH * 0.18, this.frontZ() * 0.3]);
-    abs.scale.set(1.0, 1.2, 0.22);
+    // (The separate stomach swell was hidden in the stakeholder's export and
+    // called redundant — removed.)
 
     // The torso garment is ONE material (cloth) so the body reads as a
     // single form; metal is reserved for actual armour pieces.
@@ -361,8 +359,9 @@ export class CharacterVisual {
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
     this.nm('neck');
-    this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.15, headH * 0.24, 8),
-      p.skin, [0, headH * 0.1, 0]);
+    // Taller (editor export 2): fills to the jaw with no gap at the collar.
+    this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.16, headH * 0.5, 8),
+      p.skin, [0, headH * 0.14, 0]);
 
     // Head: a capsule cranium with a hinted jaw — rounder than the old box.
     this.head = this.joint(this.neck, [0, headH * 0.22, 0]);
@@ -468,9 +467,10 @@ export class CharacterVisual {
     // move and blends the shoulder into the upper arm (review: not a bare
     // sphere hovering at the joint).
     this.nm(`${lr} shoulder`);
+    // Editor export 2: further in, slightly high, wider and deeper.
     const deltoid = this.addMesh(sh, new THREE.SphereGeometry(bodyW * 0.135, 10, 8), p.cloth,
-      [-s * bodyW * 0.05, -bodyW * 0.04, 0]); // buried in the chest edge
-    deltoid.scale.set(1.15, 1.2, 0.95);
+      [-s * bodyW * 0.12, bodyW * 0.02, 0]);
+    deltoid.scale.set(1.35, 1.2, 1.44);
     // Deltoid → wrist taper; sleeves run to the wrist (bare pale forearms
     // read as gauntlet mitts at distance — cycle B), hands alone are skin.
     this.nm(`${lr} upper arm`);
@@ -566,7 +566,8 @@ export class CharacterVisual {
         const s = side === 'L' ? 1 : -1;
         this.nm(side === 'L' ? 'pauldron left' : 'pauldron right');
         const m = this.addMesh(this.arms[side].sh, new THREE.SphereGeometry(bodyW * 0.2, 8, 6),
-          p.metal, [-s * bodyW * 0.02, bodyW * 0.06, 0]);
+          p.metal, [-s * bodyW * 0.125, bodyW * 0.02, 0]);
+        m.scale.set(1.46, 1, 1.15); // editor export 2
         this.pauldronMeshes.push(m);
       }
     }
@@ -995,6 +996,15 @@ export class CharacterVisual {
       c.arms[s].sh.rotation.z = sg * 0.11;
       c.arms[s].el.rotation.x = -0.25 - Math.max(0, swing) * 0.3;
     }
+  }
+
+  /** Puts every piece of this character (body, cape, loose hair) on a render
+   * layer — the split shader draws layer 1 through the pixel quantiser. */
+  setRenderLayer(layer: number): void {
+    const apply = (o: THREE.Object3D) => o.traverse((x) => x.layers.set(layer));
+    apply(this.root);
+    if (this.cape) apply(this.cape.mesh);
+    if (this.hair) apply(this.hair.looseGroup);
   }
 
   dispose(): void {

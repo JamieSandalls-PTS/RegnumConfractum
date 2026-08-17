@@ -97,8 +97,15 @@ function applyGear(): void {
     } else {
       s.visual.setEquipment({ helm: false, pauldrons: false, weapon: false, cape: false });
     }
+    s.visual.setRenderLayer(1); // characters live on the pixel layer (split mode)
   }
 }
+
+// Lights and camera must reach BOTH layers for the split render.
+scene.scene.traverse((o) => {
+  if ((o as THREE.Light).isLight) o.layers.enableAll();
+});
+scene.camera.layers.enableAll();
 
 // --- Controls ---------------------------------------------------------------
 
@@ -133,7 +140,35 @@ stage.addEventListener('pointerdown', (e) => {
   lastX = e.clientX;
   lastY = e.clientY;
 });
-window.addEventListener('pointerup', () => { dragging = false; });
+let downAt = { x: 0, y: 0 };
+stage.addEventListener('pointerdown', (e) => { downAt = { x: e.clientX, y: e.clientY }; });
+window.addEventListener('pointerup', (e) => {
+  dragging = false;
+  // Click (not drag) on the model with the editor open = pick that part;
+  // ctrl-click toggles it into the group (stakeholder request).
+  if (editorEl.classList.contains('hidden')) return;
+  if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 5) return;
+  const rect = stage.getBoundingClientRect();
+  if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+  const ndc = new THREE.Vector2(
+    ((e.clientX - rect.left) / rect.width) * 2 - 1,
+    -((e.clientY - rect.top) / rect.height) * 2 + 1,
+  );
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(ndc, scene.camera);
+  const hits = ray.intersectObjects(editParts.filter((q) => q.mesh.visible).map((q) => q.mesh), false);
+  if (hits.length === 0) return;
+  const idx = editParts.findIndex((q) => q.mesh === hits[0]!.object);
+  if (idx < 0) return;
+  if (e.ctrlKey) {
+    if (editSelectedAll.includes(idx)) editSelectedAll = editSelectedAll.filter((x) => x !== idx);
+    else editSelectedAll.push(idx);
+  } else {
+    editSelectedAll = [idx];
+  }
+  editSelected = idx;
+  renderEditor();
+});
 window.addEventListener('pointermove', (e) => {
   if (!dragging) return;
   const dx = e.clientX - lastX;
@@ -204,12 +239,23 @@ function stepViewer(dt: number): void {
     cam.target.z + Math.sin(cam.az) * Math.cos(cam.el) * cam.dist,
   );
   scene.camera.lookAt(cam.target);
-  if ($<HTMLInputElement>('in-pixel').checked) {
-    scene.render();
-  } else {
+  const style = $<HTMLSelectElement>('in-style').value;
+  if (style === 'raw') {
     scene.renderer.render(scene.scene, scene.camera);
+  } else if (style === 'split') {
+    scene.post.renderSplit(scene.renderer, scene.scene, scene.camera);
+  } else {
+    scene.render(); // uniform and palette-full (full-res via pixelScale 1)
   }
 }
+
+$('in-style').addEventListener('change', () => {
+  const style = $<HTMLSelectElement>('in-style').value;
+  scene.post.pixelScale = style === 'palette-full'
+    ? 1
+    : Number($<HTMLInputElement>('in-pixelscale').value);
+  scene.resize();
+});
 
 function frame(): void {
   requestAnimationFrame(frame);
@@ -312,26 +358,38 @@ function renderEditor(): void {
     editorEl.textContent = 'Solo a seed first (button above).';
     return;
   }
-  const select = document.createElement('select');
-  select.multiple = true; // ctrl/shift-click to group parts (e.g. both breasts)
-  select.size = 8;
-  select.style.width = '100%';
+  // Checkbox list (stakeholder: the multi-select jumped around): checking a
+  // box adds to the group WITHOUT re-rendering; clicking a name makes that
+  // part primary (sliders bind to it). Ctrl-click the 3D model also selects.
+  const list = document.createElement('div');
+  list.style.cssText = 'max-height:150px;overflow-y:auto;border:1px solid var(--line);padding:2px';
   for (let i = 0; i < editParts.length; i++) {
-    const opt = document.createElement('option');
-    opt.value = String(i);
-    opt.textContent = editParts[i]!.name + (editParts[i]!.mesh.visible ? '' : ' (hidden)');
-    if (editSelectedAll.includes(i) || i === editSelected) opt.selected = true;
-    select.appendChild(opt);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;align-items:center;font-size:11px;cursor:pointer;' +
+      (i === editSelected ? 'color:#e8c88f' : '');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = editSelectedAll.includes(i);
+    cb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (cb.checked) editSelectedAll.push(i);
+      else editSelectedAll = editSelectedAll.filter((x) => x !== i);
+    });
+    const nameEl = document.createElement('span');
+    nameEl.textContent = editParts[i]!.name + (editParts[i]!.mesh.visible ? '' : ' (hidden)');
+    row.append(cb, nameEl);
+    row.addEventListener('click', () => {
+      editSelected = i;
+      if (!editSelectedAll.includes(i)) editSelectedAll.push(i);
+      renderEditor();
+    });
+    list.appendChild(row);
+    if (i === editSelected) setTimeout(() => row.scrollIntoView({ block: 'nearest' }), 0);
   }
-  select.addEventListener('change', () => {
-    editSelectedAll = [...select.selectedOptions].map((o) => Number(o.value));
-    editSelected = editSelectedAll[0] ?? 0;
-    renderEditor();
-  });
-  editorEl.appendChild(select);
+  editorEl.appendChild(list);
   const hint = document.createElement('div');
   hint.className = 'drawer-title';
-  hint.textContent = 'arrows: nudge ALL selected (←→ X, ↑↓ Y, ctrl+↑↓ Z; shift = ×5)';
+  hint.textContent = 'ctrl-click model = select · arrows nudge ALL checked (←→ X, ↑↓ Y, ctrl Z, shift ×5)';
   editorEl.appendChild(hint);
   const part = editParts[Math.min(editSelected, editParts.length - 1)]!;
   // Flash the selected part so it can be found on screen.
@@ -363,6 +421,26 @@ function renderEditor(): void {
     part.mesh.visible = !part.mesh.visible;
     renderEditor();
   });
+  // Mirror (stakeholder request): copy every checked left/right part onto
+  // its opposite-side twin, flipped across the body's centre plane.
+  const mirror = document.createElement('button');
+  mirror.textContent = 'Mirror to other side';
+  mirror.addEventListener('click', () => {
+    for (const i of editSelectedAll) {
+      const q = editParts[i];
+      if (!q) continue;
+      const other = q.name.includes('left')
+        ? q.name.replace(/left/g, 'right')
+        : q.name.includes('right') ? q.name.replace(/right/g, 'left') : null;
+      if (!other) continue;
+      const twin = editParts.find((t) => t.name === other);
+      if (!twin) continue;
+      twin.mesh.position.set(-q.mesh.position.x, q.mesh.position.y, q.mesh.position.z);
+      twin.mesh.scale.copy(q.mesh.scale);
+      twin.mesh.rotation.set(q.mesh.rotation.x, -q.mesh.rotation.y, -q.mesh.rotation.z);
+      twin.mesh.visible = q.mesh.visible;
+    }
+  });
   const addSphere = document.createElement('button');
   addSphere.textContent = '+ sphere';
   const addBox = document.createElement('button');
@@ -379,7 +457,7 @@ function renderEditor(): void {
   };
   addSphere.addEventListener('click', () => addShape(new THREE.SphereGeometry(0.06, 12, 9)));
   addBox.addEventListener('click', () => addShape(new THREE.BoxGeometry(0.1, 0.1, 0.1)));
-  row.append(hide, addSphere, addBox);
+  row.append(hide, mirror, addSphere, addBox);
   editorEl.appendChild(row);
   const row3 = document.createElement('div');
   row3.className = 'row2';
@@ -479,7 +557,7 @@ window.__viewer = {
     $<HTMLSelectElement>('in-anim').value = mode;
   },
   setPixel(on, scale) {
-    $<HTMLInputElement>('in-pixel').checked = on;
+    $<HTMLSelectElement>('in-style').value = on ? 'uniform' : 'raw';
     if (scale) {
       scene.post.pixelScale = scale;
       scene.resize();

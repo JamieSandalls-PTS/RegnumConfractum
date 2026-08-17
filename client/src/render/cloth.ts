@@ -203,8 +203,8 @@ export class SolidHair {
       cap.scale.set(1.0, 0.78, 1.03); // close-cut
       cap.position.set(0, headH * 0.55, -headH * 0.04);
     } else {
-      cap.scale.set(0.95, 0.9, 0.9);
-      cap.position.set(0, headH * 0.55, -headH * 0.01);
+      cap.scale.set(0.9, 0.75, 0.9); // editor export 2: tighter still
+      cap.position.set(0, headH * 0.55, 0);
     }
     cap.castShadow = true;
     cap.name = 'hair cap';

@@ -94,7 +94,14 @@
       <button id="btn-reroll" style="width:110px">Reroll</button>
     </div>
 
-    <div class="check"><input id="in-pixel" type="checkbox" checked> palette-quantised (the real game look)</div>
+    <label>render style (stakeholder A/B)</label>
+    <select id="in-style">
+      <option value="uniform">uniform pixel (current game look)</option>
+      <option value="split">crisp world + pixel characters</option>
+      <option value="palette-full">palette colours, full resolution</option>
+      <option value="raw">raw (no shader)</option>
+    </select>
+    <input id="in-pixel" type="checkbox" checked class="hidden">
     <label>pixelation (1 = fine, 6 = chunky; game uses 4)</label>
     <input id="in-pixelscale" type="range" min="1" max="6" step="1" value="4">
     <div class="check"><input id="in-hood" type="checkbox"> hoods up</div>

@@ -55,6 +55,9 @@ export class PixelPost {
         tDiffuse: { value: this.renderTarget.texture },
         uPalette: { value: palArray },
         uRes: { value: new THREE.Vector2(320, 200) },
+        /** 1 = compositing a transparent character layer over a crisp
+         * environment (split mode): alpha-test edges, skip the vignette. */
+        uComposite: { value: 0 },
       },
       vertexShader: /* glsl */ `
         varying vec2 vUv;
@@ -80,14 +83,20 @@ export class PixelPost {
           return 0.0;
         }
 
+        uniform int uComposite;
+
         void main() {
-          vec3 c = texture2D(tDiffuse, vUv).rgb;
+          vec4 t = texture2D(tDiffuse, vUv);
+          if (uComposite == 1 && t.a < 0.4) discard;
+          vec3 c = t.rgb;
           vec2 px = vUv * uRes;
 
           // exposure + vignette FIRST (see module comment)
           c *= 1.18;
-          vec2 q = vUv - 0.5;
-          c *= 1.0 - dot(q, q) * 0.26;
+          if (uComposite == 0) {
+            vec2 q = vUv - 0.5;
+            c *= 1.0 - dot(q, q) * 0.26;
+          }
           c = clamp((c - 0.5) * 1.12 + 0.5, 0.0, 1.0);
 
           c += bayer(px) * 0.030;
@@ -118,9 +127,43 @@ export class PixelPost {
   }
 
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): void {
+    this.material.uniforms.uComposite!.value = 0;
     renderer.setRenderTarget(this.renderTarget);
     renderer.render(scene, camera);
     renderer.setRenderTarget(null);
     renderer.render(this.postScene, this.postCamera);
+  }
+
+  /**
+   * Split mode (stakeholder request): the ENVIRONMENT renders crisp at full
+   * resolution; only CHARACTER-layer objects (layer 1) go through the
+   * low-res palette quantiser, composited on top with alpha.
+   */
+  renderSplit(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): void {
+    const cam = camera as THREE.OrthographicCamera;
+    // Pass 1: environment, crisp.
+    cam.layers.set(0);
+    renderer.setRenderTarget(null);
+    renderer.render(scene, cam);
+    // Pass 2: characters to the low-res target with a transparent clear.
+    cam.layers.set(1);
+    const bg = scene.background;
+    scene.background = null;
+    renderer.setRenderTarget(this.renderTarget);
+    renderer.setClearColor(0x000000, 0);
+    renderer.clear();
+    renderer.render(scene, cam);
+    scene.background = bg;
+    // Composite the quantised characters over the crisp environment.
+    this.material.uniforms.uComposite!.value = 1;
+    this.material.transparent = true;
+    renderer.setRenderTarget(null);
+    const auto = renderer.autoClear;
+    renderer.autoClear = false;
+    renderer.clearDepth(); // the env pass's depth buffer must not occlude the quad
+    renderer.render(this.postScene, this.postCamera);
+    renderer.autoClear = auto;
+    this.material.transparent = false;
+    cam.layers.enableAll();
   }
 }
