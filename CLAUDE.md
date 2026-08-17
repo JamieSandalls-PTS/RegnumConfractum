@@ -251,8 +251,14 @@ protocol v2. All bot-verified (`sim/test/m4c-spirits.test.ts`, 152 tests total).
 items blocked on the stakeholder, and the repo's hard-won working specifics.
 Read it after this file.
 
-**M4b remaining:** endgame permadeath zones + revival, richer injury/treatment
-types (D-205 matrix), Vessel's Plane Shift, class skills/balance beyond the
-scaffold. **After M4 (stakeholder decision 2026-08-17): basic UI and user
-functions come BEFORE M5.** **Other gaps:** invisible DM observation; staging
-VPS not provisioned.
+**M4b part 3 — endgame permadeath zones built (D-513).** Two-step unmissable
+entry warning; the downed state (speech only, no retirement escape); `revive`
+by another player within the window; involuntary permadeath with **zero
+Legacy award (unratified ruling — flag for the stakeholder)**; the
+`sunken-crypt` is the first endgame area. Bot-verified
+(`sim/test/m4d-endgame.test.ts`; 158 tests total).
+
+**M4b remaining:** richer injury/treatment types (D-205 matrix), Vessel's
+Plane Shift, class skills/balance beyond the scaffold. **After M4
+(stakeholder decision 2026-08-17): basic UI and user functions come BEFORE
+M5.** **Other gaps:** invisible DM observation; staging VPS not provisioned.

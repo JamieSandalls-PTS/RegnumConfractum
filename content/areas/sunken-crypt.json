@@ -1,0 +1,45 @@
+{
+  "id": "sunken-crypt",
+  "name": "The Sunken Crypt",
+  "width": 12,
+  "height": 12,
+  "legend": {
+    "#": {
+      "walkable": false,
+      "kind": "wall"
+    },
+    ".": {
+      "walkable": true,
+      "kind": "floor"
+    }
+  },
+  "tiles": [
+    "############",
+    "#..........#",
+    "#..........#",
+    "#..###..##.#",
+    "#..........#",
+    "#....##....#",
+    "#..........#",
+    "#.##....##.#",
+    "#..........#",
+    "#..........#",
+    "#..........#",
+    "############"
+  ],
+  "spawn": {
+    "x": 2,
+    "y": 1
+  },
+  "lighting": "underground",
+  "zone": "endgame",
+  "transitions": [
+    {
+      "x": 1,
+      "y": 1,
+      "toArea": "broken-yard",
+      "toX": 2,
+      "toY": 28
+    }
+  ]
+}

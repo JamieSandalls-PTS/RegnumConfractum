@@ -1274,3 +1274,36 @@ gear rules, looting, the full séance including a lying answer, beyond-reach,
 ability gates, the cap, following, riding, gear drop on destruction,
 decay→pile→cleanup with conservation asserted throughout, and the
 legacy-lock creation gate.
+
+### D-513: Endgame permadeath zones implemented — the fall, the hand, the end
+
+**The entry is a two-step ritual (D-206's unmissable warning).** Stepping
+onto a way-marker whose target is an endgame area does not cross — it warns,
+in plain words: FINAL DEATH, no ghost, no respawn. Stepping off and back on
+within 30s confirms. Ghosts pass unchallenged; they have nothing left to
+lose.
+
+**Falling opens a window instead of a grave.** At 0 hp in an endgame zone
+you are **downed**: no ghost, no death debt, a kneeling body the living can
+see. You may speak — last words matter — but every other action is locked,
+**retirement included** (no buying a Legacy award out of a death you were
+about to lose; logging out is finalized as death, not escape). Another
+player adjacent may `revive` within the window (default 60s, tick-counted,
+`reviveWindowTicks`); revival restores quarter hp and counts as a weighty
+deed (D-222). A blow struck while you are down is an **execution** — the
+window slams shut.
+
+**The window closing is the end.** Involuntary retirement: the character is
+gone, a corpse remains wearing everything carried (endgame zones use the
+wilderness gear rule), and the account is awarded **zero Legacy Points**.
+⚠ **The zero-award ruling follows the recorded recommendation but has NOT
+been explicitly ratified by the stakeholder** — if an ending should always
+seed a beginning (D-207's spirit), this is the entry to supersede.
+
+**Content:** the first endgame area is authored — `sunken-crypt`, linked
+from the broken-yard's south end, underground lighting.
+
+**Bot coverage:** `sim/test/m4d-endgame.test.ts` — 6 tests: warn-then-commit
+entry, the downed state (speech yes, action no, retire no), revival, the
+bled-out ending with zero award and lootable corpse, conservation, and the
+character's permanent disappearance from the account.

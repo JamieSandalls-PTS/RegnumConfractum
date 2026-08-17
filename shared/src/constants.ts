@@ -43,3 +43,10 @@ export const ZOMBIE_DURATION_TICKS = 108000;
 export const SEANCE_QUESTIONS = 5;
 /** Concurrent zombies scale with necromancy skill; never above this (D-511). */
 export const MAX_ZOMBIES_PER_NECROMANCER = 3;
+
+// Endgame zones (D-206): permadeath unless revived in time.
+/** Ticks a downed player may be revived before the death is permanent. */
+export const REVIVE_WINDOW_TICKS = 600; // 60s — tuning unratified
+/** Stepping onto an endgame way-marker warns; stepping on again within this
+ * window confirms. The warning must be unmissable (D-206). */
+export const ENDGAME_CONFIRM_TICKS = 300; // 30s

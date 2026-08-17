@@ -20,21 +20,19 @@ M0–M3 complete; M4 is nearly done:
   pile → logged cleanup, the nine D-511 classes as content with ability
   gating, DM grant-item/set-skills verbs, and six pre-existing ghost-plane
   broadcast leaks fixed. 152 tests green at handoff.
+- ✅ M4b part 3 (D-513, this session): **endgame permadeath zones.**
+  Two-step entry warning, the downed state, `revive`, involuntary
+  permadeath (zero award — see stakeholder items), `sunken-crypt` authored
+  off the yard's south end. `sim/test/m4d-endgame.test.ts`.
 - ⬜ M4b remainder, rough priority:
-  1. **Endgame permadeath zones** — `zone: 'endgame'` parses but only
-     `gateway.ts` line ~497 reads zones at all. Wire `die()` to auto-retire
-     (involuntary — NO Legacy award) unless revived by another player within
-     a time limit before ghosting (new `revive` action). Unmissable warning
-     on transition into an endgame area (D-206). A task for this exists in
-     the session task list.
-  2. **Richer injuries (D-205)** — burn/frost/venom/rot/curse types with
+  1. **Richer injuries (D-205)** — burn/frost/venom/rot/curse types with
      distinct treatment paths; the description matrix is bulk
      schema-validated content generation.
-  3. **Vessel's Plane Shift** — the ability id `plane-shift` exists and is
+  2. **Vessel's Plane Shift** — the ability id `plane-shift` exists and is
      granted by `content/classes/vessel.json`, but no mechanic reads it yet.
      Design note: it likely reuses the séance's "sanctioned crossing"
      pattern, perception-only.
-  4. **Class depth** — the scaffold gates abilities; actual skills/balance
+  3. **Class depth** — the scaffold gates abilities; actual skills/balance
      (D-208's real scope) remains.
 
 ## ⚠ After M4: UI FIRST, then M5
@@ -51,6 +49,10 @@ commands, séance/observe affordances, settings/account surfaces.
 - **Legacy-locked class pricing.** Creation of Bonespeaker/Vessel currently
   requires ≥1 Legacy Point on the account and deducts NOTHING — an explicit
   placeholder (flagged in D-512). Jamie must ratify real costs.
+- **Zero Legacy award on involuntary endgame death (D-513).** Implemented
+  per the recorded recommendation but never explicitly ratified. Also
+  unratified tuning: the 60s revival window, quarter-hp revival, and the
+  execution rule (a blow while downed ends it instantly).
 - **Art direction ratification (D-406/D-504)** — still partial; corpse pose
   (rotated-flat placeholder) and pile visual (two boxes) are explicitly
   art-pass work.
@@ -65,8 +67,9 @@ commands, séance/observe affordances, settings/account surfaces.
   `npm run typecheck && npm run validate:content && npm test` with
   `DATABASE_URL=postgres://rc:rc@localhost:5433/regnum` (5433, not 5432!).
   Without DATABASE_URL the pg suites silently skip.
-- **Tests are the review** (D-114). Suite: **152 tests**, all green at
-  handoff, committed on main. Spirit mechanics: `sim/test/m4c-spirits.test.ts`.
+- **Tests are the review** (D-114). Suite: **158 tests**, all green at
+  handoff, committed on main. Spirit mechanics: `sim/test/m4c-spirits.test.ts`;
+  endgame zones: `sim/test/m4d-endgame.test.ts`.
 - **The tick is the only clock.** Corpse decay, ground-loot cleanup, zombie
   duration are all tick-counted (`corpseDecayTicks`, `groundLootTicks`,
   `zombieDurationTicks` in GameServerOptions; corpse decay clamps to
@@ -103,7 +106,9 @@ commands, séance/observe affordances, settings/account surfaces.
 
 Two browser windows on `http://localhost:5173`, accounts
 `jamie_dev_one/two` (password `dev-only-passphrase`). Commands added this
-session: `/loot`, `/speakdead`, `/animate`, `/observe [off]`. Admin UI
+session: `/loot`, `/speakdead`, `/animate`, `/observe [off]`, `/revive`.
+The Sunken Crypt (endgame — real permadeath!) is through the marker at the
+yard's south end; the warning ritual is step-on, step-off, step-on. Admin UI
 (`http://localhost:8081`) now has **Grant item** (e.g. bandages for /treat
 testing) and **Set skills** (necromancy raises the zombie cap: 0→1, 40→2,
 80→3). To play a Bonespeaker: retire a throwaway character first (earns the

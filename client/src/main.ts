@@ -509,6 +509,12 @@ function sendChat(): void {
     conn.send({ t: 'respawn' });
     return;
   }
+  if (raw === '/revive') {
+    const target = nearestOther();
+    if (target === null) return appendSystemLine('Nobody near enough to save.');
+    conn.send({ t: 'revive', targetEntityId: target });
+    return;
+  }
   if (raw === '/loot') {
     const target = nearestBody(['corpse', 'pile']);
     if (target === null) return appendSystemLine('Nothing here to loot.');

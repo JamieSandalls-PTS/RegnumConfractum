@@ -62,6 +62,13 @@
       "toArea": "hanged-ferryman",
       "toX": 2,
       "toY": 53
+    },
+    {
+      "x": 2,
+      "y": 29,
+      "toArea": "sunken-crypt",
+      "toX": 2,
+      "toY": 1
     }
   ],
   "zone": "wilderness"

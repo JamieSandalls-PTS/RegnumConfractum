@@ -98,6 +98,9 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   /** Dead owner's choice (D-224): ride along in the animated body — hear what
    * it hears, speak through it in the undead register. */
   z.object({ t: z.literal('observe_body'), on: z.boolean() }),
+  /** D-206 endgame zones: pull a downed companion back from the brink before
+   * the window closes and the death becomes permanent. */
+  z.object({ t: z.literal('revive'), targetEntityId: z.number().int() }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -316,10 +319,11 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
   /** Confirmation of observe_body; also sent when observation ends (zombie
    * destroyed, duration expired). */
   z.object({ t: z.literal('observing'), on: z.boolean() }),
-  /** The ending that is a beginning (D-207). */
+  /** The ending that is a beginning (D-207). Involuntary endings (endgame
+   * permadeath, D-206) award nothing. */
   z.object({
     t: z.literal('retired'),
-    awarded: z.number().int().positive(),
+    awarded: z.number().int().nonnegative(),
     totalLegacyPoints: z.number().int().nonnegative(),
   }),
   /** Your own vitals — sent on change. Others never see your numbers. */

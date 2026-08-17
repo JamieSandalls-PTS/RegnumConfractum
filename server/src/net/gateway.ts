@@ -5,6 +5,7 @@ import {
   BLEED_INTERVAL_TICKS,
   CORPSE_DECAY_TICKS,
   DEATH_DEBT_PER_DEATH,
+  ENDGAME_CONFIRM_TICKS,
   FLUSH_INTERVAL_TICKS,
   GHOST_MIN_TICKS,
   GROUND_LOOT_TICKS,
@@ -12,6 +13,7 @@ import {
   HOSTILITY_WINDOW_TICKS,
   INTERACT_RANGE,
   MAX_ZOMBIES_PER_NECROMANCER,
+  REVIVE_WINDOW_TICKS,
   Rng,
   SEANCE_QUESTIONS,
   SESSION_TTL_MS,
@@ -71,6 +73,8 @@ export interface GameServerOptions {
   corpseDecayTicks?: number;
   groundLootTicks?: number;
   zombieDurationTicks?: number;
+  /** D-206 endgame zones: how long a downed player may still be revived. */
+  reviveWindowTicks?: number;
   log?: (msg: string) => void;
 }
 
@@ -110,6 +114,9 @@ interface ConnState {
   /** Live vitals cache; persisted immediately on death/logout (D-106). */
   vitals: { hp: number; maxHp: number; xp: number; deathDebt: number } | null;
   injuries: InjuryRecord[];
+  /** Endgame zones (D-206): fallen but revivable until the window closes.
+   * Null everywhere else — ordinary deaths ghost immediately. */
+  downed: { expiresAtTick: number } | null;
   /** Serialises message handling per connection. */
   queue: Promise<void>;
 }
@@ -161,6 +168,9 @@ export class GameServer {
   private seancesBySpirit = new Map<ConnState, Seance>();
   /** Dead players riding along in their animated bodies (D-224). */
   private bodyObservers = new Map<ConnState, number>(); // conn → zombie entity id
+  /** Endgame way-marker warnings pending confirmation (D-206). */
+  private endgameConfirms = new Map<ConnState, { areaId: string; x: number; y: number; expiresAtTick: number }>();
+  private reviveWindowTicks = REVIVE_WINDOW_TICKS;
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -176,6 +186,7 @@ export class GameServer {
     this.corpseDecayTicks = Math.max(opts.corpseDecayTicks ?? CORPSE_DECAY_TICKS, this.ghostMinTicks);
     this.groundLootTicks = opts.groundLootTicks ?? GROUND_LOOT_TICKS;
     this.zombieDurationTicks = opts.zombieDurationTicks ?? ZOMBIE_DURATION_TICKS;
+    this.reviveWindowTicks = opts.reviveWindowTicks ?? REVIVE_WINDOW_TICKS;
     for (const def of opts.content.areas.values()) this.world.addArea(def);
     const fallback = opts.content.areas.keys().next().value as string;
     this.defaultAreaId = opts.defaultAreaId ?? fallback;
@@ -240,7 +251,9 @@ export class GameServer {
             const conn = [...(this.connsByArea.get(areaId) ?? [])].find(
               (c) => c.entityId === event.id,
             );
-            if (conn) transfers.push({ conn, toArea: tr.toArea, toX: tr.toX, toY: tr.toY });
+            if (conn && this.confirmEndgameEntry(conn, areaId, event.x, event.y, tr.toArea)) {
+              transfers.push({ conn, toArea: tr.toArea, toX: tr.toX, toY: tr.toY });
+            }
           }
         }
       }
@@ -263,10 +276,50 @@ export class GameServer {
     }
     this.zombieAiTick();
     await this.spiritTick();
+    await this.downedTick();
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
       await this.flushDirty();
     }
+  }
+
+  /**
+   * The unmissable warning (D-206): the first step onto a way-marker into an
+   * endgame area does NOT cross — it warns. Stepping off and back on within
+   * the window confirms. Ghosts pass freely; they have nothing left to lose.
+   */
+  private confirmEndgameEntry(
+    conn: ConnState,
+    areaId: string,
+    x: number,
+    y: number,
+    toArea: string,
+  ): boolean {
+    const targetDef = this.world.hasArea(toArea) ? this.world.getAreaDef(toArea) : null;
+    if (targetDef?.zone !== 'endgame') return true;
+    if (conn.entityId !== null && this.world.getEntity(conn.entityId)?.ghost) return true;
+    const pending = this.endgameConfirms.get(conn);
+    if (
+      pending && pending.areaId === areaId && pending.x === x && pending.y === y &&
+      this.world.tick < pending.expiresAtTick
+    ) {
+      this.endgameConfirms.delete(conn);
+      return true;
+    }
+    this.endgameConfirms.set(conn, {
+      areaId,
+      x,
+      y,
+      expiresAtTick: this.world.tick + ENDGAME_CONFIRM_TICKS,
+    });
+    this.send(conn, {
+      t: 'narrate',
+      text:
+        `⚠ Beyond lies ${targetDef.name} — a place of FINAL DEATH. ` +
+        'Fall there unaided and your story ENDS: no ghost, no respawn, no return. ' +
+        'Step off the marker and step on again if you truly mean to enter.',
+    });
+    return false;
   }
 
   private eventFromGhost(event: { type: string } & Record<string, unknown>): boolean {
@@ -389,6 +442,7 @@ export class GameServer {
       areaId: null,
       vitals: null,
       injuries: [],
+      downed: null,
       queue: Promise.resolve(),
     };
     this.conns.add(conn);
@@ -416,6 +470,15 @@ export class GameServer {
     if (!msg) {
       this.fail(conn, 'invalid_message', 'message failed schema validation');
       return;
+    }
+    // Downed in an endgame zone (D-206): you may speak — last words matter —
+    // but you cannot act, and you cannot retire your way out of the price.
+    if (
+      conn.downed &&
+      ['move', 'attack', 'hostile', 'treat', 'loot', 'speak_dead', 'animate_dead',
+        'give', 'pay', 'write', 'respawn', 'retire', 'revive'].includes(msg.t)
+    ) {
+      return this.fail(conn, 'dead', 'you are bleeding out — only another hand can save you');
     }
     switch (msg.t) {
       case 'register':
@@ -460,6 +523,8 @@ export class GameServer {
         return this.handleAnimateDead(conn, msg);
       case 'observe_body':
         return this.handleObserveBody(conn, msg);
+      case 'revive':
+        return this.handleRevive(conn, msg);
       case 'resync':
         return this.handleResync(conn);
       case 'ping':
@@ -632,10 +697,80 @@ export class GameServer {
     }
   }
 
+  /**
+   * A body stays behind (D-224/D-511). Outside settled ground, everything
+   * carried moves onto it — ownership and all; the player will wake with
+   * nothing. In settled zones the corpse is a shape, not a container.
+   */
+  private async createCorpseObject(
+    conn: ConnState,
+    src: { pos: { x: number; y: number }; facing: Direction; presentation: WorldEntity['presentation']; appearanceSeed: number },
+  ): Promise<WorldEntity> {
+    const zone = this.world.getAreaDef(conn.areaId!).zone;
+    const corpseRec = await this.store.createCorpse({
+      characterId: conn.character!.id,
+      areaId: conn.areaId!,
+      x: src.pos.x,
+      y: src.pos.y,
+      state: 'corpse',
+      ticksLeft: this.corpseDecayTicks,
+    });
+    let gearMoved = 0;
+    if (zone !== 'settled') {
+      gearMoved = await this.store.moveItemsToCorpse(conn.character!.id, corpseRec.id);
+    }
+    const { entity: corpse } = this.world.spawn(conn.areaId!, {
+      characterId: null,
+      name: `the corpse of ${conn.character!.name}`,
+      objectKind: 'corpse',
+      corpseOfCharacterId: conn.character!.id,
+      appearanceSeed: src.appearanceSeed,
+      pos: src.pos,
+      facing: src.facing,
+    });
+    corpse.presentation = src.presentation; // died hooded, lies hooded
+    this.corpsesByEntity.set(corpse.id, {
+      corpseId: corpseRec.id,
+      characterId: conn.character!.id,
+      state: 'corpse',
+      expiresAtTick: this.world.tick + this.corpseDecayTicks,
+    });
+    await this.store.appendEvent('corpse_created', {
+      corpseId: corpseRec.id,
+      characterId: conn.character!.id,
+      areaId: conn.areaId,
+      x: src.pos.x,
+      y: src.pos.y,
+      zone,
+      gearMoved,
+    });
+    return corpse;
+  }
+
+  /** The living see what remains, each under the name they knew (or didn't). */
+  private async announceCorpse(corpse: WorldEntity, areaId: string, except?: ConnState): Promise<void> {
+    for (const other of this.connsByArea.get(areaId) ?? []) {
+      if (other === except || !other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost !== false) continue;
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(corpse, await this.descriptorFor(other, corpse)) }],
+      });
+    }
+  }
+
   /** Death (D-203): the visible fall for the living; a quiet second world
-   * for the ghost. Debt goes on the books immediately. */
+   * for the ghost. Debt goes on the books immediately. In endgame zones the
+   * fall is not yet death — it opens the revival window instead (D-206). */
   private async die(conn: ConnState, cause: string): Promise<void> {
     if (!conn.character || !conn.vitals || conn.entityId === null || !conn.areaId) return;
+    if (this.world.getAreaDef(conn.areaId).zone === 'endgame') {
+      // First fall opens the revival window; a blow landed while down is an
+      // execution — the window slams shut.
+      if (conn.downed) return this.finalizeEndgameDeath(conn, cause);
+      return this.becomeDowned(conn, cause);
+    }
     const entity = this.world.getEntity(conn.entityId)!;
     conn.vitals.hp = 0;
     conn.vitals.deathDebt += DEATH_DEBT_PER_DEATH;
@@ -646,46 +781,11 @@ export class GameServer {
       if (key.includes(conn.character.id)) this.hostilities.delete(key);
     }
     this.endSeanceInvolving(conn, 'death');
-    // A body stays behind (D-224/D-511). Outside settled ground, everything
-    // carried moves onto it — ownership and all; the player will wake with
-    // nothing. In settled zones the corpse is a shape, not a container.
-    const zone = this.world.getAreaDef(conn.areaId).zone;
-    const corpseRec = await this.store.createCorpse({
-      characterId: conn.character.id,
-      areaId: conn.areaId,
-      x: entity.pos.x,
-      y: entity.pos.y,
-      state: 'corpse',
-      ticksLeft: this.corpseDecayTicks,
-    });
-    let gearMoved = 0;
-    if (zone !== 'settled') {
-      gearMoved = await this.store.moveItemsToCorpse(conn.character.id, corpseRec.id);
-    }
-    const { entity: corpse } = this.world.spawn(conn.areaId, {
-      characterId: null,
-      name: `the corpse of ${conn.character.name}`,
-      objectKind: 'corpse',
-      corpseOfCharacterId: conn.character.id,
-      appearanceSeed: entity.appearanceSeed,
-      pos: entity.pos,
+    const corpse = await this.createCorpseObject(conn, {
+      pos: { ...entity.pos },
       facing: entity.facing,
-    });
-    corpse.presentation = entity.presentation; // died hooded, lies hooded
-    this.corpsesByEntity.set(corpse.id, {
-      corpseId: corpseRec.id,
-      characterId: conn.character.id,
-      state: 'corpse',
-      expiresAtTick: this.world.tick + this.corpseDecayTicks,
-    });
-    await this.store.appendEvent('corpse_created', {
-      corpseId: corpseRec.id,
-      characterId: conn.character.id,
-      areaId: conn.areaId,
-      x: entity.pos.x,
-      y: entity.pos.y,
-      zone,
-      gearMoved,
+      presentation: entity.presentation,
+      appearanceSeed: entity.appearanceSeed,
     });
     // The living watch them fall and see them no more.
     this.broadcastPlane(conn.areaId, false, {
@@ -693,16 +793,7 @@ export class GameServer {
       tick: this.world.tick,
       events: [{ type: 'entity_died', id: entity.id }],
     }, conn);
-    // …and see what remains, each under the name they knew (or didn't).
-    for (const other of this.connsByArea.get(conn.areaId) ?? []) {
-      if (other === conn || !other.character || other.entityId === null) continue;
-      if (this.world.getEntity(other.entityId)?.ghost !== false) continue;
-      this.send(other, {
-        t: 'delta',
-        tick: this.world.tick,
-        events: [{ type: 'entity_entered', entity: toWireEntity(corpse, await this.descriptorFor(other, corpse)) }],
-      });
-    }
+    await this.announceCorpse(corpse, conn.areaId, conn);
     // Ghosts already present greet a new arrival to their plane.
     for (const other of this.connsByArea.get(conn.areaId) ?? []) {
       if (other === conn || !other.character || other.entityId === null) continue;
@@ -726,6 +817,164 @@ export class GameServer {
     await this.sendSnapshot(conn); // the ghost's world: only other ghosts
     this.sendStatus(conn);
     this.onEntityDeath?.(entity.id);
+  }
+
+  /**
+   * The endgame fall (D-206): hp 0, no ghost, no debt — a body on the floor
+   * that another player can still pull back within the window. Speech works;
+   * everything else is locked, retirement included (no buying your way out).
+   */
+  private async becomeDowned(conn: ConnState, cause: string): Promise<void> {
+    if (!conn.character || !conn.vitals || conn.entityId === null || !conn.areaId) return;
+    const entity = this.world.getEntity(conn.entityId)!;
+    conn.vitals.hp = 0;
+    conn.downed = { expiresAtTick: this.world.tick + this.reviveWindowTicks };
+    entity.intent = null;
+    entity.posture = 'kneeling';
+    for (const key of [...this.hostilities.keys()]) {
+      if (key.includes(conn.character.id)) this.hostilities.delete(key);
+    }
+    this.broadcastPlane(conn.areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_emote', id: entity.id, posture: 'kneeling', transients: [] }],
+    });
+    for (const other of this.connsByArea.get(conn.areaId) ?? []) {
+      if (other === conn || !other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost !== false) continue;
+      this.send(other, {
+        t: 'narrate',
+        text: `${await this.descriptorFor(other, entity)} crumples, bleeding out. They can still be saved — briefly.`,
+      });
+    }
+    this.send(conn, {
+      t: 'narrate',
+      text: 'You are bleeding out. In this place there is no grey country waiting — only a hand, or the end.',
+    });
+    this.sendStatus(conn);
+    await this.store.saveCharacterVitals(conn.character.id, { hp: 0 });
+    await this.store.appendEvent('downed', {
+      characterId: conn.character.id,
+      areaId: conn.areaId,
+      cause,
+    });
+  }
+
+  /** The revival window is tick-counted like everything else. */
+  private async downedTick(): Promise<void> {
+    for (const conn of [...this.conns]) {
+      if (conn.downed && this.world.tick >= conn.downed.expiresAtTick) {
+        await this.finalizeEndgameDeath(conn, 'bled out');
+      }
+    }
+  }
+
+  /** D-206: pull a downed companion back from the brink. */
+  private async handleRevive(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'revive' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead save nobody');
+    const target = this.world.getEntity(msg.targetEntityId);
+    if (!target || target.characterId === null ||
+        this.world.getEntityAreaId(target.id) !== conn.areaId) {
+      return this.fail(conn, 'bad_target', 'nobody there to save');
+    }
+    if (chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
+      return this.fail(conn, 'not_adjacent', 'get to them first');
+    }
+    const targetConn = [...(this.connsByArea.get(conn.areaId) ?? [])].find(
+      (c) => c.entityId === target.id,
+    );
+    if (!targetConn?.downed || !targetConn.vitals) {
+      return this.fail(conn, 'bad_target', 'they are not dying');
+    }
+    targetConn.downed = null;
+    targetConn.vitals.hp = Math.max(1, Math.ceil(targetConn.vitals.maxHp / 4));
+    target.posture = 'standing';
+    this.broadcastPlane(conn.areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_emote', id: target.id, posture: 'standing', transients: [] }],
+    });
+    this.sendStatus(targetConn);
+    this.send(targetConn, { t: 'narrate', text: 'A hand drags you back from the edge.' });
+    this.send(conn, { t: 'narrate', text: 'You feel the life catch under your hands.' });
+    this.countDeed(conn, 5); // saving a life is a deed (D-222)
+    await this.store.saveCharacterVitals(targetConn.character!.id, { hp: targetConn.vitals.hp });
+    await this.store.appendEvent('revived', {
+      characterId: targetConn.character!.id,
+      by: conn.character.id,
+      areaId: conn.areaId,
+    });
+  }
+
+  /**
+   * The window closed (D-206/D-511 handoff ruling): the character ends,
+   * involuntarily — no Legacy award. A corpse remains, wearing everything,
+   * for whoever dares retrieve it. NOTE: awarding nothing on involuntary
+   * permadeath follows the recorded recommendation and awaits explicit
+   * stakeholder ratification (flagged in D-513).
+   */
+  private async finalizeEndgameDeath(conn: ConnState, cause: string): Promise<void> {
+    if (!conn.character || !conn.vitals || conn.entityId === null || !conn.areaId) return;
+    const entity = this.world.getEntity(conn.entityId)!;
+    conn.downed = null;
+    const areaId = conn.areaId;
+    const corpse = await this.createCorpseObject(conn, {
+      pos: { ...entity.pos },
+      facing: entity.facing,
+      presentation: entity.presentation,
+      appearanceSeed: entity.appearanceSeed,
+    });
+    // The living watch the end. The entity leaves the world for good.
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_died', id: entity.id }],
+    }, conn);
+    this.world.despawn(entity.id);
+    await this.announceCorpse(corpse, areaId, conn);
+    this.entityCharacter.delete(entity.id);
+    this.connsByArea.get(areaId)?.delete(conn);
+    this.onlineCharacters.delete(conn.character.id);
+    this.dirtyCharacters.delete(conn.character.id);
+    const totalDeeds = conn.character.deeds + this.deedsDelta(conn);
+    this.deedsBuffer.delete(conn);
+    await this.store.saveCharacterVitals(conn.character.id, {
+      hp: 0,
+      xp: conn.vitals.xp,
+      deathDebt: conn.vitals.deathDebt,
+      deeds: totalDeeds,
+    });
+    await this.store.retireCharacter(conn.character.id);
+    await this.store.appendEvent('retired', {
+      characterId: conn.character.id,
+      accountId: conn.accountId,
+      awarded: 0,
+      xp: conn.vitals.xp,
+      deeds: totalDeeds,
+      voluntary: false,
+      cause,
+      areaId,
+    });
+    this.send(conn, {
+      t: 'retired',
+      awarded: 0,
+      totalLegacyPoints: await this.store.getLegacyPoints(conn.accountId!),
+    });
+    this.send(conn, { t: 'narrate', text: 'The dark place keeps what it takes. The story ends here.' });
+    const endedEntityId = entity.id;
+    conn.character = null;
+    conn.entityId = null;
+    conn.areaId = null;
+    conn.vitals = null;
+    conn.injuries = [];
+    this.onEntityDeath?.(endedEntityId);
   }
 
   /** Self-respawn at the town spawn after the minimum ghost time (D-203). */
@@ -1365,6 +1614,9 @@ export class GameServer {
     this.conns.delete(conn);
     this.endSeanceInvolving(conn, 'departed');
     this.bodyObservers.delete(conn);
+    this.endgameConfirms.delete(conn);
+    // Logging out while bleeding out in an endgame zone is not an escape.
+    if (conn.downed) await this.finalizeEndgameDeath(conn, 'abandoned to the dark');
     if (conn.entityId !== null && conn.areaId !== null && conn.character) {
       const entity = this.world.getEntity(conn.entityId);
       const event = this.world.despawn(conn.entityId);
