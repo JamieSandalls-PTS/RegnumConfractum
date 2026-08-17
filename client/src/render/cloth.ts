@@ -80,13 +80,15 @@ export class Cloth {
             Math.sin(a) * r, -row * rowDrop, Math.cos(a) * r));
           this.pinMask.push(true);
         } else if (layout === 'collar') {
-          // ±105° around the neck, 0° at the spine: ends meet near the
-          // clavicles, like a cape tied at the throat. Row 1 repeats the
-          // arc at shoulder-ring radius, one rest-length lower — the drape
-          // over the shoulder tops is anchored, not luck.
-          const a = (u - 0.5) * Math.PI * 1.17;
+          // The attachment line lies across the TOP OF THE BACK and out to
+          // the sides (stakeholder: the cape wraps the upper back and
+          // deltoids, only the TIE sits at the neck — fabric must not
+          // gather in a ring around the throat). Row 0 spans ±90°, ending
+          // at the shoulder sides; row 1's soft ring reaches past the
+          // deltoids and slightly forward.
+          const a = (u - 0.5) * Math.PI * (row === 0 ? 1.0 : 1.15);
           const rx = row === 0 ? collarRadius : (shoulderHalfWidth || collarRadius * 1.8);
-          const rz = row === 0 ? collarRadius : collarRadius * 1.2;
+          const rz = row === 0 ? collarRadius * 0.72 : collarRadius * 0.9;
           // The shoulder ring barely drops: it must clear the TOPS of the
           // deltoids, or the pinned fabric slices through the shoulder caps.
           this.pinLocal.push(new THREE.Vector3(
@@ -136,7 +138,7 @@ export class Cloth {
         // Bend resistance across the upper rows (skip-one constraints):
         // gathered surplus at a collar folds in wide, ordered waves instead
         // of crumpling (stakeholder round: the conforming cape buckled).
-        if (this.layout === 'collar' && y < 4 && x < cols - 2) {
+        if (this.layout === 'collar' && y < 5 && x < cols - 2) {
           this.addConstraint(idx(x, y), idx(x + 2, y));
         }
       }
@@ -204,6 +206,7 @@ export class Cloth {
     // or the skirt flaps like a flag and momentum flips it in a bow.
     const damp = this.layout === 'tube' ? 0.88 : 0.97;
     const windK = this.layout === 'tube' ? 0.3 : 1;
+    const FLOOR = 0.012;
     const acc = new THREE.Vector3();
     for (let i = 0; i < this.pos.length; i++) {
       if (isPinned(i)) continue;
@@ -221,13 +224,19 @@ export class Cloth {
         acc.x += (hx / hl) * HUG * hemK;
         acc.z += (hz / hl) * HUG * hemK;
       }
-      const vx = (p.x - pr.x) * damp;
+      // Floor-contact nodes get heavy friction: pooled fabric RESTS.
+      const onFloor = p.y < FLOOR + 0.005;
+      const fk = onFloor ? 0.4 : 1;
+      const vx = (p.x - pr.x) * damp * fk;
       const vy = (p.y - pr.y) * damp;
-      const vz = (p.z - pr.z) * damp;
+      const vz = (p.z - pr.z) * damp * fk;
       pr.copy(p);
       p.x += vx + acc.x * dt * dt;
       p.y += vy + acc.y * dt * dt;
       p.z += vz + acc.z * dt * dt;
+      // The GROUND exists: without it, seated and bowing garments folded
+      // through the floor into themselves (stakeholder, seated robe).
+      if (p.y < FLOOR) p.y = FLOOR;
     }
 
     // pin the masked nodes of the leading rows to the anchor, per layout
@@ -299,6 +308,11 @@ export class Cloth {
           }
         }
       }
+    }
+
+    // Enforce the floor against constraint pulls as well.
+    for (let i = pinCount; i < this.pos.length; i++) {
+      if (this.pos[i]!.y < FLOOR) this.pos[i]!.y = FLOOR;
     }
 
     // Tube: weld the seam — the last column IS the first column, so the
@@ -505,6 +519,12 @@ export class SolidHair {
     this.looseGroup.visible = v;
   }
 
+  /** Hide only the physics strands (a worn-up hood covers them; the rigid
+   * cap/fringe still peeks at the brow, as in the hood reference photo). */
+  setLooseVisible(v: boolean): void {
+    this.looseGroup.visible = v;
+  }
+
   step(
     dt: number,
     wind: number,
@@ -595,6 +615,13 @@ export class SolidHair {
           const dist = d.length();
           const min = this.headRadius * 1.02;
           if (dist < min) p.copy(headWorld).addScaledVector(d, min / (dist || 1e-6));
+        }
+        // Hair meets the floor too (kneeling with floor-length hair).
+        for (let i = 1; i < lock.pos.length; i++) {
+          if (lock.pos[i]!.y < 0.012 + lock.halfW * 0.5) {
+            lock.pos[i]!.y = 0.012 + lock.halfW * 0.5;
+            lock.contact[i] = 1;
+          }
         }
         // Keep locks off the body: capsule/sphere push-out (cape rules),
         // padded by the strand's half-thickness so it drapes on the surface.

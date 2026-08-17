@@ -358,7 +358,9 @@ export class CharacterVisual {
     // The cape's collar arc is centred on the NECK ROOT (stakeholder cape
     // reference: fabric ties at the throat and wraps the shoulder tops —
     // the old between-the-shoulder-blades pin hung off the back only).
-    this.capeAnchor = this.joint(this.chest, [0, torsoH * 0.49, 0]);
+    // Anchor at the upper back, not the neck: the pinned line spreads
+    // across the trapezius/deltoid breadth (stakeholder correction).
+    this.capeAnchor = this.joint(this.chest, [0, torsoH * 0.45, 0]);
     if (fem) {
       // The sprung chest: geometry on its own group so physics can move it.
       // Sized to be READ at game distance (review round 3), not hinted.
@@ -662,8 +664,12 @@ export class CharacterVisual {
       // shoulder caps (reference image), falling to mid-calf.
       // The shoulder ring reaches past the deltoids: the cape drapes over
       // the tops of the ARMS (stakeholder correction), not just the torso.
-      this.cape = new Cloth(9, 10, shoulderW * 2.3, p.height * 0.62, p.capeColor,
-        'collar', shoulderW * 0.55, shoulderW + bodyW * 0.21);
+      // The cut scales with BULK, not just shoulder span: sized off
+      // shoulderW alone, a heavy build wore a taut apron that bunched the
+      // moment it moved (stakeholder).
+      this.cape = new Cloth(11, 10, shoulderW * 1.6 + bodyW * 0.95, p.height * 0.62,
+        p.capeColor, 'collar',
+        Math.max(shoulderW * 0.8, bodyW * 0.42), shoulderW + bodyW * 0.21);
       this.parentOrRoot().add(this.cape.mesh);
       // The tie at the throat, so the collar reads as fastened.
       this.nm('cape tie');
@@ -771,6 +777,8 @@ export class CharacterVisual {
         }
       }
     }
+    // The robe carries its hood; equipment changes rebuild it.
+    this.refreshHood();
   }
 
   /** The skirt flows around the LEGS: a capsule per thigh and calf,
@@ -834,10 +842,23 @@ export class CharacterVisual {
     this.posture = posture;
   }
 
-  /** A deep cowl hides head and hair; build stays readable (D-219). */
+  /** Presentation drives the D-219 concealment: hood + veil. */
   setPresentation(presentation: Presentation): void {
     if (this.presentation === presentation) return;
     this.presentation = presentation;
+    this.refreshHood();
+  }
+
+  /**
+   * The hood, rebuilt to the stakeholder's references (2026-08-17):
+   * - Worn as CLOTHING (part of the robe): the cowl frames a fully VISIBLE
+   *   face — an arch over the brow, roomy sides, folds at the shoulders —
+   *   like the monk photo. No mechanical effect.
+   * - The D-219 "go hooded" presentation adds a VEIL across the lower
+   *   face: eyes visible, nose/mouth masked (the stakeholder's veil
+   *   photo) — concealment without the old face-void.
+   */
+  private refreshHood(): void {
     const { headH, torsoH, shoulderW, bodyW } = this.dims;
     for (const g of [this.cowlGroup, this.mantleGroup]) {
       if (!g) continue;
@@ -851,52 +872,46 @@ export class CharacterVisual {
     }
     this.cowlGroup = null;
     this.mantleGroup = null;
-    if (presentation === 'hooded') {
-      // A PROPER hood (stakeholder: "the current hood is a cube"): an
-      // open-front sphere shell draped over the cranium, a pointed drape
-      // falling behind, a shadow mass filling the opening so the face is
-      // dark (the concealment is the point — D-219), and a mantle over the
-      // shoulders parented to the CHEST so it rides the torso, not the head.
-      const hoodCol = 0x241f1c;
+    const veiled = this.presentation === 'hooded';
+    const hoodUp = veiled || this.equipment.robe;
+    if (hoodUp) {
+      // Robes carry their hood in the robe colour; a bare "go hooded" uses
+      // the anonymous dark cowl.
+      const hoodCol = this.equipment.robe ? this.appearance.capeColor : 0x241f1c;
       this.cowlGroup = new THREE.Group();
       this.head.add(this.cowlGroup);
-      this.nm('hood');
-      // Sphere phi: π/2 faces +Z, so coverage 0.72π → 2.28π leaves an
-      // opening of ~0.44π centred exactly on the face.
       const shellMat = toonMaterial(hoodCol);
       shellMat.side = THREE.DoubleSide; // the inside shows through the opening
-      // Two pieces: a CLOSED crown ring (the face opening must not reach the
-      // top — from an isometric camera you could see the scalp through it),
-      // and the open-front shell below it.
+      // Crown arch over the brow (full ring, so no scalp shows from above)
+      // + an open-front shell with a WIDE opening: the face is visible.
       const crown = new THREE.Mesh(
-        new THREE.SphereGeometry(headH * 0.52, 20, 6, 0, Math.PI * 2, 0, Math.PI * 0.3),
+        new THREE.SphereGeometry(headH * 0.56, 20, 6, 0, Math.PI * 2, 0, Math.PI * 0.3),
         shellMat,
       );
       const shell = new THREE.Mesh(
-        new THREE.SphereGeometry(headH * 0.52, 20, 12, Math.PI * 0.72, Math.PI * 1.56, Math.PI * 0.28, Math.PI * 0.44),
+        new THREE.SphereGeometry(headH * 0.56, 20, 12, Math.PI * 0.75, Math.PI * 1.5, Math.PI * 0.28, Math.PI * 0.46),
         shellMat,
       );
       for (const m of [crown, shell]) {
         m.name = 'hood';
         m.castShadow = true;
-        m.position.set(0, headH * 0.38, -headH * 0.03);
-        m.scale.set(0.98, 1.02, 1.1); // slightly deep — it drapes backward
+        m.position.set(0, headH * 0.4, -headH * 0.05);
+        m.scale.set(0.97, 1.0, 1.12); // roomy, draping backward
         this.cowlGroup.add(m);
       }
       this.nm('hood peak');
-      // The peak: a soft cone folding down the back of the shell.
       const peak = this.addMesh(this.cowlGroup,
         new THREE.CylinderGeometry(0.008, headH * 0.2, headH * 0.55, 8),
-        hoodCol, [0, headH * 0.52, -headH * 0.42]);
+        hoodCol, [0, headH * 0.5, -headH * 0.46]);
       peak.rotation.x = 2.5; // tip points down-and-back
-      this.nm('hood shadow');
-      // The void where a face would be: matte near-black, large enough that
-      // every facial feature sits INSIDE it — observers must read shadow,
-      // not features (checked from the front; the first cut left the nose
-      // and eyes poking out of the dark).
-      const shadow = this.addMesh(this.cowlGroup, new THREE.SphereGeometry(headH * 0.36, 12, 9),
-        0x0e0c0a, [0, headH * 0.36, headH * 0.08]);
-      shadow.scale.set(0.95, 1.08, 1.0);
+      if (veiled) {
+        this.nm('veil');
+        // Lower-face veil: top edge just under the eye line, reaching
+        // past the chin and over the nose.
+        const veil = this.addMesh(this.cowlGroup, new THREE.SphereGeometry(headH * 0.34, 12, 9),
+          0x17130f, [0, headH * 0.28, headH * 0.17]);
+        veil.scale.set(0.9, 0.56, 0.6);
+      }
       // Mantle: the hood's cloth spreading over the shoulders.
       this.mantleGroup = new THREE.Group();
       this.chest.add(this.mantleGroup);
@@ -908,7 +923,12 @@ export class CharacterVisual {
       ], hoodCol, { count: 9, amp: 0.04 });
       mantle.scale.z = 0.78;
     }
-    if (this.hair) this.hair.setVisible(presentation !== 'hooded');
+    if (this.hair) {
+      // D-219 concealment hides the hair entirely (identity). A clothing
+      // hood only tucks the loose strands away; the fringe still peeks.
+      this.hair.setVisible(!veiled);
+      if (!veiled) this.hair.setLooseVisible(!hoodUp);
+    }
   }
 
   /** Queues one-shot emote animations (D-202 transients). */
