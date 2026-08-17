@@ -1418,3 +1418,24 @@ reading correctly, silhouettes distinct). The capture loop is reusable —
 Known nits carried to the next round: the hair fringe reads as a visor on
 some seeds, hands are still simple palms, belt line sits high on some
 builds.
+
+**Review round 4 (stakeholder: "put more effort in — judge against real
+human front/side references") — three measured cycles:**
+- **Cycle A (skeleton calibration against 7.5-head anthropometry):** the
+  shoulder joints were ~15cm LOW (at armpit height), which had been
+  lengthening the neck and the apparent arms all along. Raised to just
+  below the chest top; arm length set to 0.31·H (wrist at crotch) with the
+  real 55/45 upper/forearm split instead of 50/50. Hair cap enlarged,
+  raised, and re-segmented — the bald patch was the cap terminating level
+  with the cranium crown; the plank fringe became a curved brow shell
+  (sphere section centred on +Z — three.js phi convention noted).
+- **Cycle B (from A's renders):** the belt read as a floating hoop → strap
+  hugging the waist seam; bare pale forearms read as oven mitts → cloth
+  sleeves to the wrist, hands alone skin; flat-slab side profile → pecs
+  proud of the ribcage; the bob's box back-panel left a squared nape →
+  squashed-sphere mass.
+- **Cycle C (from B's renders):** slim seeds' bust vanished frontally →
+  larger, slightly hung volumes (0.21·bodyW); cowboy thigh-gap → hip
+  joints tucked to 0.24·hipW with thicker thigh tops.
+Signed off against front and side captures of male 1001 and female 1011,
+the walk mid-stride, and the quantised game-distance grid.

@@ -163,20 +163,22 @@ export class SolidHair {
     this.headCenter = new THREE.Vector3(0, headH * 0.42, 0);
     const mat = () => new THREE.MeshLambertMaterial({ color });
 
-    // The cap: a flattened, back-weighted mass over the cranium — hair has
-    // VOLUME, it is not shrink-wrap — plus a fringe over the brow.
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.375, 12, 9), mat());
-    if (style === 'crop') cap.scale.set(1.02, 0.72, 1.05); // close-cut
-    else cap.scale.set(1.06, 0.82, 1.14);
-    cap.position.set(0, headH * 0.52, -headH * 0.04);
+    // The cap: a smooth, back-weighted mass that clearly COVERS the crown —
+    // round 4 found the old cap ended level with the cranium top, leaving a
+    // bald patch. High segment counts: hair must not read as a polyhedron.
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.395, 20, 14), mat());
+    if (style === 'crop') cap.scale.set(1.0, 0.78, 1.03); // close-cut
+    else cap.scale.set(1.04, 0.9, 1.12);
+    cap.position.set(0, headH * 0.55, -headH * 0.04);
     cap.castShadow = true;
     this.capGroup.add(cap);
+    // Fringe: a curved shell hugging the brow, not a plank.
     const fringe = new THREE.Mesh(
-      new THREE.BoxGeometry(headH * 0.56, headH * 0.16, headH * 0.14),
+      // phi centred on π/2 = the +Z face in three.js's sphere convention.
+      new THREE.SphereGeometry(headH * 0.38, 16, 10, Math.PI * 0.08, Math.PI * 0.84, Math.PI * 0.28, Math.PI * 0.22),
       mat(),
     );
-    fringe.position.set(0, headH * 0.6, headH * 0.28);
-    fringe.rotation.x = 0.25;
+    fringe.position.set(0, headH * 0.46, -headH * 0.02);
     fringe.castShadow = true;
     this.capGroup.add(fringe);
 
@@ -193,12 +195,11 @@ export class SolidHair {
         side.castShadow = true;
         this.capGroup.add(side);
       }
-      const back = new THREE.Mesh(
-        new THREE.BoxGeometry(headH * 0.58, headH * 0.58, headH * 0.16),
-        mat(),
-      );
-      back.position.set(0, headH * 0.26, -headH * 0.32);
-      back.rotation.x = 0.08;
+      // Back mass: a squashed sphere so the nape ROUNDS off (a box left a
+      // squared step at the neck — cycle B).
+      const back = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.36, 16, 12), mat());
+      back.scale.set(0.85, 0.95, 0.5);
+      back.position.set(0, headH * 0.3, -headH * 0.26);
       back.castShadow = true;
       this.capGroup.add(back);
     }

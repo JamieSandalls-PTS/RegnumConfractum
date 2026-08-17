@@ -194,10 +194,11 @@ export class CharacterVisual {
     const torsoH = H * 0.3;
     const upperLeg = legLen * 0.52;
     const lowerLeg = legLen * 0.48;
-    // Arms shortened on review round 3; long-limb seeds barely apply.
-    const armLen = H * 0.36 * (1 + (p.limb - 1) * 0.4);
-    const upperArm = armLen * 0.5;
-    const lowerArm = armLen * 0.5;
+    // Human arm: wrist ends at crotch height → ~0.31·H from the (raised)
+    // shoulder, split 55/45 — a real elbow sits at the waist, not mid-arm.
+    const armLen = H * 0.31 * (1 + (p.limb - 1) * 0.4);
+    const upperArm = armLen * 0.55;
+    const lowerArm = armLen * 0.45;
     const hipY = legLen;
 
     // Sex-derived proportions on top of the neutral parameters (the neutral
@@ -210,7 +211,9 @@ export class CharacterVisual {
     const shoulderW = p.shoulder * (fem ? 0.72 : 0.87);
     const hipW = bodyW * (fem ? 1.12 : 0.86); // male hips clearly inside the shoulders
     const waistW = bodyW * (fem ? 0.68 : 0.82);
-    this.dims = { hipY, torsoH, headH, shoulderW, hipW, bodyW, baseShY: torsoH * 0.3 };
+    // Shoulder joints sit just below the chest TOP (real ~0.82·H) — round 4
+    // found them 15cm low, which lengthened the neck and the apparent arms.
+    this.dims = { hipY, torsoH, headH, shoulderW, hipW, bodyW, baseShY: torsoH * 0.4 };
 
     // --- Torso (review round 2): three lathe-turned volumes — pelvis,
     // abdomen, ribcage — whose seam radii MATCH, flattened front-to-back,
@@ -248,17 +251,18 @@ export class CharacterVisual {
     // The torso garment is ONE material (cloth) so the body reads as a
     // single form; metal is reserved for actual armour pieces.
     this.chest = this.joint(this.spine, [0, torsoH * 0.34, 0]);
+    // Full width HELD to the (raised) shoulder line, then a SHORT round-over:
+    // the chest reaches the deltoids, and the shoulder slope stays small the
+    // way a clavicle line does. Female chest band slightly slimmer.
+    const bandW = shoulderW * (fem ? 0.92 : 0.98);
     const ribcage = this.lathe(this.chest, [
       [seamWaist, 0],
-      [shoulderW * 0.82, torsoH * 0.16],
-      // Full width HELD through the shoulder line (review round 3): the
-      // chest reaches out to meet the deltoids instead of sloping away
-      // and leaving them perched as separate balls.
-      [shoulderW * 0.98, torsoH * 0.28],
-      [shoulderW * 0.96, torsoH * 0.36],
-      [shoulderW * 0.55, torsoH * 0.44],
-      [bodyW * 0.17, torsoH * 0.45], // stops BELOW the neck root — the head
-      [0.008, torsoH * 0.47],        // must never sit buried in the chest
+      [shoulderW * 0.84, torsoH * 0.18],
+      [bandW, torsoH * 0.32],
+      [bandW * 0.98, torsoH * 0.4],
+      [shoulderW * 0.5, torsoH * 0.45],
+      [bodyW * 0.17, torsoH * 0.46], // stops BELOW the neck root — the head
+      [0.008, torsoH * 0.48],        // must never sit buried in the chest
     ], p.cloth);
     ribcage.scale.z = 0.66;
     // Trapezius: a soft saddle behind the neck, not a slab.
@@ -273,23 +277,24 @@ export class CharacterVisual {
       this.bustGroup.position.copy(this.bustBase);
       this.chest.add(this.bustGroup);
       for (const s of [1, -1]) {
-        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.19, 10, 8), p.cloth,
-          [s * bodyW * 0.155, 0, 0]);
-        b.scale.set(1.0, 0.95, 0.8);
+        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.21, 10, 8), p.cloth,
+          [s * bodyW * 0.16, -bodyW * 0.02, 0]); // a slight hang, not bolted-on
+        b.scale.set(1.0, 1.0, 0.85);
       }
     } else {
-      // Pectorals: two soft plates blending into the ribcage front.
+      // Pectorals: proud of the ribcage so the SIDE profile has a chest
+      // plane, not a flat slab (cycle B).
       for (const s of [1, -1]) {
         const pec = this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.17, 10, 8), p.cloth,
-          [s * bodyW * 0.14, torsoH * 0.28, this.frontZ() * 0.36]);
-        pec.scale.set(1.05, 0.68, 0.42);
+          [s * bodyW * 0.14, torsoH * 0.28, this.frontZ() * 0.5]);
+        pec.scale.set(1.05, 0.72, 0.55);
       }
     }
-    // Belt line, elliptical like the waist it wraps.
+    // Belt line: hugs the waist seam it sits on — a strap, not a hoop.
     const belt = this.addMesh(this.chest,
-      new THREE.CylinderGeometry(waistW * 0.62, waistW * 0.64, torsoH * 0.07, 16),
-      p.accent, [0, -torsoH * 0.015, 0]);
-    belt.scale.z = 0.82;
+      new THREE.CylinderGeometry(seamWaist * 1.04, seamWaist * 1.06, torsoH * 0.06, 18),
+      p.accent, [0, torsoH * 0.01, 0]);
+    belt.scale.z = 0.7;
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
     this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.15, headH * 0.24, 8),
@@ -345,22 +350,25 @@ export class CharacterVisual {
     const deltoid = this.addMesh(sh, new THREE.SphereGeometry(bodyW * 0.135, 10, 8), p.cloth,
       [-s * bodyW * 0.05, -bodyW * 0.04, 0]); // buried in the chest edge
     deltoid.scale.set(1.15, 1.2, 0.95);
-    // Deltoid → wrist taper (review: limb width varies along its length).
+    // Deltoid → wrist taper; sleeves run to the wrist (bare pale forearms
+    // read as gauntlet mitts at distance — cycle B), hands alone are skin.
     this.taperedLimb(sh, bodyW * 0.125, bodyW * 0.1, upperArm, p.cloth);
     const el = this.joint(sh, [0, -upperArm, 0]);
-    this.taperedLimb(el, bodyW * 0.11, bodyW * 0.075, lowerArm, p.skin);
+    this.taperedLimb(el, bodyW * 0.105, bodyW * 0.07, lowerArm, p.cloth);
     const hand = this.joint(el, [0, -lowerArm, 0]);
-    const palm = this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.1, 8, 6), p.skin, [0, -bodyW * 0.05, 0]);
-    palm.scale.set(0.9, 1.15, 0.7);
+    const palm = this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.095, 8, 6), p.skin, [0, -bodyW * 0.05, 0]);
+    palm.scale.set(0.85, 1.2, 0.65);
     return { sh, el, hand };
   }
 
   private buildLeg(side: 'L' | 'R', hipW: number, upperLeg: number, lowerLeg: number, fem: boolean): Leg {
     const p = this.appearance;
     const s = side === 'L' ? 1 : -1;
-    const hip = this.joint(this.pelvis, [s * hipW * 0.28, 0, 0]);
+    // Hip joints tucked in so the thighs nearly meet — cycle C found a
+    // cowboy gap between the legs.
+    const hip = this.joint(this.pelvis, [s * hipW * 0.24, 0, 0]);
     // Thigh: thick at the top, narrowing to the knee (the review's example).
-    this.taperedLimb(hip, hipW * (fem ? 0.22 : 0.21), hipW * 0.135, upperLeg, p.cloth);
+    this.taperedLimb(hip, hipW * (fem ? 0.23 : 0.22), hipW * 0.135, upperLeg, p.cloth);
     const knee = this.joint(hip, [0, -upperLeg, 0]);
     // Calf: a bulge below the knee, tapering hard to the ankle.
     this.taperedLimb(knee, hipW * 0.15, hipW * 0.085, lowerLeg, p.cloth);
