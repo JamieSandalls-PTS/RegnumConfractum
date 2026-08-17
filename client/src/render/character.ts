@@ -89,6 +89,8 @@ export class CharacterVisual {
   private cowlGroup: THREE.Group | null = null;
   /** The hood's shoulder mantle lives on the chest, not the head. */
   private mantleGroup: THREE.Group | null = null;
+  /** Physics flaps hanging from the hood's front rim (stakeholder). */
+  private hoodFlaps: { cloth: Cloth; anchor: THREE.Group; side: 'L' | 'R' }[] = [];
   /** Robe meshes, parented across several bones — tracked for teardown. */
   private robeParts: THREE.Mesh[] = [];
   /** The robe's PHYSICS pieces: the skirt tube and two sleeve cuffs. */
@@ -872,6 +874,12 @@ export class CharacterVisual {
     }
     this.cowlGroup = null;
     this.mantleGroup = null;
+    for (const f of this.hoodFlaps) {
+      this.parentOrRoot().remove(f.cloth.mesh);
+      f.cloth.dispose();
+      f.anchor.parent?.remove(f.anchor);
+    }
+    this.hoodFlaps = [];
     const veiled = this.presentation === 'hooded';
     const hoodUp = veiled || this.equipment.robe;
     if (hoodUp) {
@@ -882,28 +890,63 @@ export class CharacterVisual {
       this.head.add(this.cowlGroup);
       const shellMat = toonMaterial(hoodCol);
       shellMat.side = THREE.DoubleSide; // the inside shows through the opening
-      // Crown arch over the brow (full ring, so no scalp shows from above)
-      // + an open-front shell with a WIDE opening: the face is visible.
+      // ANGULAR fabric, not a ball (stakeholder): low segment counts, made
+      // faceted by dropping shared vertices so every face keeps its own
+      // flat normal (MeshToonMaterial has no flatShading). The shell is
+      // deep and swept back to a point, and sits FORWARD so the face is
+      // recessed INSIDE the opening — the cowl overhangs the brow and
+      // frames the cheeks (stakeholder: it wasn't covering the front).
+      const faceted = (g: THREE.BufferGeometry): THREE.BufferGeometry => {
+        const n = g.toNonIndexed();
+        n.computeVertexNormals();
+        g.dispose();
+        return n;
+      };
+      // Per the stakeholder's hood-varieties sheet: the rim OVERHANGS the
+      // brow, the opening is narrow enough that the face sits deep inside,
+      // and the silhouette flows back into a slack point.
       const crown = new THREE.Mesh(
-        new THREE.SphereGeometry(headH * 0.56, 20, 6, 0, Math.PI * 2, 0, Math.PI * 0.3),
+        faceted(new THREE.SphereGeometry(headH * 0.56, 8, 3, 0, Math.PI * 2, 0, Math.PI * 0.3)),
         shellMat,
       );
       const shell = new THREE.Mesh(
-        new THREE.SphereGeometry(headH * 0.56, 20, 12, Math.PI * 0.75, Math.PI * 1.5, Math.PI * 0.28, Math.PI * 0.46),
+        faceted(new THREE.SphereGeometry(headH * 0.56, 8, 5, Math.PI * 0.69, Math.PI * 1.62, Math.PI * 0.28, Math.PI * 0.46)),
         shellMat,
       );
       for (const m of [crown, shell]) {
         m.name = 'hood';
         m.castShadow = true;
-        m.position.set(0, headH * 0.4, -headH * 0.05);
-        m.scale.set(0.97, 1.0, 1.12); // roomy, draping backward
+        m.position.set(0, headH * 0.42, headH * 0.06);
+        m.scale.set(0.94, 1.02, 1.45); // deep, swept back to a point
+        m.rotation.x = -0.02;
         this.cowlGroup.add(m);
       }
       this.nm('hood peak');
+      // A four-sided pyramid continuing the crown line into the slack point.
       const peak = this.addMesh(this.cowlGroup,
-        new THREE.CylinderGeometry(0.008, headH * 0.2, headH * 0.55, 8),
-        hoodCol, [0, headH * 0.5, -headH * 0.46]);
-      peak.rotation.x = 2.5; // tip points down-and-back
+        new THREE.CylinderGeometry(0.008, headH * 0.24, headH * 0.6, 4, 1)
+          .rotateY(Math.PI / 4),
+        hoodCol, [0, headH * 0.2, -headH * 0.62]);
+      peak.rotation.x = 2.55; // tip points down-and-back
+      this.nm('hood gather');
+      // The fabric roll where the hood gathers at the neck (reference
+      // sheet: nearly every drawing has it).
+      const gather = this.addMesh(this.cowlGroup,
+        faceted(new THREE.TorusGeometry(headH * 0.34, headH * 0.1, 5, 8)) as THREE.BufferGeometry,
+        hoodCol, [0, headH * 0.04, headH * 0.06]);
+      gather.rotation.x = Math.PI * 0.46;
+      gather.scale.set(1, 1, 0.85);
+      // PHYSICS on the front/side rim (stakeholder): a small cloth strip
+      // hangs from each rim edge, swaying with the head and resting on
+      // the shoulders.
+      for (const side of ['L', 'R'] as const) {
+        const s = side === 'L' ? 1 : -1;
+        const anchor = this.joint(this.head, [s * headH * 0.4, headH * 0.34, headH * 0.24]);
+        anchor.rotation.y = s * 0.9; // strip plane faces outward-forward
+        const flap = new Cloth(3, 4, headH * 0.34, headH * 0.6, hoodCol);
+        this.parentOrRoot().add(flap.mesh);
+        this.hoodFlaps.push({ cloth: flap, anchor, side });
+      }
       if (veiled) {
         this.nm('veil');
         // Lower-face veil: top edge just under the eye line, reaching
@@ -916,12 +959,21 @@ export class CharacterVisual {
       this.mantleGroup = new THREE.Group();
       this.chest.add(this.mantleGroup);
       this.nm('hood mantle');
+      // A SHORT capelet: head and the tops of the shoulders only — the
+      // long version read as a poncho over the torso (stakeholder). Few,
+      // deep folds; faceted like the shell.
       const mantle = this.lathe(this.mantleGroup, [
-        [shoulderW * 1.12, torsoH * 0.14],
-        [bodyW * 0.62, torsoH * 0.38],
-        [bodyW * 0.24, torsoH * 0.52],
-      ], hoodCol, { count: 9, amp: 0.04 });
+        [shoulderW * 1.08, torsoH * 0.3],
+        [bodyW * 0.5, torsoH * 0.44],
+        [bodyW * 0.22, torsoH * 0.54],
+      ], hoodCol, { count: 6, amp: 0.09 });
       mantle.scale.z = 0.78;
+      mantle.geometry = ((): THREE.BufferGeometry => {
+        const n = mantle.geometry.toNonIndexed();
+        n.computeVertexNormals();
+        mantle.geometry.dispose();
+        return n;
+      })();
     }
     if (this.hair) {
       // D-219 concealment hides the hair entirely (identity). A clothing
@@ -1054,6 +1106,17 @@ export class CharacterVisual {
     for (const sleeve of this.robeSleeves) {
       sleeve.cloth.step(dt, wind, t, this.arms[sleeve.side].el.matrixWorld,
         this.sleeveColliders(sleeve.side));
+    }
+    for (const flap of this.hoodFlaps) {
+      flap.cloth.step(dt, wind, t, flap.anchor.matrixWorld, [
+        { matrix: this.arms[flap.side].sh.matrixWorld, radius: this.dims.bodyW * 0.26 },
+        {
+          matrix: this.chest.matrixWorld,
+          radius: this.dims.bodyW * 0.26,
+          height: this.dims.shoulderW * 0.75,
+          axisCol: 0,
+        },
+      ]);
     }
     if (this.hair) {
       // Same colliders as the cape — chest and pelvis cylinders PLUS the
@@ -1407,6 +1470,7 @@ export class CharacterVisual {
     if (this.hair) apply(this.hair.looseGroup);
     if (this.robeSkirt) apply(this.robeSkirt.mesh);
     for (const s of this.robeSleeves) apply(s.cloth.mesh);
+    for (const f of this.hoodFlaps) apply(f.cloth.mesh);
   }
 
   dispose(): void {
@@ -1422,6 +1486,10 @@ export class CharacterVisual {
     for (const s of this.robeSleeves) {
       this.parent.remove(s.cloth.mesh);
       s.cloth.dispose();
+    }
+    for (const f of this.hoodFlaps) {
+      this.parent.remove(f.cloth.mesh);
+      f.cloth.dispose();
     }
     if (this.hair) {
       this.parent.remove(this.hair.looseGroup);
