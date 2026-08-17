@@ -1402,3 +1402,19 @@ browser pane compositing. Five look-adjust cycles produced:
 Verified at review distance AND at game quantisation (grid of 12, swords
 reading correctly, silhouettes distinct). The capture loop is reusable —
 `scratchpad shot-receiver` + `__viewer.shoot()` — and documented in HANDOFF.
+
+**Review round 3 (stakeholder, same day) — applied via the same loop:**
+- **Shoulders joined to the torso:** the ribcage lathe HOLDS full width
+  through the shoulder line before rounding over, reaching out to meet the
+  deltoids, which are wider, flatter, and buried into the chest edge.
+- **Bust enlarged and properly sprung:** bigger volumes, and the spring is
+  now underdamped (stiffness 90 / damping 8, ±5cm vertical and ±3.5cm
+  fore-aft clamps) with stronger coupling to torso motion — the walk bob and
+  posture changes produce visible follow-through, not a hidden tremble.
+- **Pelvis V-drop:** the lathe centre descends past the hip joints so the
+  crotch reads as trousers meeting between the thighs, not a ball underside.
+- **Arms shortened** (0.36·H, limb-seed influence damped to 0.4).
+- Viewer automation gained close-up zoom below the game clamp.
+Known nits carried to the next round: the hair fringe reads as a visor on
+some seeds, hands are still simple palms, belt line sits high on some
+builds.

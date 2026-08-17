@@ -81,11 +81,12 @@ export class CharacterVisual {
   private hair: SolidHair | null = null;
   presentation: Presentation = 'normal';
 
-  /** Sprung chest (female build): a critically-damped vertical offset driven
-   * by the torso's motion. Small and clamped — secondary motion, not a gag. */
+  /** Sprung chest (female build): a damped spring in the chest's local
+   * frame, driven by torso motion — visible bounce, clamped to stay decent. */
   private bustGroup: THREE.Group | null = null;
-  private bustSpring = { y: 0, v: 0 };
-  private lastChestWorldY: number | null = null;
+  private bustBase = new THREE.Vector3();
+  private bustSpring = { y: 0, vy: 0, z: 0, vz: 0 };
+  private lastChestWorld: THREE.Vector3 | null = null;
 
   private targetAngle = 0;
   private currentAngle = 0;
@@ -193,9 +194,8 @@ export class CharacterVisual {
     const torsoH = H * 0.3;
     const upperLeg = legLen * 0.52;
     const lowerLeg = legLen * 0.48;
-    // Long-limb seeds only half-apply to arms — full application reaches
-    // past the knees. Fingertips belong near mid-thigh.
-    const armLen = H * 0.41 * (1 + (p.limb - 1) * 0.5);
+    // Arms shortened on review round 3; long-limb seeds barely apply.
+    const armLen = H * 0.36 * (1 + (p.limb - 1) * 0.4);
     const upperArm = armLen * 0.5;
     const lowerArm = armLen * 0.5;
     const hipY = legLen;
@@ -220,12 +220,15 @@ export class CharacterVisual {
     const seamWaist = waistW * 0.58; // abdomen top = ribcage bottom
 
     this.pelvis = this.joint(this.root, [0, hipY, 0]);
-    // Shallow saddle, no hanging crotch dome — trousers, not a sack.
+    // The pelvis DROPS between the thighs (review round 3): a V-profile
+    // whose centre descends past the hip joints, so the crotch reads as
+    // trousers meeting, not the underside of a ball.
     const pelvisMesh = this.lathe(this.pelvis, [
-      [0.008, -torsoH * 0.12],
-      [hipW * 0.34, -torsoH * 0.09],
-      [hipW * 0.5, torsoH * 0.02],
-      [hipW * 0.49, torsoH * 0.12],
+      [0.008, -torsoH * 0.19],
+      [hipW * 0.16, -torsoH * 0.15],
+      [hipW * 0.36, -torsoH * 0.05],
+      [hipW * 0.5, torsoH * 0.04],
+      [hipW * 0.49, torsoH * 0.13],
       [seamHip, torsoH * 0.24],
     ], p.cloth);
     pelvisMesh.scale.z = 0.8;
@@ -247,26 +250,32 @@ export class CharacterVisual {
     this.chest = this.joint(this.spine, [0, torsoH * 0.34, 0]);
     const ribcage = this.lathe(this.chest, [
       [seamWaist, 0],
-      [shoulderW * 0.8, torsoH * 0.18],
-      [shoulderW * 0.85, torsoH * 0.3],
-      [shoulderW * 0.6, torsoH * 0.42],
+      [shoulderW * 0.82, torsoH * 0.16],
+      // Full width HELD through the shoulder line (review round 3): the
+      // chest reaches out to meet the deltoids instead of sloping away
+      // and leaving them perched as separate balls.
+      [shoulderW * 0.98, torsoH * 0.28],
+      [shoulderW * 0.96, torsoH * 0.36],
+      [shoulderW * 0.55, torsoH * 0.44],
       [bodyW * 0.17, torsoH * 0.45], // stops BELOW the neck root — the head
       [0.008, torsoH * 0.47],        // must never sit buried in the chest
     ], p.cloth);
-    ribcage.scale.z = 0.72;
+    ribcage.scale.z = 0.66;
     // Trapezius: a soft saddle behind the neck, not a slab.
     const traps = this.addMesh(this.chest, new THREE.SphereGeometry(shoulderW * 0.46, 12, 9), p.cloth,
       [0, torsoH * 0.4, -this.frontZ() * 0.24]);
     traps.scale.set(1.45, 0.4, 0.66);
     if (fem) {
       // The sprung chest: geometry on its own group so physics can move it.
+      // Sized to be READ at game distance (review round 3), not hinted.
       this.bustGroup = new THREE.Group();
-      this.bustGroup.position.set(0, torsoH * 0.24, this.frontZ() * 0.42);
+      this.bustBase.set(0, torsoH * 0.26, this.frontZ() * 0.52);
+      this.bustGroup.position.copy(this.bustBase);
       this.chest.add(this.bustGroup);
       for (const s of [1, -1]) {
-        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.15, 10, 8), p.cloth,
-          [s * bodyW * 0.14, 0, 0]);
-        b.scale.set(1.0, 0.88, 0.7);
+        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.19, 10, 8), p.cloth,
+          [s * bodyW * 0.155, 0, 0]);
+        b.scale.set(1.0, 0.95, 0.8);
       }
     } else {
       // Pectorals: two soft plates blending into the ribcage front.
@@ -333,9 +342,9 @@ export class CharacterVisual {
     // Deltoid: an egg-shaped mass ON the arm bone, so it rides every arm
     // move and blends the shoulder into the upper arm (review: not a bare
     // sphere hovering at the joint).
-    const deltoid = this.addMesh(sh, new THREE.SphereGeometry(bodyW * 0.13, 10, 8), p.cloth,
-      [-s * bodyW * 0.02, -bodyW * 0.05, 0]); // tucked INTO the chest edge
-    deltoid.scale.set(1.0, 1.22, 1.0);
+    const deltoid = this.addMesh(sh, new THREE.SphereGeometry(bodyW * 0.135, 10, 8), p.cloth,
+      [-s * bodyW * 0.05, -bodyW * 0.04, 0]); // buried in the chest edge
+    deltoid.scale.set(1.15, 1.2, 0.95);
     // Deltoid → wrist taper (review: limb width varies along its length).
     this.taperedLimb(sh, bodyW * 0.125, bodyW * 0.1, upperArm, p.cloth);
     const el = this.joint(sh, [0, -upperArm, 0]);
@@ -572,22 +581,32 @@ export class CharacterVisual {
     this.arms.R.sh.position.y += (from[pi + 3]! - this.arms.R.sh.position.y) * weight;
   }
 
-  /** Critically-damped spring on the bust group, driven by torso motion. */
+  /** Underdamped spring on the bust group, driven by torso motion: the walk
+   * bounce and any posture change produce a visible follow-through wobble. */
   private stepBust(dt: number): void {
-    if (!this.bustGroup) return;
+    if (!this.bustGroup || dt <= 0) return;
     const world = new THREE.Vector3();
     this.chest.getWorldPosition(world);
-    if (this.lastChestWorldY !== null && dt > 0) {
-      const chestVel = (world.y - this.lastChestWorldY) / dt;
+    if (this.lastChestWorld) {
+      const velY = (world.y - this.lastChestWorld.y) / dt;
+      const velXZ = Math.hypot(world.x - this.lastChestWorld.x, world.z - this.lastChestWorld.z) / dt;
       const s = this.bustSpring;
-      const stiffness = 160;
-      const damping = 18;
-      s.v += (-stiffness * s.y - damping * s.v - chestVel * 4) * dt;
-      s.y += s.v * dt;
-      s.y = Math.max(-0.028, Math.min(0.028, s.y));
-      this.bustGroup.position.y = this.dims.torsoH * 0.22 + s.y;
+      const stiffness = 90;
+      const damping = 8; // underdamped on purpose — it should carry through
+      s.vy += (-stiffness * s.y - damping * s.vy - velY * 9) * dt;
+      s.y = Math.max(-0.05, Math.min(0.05, s.y + s.vy * dt));
+      // Forward-back lag from horizontal acceleration (start/stop of a walk).
+      s.vz += (-stiffness * s.z - damping * s.vz - velXZ * 2.5) * dt;
+      s.z = Math.max(-0.035, Math.min(0.035, s.z + s.vz * dt));
+      this.bustGroup.position.set(
+        this.bustBase.x,
+        this.bustBase.y + s.y,
+        this.bustBase.z + s.z,
+      );
+    } else {
+      this.lastChestWorld = new THREE.Vector3();
     }
-    this.lastChestWorldY = world.y;
+    this.lastChestWorld.copy(world);
   }
 
   private animTransient(name: TransientAnim, t: number): void {

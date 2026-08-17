@@ -156,9 +156,10 @@ export class GameScene {
     this.azimuthTarget = angle;
   }
 
-  /** Jump zoom to an exact factor (viewer/automation use). */
+  /** Jump zoom to an exact factor (viewer/automation use). Allows tighter
+   * close-ups than the in-game wheel clamp — zoomBy() keeps the game limit. */
   setZoom(zoom: number): void {
-    this.zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom));
+    this.zoom = Math.min(ZOOM_MAX, Math.max(0.12, zoom));
     this.zoomTarget = this.zoom;
     this.applyFrustum();
   }
