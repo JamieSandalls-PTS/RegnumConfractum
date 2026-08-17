@@ -150,15 +150,23 @@ window.addEventListener('pointerup', (e) => {
   if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 5) return;
   const rect = stage.getBoundingClientRect();
   if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
-  const ndc = new THREE.Vector2(
-    ((e.clientX - rect.left) / rect.width) * 2 - 1,
-    -((e.clientY - rect.top) / rect.height) * 2 + 1,
-  );
-  const ray = new THREE.Raycaster();
-  ray.setFromCamera(ndc, scene.camera);
-  const hits = ray.intersectObjects(editParts.filter((q) => q.mesh.visible).map((q) => q.mesh), false);
-  if (hits.length === 0) return;
-  const idx = editParts.findIndex((q) => q.mesh === hits[0]!.object);
+  // Screen-space pick (the raycaster proved unreliable against this ortho
+  // setup — see round 11): project every part's centre, take the nearest.
+  const wp = new THREE.Vector3();
+  let idx = -1;
+  let bestPx = 28;
+  for (let i = 0; i < editParts.length; i++) {
+    const q = editParts[i]!;
+    if (!q.mesh.visible) continue;
+    q.mesh.getWorldPosition(wp).project(scene.camera);
+    const sx = rect.left + ((wp.x + 1) / 2) * rect.width;
+    const sy = rect.top + ((1 - wp.y) / 2) * rect.height;
+    const d = Math.hypot(sx - e.clientX, sy - e.clientY);
+    if (d < bestPx) {
+      bestPx = d;
+      idx = i;
+    }
+  }
   if (idx < 0) return;
   if (e.ctrlKey) {
     if (editSelectedAll.includes(idx)) editSelectedAll = editSelectedAll.filter((x) => x !== idx);
@@ -243,12 +251,20 @@ function stepViewer(dt: number): void {
   if (style === 'raw') {
     scene.renderer.render(scene.scene, scene.camera);
   } else if (style === 'split') {
-    scene.post.renderSplit(scene.renderer, scene.scene, scene.camera);
+    scene.post.renderSplit(scene.renderer, scene.scene, scene.camera,
+      $<HTMLInputElement>('in-envpal').checked);
   } else {
     scene.render(); // uniform and palette-full (full-res via pixelScale 1)
   }
 }
 
+$('in-charshader').addEventListener('change', () => {
+  scene.post.shaderMode = Number($<HTMLSelectElement>('in-charshader').value);
+});
+$('in-envscale').addEventListener('input', () => {
+  scene.post.envPixelScale = Number($<HTMLInputElement>('in-envscale').value);
+  scene.resize();
+});
 $('in-style').addEventListener('change', () => {
   const style = $<HTMLSelectElement>('in-style').value;
   scene.post.pixelScale = style === 'palette-full'
@@ -362,13 +378,15 @@ function renderEditor(): void {
   // box adds to the group WITHOUT re-rendering; clicking a name makes that
   // part primary (sliders bind to it). Ctrl-click the 3D model also selects.
   const list = document.createElement('div');
-  list.style.cssText = 'max-height:150px;overflow-y:auto;border:1px solid var(--line);padding:2px';
+  list.style.cssText = 'max-height:210px;overflow-y:auto;border:1px solid var(--line);padding:2px';
   for (let i = 0; i < editParts.length; i++) {
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:6px;align-items:center;font-size:11px;cursor:pointer;' +
+    row.style.cssText = 'display:flex;gap:5px;align-items:center;font-size:11px;cursor:pointer;' +
+      'line-height:1.35;padding:0 2px;white-space:nowrap;overflow:hidden;' +
       (i === editSelected ? 'color:#e8c88f' : '');
     const cb = document.createElement('input');
     cb.type = 'checkbox';
+    cb.style.cssText = 'margin:0;width:12px;height:12px;flex:none';
     cb.checked = editSelectedAll.includes(i);
     cb.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -542,6 +560,7 @@ declare global {
       setAnim: (mode: string) => void;
       setPixel: (on: boolean, scale?: number) => void;
       view: (azimuthRad: number, zoom: number, orbitHeight?: number) => void;
+      pick: (fx: number, fy: number) => unknown;
       advance: (seconds: number) => void;
       shoot: (name: string) => Promise<string>;
     };
@@ -572,6 +591,25 @@ window.__viewer = {
   advance(seconds) {
     const steps = Math.max(1, Math.round(seconds * 60));
     for (let i = 0; i < steps; i++) stepViewer(1 / 60);
+  },
+  pick(fx: number, fy: number) {
+    // Mirrors the click handler's screen-space pick, for automation tests.
+    const rect = stage.getBoundingClientRect();
+    const wp = new THREE.Vector3();
+    let best = '';
+    let bestPx = 28;
+    for (const q of editParts) {
+      if (!q.mesh.visible) continue;
+      q.mesh.getWorldPosition(wp).project(scene.camera);
+      const sx = ((wp.x + 1) / 2) * rect.width;
+      const sy = ((1 - wp.y) / 2) * rect.height;
+      const d = Math.hypot(sx - fx * rect.width, sy - fy * rect.height);
+      if (d < bestPx) {
+        bestPx = d;
+        best = q.name;
+      }
+    }
+    return best || 'no part within range';
   },
   async shoot(name) {
     stepViewer(1 / 60); // fresh render in this task so toDataURL sees pixels

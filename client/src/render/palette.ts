@@ -30,15 +30,24 @@ export const PALETTE = [
 
 export class PixelPost {
   pixelScale = 4;
+  /** Split mode: the WORLD's own pixel scale (1 = crisp). */
+  envPixelScale = 1;
   readonly renderTarget: THREE.WebGLRenderTarget;
+  private envTarget: THREE.WebGLRenderTarget;
   private material: THREE.ShaderMaterial;
   private postScene = new THREE.Scene();
   private postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   internalWidth = 320;
   internalHeight = 200;
+  private lastW = 320;
+  private lastH = 200;
 
   constructor() {
     this.renderTarget = new THREE.WebGLRenderTarget(320, 200, {
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+    });
+    this.envTarget = new THREE.WebGLRenderTarget(320, 200, {
       minFilter: THREE.NearestFilter,
       magFilter: THREE.NearestFilter,
     });
@@ -58,6 +67,10 @@ export class PixelPost {
         /** 1 = compositing a transparent character layer over a crisp
          * environment (split mode): alpha-test edges, skip the vignette. */
         uComposite: { value: 0 },
+        /** 0 = keep true colours (no palette snap, no dither). */
+        uQuantize: { value: 1 },
+        /** Character-shader style: 0 palette, 1 posterize, 2 soft, 3 plain. */
+        uMode: { value: 0 },
       },
       vertexShader: /* glsl */ `
         varying vec2 vUv;
@@ -84,9 +97,19 @@ export class PixelPost {
         }
 
         uniform int uComposite;
+        uniform int uMode;
 
         void main() {
           vec4 t = texture2D(tDiffuse, vUv);
+          if (uMode == 2) {
+            // soft: a small cross blur that melts primitive seams
+            vec2 o = 1.4 / uRes;
+            t = (t
+              + texture2D(tDiffuse, vUv + vec2(o.x, 0.0))
+              + texture2D(tDiffuse, vUv - vec2(o.x, 0.0))
+              + texture2D(tDiffuse, vUv + vec2(0.0, o.y))
+              + texture2D(tDiffuse, vUv - vec2(0.0, o.y))) / 5.0;
+          }
           if (uComposite == 1 && t.a < 0.4) discard;
           vec3 c = t.rgb;
           vec2 px = vUv * uRes;
@@ -99,15 +122,18 @@ export class PixelPost {
           }
           c = clamp((c - 0.5) * 1.12 + 0.5, 0.0, 1.0);
 
-          c += bayer(px) * 0.030;
-
-          float best = 1e9;
           vec3 bc = c;
-          for (int i = 0; i < ${PALETTE.length}; i++) {
-            vec3 d = uPalette[i] - c;
-            // perceptual-ish weighting keeps skin off the blues
-            float dist = d.r*d.r*0.50 + d.g*d.g*0.58 + d.b*d.b*0.42;
-            if (dist < best) { best = dist; bc = uPalette[i]; }
+          if (uMode == 0 && uQuantize == 1) {
+            c += bayer(px) * 0.030;
+            float best = 1e9;
+            for (int i = 0; i < ${PALETTE.length}; i++) {
+              vec3 d = uPalette[i] - c;
+              // perceptual-ish weighting keeps skin off the blues
+              float dist = d.r*d.r*0.50 + d.g*d.g*0.58 + d.b*d.b*0.42;
+              if (dist < best) { best = dist; bc = uPalette[i]; }
+            }
+          } else if (uMode == 1) {
+            bc = floor(c * 6.0 + 0.5) / 6.0; // posterize: banded, no palette
           }
           gl_FragColor = vec4(bc, 1.0);
         }
@@ -119,14 +145,25 @@ export class PixelPost {
 
   /** Call on resize with the CSS pixel size of the stage. */
   setSize(width: number, height: number): void {
+    this.lastW = width;
+    this.lastH = height;
     this.internalWidth = Math.max(80, Math.floor(width / this.pixelScale));
     this.internalHeight = Math.max(60, Math.floor(height / this.pixelScale));
     this.renderTarget.setSize(this.internalWidth, this.internalHeight);
+    this.envTarget.setSize(
+      Math.max(80, Math.floor(width / this.envPixelScale)),
+      Math.max(60, Math.floor(height / this.envPixelScale)),
+    );
     (this.material.uniforms.uRes!.value as THREE.Vector2).set(this.internalWidth, this.internalHeight);
     this.material.uniforms.tDiffuse!.value = this.renderTarget.texture;
   }
 
+  /** Character-shader style (stakeholder A/B): 0 palette-pixel, 1 posterize,
+   * 2 soft blur, 3 plain low-res. */
+  shaderMode = 0;
+
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): void {
+    this.material.uniforms.uMode!.value = this.shaderMode;
     this.material.uniforms.uComposite!.value = 0;
     renderer.setRenderTarget(this.renderTarget);
     renderer.render(scene, camera);
@@ -139,12 +176,37 @@ export class PixelPost {
    * resolution; only CHARACTER-layer objects (layer 1) go through the
    * low-res palette quantiser, composited on top with alpha.
    */
-  renderSplit(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): void {
+  renderSplit(
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
+    camera: THREE.Camera,
+    /** Palette-snap the world too? Its pixel size follows envPixelScale. */
+    envPalette = false,
+  ): void {
     const cam = camera as THREE.OrthographicCamera;
-    // Pass 1: environment, crisp.
+    // Pass 1: environment, at its OWN pixel scale and palette choice.
     cam.layers.set(0);
-    renderer.setRenderTarget(null);
-    renderer.render(scene, cam);
+    if (this.envPixelScale <= 1 && !envPalette) {
+      renderer.setRenderTarget(null);
+      renderer.render(scene, cam);
+    } else {
+      renderer.setRenderTarget(this.envTarget);
+      renderer.render(scene, cam);
+      this.material.uniforms.tDiffuse!.value = this.envTarget.texture;
+      (this.material.uniforms.uRes!.value as THREE.Vector2).set(
+        Math.max(80, Math.floor(this.lastW / this.envPixelScale)),
+        Math.max(60, Math.floor(this.lastH / this.envPixelScale)),
+      );
+      this.material.uniforms.uComposite!.value = 0;
+      this.material.uniforms.uMode!.value = 0; // the world uses the palette path
+      this.material.uniforms.uQuantize!.value = envPalette ? 1 : 0;
+      renderer.setRenderTarget(null);
+      renderer.render(this.postScene, this.postCamera);
+      this.material.uniforms.tDiffuse!.value = this.renderTarget.texture;
+      (this.material.uniforms.uRes!.value as THREE.Vector2).set(this.internalWidth, this.internalHeight);
+      this.material.uniforms.uQuantize!.value = 1;
+    }
+    this.material.uniforms.uMode!.value = this.shaderMode; // characters
     // Pass 2: characters to the low-res target with a transparent clear.
     cam.layers.set(1);
     const bg = scene.background;

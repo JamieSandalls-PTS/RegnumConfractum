@@ -102,8 +102,18 @@
       <option value="raw">raw (no shader)</option>
     </select>
     <input id="in-pixel" type="checkbox" checked class="hidden">
-    <label>pixelation (1 = fine, 6 = chunky; game uses 4)</label>
+    <label>character shader (detail-obscuring options)</label>
+    <select id="in-charshader">
+      <option value="0">palette pixel (current)</option>
+      <option value="1">posterize (banded colour)</option>
+      <option value="2">soft blur (melted seams)</option>
+      <option value="3">plain low-res</option>
+    </select>
+    <label>character pixelation (1 = fine, 6 = chunky; game uses 4)</label>
     <input id="in-pixelscale" type="range" min="1" max="6" step="1" value="4">
+    <label>world pixelation (split mode; 1 = crisp)</label>
+    <input id="in-envscale" type="range" min="1" max="6" step="1" value="1">
+    <div class="check"><input id="in-envpal" type="checkbox"> palette colours on the world (split mode)</div>
     <div class="check"><input id="in-hood" type="checkbox"> hoods up</div>
     <div class="check"><input id="in-gear" type="checkbox" checked> seed equipment</div>
     <div class="check"><input id="in-slow" type="checkbox"> slow motion (½ speed)</div>
