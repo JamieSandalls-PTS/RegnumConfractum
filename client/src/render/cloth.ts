@@ -163,45 +163,70 @@ export class SolidHair {
     this.headCenter = new THREE.Vector3(0, headH * 0.42, 0);
     const mat = () => new THREE.MeshLambertMaterial({ color });
 
-    // The cap: a close-fitting shell just proud of the cranium, pulled down
-    // at the back. Every style has one — hair grows from the whole scalp.
-    const cap = new THREE.Mesh(
-      new THREE.SphereGeometry(headH * 0.365, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.56),
-      mat(),
-    );
-    cap.position.set(0, headH * 0.46, -headH * 0.02);
+    // The cap: a flattened, back-weighted mass over the cranium — hair has
+    // VOLUME, it is not shrink-wrap — plus a fringe over the brow.
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.35, 12, 9), mat());
+    if (style === 'crop') cap.scale.set(1.02, 0.72, 1.05); // close-cut
+    else cap.scale.set(1.06, 0.82, 1.14);
+    cap.position.set(0, headH * 0.52, -headH * 0.04);
     cap.castShadow = true;
     this.capGroup.add(cap);
+    const fringe = new THREE.Mesh(
+      new THREE.BoxGeometry(headH * 0.56, headH * 0.16, headH * 0.14),
+      mat(),
+    );
+    fringe.position.set(0, headH * 0.6, headH * 0.28);
+    fringe.rotation.x = 0.25;
+    fringe.castShadow = true;
+    this.capGroup.add(fringe);
 
     if (style === 'bob' || style === 'long') {
-      // A jaw-length shell around sides and back — the solid silhouette.
-      const shell = new THREE.Mesh(
-        new THREE.SphereGeometry(headH * 0.38, 12, 8, Math.PI * 0.15, Math.PI * 1.7, Math.PI * 0.3, Math.PI * 0.52),
+      // A jaw-length bob built from slabs: cheek panels and a back panel,
+      // leaving the face open — solid silhouette, no helmet-band artefact.
+      for (const s of [1, -1]) {
+        const side = new THREE.Mesh(
+          new THREE.BoxGeometry(headH * 0.13, headH * 0.52, headH * 0.42),
+          mat(),
+        );
+        side.position.set(s * headH * 0.34, headH * 0.28, -headH * 0.08);
+        side.rotation.z = s * -0.06; // flares slightly outward at the jaw
+        side.castShadow = true;
+        this.capGroup.add(side);
+      }
+      const back = new THREE.Mesh(
+        new THREE.BoxGeometry(headH * 0.58, headH * 0.58, headH * 0.16),
         mat(),
       );
-      shell.rotation.y = Math.PI; // opening faces the face
-      shell.position.set(0, headH * 0.42, -headH * 0.04);
-      shell.castShadow = true;
-      this.capGroup.add(shell);
+      back.position.set(0, headH * 0.26, -headH * 0.32);
+      back.rotation.x = 0.08;
+      back.castShadow = true;
+      this.capGroup.add(back);
+    }
+    if (style === 'tail') {
+      // The gather at the back of the head the tail hangs from.
+      const tie = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.14, 8, 6), mat());
+      tie.position.set(0, headH * 0.58, -headH * 0.36);
+      this.capGroup.add(tie);
     }
     headBone.add(this.capGroup);
 
-    // Physics locks.
+    // Physics locks: verlet chains rendered as OVERLAPPING tapered capsules,
+    // so a lock reads as one continuous piece of hair, not stacked crates.
     const lockDefs: { off: THREE.Vector3; len: number; width: number }[] = [];
     if (style === 'tail') {
       lockDefs.push({
-        off: new THREE.Vector3(0, headH * 0.62, -headH * 0.32),
+        off: new THREE.Vector3(0, headH * 0.58, -headH * 0.4),
         len: len * 1.3 + headH * 0.4,
-        width: headH * 0.2,
+        width: headH * 0.19,
       });
     } else if (style === 'long') {
       lockDefs.push(
-        { off: new THREE.Vector3(0, headH * 0.5, -headH * 0.34), len: len * 1.5 + headH * 0.5, width: headH * 0.24 },
-        { off: new THREE.Vector3(headH * 0.3, headH * 0.42, -headH * 0.16), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
-        { off: new THREE.Vector3(-headH * 0.3, headH * 0.42, -headH * 0.16), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
+        { off: new THREE.Vector3(0, headH * 0.44, -headH * 0.38), len: len * 1.5 + headH * 0.5, width: headH * 0.24 },
+        { off: new THREE.Vector3(headH * 0.32, headH * 0.4, -headH * 0.18), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
+        { off: new THREE.Vector3(-headH * 0.32, headH * 0.4, -headH * 0.18), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
       );
     }
-    const SEG = 3;
+    const SEG = 4;
     for (const def of lockDefs) {
       const pos: THREE.Vector3[] = [];
       const prev: THREE.Vector3[] = [];
@@ -212,9 +237,9 @@ export class SolidHair {
       }
       const meshes: THREE.Mesh[] = [];
       for (let i = 0; i < SEG; i++) {
-        const w = def.width * (1 - i * 0.22);
+        const w = def.width * (1 - i * 0.16);
         const seg = new THREE.Mesh(
-          new THREE.BoxGeometry(w, def.len / SEG + w * 0.3, w * 0.8),
+          new THREE.CapsuleGeometry(w * 0.5, def.len / SEG, 3, 7),
           mat(),
         );
         seg.castShadow = true;

@@ -101,6 +101,12 @@ $('in-light').addEventListener('change', () => {
   scene.applyLighting($<HTMLSelectElement>('in-light').value as LightingProfile);
 });
 scene.applyLighting('overcast');
+$('in-pixelscale').addEventListener('input', () => {
+  // Stakeholder control over the pixelation degree: internal resolution is
+  // stage-size / pixelScale, so 1 is near-native and 6 is very chunky.
+  scene.post.pixelScale = Number($<HTMLInputElement>('in-pixelscale').value);
+  scene.resize();
+});
 
 // Orbit + zoom, same feel as the game client.
 let dragging = false;

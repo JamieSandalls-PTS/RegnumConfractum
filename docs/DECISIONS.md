@@ -1355,3 +1355,24 @@ reproducible feedback — the stakeholder's art verdict (D-406) can now be
 given against living examples. **Verified live in the browser:** click-to-move
 pathing around water, the context menu, hotbar, orbit and zoom, and the
 viewer page itself.
+
+**Review round 1 (stakeholder, same day) — applied:**
+- **Joint sign convention fixed.** The model faces +Z; for hanging children,
+  `rotation.x > 0` swings BACKWARD. Knees had it inverted (bird legs), and
+  sit/kneel were built on the inverted convention — all leg animation
+  rewritten: knees hinge back, sitting thighs point forward with shins down,
+  kneeling is one knee down/one foot planted. This is documented in a comment
+  block above the anims so it is never re-guessed.
+- **Sword gripped properly:** rotated ~90° out of the fist, blade pointing
+  forward and slightly down.
+- **Compound torso:** flattened ribcage + trapezius slab + pectoral plates
+  (male) / sprung bust (female) + three abdominal bands on the waist front.
+- **Tapered limbs:** every segment is joint-ball + top-heavy tapering
+  cylinder (thigh thick at top, calf bulge to ankle, deltoid to wrist).
+- **Wave** rises fast and holds the hand clearly overhead; **shrug** now
+  lifts the shoulder JOINTS (pose snapshots carry shoulder height so the
+  cross-fade covers it).
+- **Hair rebuilt:** volumetric flattened cap + brow fringe; bob from cheek
+  and back slabs (no helmet-band artefact); locks are overlapping tapered
+  capsules on the verlet chains; tail gets a visible gather.
+- **Viewer:** pixelation degree slider (1–6; the game ships at 4).

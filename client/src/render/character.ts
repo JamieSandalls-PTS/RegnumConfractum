@@ -66,7 +66,12 @@ export class CharacterVisual {
   private head!: THREE.Group;
   private arms!: { L: Limb; R: Limb };
   private legs!: { L: Leg; R: Leg };
-  private dims!: { hipY: number; torsoH: number; headH: number; shoulderW: number; hipW: number; bodyW: number };
+  private dims!: {
+    hipY: number; torsoH: number; headH: number;
+    shoulderW: number; hipW: number; bodyW: number;
+    /** Shoulder joints' rest height — the shrug raises them from here. */
+    baseShY: number;
+  };
 
   private helmGroup: THREE.Group | null = null;
   private pauldronGroup: THREE.Group | null = null;
@@ -135,10 +140,26 @@ export class CharacterVisual {
     return this.addMesh(parent, new THREE.BoxGeometry(w, h, d), color, pos);
   }
 
-  /** A vertical capsule whose TOP sits at the parent origin — limbs hang. */
-  private capsuleDown(parent: THREE.Object3D, radius: number, length: number, color: number): THREE.Mesh {
-    const geom = new THREE.CapsuleGeometry(radius, Math.max(0.01, length - radius * 2), 3, 8);
-    return this.addMesh(parent, geom, color, [0, -length / 2, 0]);
+  /**
+   * A hanging limb segment with anatomical taper: a ball at the joint, a
+   * cylinder thicker at the top than the bottom (thighs, calves, arms all
+   * narrow toward their far end — the stakeholder's review point).
+   */
+  private taperedLimb(
+    parent: THREE.Object3D,
+    rTop: number,
+    rBottom: number,
+    length: number,
+    color: number,
+  ): void {
+    this.addMesh(parent, new THREE.SphereGeometry(rTop, 8, 6), color, [0, 0, 0]);
+    this.addMesh(
+      parent,
+      new THREE.CylinderGeometry(rTop, rBottom, length, 9),
+      color,
+      [0, -length / 2, 0],
+    );
+    this.addMesh(parent, new THREE.SphereGeometry(rBottom, 7, 5), color, [0, -length, 0]);
   }
 
   private joint(parent: THREE.Object3D, pos: [number, number, number] = [0, 0, 0]): THREE.Group {
@@ -168,7 +189,7 @@ export class CharacterVisual {
     const shoulderW = p.shoulder * (fem ? 0.84 : 1.02);
     const hipW = bodyW * (fem ? 1.16 : 0.94);
     const waistW = bodyW * (fem ? 0.68 : 0.82);
-    this.dims = { hipY, torsoH, headH, shoulderW, hipW, bodyW };
+    this.dims = { hipY, torsoH, headH, shoulderW, hipW, bodyW, baseShY: torsoH * 0.3 };
 
     // Pelvis: a rounded block the width of the hips.
     this.pelvis = this.joint(this.root, [0, hipY, 0]);
@@ -181,21 +202,58 @@ export class CharacterVisual {
 
     // Waist: visibly narrower — the box figure's biggest tell.
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
-    this.addMesh(
+    const waist = this.addMesh(
       this.spine,
       new THREE.CylinderGeometry(waistW * 0.5, hipW * 0.46, torsoH * 0.34, 10),
       p.cloth,
       [0, torsoH * 0.14, 0],
     );
+    waist.scale.z = 0.8;
+    // Abdominal plane (per review): three subtle stacked bands on the front
+    // of the waist so the midsection reads muscled under the cloth.
+    for (let i = 0; i < 3; i++) {
+      const band = this.addMesh(
+        this.spine,
+        new THREE.BoxGeometry(waistW * (0.72 - i * 0.06), torsoH * 0.075, bodyW * 0.1),
+        p.cloth,
+        [0, torsoH * (0.24 - i * 0.09), this.frontZ() * (0.62 - i * 0.045)],
+      );
+      band.scale.z = 0.8;
+    }
 
-    // Chest: broader at the shoulders, tapering down to the waist.
+    // Chest (compound, per review): a flattened ribcage core, a separate
+    // upper-chest plane — pectoral plates for the male build, the sprung
+    // bust for the female — and shoulder caps. One cone reads as a bollard;
+    // this reads as a torso.
     this.chest = this.joint(this.spine, [0, torsoH * 0.34, 0]);
-    this.addMesh(
+    const ribcage = this.addMesh(
       this.chest,
-      new THREE.CylinderGeometry(shoulderW * 0.92, waistW * 0.56, torsoH * 0.42, 10),
+      new THREE.CylinderGeometry(shoulderW * 0.82, waistW * 0.6, torsoH * 0.42, 10),
       p.metal,
       [0, torsoH * 0.18, 0],
     );
+    ribcage.scale.z = 0.74; // front-back flattening — torsos are not round
+    // Upper-back plane (trapezius slab) so the back is not a cylinder wall.
+    this.addMesh(this.chest, new THREE.BoxGeometry(shoulderW * 1.5, torsoH * 0.2, bodyW * 0.14),
+      p.metal, [0, torsoH * 0.3, -this.frontZ() * 0.42]);
+    if (fem) {
+      // The sprung chest: geometry on its own group so physics can move it.
+      this.bustGroup = new THREE.Group();
+      this.bustGroup.position.set(0, torsoH * 0.24, this.frontZ() * 0.52);
+      this.chest.add(this.bustGroup);
+      for (const s of [1, -1]) {
+        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.15, 8, 6), p.metal,
+          [s * bodyW * 0.15, 0, 0]);
+        b.scale.set(1.0, 0.9, 0.82);
+      }
+    } else {
+      // Pectoral plates: two flattened spheres on the upper chest.
+      for (const s of [1, -1]) {
+        const pec = this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.17, 8, 6), p.metal,
+          [s * bodyW * 0.16, torsoH * 0.26, this.frontZ() * 0.5]);
+        pec.scale.set(1.1, 0.72, 0.5);
+      }
+    }
     // Shoulder caps — garment, not armour: cloth-coloured and tucked in, or
     // they read as a puffy collar next to the (metal) pauldrons.
     for (const s of [1, -1]) {
@@ -205,17 +263,6 @@ export class CharacterVisual {
     // Belt line.
     this.addMesh(this.chest, new THREE.CylinderGeometry(waistW * 0.6, waistW * 0.6, torsoH * 0.07, 10),
       p.accent, [0, -torsoH * 0.02, 0]);
-
-    if (fem) {
-      // The sprung chest: geometry on its own group so physics can move it.
-      this.bustGroup = new THREE.Group();
-      this.bustGroup.position.set(0, torsoH * 0.22, this.frontZ() * 0.62);
-      this.chest.add(this.bustGroup);
-      for (const s of [1, -1]) {
-        this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.155, 8, 6), p.metal,
-          [s * bodyW * 0.16, 0, 0]);
-      }
-    }
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
     this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.15, headH * 0.24, 8),
@@ -264,12 +311,13 @@ export class CharacterVisual {
   private buildArm(side: 'L' | 'R', bodyW: number, upperArm: number, lowerArm: number, torsoH: number): Limb {
     const p = this.appearance;
     const s = side === 'L' ? 1 : -1;
-    const sh = this.joint(this.chest, [s * this.dims.shoulderW, torsoH * 0.3, 0]);
-    this.capsuleDown(sh, bodyW * 0.135, upperArm, p.cloth);
+    const sh = this.joint(this.chest, [s * this.dims.shoulderW, this.dims.baseShY, 0]);
+    // Deltoid → wrist taper (review: limb width varies along its length).
+    this.taperedLimb(sh, bodyW * 0.15, bodyW * 0.105, upperArm, p.cloth);
     const el = this.joint(sh, [0, -upperArm, 0]);
-    this.capsuleDown(el, bodyW * 0.115, lowerArm, p.skin);
+    this.taperedLimb(el, bodyW * 0.115, bodyW * 0.08, lowerArm, p.skin);
     const hand = this.joint(el, [0, -lowerArm, 0]);
-    this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.12, 6, 5), p.skin, [0, -bodyW * 0.06, 0]);
+    this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.11, 6, 5), p.skin, [0, -bodyW * 0.05, 0]);
     return { sh, el, hand };
   }
 
@@ -277,9 +325,11 @@ export class CharacterVisual {
     const p = this.appearance;
     const s = side === 'L' ? 1 : -1;
     const hip = this.joint(this.pelvis, [s * hipW * 0.28, 0, 0]);
-    this.capsuleDown(hip, hipW * (fem ? 0.2 : 0.19), upperLeg, p.cloth);
+    // Thigh: thick at the top, narrowing to the knee (the review's example).
+    this.taperedLimb(hip, hipW * (fem ? 0.22 : 0.21), hipW * 0.135, upperLeg, p.cloth);
     const knee = this.joint(hip, [0, -upperLeg, 0]);
-    this.capsuleDown(knee, hipW * 0.15, lowerLeg, p.cloth);
+    // Calf: a bulge below the knee, tapering hard to the ankle.
+    this.taperedLimb(knee, hipW * 0.15, hipW * 0.085, lowerLeg, p.cloth);
     const foot = this.joint(knee, [0, -lowerLeg, 0]);
     this.box(foot, hipW * 0.24, hipW * 0.13, hipW * 0.44, 0x241e19, [0, -hipW * 0.05, hipW * 0.09]);
     return { hip, knee, foot };
@@ -317,11 +367,16 @@ export class CharacterVisual {
 
     if (this.weaponGroup) { this.arms.R.hand.remove(this.weaponGroup); this.weaponGroup = null; }
     if (this.equipment.weapon) {
+      // Gripped in the fist, blade pointing FORWARD from the character
+      // (review point): the group builds blade-down, then rotates -90° about
+      // X so "down" becomes "out in front", angled slightly toward the ground.
       this.weaponGroup = new THREE.Group();
       this.arms.R.hand.add(this.weaponGroup);
-      this.box(this.weaponGroup, 0.045, 0.11, 0.045, 0x2a231d, [0, -bodyW * 0.28, 0]);
-      this.box(this.weaponGroup, 0.2, 0.035, 0.05, p.metal, [0, -bodyW * 0.34, 0]);
-      this.box(this.weaponGroup, 0.055, 0.78, 0.022, 0x74808c, [0, -bodyW * 0.34 - 0.4, 0]);
+      this.weaponGroup.position.set(0, -bodyW * 0.05, 0);
+      this.weaponGroup.rotation.x = -Math.PI / 2 + 0.35;
+      this.box(this.weaponGroup, 0.045, 0.14, 0.045, 0x2a231d, [0, 0.02, 0]);
+      this.box(this.weaponGroup, 0.2, 0.035, 0.05, p.metal, [0, -0.06, 0]);
+      this.box(this.weaponGroup, 0.055, 0.72, 0.022, 0x74808c, [0, -0.06 - 0.37, 0]);
     }
 
     if (this.cape) {
@@ -444,9 +499,9 @@ export class CharacterVisual {
     if (this.hair) this.hair.step(dt, wind, t, this.head.matrixWorld);
   }
 
-  /** Pose layout: [rx,ry,rz]×joints + pelvis.y + chest.y. */
+  /** Pose layout: [rx,ry,rz]×joints + pelvis.y + chest.y + shoulder ys. */
   private capturePose(into: Float32Array | null): Float32Array {
-    const n = this.joints.length * 3 + 2;
+    const n = this.joints.length * 3 + 4;
     const out = into && into.length === n ? into : new Float32Array(n);
     for (let i = 0; i < this.joints.length; i++) {
       const r = this.joints[i]!.rotation;
@@ -454,8 +509,11 @@ export class CharacterVisual {
       out[i * 3 + 1] = r.y;
       out[i * 3 + 2] = r.z;
     }
-    out[this.joints.length * 3] = this.pelvis.position.y;
-    out[this.joints.length * 3 + 1] = this.chest.position.y;
+    const pi = this.joints.length * 3;
+    out[pi] = this.pelvis.position.y;
+    out[pi + 1] = this.chest.position.y;
+    out[pi + 2] = this.arms.L.sh.position.y;
+    out[pi + 3] = this.arms.R.sh.position.y;
     return out;
   }
 
@@ -470,6 +528,8 @@ export class CharacterVisual {
     const pi = this.joints.length * 3;
     this.pelvis.position.y += (from[pi]! - this.pelvis.position.y) * weight;
     this.chest.position.y += (from[pi + 1]! - this.chest.position.y) * weight;
+    this.arms.L.sh.position.y += (from[pi + 2]! - this.arms.L.sh.position.y) * weight;
+    this.arms.R.sh.position.y += (from[pi + 3]! - this.arms.R.sh.position.y) * weight;
   }
 
   /** Critically-damped spring on the bust group, driven by torso motion. */
@@ -508,6 +568,7 @@ export class CharacterVisual {
     for (const s of ['L', 'R'] as const) {
       for (const o of [this.arms[s].sh, this.arms[s].el, this.arms[s].hand]) o.rotation.set(0, 0, 0);
       for (const o of [this.legs[s].hip, this.legs[s].knee, this.legs[s].foot]) o.rotation.set(0, 0, 0);
+      this.arms[s].sh.position.y = this.dims.baseShY;
     }
     this.pelvis.position.y = this.dims.hipY;
   }
@@ -533,22 +594,30 @@ export class CharacterVisual {
     }
   }
 
+  /*
+   * Joint sign convention (learned the hard way — the review's "legs bend
+   * incorrectly" was exactly this): the model faces +Z, and for any joint
+   * whose child hangs BELOW it, rotation.x > 0 swings the child BACKWARD.
+   * So: thighs forward = hip.x NEGATIVE; knees bend (shin back) = knee.x
+   * POSITIVE; elbows bend (forearm forward) = elbow.x NEGATIVE.
+   */
+
   private animSit(t: number): void {
     const c = this;
     const br = Math.sin(t * 1.3) * 0.012;
     c.pelvis.position.y = c.dims.hipY * 0.52;
-    c.pelvis.rotation.x = 0.06;
-    c.spine.rotation.x = 0.1 + br;
+    c.pelvis.rotation.x = -0.06;
+    c.spine.rotation.x = 0.1 + br; // a slight forward slump
     c.chest.rotation.x = -0.05;
     c.head.rotation.y = Math.sin(t * 0.4 + this.walkPhase) * 0.22;
     for (const s of ['L', 'R'] as const) {
       const sg = s === 'L' ? 1 : -1;
-      c.legs[s].hip.rotation.x = 1.42;
-      c.legs[s].knee.rotation.x = -1.5;
-      c.legs[s].foot.rotation.x = 0.16;
-      c.arms[s].sh.rotation.x = 0.34;
-      c.arms[s].sh.rotation.z = sg * 0.2;
-      c.arms[s].el.rotation.x = -0.85;
+      c.legs[s].hip.rotation.x = -1.42; // thighs out in FRONT
+      c.legs[s].knee.rotation.x = 1.48; // shins drop back down to the floor
+      c.legs[s].foot.rotation.x = -0.08;
+      c.arms[s].sh.rotation.x = -0.3; // hands rest forward, on the lap
+      c.arms[s].sh.rotation.z = sg * 0.14;
+      c.arms[s].el.rotation.x = -0.8;
     }
   }
 
@@ -556,19 +625,21 @@ export class CharacterVisual {
     const c = this;
     const br = Math.sin(t * 1.1) * 0.01;
     c.pelvis.position.y = c.dims.hipY * 0.48;
-    c.spine.rotation.x = 0.18 + br;
+    c.spine.rotation.x = 0.16 + br;
     c.head.rotation.x = 0.1;
-    c.legs.L.hip.rotation.x = 1.35;
-    c.legs.L.knee.rotation.x = -1.55;
-    c.legs.L.foot.rotation.x = 0.3;
-    c.legs.R.hip.rotation.x = -0.15;
-    c.legs.R.knee.rotation.x = -1.75;
-    c.legs.R.foot.rotation.x = 0.9;
+    // Left leg planted in front: thigh forward, shin vertical.
+    c.legs.L.hip.rotation.x = -1.3;
+    c.legs.L.knee.rotation.x = 1.32;
+    c.legs.L.foot.rotation.x = -0.1;
+    // Right knee down: thigh near vertical, shin folded back along the floor.
+    c.legs.R.hip.rotation.x = 0.12;
+    c.legs.R.knee.rotation.x = 1.62;
+    c.legs.R.foot.rotation.x = 0.8;
     for (const s of ['L', 'R'] as const) {
       const sg = s === 'L' ? 1 : -1;
-      c.arms[s].sh.rotation.x = 0.15;
+      c.arms[s].sh.rotation.x = -0.12;
       c.arms[s].sh.rotation.z = sg * 0.16;
-      c.arms[s].el.rotation.x = -0.55;
+      c.arms[s].el.rotation.x = -0.5;
     }
   }
 
@@ -591,21 +662,23 @@ export class CharacterVisual {
       c.arms[s].sh.rotation.x = -d * 0.3;
       c.arms[s].sh.rotation.z = sg * (0.16 + d * 0.22);
       c.arms[s].el.rotation.x = -0.35 - d * 0.5;
-      c.legs[s].hip.rotation.x = -d * 0.12;
-      c.legs[s].knee.rotation.x = -d * 0.1;
+      c.legs[s].hip.rotation.x = -d * 0.1; // slight flex, knees the right way
+      c.legs[s].knee.rotation.x = d * 0.14;
     }
   }
 
   private animWave(t: number): void {
     this.animIdle(t * 0.6);
     const c = this;
-    const lift = this.oneShot(t);
-    c.arms.R.sh.rotation.z = -2.0 * lift;
-    c.arms.R.sh.rotation.x = -0.25 * lift;
-    c.arms.R.el.rotation.x = -0.5 * lift;
-    c.arms.R.el.rotation.z = Math.sin(t * 9) * 0.45 * lift;
-    c.chest.rotation.y = -0.12 * lift;
-    c.head.rotation.y = -0.15 * lift;
+    // Fast rise, held high (review: the arm was not raised enough) —
+    // the hand ends up clearly above the head, waving from the elbow.
+    const lift = Math.min(1, this.oneShot(t) * 1.8);
+    c.arms.R.sh.rotation.z = -2.55 * lift;
+    c.arms.R.sh.rotation.x = -0.1 * lift;
+    c.arms.R.el.rotation.x = -0.25 * lift;
+    c.arms.R.el.rotation.z = Math.sin(t * 9) * 0.5 * lift;
+    c.chest.rotation.y = -0.1 * lift;
+    c.head.rotation.y = -0.14 * lift;
   }
 
   private animLaugh(t: number): void {
@@ -642,13 +715,16 @@ export class CharacterVisual {
     const k = this.oneShot(t);
     for (const s of ['L', 'R'] as const) {
       const sg = s === 'L' ? 1 : -1;
-      c.arms[s].sh.rotation.z = sg * (0.55 + k * 0.45) * k;
-      c.arms[s].sh.rotation.x = 0.2 * k;
-      c.arms[s].el.rotation.x = (-1.25 - k * 0.25) * k;
-      c.arms[s].el.rotation.z = sg * 0.45 * k;
+      // The SHOULDERS rise (review point) — the gesture lives there; the
+      // forearms just turn palms-up to go with it.
+      c.arms[s].sh.position.y = this.dims.baseShY + k * this.dims.bodyW * 0.16;
+      c.arms[s].sh.rotation.z = sg * 0.3 * k;
+      c.arms[s].el.rotation.x = -0.55 * k;
+      c.arms[s].el.rotation.z = sg * 0.55 * k;
     }
-    c.chest.position.y = this.dims.torsoH * 0.34 + k * 0.02;
-    c.head.rotation.x = k * 0.1;
+    c.chest.position.y = this.dims.torsoH * 0.34 + k * 0.015;
+    c.head.rotation.x = k * 0.12;
+    c.head.rotation.z = k * 0.06; // a little tilt sells it
   }
 
   private animWalk(t: number): void {
@@ -667,16 +743,18 @@ export class CharacterVisual {
     for (const s of ['L', 'R'] as const) {
       const o = s === 'L' ? 0 : Math.PI;
       const sg = s === 'L' ? 1 : -1;
-      const swing = Math.sin(ph + o);
-      // Knee bend is a smooth raised-cosine hump, not a clipped max() — the
-      // old version's visible snap at footfall came from that clipping.
-      const lift = Math.pow(Math.max(0, Math.sin(ph + o + 1.05)), 1.6);
-      c.legs[s].hip.rotation.x = swing * 0.6;
-      c.legs[s].knee.rotation.x = -lift * 0.95 - 0.06;
-      c.legs[s].foot.rotation.x = -swing * 0.18 + lift * 0.12 + 0.06;
-      c.arms[s].sh.rotation.x = -swing * 0.5;
+      const swing = Math.sin(ph + o); // > 0: this leg strides FORWARD
+      // The knee bends most just after the foot leaves the ground at the
+      // rear and straightens for heel-strike at the front, with a smooth
+      // raised-cosine hump (a clipped max() snaps at footfall).
+      const lift = Math.pow(Math.max(0, Math.sin(ph + o + 2.17)), 1.6);
+      c.legs[s].hip.rotation.x = -swing * 0.55 + lift * 0.25;
+      c.legs[s].knee.rotation.x = lift * 1.05 + 0.06; // shin BACK — a knee, not a bird leg
+      // Feet stay roughly level with the ground through the stride.
+      c.legs[s].foot.rotation.x = -(c.legs[s].hip.rotation.x + c.legs[s].knee.rotation.x) * 0.55;
+      c.arms[s].sh.rotation.x = swing * 0.45; // opposite arm to leg
       c.arms[s].sh.rotation.z = sg * 0.11;
-      c.arms[s].el.rotation.x = -0.28 - Math.max(0, -swing) * 0.3;
+      c.arms[s].el.rotation.x = -0.25 - Math.max(0, swing) * 0.3;
     }
   }
 
