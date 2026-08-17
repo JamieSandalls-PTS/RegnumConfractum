@@ -1163,3 +1163,17 @@ an open stakeholder decision), Legacy Points and voluntary permadeath
 corpses as objects per D-224), endgame permadeath zones, richer injury types
 (burn/frost/venom/rot/curse) and treatment paths, active disguise-piercing,
 Lua on_death.
+
+### D-510: Voluntary permadeath and Legacy Points implemented
+
+**Decision:** `retire` ends a character permanently (ghosts may retire too —
+walking into the dark instead of respawning). The account earns Legacy
+Points: `floor(√xp) + floor(√deeds)`, multiplied by `1/(1 + 0.5 ×
+priorRetirements)`, minimum 1. **Deeds** are the D-222 anti-idle measure:
+a counter of meaningful actions (speech +1, kills +5, area travel +1),
+accrued live and persisted with vitals — wall-clock time earns nothing.
+Points live on the ACCOUNT; retired characters vanish from the character
+list and can never be entered. Renown weighting joins the formula when
+renown exists (M5+). Nothing is yet purchasable with points — the spend
+side (RP-locked classes, D-207) arrives with the class system, and the
+hard rule is restated here: **access and flavour, never raw power.**

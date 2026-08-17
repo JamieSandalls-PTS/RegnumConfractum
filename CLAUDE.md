@@ -230,7 +230,16 @@ immediately, XP pays debt before advancing, respawn at town after the minimum.
 Major wounds bleed and cannot be self-treated — the physician dependency is
 mechanical. The M3 event chain's death stage now fires.
 
-**M4b remaining:** classes/skills (**which 8-10 classes is an open stakeholder
-decision, D-208**), Legacy Points + voluntary permadeath, spirit interactions
-(D-204/D-224 corpses), endgame permadeath zones, richer injury/treatment types.
-**Other gaps:** invisible DM observation; staging VPS not provisioned.
+**M4b part 1 — voluntary permadeath + Legacy Points built (D-510):** retire ends
+a character forever; the account earns points scaled by xp and deeds (meaningful
+actions, never wall-clock), diminishing on repeat sacrifice. Access and flavour,
+never power — the spend side waits on the class system.
+
+**➡ Session handoff notes: `docs/HANDOFF.md`** — mid-milestone state, next work
+(spirit interactions, endgame zones, injuries, classes), items blocked on the
+stakeholder, and the repo's hard-won working specifics. Read it after this file.
+
+**M4b remaining:** spirit interactions (D-204/D-224 corpses), endgame permadeath
+zones, richer injury/treatment types, classes/skills (**which 8-10 classes is an
+open stakeholder decision, D-208**). **Other gaps:** invisible DM observation;
+staging VPS not provisioned.

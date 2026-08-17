@@ -62,7 +62,7 @@ export class MemoryStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     const nameKey = c.name.toLowerCase();
     for (const existing of this.characters.values()) {
@@ -79,6 +79,8 @@ export class MemoryStore implements Store {
       maxHp: 20,
       xp: 0,
       deathDebt: 0,
+      deeds: 0,
+      retired: false,
     };
     this.characters.set(record.id, record);
     return { ...record };
@@ -99,13 +101,35 @@ export class MemoryStore implements Store {
 
   async saveCharacterVitals(
     id: string,
-    vitals: { hp?: number; xp?: number; deathDebt?: number },
+    vitals: { hp?: number; xp?: number; deathDebt?: number; deeds?: number },
   ): Promise<void> {
     const c = this.characters.get(id);
     if (!c) throw new Error(`saveCharacterVitals: no character ${id}`);
     if (vitals.hp !== undefined) c.hp = vitals.hp;
     if (vitals.xp !== undefined) c.xp = vitals.xp;
     if (vitals.deathDebt !== undefined) c.deathDebt = vitals.deathDebt;
+    if (vitals.deeds !== undefined) c.deeds = vitals.deeds;
+  }
+
+  private legacyPoints = new Map<string, number>();
+
+  async addLegacyPoints(accountId: string, amount: number): Promise<void> {
+    this.legacyPoints.set(accountId, (this.legacyPoints.get(accountId) ?? 0) + amount);
+  }
+
+  async getLegacyPoints(accountId: string): Promise<number> {
+    return this.legacyPoints.get(accountId) ?? 0;
+  }
+
+  async retireCharacter(id: string): Promise<void> {
+    const c = this.characters.get(id);
+    if (!c) throw new Error(`retireCharacter: no character ${id}`);
+    c.retired = true;
+  }
+
+  async countRetired(accountId: string): Promise<number> {
+    return [...this.characters.values()].filter((c) => c.accountId === accountId && c.retired)
+      .length;
   }
 
   private injuries = new Map<string, InjuryRecord>();

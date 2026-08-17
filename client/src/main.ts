@@ -188,6 +188,13 @@ conn.onMessage = (msg: ServerMessage) => {
       }
       return;
     }
+    case 'retired':
+      appendSystemLine(
+        `The tale is told. ${msg.awarded} Legacy Points earned (${msg.totalLegacyPoints} total). ` +
+        'Reconnect to begin someone new.',
+      );
+      setTimeout(() => conn.close(), 4000);
+      return;
     case 'pong':
       return;
   }
@@ -432,6 +439,17 @@ function sendChat(): void {
   }
   if (raw === '/respawn') {
     conn.send({ t: 'respawn' });
+    return;
+  }
+  if (raw === '/retire forever') {
+    conn.send({ t: 'retire' });
+    return;
+  }
+  if (raw === '/retire') {
+    appendSystemLine(
+      'Retirement is permanent — this character ends and your account earns ' +
+      'Legacy Points. Type "/retire forever" if you mean it.',
+    );
     return;
   }
   if (raw.startsWith('/lang')) {

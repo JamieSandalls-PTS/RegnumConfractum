@@ -32,6 +32,7 @@ import { EmoteParser } from '../game/emotes';
 import { hasLineOfSight } from '../game/los';
 import { resolveNameContest } from '../game/contest';
 import { scrambleSpeech } from '../game/language';
+import { computeLegacyAward } from '../game/legacy';
 
 /** Earshot per channel, chebyshev tiles. Whisper and speech need line of
  * sight; a shout carries around walls — you hear it without seeing who. */
@@ -295,6 +296,7 @@ export class GameServer {
       x: entity.pos.x,
       y: entity.pos.y,
     });
+    this.countDeed(conn);
     await this.store.appendEvent('area_transition', {
       characterId: conn.character.id,
       from: oldAreaId,
@@ -392,6 +394,8 @@ export class GameServer {
         return this.handleTreat(conn, msg);
       case 'respawn':
         return this.handleRespawn(conn);
+      case 'retire':
+        return this.handleRetire(conn);
       case 'resync':
         return this.handleResync(conn);
       case 'ping':
@@ -549,6 +553,7 @@ export class GameServer {
     this.sendStatus(targetConn);
     if (targetConn.vitals.hp <= 0) {
       this.gainXp(conn, 25);
+      this.countDeed(conn, 5);
       this.sendStatus(conn);
       await this.die(targetConn, conn.character.name);
     }
@@ -651,6 +656,74 @@ export class GameServer {
     this.onAreaEnter?.(home, revived.id);
   }
 
+  /**
+   * Voluntary permadeath (D-207/D-222): the character ends, permanently, and
+   * the account earns Legacy Points scaled by xp and deeds with diminishing
+   * returns on repeat sacrifice. Ghosts may retire too — walking into the
+   * dark instead of respawning. Irreversible by design.
+   */
+  private async handleRetire(conn: ConnState): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.vitals || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const entity = this.world.getEntity(conn.entityId)!;
+    const totalDeeds = conn.character.deeds + this.deedsDelta(conn);
+    const awarded = computeLegacyAward({
+      xp: conn.vitals.xp,
+      deeds: totalDeeds,
+      priorRetirements: await this.store.countRetired(conn.accountId!),
+    });
+    await this.store.saveCharacterVitals(conn.character.id, {
+      hp: entity.ghost ? 0 : conn.vitals.hp,
+      xp: conn.vitals.xp,
+      deathDebt: conn.vitals.deathDebt,
+      deeds: totalDeeds,
+    });
+    await this.store.retireCharacter(conn.character.id);
+    await this.store.addLegacyPoints(conn.accountId!, awarded);
+    const total = await this.store.getLegacyPoints(conn.accountId!);
+    await this.store.appendEvent('retired', {
+      characterId: conn.character.id,
+      accountId: conn.accountId,
+      awarded,
+      xp: conn.vitals.xp,
+      deeds: totalDeeds,
+      voluntary: true,
+    });
+    // The world sees them go the way it saw them arrive.
+    const event = this.world.despawn(entity.id);
+    this.entityCharacter.delete(entity.id);
+    this.connsByArea.get(conn.areaId)?.delete(conn);
+    if (event) {
+      this.broadcastPlane(conn.areaId, entity.ghost, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [event],
+      });
+    }
+    this.onlineCharacters.delete(conn.character.id);
+    this.dirtyCharacters.delete(conn.character.id);
+    this.send(conn, { t: 'retired', awarded, totalLegacyPoints: total });
+    // Back to the character screen state: authenticated, nobody.
+    conn.character = null;
+    conn.entityId = null;
+    conn.areaId = null;
+    conn.vitals = null;
+    conn.injuries = [];
+  }
+
+  /** Deeds accrued this session but not yet persisted. */
+  private deedsBuffer = new Map<ConnState, number>();
+
+  private deedsDelta(conn: ConnState): number {
+    return this.deedsBuffer.get(conn) ?? 0;
+  }
+
+  /** A meaningful action happened — the D-222 measure of a life lived. */
+  private countDeed(conn: ConnState, weight = 1): void {
+    this.deedsBuffer.set(conn, (this.deedsBuffer.get(conn) ?? 0) + weight);
+  }
+
   /** Treatment (D-205): minor wounds you may bind yourself; a major wound
    * needs another pair of hands. Bandages are consumed by the treater. */
   private async handleTreat(
@@ -714,7 +787,9 @@ export class GameServer {
               hp: entity.ghost ? 0 : conn.vitals.hp,
               xp: conn.vitals.xp,
               deathDebt: conn.vitals.deathDebt,
+              deeds: conn.character.deeds + this.deedsDelta(conn),
             });
+            this.deedsBuffer.delete(conn);
           }
           await this.store.saveCharacterPosition(
             conn.character.id,
@@ -790,7 +865,9 @@ export class GameServer {
       t: 'auth_ok',
       accountId,
       token,
-      characters: characters.map(toSummary),
+      // The retired are memories, not options.
+      characters: characters.filter((c) => !c.retired).map(toSummary),
+      legacyPoints: await this.store.getLegacyPoints(accountId),
     });
   }
 
@@ -831,7 +908,7 @@ export class GameServer {
     if (!conn.accountId) return this.fail(conn, 'not_authenticated', 'log in first');
     if (conn.entityId !== null) return this.fail(conn, 'already_in_world', 'already in world');
     const character = await this.store.getCharacter(msg.characterId);
-    if (!character || character.accountId !== conn.accountId) {
+    if (!character || character.accountId !== conn.accountId || character.retired) {
       return this.fail(conn, 'no_such_character', 'no such character on this account');
     }
     if (this.onlineCharacters.has(character.id)) {
@@ -1033,6 +1110,7 @@ export class GameServer {
       declareAs: msg.declareAs,
       introduce: msg.introduce && introTarget ? { target: introTarget, name: msg.introduce.name } : undefined,
     });
+    this.countDeed(conn);
   }
 
   /**

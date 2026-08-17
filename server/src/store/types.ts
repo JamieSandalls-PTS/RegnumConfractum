@@ -32,6 +32,8 @@ export interface CharacterRecord {
   maxHp: number;
   xp: number;
   deathDebt: number;
+  deeds: number;
+  retired: boolean;
 }
 
 export interface InjuryRecord {
@@ -97,7 +99,7 @@ export interface Store {
 
   // Characters
   createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired'>,
   ): Promise<CharacterRecord | 'character_name_taken'>;
   setCharacterLanguages(id: string, languages: string[]): Promise<void>;
   getCharacter(id: string): Promise<CharacterRecord | null>;
@@ -109,8 +111,14 @@ export interface Store {
   /** Immediate on death/logout, batched otherwise (D-106). */
   saveCharacterVitals(
     id: string,
-    vitals: { hp?: number; xp?: number; deathDebt?: number },
+    vitals: { hp?: number; xp?: number; deathDebt?: number; deeds?: number },
   ): Promise<void>;
+
+  // Legacy (D-207/D-222)
+  addLegacyPoints(accountId: string, amount: number): Promise<void>;
+  getLegacyPoints(accountId: string): Promise<number>;
+  retireCharacter(id: string): Promise<void>;
+  countRetired(accountId: string): Promise<number>;
 
   // Injuries (D-205)
   addInjury(injury: Omit<InjuryRecord, 'id'>): Promise<InjuryRecord>;

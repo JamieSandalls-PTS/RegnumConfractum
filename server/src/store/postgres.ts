@@ -72,7 +72,7 @@ export class PgStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     try {
       const { rows } = await this.pool.query<{ id: string }>(
@@ -82,7 +82,7 @@ export class PgStore implements Store {
       );
       return {
         ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10, languages: ['common'],
-        hp: 20, maxHp: 20, xp: 0, deathDebt: 0,
+        hp: 20, maxHp: 20, xp: 0, deathDebt: 0, deeds: 0, retired: false,
       };
     } catch (err) {
       if ((err as { code?: string }).code === '23505') return 'character_name_taken';
@@ -103,14 +103,41 @@ export class PgStore implements Store {
 
   async saveCharacterVitals(
     id: string,
-    vitals: { hp?: number; xp?: number; deathDebt?: number },
+    vitals: { hp?: number; xp?: number; deathDebt?: number; deeds?: number },
   ): Promise<void> {
     await this.pool.query(
       `update characters set
-         hp = coalesce($2, hp), xp = coalesce($3, xp), death_debt = coalesce($4, death_debt)
+         hp = coalesce($2, hp), xp = coalesce($3, xp),
+         death_debt = coalesce($4, death_debt), deeds = coalesce($5, deeds)
        where id = $1`,
-      [id, vitals.hp ?? null, vitals.xp ?? null, vitals.deathDebt ?? null],
+      [id, vitals.hp ?? null, vitals.xp ?? null, vitals.deathDebt ?? null, vitals.deeds ?? null],
     );
+  }
+
+  async addLegacyPoints(accountId: string, amount: number): Promise<void> {
+    await this.pool.query('update accounts set legacy_points = legacy_points + $2 where id = $1', [
+      accountId,
+      amount,
+    ]);
+  }
+
+  async getLegacyPoints(accountId: string): Promise<number> {
+    const { rows } = await this.pool.query('select legacy_points from accounts where id = $1', [
+      accountId,
+    ]);
+    return rows[0] ? Number(rows[0].legacy_points) : 0;
+  }
+
+  async retireCharacter(id: string): Promise<void> {
+    await this.pool.query('update characters set retired_at = now() where id = $1', [id]);
+  }
+
+  async countRetired(accountId: string): Promise<number> {
+    const { rows } = await this.pool.query(
+      'select count(*) as n from characters where account_id = $1 and retired_at is not null',
+      [accountId],
+    );
+    return Number(rows[0]!.n);
   }
 
   async addInjury(injury: Omit<InjuryRecord, 'id'>): Promise<InjuryRecord> {
@@ -476,5 +503,7 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     maxHp: Number(r.max_hp ?? 20),
     xp: Number(r.xp ?? 0),
     deathDebt: Number(r.death_debt ?? 0),
+    deeds: Number(r.deeds ?? 0),
+    retired: r.retired_at != null,
   };
 }

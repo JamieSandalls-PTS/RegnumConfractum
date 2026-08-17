@@ -85,6 +85,8 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
     injuryId: z.string().uuid().optional(),
   }),
   z.object({ t: z.literal('respawn') }),
+  /** Voluntary permadeath (D-207): irreversible; earns Legacy Points. */
+  z.object({ t: z.literal('retire') }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -213,6 +215,8 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     accountId: UuidSchema,
     token: z.string(),
     characters: z.array(CharacterSummarySchema),
+    /** Spendable on access and flavour for future characters — never power. */
+    legacyPoints: z.number().int().nonnegative(),
   }),
   z.object({ t: z.literal('character_created'), character: CharacterSummarySchema }),
   z.object({
@@ -277,6 +281,12 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     coin: z.number().int().nonnegative(),
   }),
   z.object({ t: z.literal('pong'), nonce: z.number().int(), tick: z.number().int() }),
+  /** The ending that is a beginning (D-207). */
+  z.object({
+    t: z.literal('retired'),
+    awarded: z.number().int().positive(),
+    totalLegacyPoints: z.number().int().nonnegative(),
+  }),
   /** Your own vitals — sent on change. Others never see your numbers. */
   z.object({
     t: z.literal('status'),
