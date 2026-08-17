@@ -50,6 +50,11 @@ export const CLOTH_COLORS = [0x6d6154, 0x565f68, 0x7a6248, 0x5d6a54, 0x6b5259, 0
 export const METAL_COLORS = [0x9aa0a8, 0xa8a094, 0x8894a0, 0xb0aa9e];
 export const SKIN_COLORS = [0xc9a583, 0xb8916f, 0xa07c5e, 0xd8bb9a, 0x8a6a50];
 export const ACCENT_COLORS = [0xb5713c, 0x6d8695, 0x94582f, 0x54697a, 0xd1904a];
+export const HAIR_COLORS = [0x2a221c, 0x4a342a, 0x6b4a30, 0x8a7050, 0x9a8a78, 0x5a5450, 0x3a3234];
+
+/** Solid hair silhouettes (renderer interprets; combined with hairLen). */
+export const HAIR_STYLES = ['crop', 'bob', 'tail', 'long'] as const;
+export type HairStyle = (typeof HAIR_STYLES)[number];
 
 export interface Appearance {
   seed: number;
@@ -71,6 +76,16 @@ export interface Appearance {
   helm: boolean;
   pauldrons: boolean;
   weapon: boolean;
+  /**
+   * Body type (stakeholder request, 2026-08-17). Drawn AFTER every original
+   * field so pre-existing seeds keep their silhouettes and descriptors.
+   * Renderers derive sex-specific proportions from this; the base parameters
+   * above stay sex-neutral. Descriptions remain build-based for now — putting
+   * sex into stranger-descriptors is a design question for the stakeholder.
+   */
+  sex: 'male' | 'female';
+  hairStyle: HairStyle;
+  hairColor: number;
 }
 
 const rangePick = (rnd: () => number, r: readonly [number, number]) => r[0] + rnd() * (r[1] - r[0]);
@@ -141,5 +156,10 @@ export function generateAppearance(seed: number): Appearance {
     pauldrons: rnd() < 0.5,
     weapon: rnd() < 0.7,
     capeColor: pick(rnd, ACCENT_COLORS),
+    // New draws stay at the END (see the Appearance comment): earlier fields
+    // must keep their values for a given seed.
+    sex: rnd() < 0.5 ? 'female' : 'male',
+    hairStyle: pick(rnd, HAIR_STYLES),
+    hairColor: pick(rnd, HAIR_COLORS),
   };
 }

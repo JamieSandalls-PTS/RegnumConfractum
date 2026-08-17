@@ -38,11 +38,16 @@ M0–M3 complete; M4 is nearly done:
 ## ⚠ After M4: UI FIRST, then M5
 
 **Jamie's explicit roadmap call (2026-08-17): once M4 closes, build basic UI
-and user functions BEFORE starting M5** (world content and economy). Scope of
-"basic UI" to be clarified with Jamie — obvious candidates: clickable
-inventory/equipment, character sheet, class selection at creation (the
-protocol field exists), target selection instead of nearest-only slash
-commands, séance/observe affordances, settings/account surfaces.
+and user functions BEFORE starting M5** (world content and economy).
+
+**Partially begun early at Jamie's direction (D-514, same day):** click-to-move
+with A*, hover highlights, target selection, right-click context menus, the
+1–9 hotbar with drag-and-drop, wheel zoom + drag orbit, character model v2
+(sex-derived bodies, solid physics hair, sprung chest, animation cross-fades),
+and the character viewer at `/viewer.html` for art feedback. **Jamie owes
+feedback on the viewer** — quote seeds when judging. Still open for the UI
+milestone: clickable inventory/equipment, character sheet, class selection at
+creation (protocol field exists), séance/observe affordances, settings.
 
 ## Open items that need JAMIE, not code
 

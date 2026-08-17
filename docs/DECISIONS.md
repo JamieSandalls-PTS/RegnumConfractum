@@ -1307,3 +1307,51 @@ from the broken-yard's south end, underground lighting.
 entry, the downed state (speech yes, action no, retire no), revival, the
 bled-out ending with zero award and lootable corpse, conservation, and the
 character's permanent disappearance from the account.
+
+### D-514: Graphics/UI pass — mouse control, hotbar, camera, character v2, the viewer
+
+**Requested by the stakeholder 2026-08-17** (six items, verbatim priorities);
+began the post-M4 "basic UI before M5" ruling early at their direction.
+
+**Mouse control.** Left-click a tile walks there via client-side A*
+(`client/src/game/path.ts`, movement rules mirroring `World.moveTarget`
+exactly, unit-tested); the executor re-plans from the current tile every step
+so queued-intent drift cannot derail it, and WASD always overrides. Hovering
+highlights the tile (outline) or entity (ring); left-click an entity selects
+it (target frame + brighter ring). The server validates every step — the
+mouse only chooses intents (D-102 intact).
+
+**Right-click menus.** Contextual actions filtered by target kind: players
+(Examine/Attack/Treat/Revive), NPCs, corpses (Loot/Speak with dead/Animate
+dead), piles, self (hood, respawn as ghost), bare tiles (walk here). All
+entries send existing wire messages; nothing new server-side.
+
+**Action bar.** Nine slots on keys 1–9, an ability drawer to drag from,
+slot-to-slot swaps, double-click to clear, layout persisted in localStorage.
+Abilities act on the selected target, else a sensible nearest. The old 1–4
+equipment-debug keys are gone (the viewer now owns that job).
+
+**Camera.** Wheel zooms the ortho frustum (clamped ×0.55–×2.2); holding
+left-click and dragging orbits azimuth with easing. Orbit radius is constant,
+so the fog-vs-camera-distance contract (CLAUDE.md) holds at every angle.
+
+**Character v2.** Appearance gains `sex`, `hairStyle`, `hairColor` — drawn
+AFTER all original fields, so existing seeds keep their silhouettes and the
+recognition descriptors are untouched (descriptions stay build-based;
+gendering them is an open stakeholder question). Sex-derived proportions
+(shoulder/hip/waist ratios) are computed in the renderer from the neutral
+parameters. Bodies use capsules and tapered cylinders (waist, chest taper,
+shoulder caps); hair is a SOLID fitted cap/shell plus chunky verlet locks
+(crop/bob/tail/long) that wobble; the female build carries a sprung chest
+(critically damped, ±3cm clamp — secondary motion, not a gag). Animations
+cross-fade over 0.22s on every switch, one-shot emotes play from their own
+start with a sine envelope, and the walk's knee snap (clipped max()) became
+a raised-cosine hump.
+
+**The viewer** (`/viewer.html` on the dev client) shows 12 seeded characters
+with animation/filter/lighting/equipment/hood/slow-mo controls, quantised or
+raw rendering, drag-orbit and zoom, and every on-screen seed listed for
+reproducible feedback — the stakeholder's art verdict (D-406) can now be
+given against living examples. **Verified live in the browser:** click-to-move
+pathing around water, the context menu, hotbar, orbit and zoom, and the
+viewer page itself.

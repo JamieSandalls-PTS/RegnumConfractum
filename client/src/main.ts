@@ -12,6 +12,7 @@ import { GameScene } from './render/scene';
 import { Terrain } from './render/terrain';
 import { CharacterVisual } from './render/character';
 import { isMoving, stepToward, type InterpolatedPosition } from './game/interpolation';
+import { findPath } from './game/path';
 
 /**
  * Client glue: UI flow (login → character → world), the entity mirror driven
@@ -104,6 +105,14 @@ let coin = 0;
 let inventory: Extract<ServerMessage, { t: 'inventory' }>['items'] = [];
 let currentLanguage: string | null = null; // null = common
 let status: Extract<ServerMessage, { t: 'status' }> | null = null;
+
+// Mouse interaction state (stakeholder UI pass, 2026-08-17)
+let selectedId: number | null = null;
+let hoveredEntityId: number | null = null;
+let hoveredTile: { x: number; y: number } | null = null;
+/** Click-to-move destination; the executor re-plans each step (drift-safe). */
+let moveDest: { x: number; y: number } | null = null;
+let currentArea: Extract<ServerMessage, { t: 'snapshot' }>['area'] | null = null;
 
 // ---------------------------------------------------------------------------
 // UI flow
@@ -303,11 +312,16 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   for (const e of snap.entities) addEntity(e);
   youId = snap.you;
   areaName = snap.area.name;
+  currentArea = snap.area;
+  moveDest = null;
+  selectedId = null;
+  updateTargetFrame();
   coin = snap.coin;
   overlay.classList.add('hidden');
   hud.classList.remove('hidden');
   chat.classList.remove('hidden');
   chatHint.classList.remove('hidden');
+  hotbarEl.classList.remove('hidden');
   $('hud-area').textContent = areaName;
   appendSystemLine(`${snap.area.name}.`);
 }
@@ -692,29 +706,485 @@ function heldDirection(): Direction | null {
 }
 
 setInterval(() => {
+  if (!conn.open || youId === null) return;
   const dir = heldDirection();
-  if (dir && conn.open && youId !== null) conn.send({ t: 'move', dir });
+  if (dir) {
+    moveDest = null; // keys always override the mouse
+    conn.send({ t: 'move', dir });
+    return;
+  }
+  // Click-to-move: re-plan from the CURRENT tile every step, so queued-intent
+  // drift (see HANDOFF) can never walk us off the path.
+  if (moveDest && currentArea) {
+    const you = entities.get(youId);
+    if (!you) return;
+    if (you.wire.x === moveDest.x && you.wire.y === moveDest.y) {
+      moveDest = null;
+      return;
+    }
+    const path = findPath(
+      {
+        width: currentArea.width,
+        height: currentArea.height,
+        walkable: (x, y) => tileWalkable(x, y),
+      },
+      you.wire.x, you.wire.y, moveDest.x, moveDest.y,
+    );
+    if (!path || path.length === 0) {
+      moveDest = null;
+      return;
+    }
+    conn.send({ t: 'move', dir: path[0]! });
+  }
 }, 90);
 
-// Debug: runtime equipment swap on your own character (M1 requirement that
-// equipment is geometry on bones, swappable live). Inventory drives this
-// from M5.
+function tileWalkable(x: number, y: number): boolean {
+  const a = currentArea;
+  if (!a) return false;
+  if (x < 0 || y < 0 || x >= a.width || y >= a.height) return false;
+  const ch = a.tiles[y]?.[x];
+  return ch !== undefined && (a.legend[ch]?.walkable ?? false);
+}
+
 window.addEventListener('keydown', (e) => {
   if (youId === null || isTyping()) return;
-  const you = entities.get(youId);
-  if (!you) return;
-  if (you.visual instanceof CharacterVisual) {
-    if (e.key === '1') you.visual.setEquipment({ helm: !you.visual.equipment.helm });
-    if (e.key === '2') you.visual.setEquipment({ pauldrons: !you.visual.equipment.pauldrons });
-    if (e.key === '3') you.visual.setEquipment({ weapon: !you.visual.equipment.weapon });
-    if (e.key === '4') you.visual.setEquipment({ cape: !you.visual.equipment.cape });
+  if (e.key >= '1' && e.key <= '9') {
+    useHotbarSlot(Number(e.key) - 1);
+    return;
   }
   if (e.key === 'h') toggleHood();
   if (e.key === 'f') {
-    const target = nearestOther();
+    const target = selectedId ?? nearestOther();
     if (target !== null) conn.send({ t: 'attack', targetEntityId: target });
   }
+  if (e.key === 'Escape' && !chatOpen()) {
+    selectedId = null;
+    hideContextMenu();
+    updateTargetFrame();
+  }
 });
+
+// ---------------------------------------------------------------------------
+// Mouse: hover highlights, click-to-move, target selection, orbit and zoom
+// (stakeholder UI pass, 2026-08-17). The server still validates everything —
+// the mouse only chooses which intents to send (D-102).
+// ---------------------------------------------------------------------------
+
+const stageEl = $('stage');
+const DRAG_THRESHOLD_PX = 6;
+let pointerDown: { x: number; y: number; dragging: boolean } | null = null;
+
+/** Cursor ray → the y=0 ground plane → tile coordinates, or null off-grid. */
+function tileAtScreen(px: number, py: number): { x: number; y: number } | null {
+  if (!scene || !currentArea) return null;
+  const rect = stageEl.getBoundingClientRect();
+  const ndc = new THREE.Vector3(
+    ((px - rect.left) / rect.width) * 2 - 1,
+    -((py - rect.top) / rect.height) * 2 + 1,
+    -1,
+  );
+  const near = ndc.clone().unproject(scene.camera);
+  const far = new THREE.Vector3(ndc.x, ndc.y, 1).unproject(scene.camera);
+  const dir = far.sub(near);
+  if (Math.abs(dir.y) < 1e-6) return null;
+  const k = -near.y / dir.y;
+  if (k < 0) return null;
+  const x = Math.round(near.x + dir.x * k);
+  const y = Math.round(near.z + dir.z * k);
+  if (x < 0 || y < 0 || x >= currentArea.width || y >= currentArea.height) return null;
+  return { x, y };
+}
+
+/** Screen-space entity pick: nearest projected entity under the cursor. */
+function entityAtScreen(px: number, py: number): number | null {
+  if (!scene) return null;
+  const rect = stageEl.getBoundingClientRect();
+  let best: number | null = null;
+  let bestDist = 30; // px
+  const v = new THREE.Vector3();
+  for (const [id, e] of entities) {
+    v.set(e.render.x, 0.9, e.render.y).project(scene.camera);
+    const sx = rect.left + ((v.x + 1) / 2) * rect.width;
+    const sy = rect.top + ((1 - v.y) / 2) * rect.height;
+    const d = Math.hypot(sx - px, sy - py);
+    if (d < bestDist) {
+      bestDist = d;
+      best = id;
+    }
+  }
+  return best;
+}
+
+// Highlight meshes, created once the scene exists.
+let tileHighlight: THREE.LineLoop | null = null;
+let hoverRing: THREE.Mesh | null = null;
+let selectRing: THREE.Mesh | null = null;
+
+function ensureHighlights(): void {
+  if (!scene || tileHighlight) return;
+  const half = 0.48;
+  const pts = [
+    new THREE.Vector3(-half, 0, -half),
+    new THREE.Vector3(half, 0, -half),
+    new THREE.Vector3(half, 0, half),
+    new THREE.Vector3(-half, 0, half),
+  ];
+  tileHighlight = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: 0xc4703a, transparent: true, opacity: 0.85 }),
+  );
+  tileHighlight.position.y = 0.03;
+  tileHighlight.visible = false;
+  scene.scene.add(tileHighlight);
+
+  const ring = () =>
+    new THREE.Mesh(
+      new THREE.RingGeometry(0.36, 0.46, 24).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: 0xc4703a, transparent: true, opacity: 0.5 }),
+    );
+  hoverRing = ring();
+  hoverRing.position.y = 0.02;
+  hoverRing.visible = false;
+  scene.scene.add(hoverRing);
+  selectRing = ring();
+  (selectRing.material as THREE.MeshBasicMaterial).opacity = 0.95;
+  selectRing.position.y = 0.025;
+  selectRing.visible = false;
+  scene.scene.add(selectRing);
+}
+
+function updateHighlights(): void {
+  ensureHighlights();
+  if (!tileHighlight || !hoverRing || !selectRing) return;
+  const hoveredEnt = hoveredEntityId !== null ? entities.get(hoveredEntityId) : undefined;
+  if (hoveredEnt) {
+    hoverRing.visible = true;
+    hoverRing.position.x = hoveredEnt.render.x;
+    hoverRing.position.z = hoveredEnt.render.y;
+    tileHighlight.visible = false;
+  } else {
+    hoverRing.visible = false;
+    if (hoveredTile && tileWalkable(hoveredTile.x, hoveredTile.y)) {
+      tileHighlight.visible = true;
+      tileHighlight.position.x = hoveredTile.x;
+      tileHighlight.position.z = hoveredTile.y;
+    } else {
+      tileHighlight.visible = false;
+    }
+  }
+  const sel = selectedId !== null ? entities.get(selectedId) : undefined;
+  if (sel) {
+    selectRing.visible = true;
+    selectRing.position.x = sel.render.x;
+    selectRing.position.z = sel.render.y;
+  } else {
+    selectRing.visible = false;
+    if (selectedId !== null) {
+      selectedId = null; // target left the world
+      updateTargetFrame();
+    }
+  }
+}
+
+stageEl.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0 || youId === null) return;
+  pointerDown = { x: e.clientX, y: e.clientY, dragging: false };
+});
+
+window.addEventListener('pointermove', (e) => {
+  if (pointerDown) {
+    const dx = e.clientX - pointerDown.x;
+    if (!pointerDown.dragging &&
+        Math.hypot(dx, e.clientY - pointerDown.y) > DRAG_THRESHOLD_PX) {
+      pointerDown.dragging = true;
+    }
+    if (pointerDown.dragging && scene) {
+      // Holding left and dragging orbits the camera (stakeholder spec #5).
+      scene.rotateBy((e.clientX - pointerDown.x) * 0.008);
+      pointerDown.x = e.clientX;
+      pointerDown.y = e.clientY;
+      return;
+    }
+  }
+  hoveredEntityId = entityAtScreen(e.clientX, e.clientY);
+  hoveredTile = hoveredEntityId === null ? tileAtScreen(e.clientX, e.clientY) : null;
+});
+
+window.addEventListener('pointerup', (e) => {
+  if (e.button !== 0 || !pointerDown) return;
+  const wasDrag = pointerDown.dragging;
+  pointerDown = null;
+  if (wasDrag || youId === null) return;
+  hideContextMenu();
+  const entityId = entityAtScreen(e.clientX, e.clientY);
+  if (entityId !== null && entityId !== youId) {
+    selectedId = entityId;
+    updateTargetFrame();
+    return;
+  }
+  const tile = tileAtScreen(e.clientX, e.clientY);
+  if (tile && tileWalkable(tile.x, tile.y)) moveDest = tile;
+});
+
+stageEl.addEventListener('wheel', (e) => {
+  if (!scene) return;
+  e.preventDefault();
+  scene.zoomBy(e.deltaY > 0 ? 1.12 : 1 / 1.12);
+}, { passive: false });
+
+// ---------------------------------------------------------------------------
+// Right-click context menu (stakeholder spec #3)
+// ---------------------------------------------------------------------------
+
+const ctxMenu = $('ctx-menu');
+
+interface MenuEntry {
+  label: string;
+  act: () => void;
+}
+
+function hideContextMenu(): void {
+  ctxMenu.classList.add('hidden');
+}
+
+function showContextMenu(x: number, y: number, entries: MenuEntry[]): void {
+  ctxMenu.innerHTML = '';
+  for (const entry of entries) {
+    const btn = document.createElement('button');
+    btn.textContent = entry.label;
+    btn.addEventListener('click', () => {
+      hideContextMenu();
+      entry.act();
+    });
+    ctxMenu.appendChild(btn);
+  }
+  ctxMenu.classList.remove('hidden');
+  const rect = ctxMenu.getBoundingClientRect();
+  ctxMenu.style.left = `${Math.min(x, window.innerWidth - rect.width - 8)}px`;
+  ctxMenu.style.top = `${Math.min(y, window.innerHeight - rect.height - 8)}px`;
+}
+
+function menuFor(entityId: number | null, tile: { x: number; y: number } | null): MenuEntry[] {
+  const entries: MenuEntry[] = [];
+  if (entityId !== null) {
+    const e = entities.get(entityId);
+    if (!e) return entries;
+    const kind = e.wire.kind;
+    entries.push({
+      label: `Examine`,
+      act: () => appendSystemLine(`You see ${e.wire.descriptor}.`),
+    });
+    if (entityId === youId) {
+      const hooded = e.wire.presentation === 'hooded';
+      entries.push({ label: hooded ? 'Lower hood' : 'Raise hood', act: toggleHood });
+      if (status?.ghost) {
+        entries.push({ label: 'Respawn', act: () => conn.send({ t: 'respawn' }) });
+      }
+      return entries;
+    }
+    if (kind === 'player' || kind === 'npc') {
+      entries.push({ label: 'Attack', act: () => conn.send({ t: 'attack', targetEntityId: entityId }) });
+    }
+    if (kind === 'player') {
+      entries.push({ label: 'Treat wounds', act: () => conn.send({ t: 'treat', targetEntityId: entityId }) });
+      entries.push({ label: 'Revive', act: () => conn.send({ t: 'revive', targetEntityId: entityId }) });
+    }
+    if (kind === 'corpse' || kind === 'pile') {
+      entries.push({ label: 'Loot', act: () => conn.send({ t: 'loot', targetEntityId: entityId }) });
+    }
+    if (kind === 'corpse') {
+      entries.push({ label: 'Speak with dead', act: () => conn.send({ t: 'speak_dead', targetEntityId: entityId }) });
+      entries.push({ label: 'Animate dead', act: () => conn.send({ t: 'animate_dead', targetEntityId: entityId }) });
+    }
+  } else if (tile && tileWalkable(tile.x, tile.y)) {
+    entries.push({ label: `Walk here (${tile.x}, ${tile.y})`, act: () => { moveDest = tile; } });
+  }
+  return entries;
+}
+
+stageEl.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  if (youId === null) return;
+  const entityId = entityAtScreen(e.clientX, e.clientY);
+  const tile = entityId === null ? tileAtScreen(e.clientX, e.clientY) : null;
+  const entries = menuFor(entityId, tile);
+  if (entries.length === 0) return hideContextMenu();
+  if (entityId !== null && entityId !== youId) {
+    selectedId = entityId;
+    updateTargetFrame();
+  }
+  showContextMenu(e.clientX, e.clientY, entries);
+});
+
+window.addEventListener('pointerdown', (e) => {
+  if (!(e.target instanceof Node) || !ctxMenu.contains(e.target)) hideContextMenu();
+});
+
+// ---------------------------------------------------------------------------
+// Target frame + action hotbar (stakeholder spec #4)
+// ---------------------------------------------------------------------------
+
+const targetFrame = $('target-frame');
+
+function updateTargetFrame(): void {
+  const sel = selectedId !== null ? entities.get(selectedId) : undefined;
+  if (!sel) {
+    targetFrame.classList.add('hidden');
+    return;
+  }
+  targetFrame.classList.remove('hidden');
+  targetFrame.textContent = `◎ ${sel.wire.descriptor}`;
+}
+
+/** The target an ability acts on: your selection, else a sensible nearest. */
+function abilityTarget(kinds?: WireEntity['kind'][]): number | null {
+  if (selectedId !== null) {
+    const sel = entities.get(selectedId);
+    if (sel && (!kinds || kinds.includes(sel.wire.kind))) return selectedId;
+  }
+  if (kinds) return nearestBody(kinds);
+  return nearestOther();
+}
+
+interface AbilityDef {
+  id: string;
+  glyph: string;
+  label: string;
+  use: () => void;
+}
+
+const ABILITIES: AbilityDef[] = [
+  { id: 'attack', glyph: '⚔', label: 'Attack', use: () => {
+    const t = abilityTarget();
+    if (t !== null) conn.send({ t: 'attack', targetEntityId: t });
+  } },
+  { id: 'treat', glyph: '✚', label: 'Treat wounds', use: () => {
+    const t = abilityTarget() ?? youId;
+    if (t !== null) conn.send({ t: 'treat', targetEntityId: t });
+  } },
+  { id: 'revive', glyph: '❋', label: 'Revive', use: () => {
+    const t = abilityTarget();
+    if (t !== null) conn.send({ t: 'revive', targetEntityId: t });
+  } },
+  { id: 'loot', glyph: '✋', label: 'Loot', use: () => {
+    const t = abilityTarget(['corpse', 'pile']);
+    if (t !== null) conn.send({ t: 'loot', targetEntityId: t });
+    else appendSystemLine('Nothing here to loot.');
+  } },
+  { id: 'speakdead', glyph: '☾', label: 'Speak with dead', use: () => {
+    const t = abilityTarget(['corpse']);
+    if (t !== null) conn.send({ t: 'speak_dead', targetEntityId: t });
+    else appendSystemLine('No corpse near enough.');
+  } },
+  { id: 'animate', glyph: '☠', label: 'Animate dead', use: () => {
+    const t = abilityTarget(['corpse']);
+    if (t !== null) conn.send({ t: 'animate_dead', targetEntityId: t });
+    else appendSystemLine('No corpse near enough.');
+  } },
+  { id: 'hood', glyph: '◒', label: 'Hood up/down', use: toggleHood },
+  { id: 'observe', glyph: '◉', label: 'Ride your corpse', use: () => conn.send({ t: 'observe_body', on: true }) },
+  { id: 'respawn', glyph: '↻', label: 'Respawn', use: () => conn.send({ t: 'respawn' }) },
+];
+
+const HOTBAR_SLOTS = 9;
+const HOTBAR_KEY = 'rc.hotbar';
+const hotbarEl = $('hotbar');
+const drawerEl = $('ability-drawer');
+let hotbar: (string | null)[] = loadHotbar();
+
+function loadHotbar(): (string | null)[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(HOTBAR_KEY) ?? 'null') as (string | null)[] | null;
+    if (Array.isArray(raw) && raw.length === HOTBAR_SLOTS) return raw;
+  } catch { /* fall through to defaults */ }
+  return ['attack', 'treat', 'loot', 'revive', 'hood', null, null, null, null];
+}
+
+function saveHotbar(): void {
+  localStorage.setItem(HOTBAR_KEY, JSON.stringify(hotbar));
+}
+
+function useHotbarSlot(i: number): void {
+  const id = hotbar[i];
+  const ability = id ? ABILITIES.find((a) => a.id === id) : undefined;
+  ability?.use();
+}
+
+function renderHotbar(): void {
+  hotbarEl.innerHTML = '';
+  for (let i = 0; i < HOTBAR_SLOTS; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'hb-slot';
+    const ability = hotbar[i] ? ABILITIES.find((a) => a.id === hotbar[i]) : undefined;
+    slot.innerHTML = `<span class="hb-key">${i + 1}</span><span class="hb-glyph">${ability?.glyph ?? ''}</span>`;
+    slot.title = ability ? `${ability.label} (key ${i + 1}; double-click to clear)` : 'Drop an ability here';
+    slot.addEventListener('click', () => useHotbarSlot(i));
+    slot.addEventListener('dblclick', () => {
+      hotbar[i] = null;
+      saveHotbar();
+      renderHotbar();
+    });
+    slot.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      slot.classList.add('over');
+    });
+    slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('over');
+      const abilityId = e.dataTransfer?.getData('rc/ability');
+      const fromSlot = e.dataTransfer?.getData('rc/from-slot');
+      if (!abilityId) return;
+      if (fromSlot !== '' && fromSlot !== undefined && fromSlot !== null && fromSlot !== 'palette') {
+        const j = Number(fromSlot);
+        hotbar[j] = hotbar[i] ?? null; // swap
+      }
+      hotbar[i] = abilityId;
+      saveHotbar();
+      renderHotbar();
+    });
+    if (ability) {
+      slot.draggable = true;
+      slot.addEventListener('dragstart', (e) => {
+        e.dataTransfer?.setData('rc/ability', ability.id);
+        e.dataTransfer?.setData('rc/from-slot', String(i));
+      });
+    }
+    hotbarEl.appendChild(slot);
+  }
+  const book = document.createElement('div');
+  book.className = 'hb-slot hb-book';
+  book.innerHTML = '<span class="hb-glyph">☰</span>';
+  book.title = 'Abilities — drag onto the bar';
+  book.addEventListener('click', () => drawerEl.classList.toggle('hidden'));
+  hotbarEl.appendChild(book);
+}
+
+function renderDrawer(): void {
+  drawerEl.innerHTML = '<div class="drawer-title">Abilities — drag to the bar</div>';
+  for (const ability of ABILITIES) {
+    const item = document.createElement('div');
+    item.className = 'drawer-item';
+    item.draggable = true;
+    item.innerHTML = `<span class="hb-glyph">${ability.glyph}</span> ${ability.label}`;
+    item.addEventListener('dragstart', (e) => {
+      e.dataTransfer?.setData('rc/ability', ability.id);
+      e.dataTransfer?.setData('rc/from-slot', 'palette');
+    });
+    item.addEventListener('dblclick', () => {
+      const free = hotbar.indexOf(null);
+      if (free >= 0) {
+        hotbar[free] = ability.id;
+        saveHotbar();
+        renderHotbar();
+      }
+    });
+    drawerEl.appendChild(item);
+  }
+}
+
+renderHotbar();
+renderDrawer();
 
 // ---------------------------------------------------------------------------
 // Render loop
@@ -728,6 +1198,7 @@ function stepFrame(dt: number): void {
   if (!scene) return;
   t += dt;
   const wind = 0.22 + Math.sin(t * 0.13) * 0.12;
+  scene.updateCamera(dt);
 
   for (const e of entities.values()) {
     const target = { x: e.wire.x, y: e.wire.y };
@@ -736,6 +1207,7 @@ function stepFrame(dt: number): void {
     e.visual.setPosition(e.render.x, e.render.y);
     if (e.wire.kind !== 'corpse') e.visual.update(dt, t, moving, wind); // the dead lie still
   }
+  updateHighlights();
 
   const you = youId !== null ? entities.get(youId) : undefined;
   if (you) {

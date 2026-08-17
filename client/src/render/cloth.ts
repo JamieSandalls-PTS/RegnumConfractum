@@ -123,87 +123,180 @@ export class Cloth {
   }
 }
 
-interface Strand {
+/** One physics lock: a verlet chain rendered as solid tapered segments. */
+interface Lock {
   pos: THREE.Vector3[];
   prev: THREE.Vector3[];
+  /** Anchor offset in head-bone space. */
   off: THREE.Vector3;
-  geom: THREE.BufferGeometry;
-  seg: number;
+  meshes: THREE.Mesh[];
+  segLen: number;
 }
 
-export class HairSet {
-  readonly group = new THREE.Group();
-  private strands: Strand[] = [];
+import type { HairStyle } from '@rc/shared';
 
-  constructor(private len: number, headH: number) {
-    const N = 7;
-    const SEG = 5;
-    for (let s = 0; s < N; s++) {
-      const ang = (s / N) * Math.PI * 2;
-      const off = new THREE.Vector3(
-        Math.cos(ang) * headH * 0.26,
-        headH * 0.62,
-        Math.sin(ang) * headH * 0.24,
+/**
+ * Solid hair (v2, stakeholder pass 2026-08-17): a shaped rigid mass fitted to
+ * the cranium — hair reads as a SHAPE, not spaghetti — plus a few chunky
+ * physics locks (verlet chains rendered as tapered solid segments) that
+ * wobble and flow. Style comes from the appearance seed:
+ *   crop — the cap alone        bob  — cap + jaw-length shell
+ *   tail — cap + one back lock  long — cap + shell + three locks
+ */
+export class SolidHair {
+  /** Rigid meshes, parented to the head bone by the constructor. */
+  private capGroup = new THREE.Group();
+  /** World-space physics meshes — the caller adds this to the scene. */
+  readonly looseGroup = new THREE.Group();
+  private locks: Lock[] = [];
+  private headRadius: number;
+  private headCenter: THREE.Vector3;
+
+  constructor(
+    style: HairStyle,
+    len: number,
+    headH: number,
+    color: number,
+    headBone: THREE.Object3D,
+  ) {
+    this.headRadius = headH * 0.36;
+    this.headCenter = new THREE.Vector3(0, headH * 0.42, 0);
+    const mat = () => new THREE.MeshLambertMaterial({ color });
+
+    // The cap: a close-fitting shell just proud of the cranium, pulled down
+    // at the back. Every style has one — hair grows from the whole scalp.
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(headH * 0.365, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.56),
+      mat(),
+    );
+    cap.position.set(0, headH * 0.46, -headH * 0.02);
+    cap.castShadow = true;
+    this.capGroup.add(cap);
+
+    if (style === 'bob' || style === 'long') {
+      // A jaw-length shell around sides and back — the solid silhouette.
+      const shell = new THREE.Mesh(
+        new THREE.SphereGeometry(headH * 0.38, 12, 8, Math.PI * 0.15, Math.PI * 1.7, Math.PI * 0.3, Math.PI * 0.52),
+        mat(),
       );
+      shell.rotation.y = Math.PI; // opening faces the face
+      shell.position.set(0, headH * 0.42, -headH * 0.04);
+      shell.castShadow = true;
+      this.capGroup.add(shell);
+    }
+    headBone.add(this.capGroup);
+
+    // Physics locks.
+    const lockDefs: { off: THREE.Vector3; len: number; width: number }[] = [];
+    if (style === 'tail') {
+      lockDefs.push({
+        off: new THREE.Vector3(0, headH * 0.62, -headH * 0.32),
+        len: len * 1.3 + headH * 0.4,
+        width: headH * 0.2,
+      });
+    } else if (style === 'long') {
+      lockDefs.push(
+        { off: new THREE.Vector3(0, headH * 0.5, -headH * 0.34), len: len * 1.5 + headH * 0.5, width: headH * 0.24 },
+        { off: new THREE.Vector3(headH * 0.3, headH * 0.42, -headH * 0.16), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
+        { off: new THREE.Vector3(-headH * 0.3, headH * 0.42, -headH * 0.16), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
+      );
+    }
+    const SEG = 3;
+    for (const def of lockDefs) {
       const pos: THREE.Vector3[] = [];
       const prev: THREE.Vector3[] = [];
       for (let i = 0; i <= SEG; i++) {
-        const v = new THREE.Vector3(off.x, off.y - i * (len / SEG), off.z);
+        const v = new THREE.Vector3(def.off.x, def.off.y - i * (def.len / SEG), def.off.z);
         pos.push(v);
         prev.push(v.clone());
       }
-      const geom = new THREE.BufferGeometry();
-      geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array((SEG + 1) * 3), 3));
-      const mesh = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0x1e1a17 }));
-      mesh.frustumCulled = false;
-      this.strands.push({ pos, prev, off, geom, seg: SEG });
-      this.group.add(mesh);
+      const meshes: THREE.Mesh[] = [];
+      for (let i = 0; i < SEG; i++) {
+        const w = def.width * (1 - i * 0.22);
+        const seg = new THREE.Mesh(
+          new THREE.BoxGeometry(w, def.len / SEG + w * 0.3, w * 0.8),
+          mat(),
+        );
+        seg.castShadow = true;
+        seg.frustumCulled = false;
+        meshes.push(seg);
+        this.looseGroup.add(seg);
+      }
+      this.locks.push({ pos, prev, off: def.off, meshes, segLen: def.len / SEG });
     }
   }
 
+  setVisible(v: boolean): void {
+    this.capGroup.visible = v;
+    this.looseGroup.visible = v;
+  }
+
   step(dt: number, wind: number, t: number, headMatrix: THREE.Matrix4): void {
+    if (this.locks.length === 0) return;
     const g = new THREE.Vector3(0, -9.0, 0);
     const w = new THREE.Vector3(Math.sin(t * 2.1) * 0.6 + 0.4, 0, Math.cos(t * 1.4) * 0.5)
-      .multiplyScalar(wind * 5.0);
+      .multiplyScalar(wind * 4.0);
     const d = new THREE.Vector3();
-    for (const st of this.strands) {
-      const anchor = st.off.clone().applyMatrix4(headMatrix);
-      st.pos[0]!.copy(anchor);
-      st.prev[0]!.copy(anchor);
-      for (let i = 1; i < st.pos.length; i++) {
-        const p = st.pos[i]!;
-        const pr = st.prev[i]!;
-        const vx = (p.x - pr.x) * 0.94;
-        const vy = (p.y - pr.y) * 0.94;
-        const vz = (p.z - pr.z) * 0.94;
+    const headWorld = this.headCenter.clone().applyMatrix4(headMatrix);
+    const up = new THREE.Vector3(0, -1, 0);
+    const q = new THREE.Quaternion();
+
+    for (const lock of this.locks) {
+      const anchor = lock.off.clone().applyMatrix4(headMatrix);
+      lock.pos[0]!.copy(anchor);
+      lock.prev[0]!.copy(anchor);
+      for (let i = 1; i < lock.pos.length; i++) {
+        const p = lock.pos[i]!;
+        const pr = lock.prev[i]!;
+        const vx = (p.x - pr.x) * 0.9;
+        const vy = (p.y - pr.y) * 0.9;
+        const vz = (p.z - pr.z) * 0.9;
         pr.copy(p);
         p.x += vx + (g.x + w.x) * dt * dt;
         p.y += vy + g.y * dt * dt;
         p.z += vz + (g.z + w.z) * dt * dt;
       }
-      const segLen = this.len / st.seg;
       for (let it = 0; it < 8; it++) {
-        for (let i = 0; i < st.pos.length - 1; i++) {
-          const a = st.pos[i]!;
-          const b = st.pos[i + 1]!;
+        for (let i = 0; i < lock.pos.length - 1; i++) {
+          const a = lock.pos[i]!;
+          const b = lock.pos[i + 1]!;
           d.subVectors(b, a);
           const dist = d.length() || 1e-6;
-          d.multiplyScalar(((dist - segLen) / dist) * (i === 0 ? 1.0 : 0.5));
+          d.multiplyScalar(((dist - lock.segLen) / dist) * (i === 0 ? 1.0 : 0.5));
           if (i !== 0) a.add(d);
           b.sub(d);
         }
+        // Keep locks off the face: push nodes outside the cranium sphere.
+        for (let i = 1; i < lock.pos.length; i++) {
+          const p = lock.pos[i]!;
+          d.subVectors(p, headWorld);
+          const dist = d.length();
+          const min = this.headRadius * 1.02;
+          if (dist < min) p.copy(headWorld).addScaledVector(d, min / (dist || 1e-6));
+        }
       }
-      const arr = st.geom.attributes.position!.array as Float32Array;
-      for (let i = 0; i < st.pos.length; i++) {
-        arr[i * 3] = st.pos[i]!.x;
-        arr[i * 3 + 1] = st.pos[i]!.y;
-        arr[i * 3 + 2] = st.pos[i]!.z;
+      // Solid segments follow the chain: midpoint position, oriented along it.
+      for (let i = 0; i < lock.meshes.length; i++) {
+        const a = lock.pos[i]!;
+        const b = lock.pos[i + 1]!;
+        const mesh = lock.meshes[i]!;
+        mesh.position.copy(a).add(b).multiplyScalar(0.5);
+        d.subVectors(b, a).normalize();
+        q.setFromUnitVectors(up, d);
+        mesh.quaternion.copy(q);
       }
-      st.geom.attributes.position!.needsUpdate = true;
     }
   }
 
   dispose(): void {
-    for (const st of this.strands) st.geom.dispose();
+    this.capGroup.parent?.remove(this.capGroup);
+    for (const group of [this.capGroup, this.looseGroup]) {
+      group.traverse((o) => {
+        if (o instanceof THREE.Mesh) {
+          o.geometry.dispose();
+          (o.material as THREE.Material).dispose();
+        }
+      });
+    }
   }
 }

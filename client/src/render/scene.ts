@@ -9,7 +9,14 @@ import { PixelPost } from './palette';
  */
 
 const FRUSTUM = 5.2; // vertical half-extent in world units (1 unit = 1 tile)
-const CAMERA_OFFSET = new THREE.Vector3(9, 8.5, 9); // |offset| ≈ 15.3 < fog near 19
+/** Orbit geometry: fixed elevation, user-controlled azimuth. The horizontal
+ * radius and height keep |offset| ≈ 15.3 regardless of azimuth, so the
+ * fog-vs-camera-distance contract holds at every rotation. */
+const ORBIT_RADIUS = Math.hypot(9, 9);
+const ORBIT_HEIGHT = 8.5;
+const DEFAULT_AZIMUTH = Math.PI / 4; // reproduces the original (9, 8.5, 9)
+const ZOOM_MIN = 0.55; // tighter than this and heads leave the frame
+const ZOOM_MAX = 2.2;
 
 /**
  * Per-area lighting profiles (D-504, feeding D-305). The stakeholder's
@@ -65,6 +72,12 @@ export class GameScene {
   private hemi: THREE.HemisphereLight;
   private rim: THREE.DirectionalLight;
   private focus = new THREE.Vector3();
+  /** User camera state: azimuth orbits smoothly toward its target; zoom
+   * scales the ortho frustum (distance never changes — fog stays safe). */
+  private azimuth = DEFAULT_AZIMUTH;
+  private azimuthTarget = DEFAULT_AZIMUTH;
+  private zoom = 1;
+  private zoomTarget = 1;
 
   constructor(private stage: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: false });
@@ -119,18 +132,51 @@ export class GameScene {
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(w, h, false);
     this.post.setSize(w, h);
+    this.applyFrustum();
+  }
+
+  private applyFrustum(): void {
     const aspect = this.post.internalWidth / this.post.internalHeight;
-    this.camera.left = -FRUSTUM * aspect;
-    this.camera.right = FRUSTUM * aspect;
-    this.camera.top = FRUSTUM;
-    this.camera.bottom = -FRUSTUM;
+    const f = FRUSTUM * this.zoom;
+    this.camera.left = -f * aspect;
+    this.camera.right = f * aspect;
+    this.camera.top = f;
+    this.camera.bottom = -f;
     this.camera.updateProjectionMatrix();
+  }
+
+  /** Rotate the orbit by a screen-drag delta (radians). */
+  rotateBy(delta: number): void {
+    this.azimuthTarget += delta;
+  }
+
+  /** Multiplicative zoom (wheel): > 1 zooms out, < 1 zooms in. */
+  zoomBy(factor: number): void {
+    this.zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, this.zoomTarget * factor));
+  }
+
+  /** Current azimuth — picking needs it to unproject cursor rays. */
+  get cameraAzimuth(): number {
+    return this.azimuth;
+  }
+
+  /** Eases azimuth/zoom toward their targets; call once per frame. */
+  updateCamera(dt: number): void {
+    const k = Math.min(1, dt * 10);
+    this.azimuth += (this.azimuthTarget - this.azimuth) * k;
+    const prevZoom = this.zoom;
+    this.zoom += (this.zoomTarget - this.zoom) * k;
+    if (Math.abs(this.zoom - prevZoom) > 1e-4) this.applyFrustum();
   }
 
   /** Follows a world point: camera, look-at, and the shadow frustum together. */
   follow(point: THREE.Vector3): void {
     this.focus.copy(point);
-    this.camera.position.copy(point).add(CAMERA_OFFSET);
+    this.camera.position.set(
+      point.x + Math.cos(this.azimuth) * ORBIT_RADIUS,
+      point.y + ORBIT_HEIGHT,
+      point.z + Math.sin(this.azimuth) * ORBIT_RADIUS,
+    );
     this.camera.lookAt(point.x, point.y + 0.9, point.z);
     this.key.position.set(point.x + 8, point.y + 6.5, point.z + 5);
     this.key.target.position.copy(point);
