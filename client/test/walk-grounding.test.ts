@@ -49,6 +49,17 @@ describe('walk keeps one foot on the floor', () => {
       const cycle = (2 * Math.PI) / 3.7;
       const samples = 48;
       let worstContact = -Infinity;
+      const head = ((): THREE.Object3D => {
+        let found: THREE.Object3D | null = null;
+        scene.traverse((o) => {
+          if (o.name === 'head' && !found) found = o;
+        });
+        if (!found) throw new Error('no head mesh');
+        return found;
+      })();
+      const wp = new THREE.Vector3();
+      let bobMin = Infinity;
+      let bobMax = -Infinity;
       for (let i = 0; i < samples; i++) {
         t += (2 * cycle) / samples;
         visual.update((2 * cycle) / samples, t, true, 0);
@@ -63,10 +74,21 @@ describe('walk keeps one foot on the floor', () => {
         expect(lowest, `seed ${seed} phase ${i}/${samples} floats`).toBeLessThan(0.025);
         expect(lowest, `seed ${seed} phase ${i}/${samples} sinks`).toBeGreaterThan(-0.05);
         worstContact = Math.max(worstContact, lowest);
+        head.getWorldPosition(wp);
+        bobMin = Math.min(bobMin, wp.y);
+        bobMax = Math.max(bobMax, wp.y);
       }
       // Sanity: the constraint is active, not vacuous — some phase brings
       // the lower foot right down to the floor plane.
       expect(worstContact).toBeGreaterThan(-0.05);
+      // Vertical bob amplitude vs the gait reference (Inman/Saunders:
+      // ~3cm at natural speed, ≈1.8% of stature; stakeholder report
+      // 2026-08-17: the raw pendulum arc bobbed 6% and read as bouncing).
+      // Some oscillation must remain — a dead-flat glide is also wrong.
+      const appearance = generateAppearance(seed);
+      const bobFrac = (bobMax - bobMin) / appearance.height;
+      expect(bobFrac, `seed ${seed} bobs like a jogger`).toBeLessThan(0.03);
+      expect(bobFrac, `seed ${seed} glides like a ghost`).toBeGreaterThan(0.008);
       visual.dispose();
     }
   });

@@ -173,15 +173,33 @@ pass.
   `ladder` helper preserves authored corners). The cone+dome assembly is
   gone — its apex read as a forward horn from the side. Verified vs both
   reference photos: front = pointed arch, face visible; side = horizontal
-  top edge, one diagonal, face hidden by the side sheet. Hair back-mass
-  and tail-tie now hide under a worn hood (SolidHair.setUnderHood) — the
-  bun used to bulge through the shell. Flaps shrunk to narrow jaw drapes.
+  top edge, one diagonal, face hidden by the side sheet. A worn hood now
+  hides the hair ENTIRELY (stakeholder ruling, later same day — no fringe
+  peeking; the bun used to bulge through the shell). Flaps shrunk to
+  narrow jaw drapes.
   Reference images still only live in chat (2026-08-17) — worth asking
   the stakeholder to drop copies in docs/reference/.
 - Stakeholder rulings this stretch (record in DECISIONS.md when the art is
   ratified): palette pixelation IS the character direction; reference-
   driven 8-direction review is the workflow; in-house verlet stays over
   Jolt/ammo (assessment given 2026-08-17); clothing/hair physics-based.
+
+## Walk cycle (2026-08-17, late): grounded and reference-tuned
+
+- Grounding: animWalk SOLVES pelvis height each frame from the actual leg
+  angles (ankle drop + heel/toe contact by pitch) so the lower foot always
+  touches y=0 — stakeholder invariant "at no point both feet off the
+  floor". Regression: `client/test/walk-grounding.test.ts` (fails on the
+  old code).
+- Bob amplitude: the raw pendulum arc bobbed 9-10cm (~6% of height). Root
+  cause was SWING TIMING — toe-off fired before the opposite heel struck
+  (lift phase +2.17), leaving single support on a fully tilted leg. Now
+  +1.2 → ~8% double support per step (Inman), plus stance-knee mid-flex
+  (Saunders' 3rd determinant, 0.22 rad) and strong push-off heel rise
+  (0.55 rad). Measured 3.0-3.9cm = 1.8-2.4% of height vs the ~1.8%
+  reference; the test pins the band [0.8%, 3%].
+- Robe shoulder caps recentred/enlarged to swallow deltoid + arm joint
+  ball (bare arm showed above the sleeve rim — stakeholder).
 
 ## Character creator (2026-08-17, stakeholder-requested range-finder)
 

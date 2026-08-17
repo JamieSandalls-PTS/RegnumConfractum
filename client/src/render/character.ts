@@ -713,7 +713,12 @@ export class CharacterVisual {
       const seamHip = hipW * 0.47;
       const waistW = bodyW * (fem ? 0.68 : 0.82);
       this.nm('robe tunic');
+      // The bottom ring tucks INTO the rope belt (chest-space −0.33 ≈
+      // spine-space +0.01, under the belt band): the old −0.12 hem left
+      // the under-tunic waist showing between robe top and skirt
+      // (stakeholder, 2026-08-17).
       const tunic = this.lathe(this.chest, [
+        [seamHip * 1.0, -torsoH * 0.33],
         [waistW * 0.64, -torsoH * 0.12],
         [shoulderW * 0.88, torsoH * 0.18],
         [shoulderW * 1.0, torsoH * 0.32],
@@ -747,14 +752,19 @@ export class CharacterVisual {
       for (const side of ['L', 'R'] as const) {
         const s = side === 'L' ? 1 : -1;
         this.nm(side === 'L' ? 'robe shoulder left' : 'robe shoulder right');
+        // The cap must swallow BOTH the deltoid egg (inboard) and the
+        // upper arm's joint ball (outboard): the old inboard-only offset
+        // left a wedge of bare arm showing above the sleeve rim
+        // (stakeholder, 2026-08-17: "the top sleeves must cover the
+        // deltoids"). Centred nearly on the joint and cut larger.
         const cap = this.addMesh(this.arms[side].sh,
           new THREE.SphereGeometry(bodyW * 0.15, 10, 8), p.capeColor,
-          [-s * bodyW * 0.12, bodyW * 0.02, 0]);
-        cap.scale.set(1.4, 1.25, 1.5);
+          [-s * bodyW * 0.07, bodyW * 0.02, 0]);
+        cap.scale.set(1.6, 1.35, 1.6);
         this.robeParts.push(cap);
         this.nm(side === 'L' ? 'robe sleeve left' : 'robe sleeve right');
         this.robeParts.push(this.addMesh(this.arms[side].sh,
-          new THREE.CylinderGeometry(bodyW * 0.16, bodyW * 0.18, upperArm * 1.05, 10),
+          new THREE.CylinderGeometry(bodyW * 0.17, bodyW * 0.18, upperArm * 1.05, 10),
           p.capeColor, [0, -upperArm * 0.5, 0]));
         const cuff = new Cloth(9, 5, 0, this.dims.lowerArm * 0.85, p.capeColor,
           'tube', bodyW * 0.18, bodyW * 0.26);
@@ -1025,10 +1035,10 @@ export class CharacterVisual {
       })();
     }
     if (this.hair) {
-      // D-219 concealment hides the hair entirely (identity). A clothing
-      // hood only tucks the loose strands away; the fringe still peeks.
-      this.hair.setVisible(!veiled);
-      if (!veiled) this.hair.setUnderHood(hoodUp);
+      // ANY worn-up hood — clothing or the D-219 concealment — hides the
+      // hair entirely (stakeholder 2026-08-17): no fringe peeking, no
+      // bun bulging through the shell. hoodUp already covers veiled.
+      this.hair.setVisible(!hoodUp);
     }
   }
 
@@ -1486,7 +1496,13 @@ export class CharacterVisual {
       // Muybridge check (Plate 1, contact-sheet round 1): a walking swing
       // leg stays LOW, foot skimming the ground — the previous 1.05 rad
       // knee fold read as a soldier's high-step from every direction.
-      const lift = Math.pow(Math.max(0, Math.sin(ph + o + 2.17)), 1.6);
+      // SWING TIMING against the gait cycle (Inman; stakeholder bob
+      // report): toe-off must come AFTER the opposite heel strikes, never
+      // before — the old +2.17 phase lifted the rear foot while the front
+      // leg was still reaching, leaving single support on a fully tilted
+      // leg and a 9cm crater in the pelvis path. +1.2 gives ~8% of the
+      // cycle in double support at each step, like the reference.
+      const lift = Math.pow(Math.max(0, Math.sin(ph + o + 1.2)), 1.6);
       // ASYMMETRIC hip range (Muybridge): the thigh reaches well forward
       // but extends only modestly behind — the symmetric ±25° pendulum was
       // half the wrongness of the leg action.
@@ -1497,13 +1513,21 @@ export class CharacterVisual {
       // Double knee action: the stance knee takes a soft loading flex
       // after heel-strike instead of locking ramrod straight.
       const load = Math.pow(Math.max(0, Math.sin(ph + o - 1.4)), 3) * 0.14;
-      c.legs[s].knee.rotation.x = lift * 0.68 + load + 0.05;
-      // Foot roll (Muybridge side row): level through the stride, heel
-      // leading at the front, toes pointing at the rear push-off.
+      // Stance-knee flexion through mid-stance (Saunders' third gait
+      // determinant): the support knee stays softly bent while the body
+      // vaults over it, shaving the top off the inverted-pendulum arc.
+      // Peaked where this leg passes vertical (ph + o = π).
+      const midFlex = Math.pow(Math.max(0, Math.sin(ph + o - Math.PI / 2)), 2) * 0.22;
+      c.legs[s].knee.rotation.x = lift * 0.68 + load + midFlex + 0.05;
+      // Foot roll (Muybridge side row): heel leading at the front, and a
+      // STRONG heel rise at the rear push-off — the ankle rocker that
+      // keeps the trailing leg effectively long through double support
+      // and fills the valley of the pendulum arc (Inman: the heel is
+      // well off the ground before the far heel strikes).
       c.legs[s].foot.rotation.x =
         -(c.legs[s].hip.rotation.x + c.legs[s].knee.rotation.x) * 0.55
-        - Math.max(0, swing) * 0.14   // heel-strike: toes up at the front
-        + Math.max(0, -swing) * 0.3;  // toe-off: foot points at the back
+        - Math.max(0, swing) * 0.1    // heel-strike: toes up at the front
+        + Math.max(0, -swing) * 0.55; // toe-off: heel rises, foot points
       c.arms[s].sh.rotation.x = swing * armAmp; // opposite arm to leg
       c.arms[s].sh.rotation.z = sg * (fem ? 0.09 : 0.11);
       // Near-straight arms: a walker's elbow barely bends (Muybridge);
