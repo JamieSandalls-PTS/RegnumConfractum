@@ -152,6 +152,20 @@ export class AdminServer {
           await this.opts.store.appendEvent('dm_lighting', body);
           return { ok: true };
         }
+        case '/api/dm/grant-item': {
+          return gs.adminGrantItem(
+            String(body.character ?? ''),
+            String(body.templateId ?? ''),
+            Number(body.qty ?? 1),
+          );
+        }
+        case '/api/dm/set-skills': {
+          const skills: { bluff?: number; insight?: number; necromancy?: number } = {};
+          if (body.bluff !== undefined) skills.bluff = Number(body.bluff);
+          if (body.insight !== undefined) skills.insight = Number(body.insight);
+          if (body.necromancy !== undefined) skills.necromancy = Number(body.necromancy);
+          return gs.adminSetSkills(String(body.character ?? ''), skills);
+        }
         case '/api/dm/events/create': {
           const doc = EventDocSchema.parse(body.doc);
           const record = await this.opts.store.createDmEvent(doc.name, doc);
@@ -263,6 +277,22 @@ const PAGE = `<!doctype html>
   <input id="li-area" placeholder="areaId" size="16">
   <select id="li-prof"><option>overcast</option><option>night</option><option>underground</option><option>interior</option></select>
   <button onclick="dm('lighting', {areaId: v('li-area'), lighting: v('li-prof')})">Set</button>
+</fieldset>
+<fieldset><legend>Grant item (testing faucet — production goods enter via play)</legend>
+  <input id="gi-char" placeholder="character name (online) or uuid" size="30">
+  <input id="gi-template" placeholder="templateId, e.g. bandage" size="18">
+  <input id="gi-qty" placeholder="qty" size="4" value="1">
+  <button onclick="dm('grant-item', {character: v('gi-char'), templateId: v('gi-template'), qty: +v('gi-qty')})">Grant</button>
+</fieldset>
+<fieldset><legend>Set skills (0-100; blank = unchanged)</legend>
+  <input id="sk-char" placeholder="character name (online) or uuid" size="30">
+  <input id="sk-bluff" placeholder="bluff" size="5">
+  <input id="sk-insight" placeholder="insight" size="5">
+  <input id="sk-necromancy" placeholder="necromancy" size="8">
+  <button onclick="dm('set-skills', Object.assign({character: v('sk-char')},
+    v('sk-bluff') === '' ? {} : {bluff: +v('sk-bluff')},
+    v('sk-insight') === '' ? {} : {insight: +v('sk-insight')},
+    v('sk-necromancy') === '' ? {} : {necromancy: +v('sk-necromancy')}))">Set</button>
 </fieldset>
 
 <h1>Events — build, run, rehearse, roll back</h1>

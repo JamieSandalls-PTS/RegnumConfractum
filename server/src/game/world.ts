@@ -28,6 +28,15 @@ export interface WorldEntity {
   /** NPCs carry a fixed public descriptor, the same for every observer.
    * (NPC identity mechanics deferred — see D-507.) */
   npcDescriptor?: string;
+  /**
+   * World objects born of death (D-224/D-511): a lying corpse, a scatter of
+   * dropped gear, or a walking corpse. Null for everything else. Zombies go
+   * out on the wire as 'npc'; corpse and pile have wire kinds of their own.
+   */
+  objectKind?: 'corpse' | 'pile' | 'zombie' | null;
+  /** The dead character this corpse/pile/zombie belongs to — descriptors for
+   * the dead resolve through the same per-observer knowledge as the living. */
+  corpseOfCharacterId?: string | null;
   appearanceSeed: number;
   pos: Vec2;
   facing: Direction;
@@ -57,10 +66,16 @@ interface AreaRuntime {
 
 /** Wire form for a specific observer — the descriptor is their knowledge. */
 export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
+  const kind =
+    e.objectKind === 'corpse' || e.objectKind === 'pile'
+      ? e.objectKind
+      : e.characterId === null
+        ? 'npc'
+        : 'player';
   return {
     id: e.id,
     descriptor,
-    kind: e.characterId === null ? 'npc' : 'player',
+    kind,
     x: e.pos.x,
     y: e.pos.y,
     facing: e.facing,
@@ -127,6 +142,8 @@ export class World {
       characterId: string | null;
       name: string;
       npcDescriptor?: string;
+      objectKind?: 'corpse' | 'pile' | 'zombie';
+      corpseOfCharacterId?: string;
       appearanceSeed?: number;
       pos: Vec2;
       facing?: Direction;
@@ -141,6 +158,8 @@ export class World {
       characterId: opts.characterId,
       name: opts.name,
       ...(opts.npcDescriptor ? { npcDescriptor: opts.npcDescriptor } : {}),
+      ...(opts.objectKind ? { objectKind: opts.objectKind } : {}),
+      ...(opts.corpseOfCharacterId ? { corpseOfCharacterId: opts.corpseOfCharacterId } : {}),
       appearanceSeed: opts.appearanceSeed ?? 0,
       pos: { ...at },
       facing: opts.facing ?? 's',

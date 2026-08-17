@@ -3,6 +3,7 @@ import { migrate } from '../db/migrate';
 import type {
   Account,
   CharacterRecord,
+  CorpseRecord,
   EventRecord,
   InjuryRecord,
   ItemData,
@@ -72,17 +73,17 @@ export class PgStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired' | 'necromancy'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     try {
       const { rows } = await this.pool.query<{ id: string }>(
-        `insert into characters (account_id, name, appearance_seed, area_id, x, y)
-         values ($1, $2, $3, $4, $5, $6) returning id`,
-        [c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y],
+        `insert into characters (account_id, name, appearance_seed, area_id, x, y, class_id)
+         values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+        [c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y, c.classId],
       );
       return {
         ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10, languages: ['common'],
-        hp: 20, maxHp: 20, xp: 0, deathDebt: 0, deeds: 0, retired: false,
+        hp: 20, maxHp: 20, xp: 0, deathDebt: 0, deeds: 0, retired: false, necromancy: 0,
       };
     } catch (err) {
       if ((err as { code?: string }).code === '23505') return 'character_name_taken';
@@ -94,10 +95,14 @@ export class PgStore implements Store {
     await this.pool.query('update characters set languages = $2 where id = $1', [id, languages]);
   }
 
-  async setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void> {
+  async setCharacterSkills(
+    id: string,
+    skills: { bluff?: number; insight?: number; necromancy?: number },
+  ): Promise<void> {
     await this.pool.query(
-      'update characters set bluff = coalesce($2, bluff), insight = coalesce($3, insight) where id = $1',
-      [id, skills.bluff ?? null, skills.insight ?? null],
+      `update characters set bluff = coalesce($2, bluff), insight = coalesce($3, insight),
+         necromancy = coalesce($4, necromancy) where id = $1`,
+      [id, skills.bluff ?? null, skills.insight ?? null, skills.necromancy ?? null],
     );
   }
 
@@ -250,12 +255,12 @@ export class PgStore implements Store {
       'insert into items (template_id, owner_character_id, qty, data) values ($1, $2, $3, $4) returning id',
       [templateId, ownerCharacterId, qty, data ? JSON.stringify(data) : null],
     );
-    return { id: rows[0]!.id, templateId, ownerCharacterId, qty, data: data ?? null };
+    return { id: rows[0]!.id, templateId, ownerCharacterId, ownerCorpseId: null, qty, data: data ?? null };
   }
 
   async getItem(itemId: string): Promise<ItemRecord | null> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, qty, data from items where id = $1',
+      'select id, template_id, owner_character_id, owner_corpse_id, qty, data from items where id = $1',
       [itemId],
     );
     return rows[0] ? rowToItem(rows[0]) : null;
@@ -263,7 +268,7 @@ export class PgStore implements Store {
 
   async getItemsByCharacter(characterId: string): Promise<ItemRecord[]> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, qty, data from items where owner_character_id = $1 order by created_at',
+      'select id, template_id, owner_character_id, owner_corpse_id, qty, data from items where owner_character_id = $1 order by created_at',
       [characterId],
     );
     return rows.map(rowToItem);
@@ -367,6 +372,79 @@ export class PgStore implements Store {
     } finally {
       client.release();
     }
+  }
+
+  async createCorpse(c: Omit<CorpseRecord, 'id'>): Promise<CorpseRecord> {
+    const { rows } = await this.pool.query<{ id: string }>(
+      `insert into corpses (character_id, area_id, x, y, state, ticks_left)
+       values ($1, $2, $3, $4, $5, $6) returning id`,
+      [c.characterId, c.areaId, c.x, c.y, c.state, c.ticksLeft],
+    );
+    return { ...c, id: rows[0]!.id };
+  }
+
+  async updateCorpse(
+    id: string,
+    patch: { state?: CorpseRecord['state']; areaId?: string; x?: number; y?: number; ticksLeft?: number },
+  ): Promise<void> {
+    await this.pool.query(
+      `update corpses set
+         state = coalesce($2, state), area_id = coalesce($3, area_id),
+         x = coalesce($4, x), y = coalesce($5, y),
+         ticks_left = coalesce($6, ticks_left), updated_at = now()
+       where id = $1`,
+      [id, patch.state ?? null, patch.areaId ?? null, patch.x ?? null, patch.y ?? null, patch.ticksLeft ?? null],
+    );
+  }
+
+  async listActiveCorpses(): Promise<CorpseRecord[]> {
+    const { rows } = await this.pool.query(
+      `select id, character_id, area_id, x, y, state, ticks_left
+       from corpses where state <> 'gone' order by created_at`,
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      characterId: r.character_id,
+      areaId: r.area_id,
+      x: r.x,
+      y: r.y,
+      state: r.state,
+      ticksLeft: r.ticks_left,
+    }));
+  }
+
+  async getItemsByCorpse(corpseId: string): Promise<ItemRecord[]> {
+    const { rows } = await this.pool.query(
+      'select id, template_id, owner_character_id, owner_corpse_id, qty, data from items where owner_corpse_id = $1 order by created_at',
+      [corpseId],
+    );
+    return rows.map(rowToItem);
+  }
+
+  async moveItemsToCorpse(characterId: string, corpseId: string): Promise<number> {
+    // Single conditional UPDATE, same atomicity argument as transferItem:
+    // only rows still owned by the character move, so nothing can duplicate.
+    const result = await this.pool.query(
+      `update items set owner_character_id = null, owner_corpse_id = $2
+       where owner_character_id = $1`,
+      [characterId, corpseId],
+    );
+    return result.rowCount ?? 0;
+  }
+
+  async moveItemsFromCorpse(corpseId: string, toCharacterId: string): Promise<number> {
+    const result = await this.pool.query(
+      `update items set owner_corpse_id = null, owner_character_id = $2
+       where owner_corpse_id = $1
+         and exists (select 1 from characters where id = $2)`,
+      [corpseId, toCharacterId],
+    );
+    return result.rowCount ?? 0;
+  }
+
+  async deleteItemsByCorpse(corpseId: string): Promise<number> {
+    const result = await this.pool.query('delete from items where owner_corpse_id = $1', [corpseId]);
+    return result.rowCount ?? 0;
   }
 
   async mergeKnowledge(
@@ -480,7 +558,8 @@ function rowToItem(r: Record<string, unknown>): ItemRecord {
   return {
     id: r.id as string,
     templateId: r.template_id as string,
-    ownerCharacterId: r.owner_character_id as string,
+    ownerCharacterId: (r.owner_character_id as string | null) ?? null,
+    ownerCorpseId: (r.owner_corpse_id as string | null) ?? null,
     qty: r.qty as number,
     data: (r.data as ItemData | null) ?? null,
   };
@@ -505,5 +584,7 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     deathDebt: Number(r.death_debt ?? 0),
     deeds: Number(r.deeds ?? 0),
     retired: r.retired_at != null,
+    classId: (r.class_id as string | null) ?? null,
+    necromancy: Number(r.necromancy ?? 0),
   };
 }

@@ -3,15 +3,20 @@ import {
   ATTACK_COOLDOWN_TICKS,
   ATTACK_RANGE,
   BLEED_INTERVAL_TICKS,
+  CORPSE_DECAY_TICKS,
   DEATH_DEBT_PER_DEATH,
   FLUSH_INTERVAL_TICKS,
   GHOST_MIN_TICKS,
+  GROUND_LOOT_TICKS,
   HOSTILITY_EXPIRY_TICKS,
   HOSTILITY_WINDOW_TICKS,
   INTERACT_RANGE,
+  MAX_ZOMBIES_PER_NECROMANCER,
   Rng,
+  SEANCE_QUESTIONS,
   SESSION_TTL_MS,
   TICK_MS,
+  ZOMBIE_DURATION_TICKS,
   chebyshev,
   describeAppearance,
   describeHooded,
@@ -20,7 +25,9 @@ import {
   type AreaDef,
   type Channel,
   type CharacterSummary,
+  type ClassAbility,
   type ClientMessage,
+  type Direction,
   type ErrorCode,
   type ServerMessage,
 } from '@rc/shared';
@@ -60,7 +67,38 @@ export interface GameServerOptions {
   ghostMinTicks?: number;
   attackCooldownTicks?: number;
   bleedIntervalTicks?: number;
+  /** Spirit-interaction pacing (D-511) — tests shrink these too. */
+  corpseDecayTicks?: number;
+  groundLootTicks?: number;
+  zombieDurationTicks?: number;
   log?: (msg: string) => void;
+}
+
+/** A live corpse or gear-pile world object, mirrored from the corpses table. */
+interface CorpseRuntime {
+  corpseId: string;
+  characterId: string;
+  state: 'corpse' | 'ground';
+  expiresAtTick: number;
+}
+
+/** An animated corpse walking the world (D-224). */
+interface ZombieRuntime {
+  corpseId: string;
+  /** The dead character wearing the gear. */
+  characterId: string;
+  /** The necromancer who raised it. */
+  ownerCharacterId: string;
+  expiresAtTick: number;
+}
+
+/** A séance in progress (D-204): five questions, answers under no oath. */
+interface Seance {
+  caster: ConnState;
+  spirit: ConnState;
+  corpseId: string;
+  corpseEntityId: number;
+  questionsLeft: number;
 }
 
 interface ConnState {
@@ -111,6 +149,18 @@ export class GameServer {
   private ghostMinTicks = GHOST_MIN_TICKS;
   private attackCooldownTicks = ATTACK_COOLDOWN_TICKS;
   private bleedIntervalTicks = BLEED_INTERVAL_TICKS;
+  private corpseDecayTicks = CORPSE_DECAY_TICKS;
+  private groundLootTicks = GROUND_LOOT_TICKS;
+  private zombieDurationTicks = ZOMBIE_DURATION_TICKS;
+  /** Corpse/pile world objects by entity id (D-224/D-511). */
+  private corpsesByEntity = new Map<number, CorpseRuntime>();
+  /** Animated corpses by zombie entity id. */
+  private zombies = new Map<number, ZombieRuntime>();
+  /** Active séances, indexed from both ends. */
+  private seancesByCaster = new Map<ConnState, Seance>();
+  private seancesBySpirit = new Map<ConnState, Seance>();
+  /** Dead players riding along in their animated bodies (D-224). */
+  private bodyObservers = new Map<ConnState, number>(); // conn → zombie entity id
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -123,6 +173,9 @@ export class GameServer {
     this.ghostMinTicks = opts.ghostMinTicks ?? GHOST_MIN_TICKS;
     this.attackCooldownTicks = opts.attackCooldownTicks ?? ATTACK_COOLDOWN_TICKS;
     this.bleedIntervalTicks = opts.bleedIntervalTicks ?? BLEED_INTERVAL_TICKS;
+    this.corpseDecayTicks = Math.max(opts.corpseDecayTicks ?? CORPSE_DECAY_TICKS, this.ghostMinTicks);
+    this.groundLootTicks = opts.groundLootTicks ?? GROUND_LOOT_TICKS;
+    this.zombieDurationTicks = opts.zombieDurationTicks ?? ZOMBIE_DURATION_TICKS;
     for (const def of opts.content.areas.values()) this.world.addArea(def);
     const fallback = opts.content.areas.keys().next().value as string;
     this.defaultAreaId = opts.defaultAreaId ?? fallback;
@@ -137,6 +190,7 @@ export class GameServer {
 
   async start(): Promise<void> {
     await this.store.init();
+    await this.restoreCorpses();
     await new Promise<void>((resolve, reject) => {
       this.wss = new WebSocketServer({ port: this.requestedPort }, resolve);
       this.wss.on('error', reject);
@@ -207,6 +261,8 @@ export class GameServer {
     if (this.world.tick % this.bleedIntervalTicks === 0) {
       await this.bleedTick();
     }
+    this.zombieAiTick();
+    await this.spiritTick();
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
       await this.flushDirty();
@@ -264,7 +320,7 @@ export class GameServer {
     this.entityCharacter.delete(conn.entityId);
     this.connsByArea.get(oldAreaId)?.delete(conn);
     if (leftEvent) {
-      this.broadcast(oldAreaId, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
+      this.broadcastPlane(oldAreaId, oldEntity.ghost, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
     }
     const { entity } = this.world.spawn(toAreaId, {
       characterId: conn.character.id,
@@ -396,6 +452,14 @@ export class GameServer {
         return this.handleRespawn(conn);
       case 'retire':
         return this.handleRetire(conn);
+      case 'loot':
+        return this.handleLoot(conn, msg);
+      case 'speak_dead':
+        return this.handleSpeakDead(conn, msg);
+      case 'animate_dead':
+        return this.handleAnimateDead(conn, msg);
+      case 'observe_body':
+        return this.handleObserveBody(conn, msg);
       case 'resync':
         return this.handleResync(conn);
       case 'ping':
@@ -485,6 +549,10 @@ export class GameServer {
         this.world.getEntityAreaId(target.id) !== conn.areaId) {
       return this.fail(conn, 'bad_target', 'no such target');
     }
+    if (this.corpsesByEntity.has(target.id)) {
+      // Lying corpses and dropped gear are not combatants. Zombies are.
+      return this.fail(conn, 'bad_target', 'it is already dead');
+    }
     if (chebyshev(self.pos, target.pos) > ATTACK_RANGE) {
       return this.fail(conn, 'not_adjacent', 'out of reach');
     }
@@ -516,6 +584,7 @@ export class GameServer {
       target.hp -= damage;
       if (target.hp <= 0) {
         const targetId = target.id;
+        const lastPos = { ...target.pos };
         this.broadcastPlane(conn.areaId, false, {
           t: 'delta',
           tick: this.world.tick,
@@ -524,6 +593,10 @@ export class GameServer {
         this.world.despawn(targetId);
         this.gainXp(conn, 10);
         this.sendStatus(conn);
+        const zombieInfo = this.zombies.get(targetId);
+        if (zombieInfo) {
+          await this.zombieDestroyed(targetId, zombieInfo, conn.areaId, lastPos, conn.character.id);
+        }
         await this.store.appendEvent('npc_death', {
           entityId: targetId,
           killer: conn.character.id,
@@ -572,12 +645,64 @@ export class GameServer {
     for (const key of [...this.hostilities.keys()]) {
       if (key.includes(conn.character.id)) this.hostilities.delete(key);
     }
+    this.endSeanceInvolving(conn, 'death');
+    // A body stays behind (D-224/D-511). Outside settled ground, everything
+    // carried moves onto it — ownership and all; the player will wake with
+    // nothing. In settled zones the corpse is a shape, not a container.
+    const zone = this.world.getAreaDef(conn.areaId).zone;
+    const corpseRec = await this.store.createCorpse({
+      characterId: conn.character.id,
+      areaId: conn.areaId,
+      x: entity.pos.x,
+      y: entity.pos.y,
+      state: 'corpse',
+      ticksLeft: this.corpseDecayTicks,
+    });
+    let gearMoved = 0;
+    if (zone !== 'settled') {
+      gearMoved = await this.store.moveItemsToCorpse(conn.character.id, corpseRec.id);
+    }
+    const { entity: corpse } = this.world.spawn(conn.areaId, {
+      characterId: null,
+      name: `the corpse of ${conn.character.name}`,
+      objectKind: 'corpse',
+      corpseOfCharacterId: conn.character.id,
+      appearanceSeed: entity.appearanceSeed,
+      pos: entity.pos,
+      facing: entity.facing,
+    });
+    corpse.presentation = entity.presentation; // died hooded, lies hooded
+    this.corpsesByEntity.set(corpse.id, {
+      corpseId: corpseRec.id,
+      characterId: conn.character.id,
+      state: 'corpse',
+      expiresAtTick: this.world.tick + this.corpseDecayTicks,
+    });
+    await this.store.appendEvent('corpse_created', {
+      corpseId: corpseRec.id,
+      characterId: conn.character.id,
+      areaId: conn.areaId,
+      x: entity.pos.x,
+      y: entity.pos.y,
+      zone,
+      gearMoved,
+    });
     // The living watch them fall and see them no more.
     this.broadcastPlane(conn.areaId, false, {
       t: 'delta',
       tick: this.world.tick,
       events: [{ type: 'entity_died', id: entity.id }],
     }, conn);
+    // …and see what remains, each under the name they knew (or didn't).
+    for (const other of this.connsByArea.get(conn.areaId) ?? []) {
+      if (other === conn || !other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost !== false) continue;
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(corpse, await this.descriptorFor(other, corpse)) }],
+      });
+    }
     // Ghosts already present greet a new arrival to their plane.
     for (const other of this.connsByArea.get(conn.areaId) ?? []) {
       if (other === conn || !other.character || other.entityId === null) continue;
@@ -613,6 +738,8 @@ export class GameServer {
     if (entity.diedAtTick !== null && this.world.tick - entity.diedAtTick < this.ghostMinTicks) {
       return this.fail(conn, 'too_soon', 'the grey country does not release you yet');
     }
+    this.endSeanceInvolving(conn, 'the spirit moved on');
+    if (this.bodyObservers.delete(conn)) this.send(conn, { t: 'observing', on: false });
     // Leave the ghost plane…
     const leftEvent = this.world.despawn(entity.id);
     this.entityCharacter.delete(entity.id);
@@ -667,6 +794,8 @@ export class GameServer {
       return this.fail(conn, 'not_in_world', 'enter the world first');
     }
     const entity = this.world.getEntity(conn.entityId)!;
+    this.endSeanceInvolving(conn, 'the spirit went into the dark');
+    this.bodyObservers.delete(conn);
     const totalDeeds = conn.character.deeds + this.deedsDelta(conn);
     const awarded = computeLegacyAward({
       xp: conn.vitals.xp,
@@ -768,16 +897,483 @@ export class GameServer {
     });
   }
 
+  // -------------------------------------------------------------------------
+  // Spirit interactions (D-204, D-224, D-511): corpses, looting, séances,
+  // animation. The séance is the ONE sanctioned crossing between the planes,
+  // scoped to speech and logged in full.
+  // -------------------------------------------------------------------------
+
+  /** Class-gated abilities (D-208/D-511). No class, no ability. */
+  private hasAbility(conn: ConnState, ability: ClassAbility): boolean {
+    const classId = conn.character?.classId;
+    if (!classId) return false;
+    return this.content.classes.get(classId)?.abilities.includes(ability) ?? false;
+  }
+
+  /** Concurrent zombies scale with necromancy skill, hard-capped (D-511). */
+  private zombieCap(necromancy: number): number {
+    return Math.min(MAX_ZOMBIES_PER_NECROMANCER, 1 + Math.floor(necromancy / 40));
+  }
+
+  private findConnByCharacter(characterId: string): ConnState | null {
+    for (const conn of this.conns) {
+      if (conn.character?.id === characterId && conn.entityId !== null) return conn;
+    }
+    return null;
+  }
+
+  /** Re-materializes persisted corpses and gear piles on boot. Zombies do not
+   * survive a restart — an 'animated' row wakes as a lying corpse again. */
+  private async restoreCorpses(): Promise<void> {
+    for (const rec of await this.store.listActiveCorpses()) {
+      const ch = await this.store.getCharacter(rec.characterId);
+      if (!ch) continue;
+      let { areaId, x, y } = rec;
+      if (!this.world.hasArea(areaId)) {
+        // The area is gone (a temp area, most likely): wash up at the town spawn.
+        areaId = this.defaultAreaId;
+        const spawn = this.world.getAreaDef(areaId).spawn;
+        x = spawn.x;
+        y = spawn.y;
+      }
+      const state = rec.state === 'ground' ? 'ground' : 'corpse';
+      const ticksLeft = Math.max(
+        rec.state === 'animated' ? this.corpseDecayTicks : rec.ticksLeft,
+        1,
+      );
+      const { entity } = this.world.spawn(areaId, {
+        characterId: null,
+        name: `the ${state === 'ground' ? 'remains' : 'corpse'} of ${ch.name}`,
+        objectKind: state === 'ground' ? 'pile' : 'corpse',
+        corpseOfCharacterId: ch.id,
+        appearanceSeed: ch.appearanceSeed,
+        pos: { x, y },
+      });
+      this.corpsesByEntity.set(entity.id, {
+        corpseId: rec.id,
+        characterId: ch.id,
+        state,
+        expiresAtTick: this.world.tick + ticksLeft,
+      });
+      if (rec.state !== state || rec.areaId !== areaId) {
+        await this.store.updateCorpse(rec.id, { state, areaId, x, y, ticksLeft });
+      }
+    }
+  }
+
+  /** Corpse decay and zombie duration (D-511), all tick-counted. */
+  private async spiritTick(): Promise<void> {
+    for (const [entityId, info] of [...this.corpsesByEntity]) {
+      if (this.world.tick < info.expiresAtTick) continue;
+      if (info.state === 'corpse') await this.corpseDecays(entityId, info);
+      else await this.cleanupPile(entityId, info);
+    }
+    for (const [zombieId, z] of [...this.zombies]) {
+      if (this.world.tick < z.expiresAtTick) continue;
+      const zombie = this.world.getEntity(zombieId);
+      const areaId = this.world.getEntityAreaId(zombieId);
+      if (!zombie || !areaId) {
+        this.zombies.delete(zombieId);
+        continue;
+      }
+      const pos = { ...zombie.pos };
+      this.broadcastPlane(areaId, false, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_died', id: zombieId }],
+      });
+      this.world.despawn(zombieId);
+      this.narrate('area', 'The walking corpse sags, and whatever held it lets go.', areaId);
+      await this.zombieDestroyed(zombieId, z, areaId, pos, 'duration');
+    }
+  }
+
+  /** The corpse rots away; anything it held is left lying (D-511: one hour). */
+  private async corpseDecays(entityId: number, info: CorpseRuntime): Promise<void> {
+    const corpse = this.world.getEntity(entityId);
+    const areaId = this.world.getEntityAreaId(entityId);
+    this.corpsesByEntity.delete(entityId);
+    for (const seance of [...this.seancesByCaster.values()]) {
+      if (seance.corpseEntityId === entityId) this.endSeance(seance, 'the body gave out');
+    }
+    if (!corpse || !areaId) return;
+    const pos = { ...corpse.pos };
+    const leftEvent = this.world.despawn(entityId);
+    if (leftEvent) {
+      this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
+    }
+    const items = await this.store.getItemsByCorpse(info.corpseId);
+    if (items.length === 0) {
+      await this.store.updateCorpse(info.corpseId, { state: 'gone', ticksLeft: 0 });
+    } else {
+      await this.spawnPile(info, areaId, pos);
+    }
+    await this.store.appendEvent('corpse_decayed', {
+      corpseId: info.corpseId,
+      characterId: info.characterId,
+      areaId,
+      itemsLeft: items.length,
+    });
+  }
+
+  /** Gear hits the ground as a lootable pile with its own clock. */
+  private async spawnPile(info: CorpseRuntime, areaId: string, pos: { x: number; y: number }): Promise<void> {
+    const dead = await this.store.getCharacter(info.characterId);
+    const { entity: pile } = this.world.spawn(areaId, {
+      characterId: null,
+      name: `the remains of ${dead?.name ?? 'someone'}`,
+      objectKind: 'pile',
+      corpseOfCharacterId: info.characterId,
+      appearanceSeed: dead?.appearanceSeed ?? 0,
+      pos,
+    });
+    this.corpsesByEntity.set(pile.id, {
+      corpseId: info.corpseId,
+      characterId: info.characterId,
+      state: 'ground',
+      expiresAtTick: this.world.tick + this.groundLootTicks,
+    });
+    await this.store.updateCorpse(info.corpseId, {
+      state: 'ground',
+      areaId,
+      x: pos.x,
+      y: pos.y,
+      ticksLeft: this.groundLootTicks,
+    });
+    for (const other of this.connsByArea.get(areaId) ?? []) {
+      if (!other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost !== false) continue;
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(pile, await this.descriptorFor(other, pile)) }],
+      });
+    }
+  }
+
+  /** The hour is up: unclaimed gear is destroyed — deliberately, and logged. */
+  private async cleanupPile(entityId: number, info: CorpseRuntime): Promise<void> {
+    const areaId = this.world.getEntityAreaId(entityId);
+    this.corpsesByEntity.delete(entityId);
+    const items = await this.store.getItemsByCorpse(info.corpseId);
+    const deleted = await this.store.deleteItemsByCorpse(info.corpseId);
+    const leftEvent = this.world.despawn(entityId);
+    if (leftEvent && areaId) {
+      this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
+    }
+    await this.store.updateCorpse(info.corpseId, { state: 'gone', ticksLeft: 0 });
+    await this.store.appendEvent('corpse_loot_cleanup', {
+      corpseId: info.corpseId,
+      characterId: info.characterId,
+      destroyed: items.map((i) => ({ templateId: i.templateId, qty: i.qty })),
+      count: deleted,
+    });
+  }
+
+  /** Zombies shamble after their necromancer when they share an area. */
+  private zombieAiTick(): void {
+    for (const [zombieId, z] of this.zombies) {
+      const zombie = this.world.getEntity(zombieId);
+      const areaId = this.world.getEntityAreaId(zombieId);
+      if (!zombie || !areaId) continue;
+      const owner = [...(this.connsByArea.get(areaId) ?? [])].find(
+        (c) => c.character?.id === z.ownerCharacterId && c.entityId !== null &&
+          this.world.getEntity(c.entityId)?.ghost === false,
+      );
+      if (!owner) continue;
+      const ownerEntity = this.world.getEntity(owner.entityId!)!;
+      if (chebyshev(zombie.pos, ownerEntity.pos) <= 1) continue;
+      const dx = Math.sign(ownerEntity.pos.x - zombie.pos.x);
+      const dy = Math.sign(ownerEntity.pos.y - zombie.pos.y);
+      this.world.setMoveIntent(zombieId, directionFrom(dx, dy));
+    }
+  }
+
+  /** Shared aftermath of a zombie's end: the gear it wore hits the ground
+   * (D-224 — without this, the hunt for your own corpse has no payoff). */
+  private async zombieDestroyed(
+    zombieId: number,
+    z: ZombieRuntime,
+    areaId: string,
+    pos: { x: number; y: number },
+    cause: string,
+  ): Promise<void> {
+    this.zombies.delete(zombieId);
+    for (const [obsConn, observedId] of [...this.bodyObservers]) {
+      if (observedId === zombieId) {
+        this.bodyObservers.delete(obsConn);
+        this.send(obsConn, { t: 'observing', on: false });
+      }
+    }
+    const items = await this.store.getItemsByCorpse(z.corpseId);
+    if (items.length === 0) {
+      await this.store.updateCorpse(z.corpseId, { state: 'gone', ticksLeft: 0 });
+    } else {
+      const info: CorpseRuntime = {
+        corpseId: z.corpseId,
+        characterId: z.characterId,
+        state: 'ground',
+        expiresAtTick: this.world.tick + this.groundLootTicks,
+      };
+      await this.spawnPile(info, areaId, pos);
+    }
+    await this.store.appendEvent('corpse_destroyed', {
+      corpseId: z.corpseId,
+      characterId: z.characterId,
+      owner: z.ownerCharacterId,
+      areaId,
+      cause,
+      itemsDropped: items.length,
+    });
+  }
+
+  /** Take everything a corpse or pile holds (D-224/D-511). */
+  private async handleLoot(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'loot' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead carry nothing away');
+    const info = this.corpsesByEntity.get(msg.targetEntityId);
+    const target = this.world.getEntity(msg.targetEntityId);
+    if (!info || !target || this.world.getEntityAreaId(target.id) !== conn.areaId) {
+      return this.fail(conn, 'bad_target', 'nothing there to loot');
+    }
+    if (chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
+      return this.fail(conn, 'not_adjacent', 'too far away');
+    }
+    const moved = await this.store.moveItemsFromCorpse(info.corpseId, conn.character.id);
+    if (moved === 0) {
+      // Settled-zone corpses hold nothing (D-511) — and piles empty out.
+      return this.fail(conn, 'no_such_item', 'nothing to take');
+    }
+    if (info.state === 'ground') {
+      // An emptied pile is no longer a thing in the world.
+      this.corpsesByEntity.delete(target.id);
+      const leftEvent = this.world.despawn(target.id);
+      if (leftEvent) {
+        this.broadcastPlane(conn.areaId, false, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
+      }
+      await this.store.updateCorpse(info.corpseId, { state: 'gone', ticksLeft: 0 });
+    }
+    await this.store.appendEvent('corpse_looted', {
+      corpseId: info.corpseId,
+      characterId: info.characterId,
+      by: conn.character.id,
+      areaId: conn.areaId,
+      count: moved,
+    });
+    await this.sendInventory(conn);
+  }
+
+  /** D-204: the ghost is drawn back to its corpse for five questions it is
+   * free to answer falsely. Out of reach is a distinct result (D-511). */
+  private async handleSpeakDead(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'speak_dead' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead need no ritual to speak to the dead');
+    if (!this.hasAbility(conn, 'speak-with-dead')) {
+      return this.fail(conn, 'lacks_ability', 'you do not know the rites');
+    }
+    if (this.seancesByCaster.has(conn)) {
+      return this.fail(conn, 'on_cooldown', 'a séance is already underway');
+    }
+    const info = this.corpsesByEntity.get(msg.targetEntityId);
+    const corpse = this.world.getEntity(msg.targetEntityId);
+    if (!info || !corpse || info.state !== 'corpse' ||
+        this.world.getEntityAreaId(corpse.id) !== conn.areaId) {
+      return this.fail(conn, 'bad_target', 'that is no corpse you can question');
+    }
+    if (chebyshev(self.pos, corpse.pos) > INTERACT_RANGE) {
+      return this.fail(conn, 'not_adjacent', 'kneel by the body first');
+    }
+    const spirit = this.findConnByCharacter(info.characterId);
+    const spiritEntity = spirit?.entityId !== null && spirit ? this.world.getEntity(spirit.entityId!) : null;
+    if (!spirit || !spiritEntity?.ghost || this.seancesBySpirit.has(spirit)) {
+      // Offline, already respawned, or already being questioned: a
+      // deliberately DISTINCT result (D-511) — unlike a ghost who stonewalls.
+      await this.store.appendEvent('speak_with_dead_unreachable', {
+        caster: conn.character.id,
+        corpseId: info.corpseId,
+        characterId: info.characterId,
+      });
+      return this.fail(conn, 'beyond_reach', 'the spirit is beyond reach');
+    }
+    // Drawn back: the ghost is pulled to its body, still on the other side.
+    if (spirit.areaId !== conn.areaId ||
+        chebyshev(spiritEntity.pos, corpse.pos) > CHANNEL_RANGE.say) {
+      await this.transferToArea(spirit, conn.areaId, corpse.pos.x, corpse.pos.y);
+    }
+    const seance: Seance = {
+      caster: conn,
+      spirit,
+      corpseId: info.corpseId,
+      corpseEntityId: corpse.id,
+      questionsLeft: SEANCE_QUESTIONS,
+    };
+    this.seancesByCaster.set(conn, seance);
+    this.seancesBySpirit.set(spirit, seance);
+    this.send(conn, { t: 'seance', role: 'caster', active: true, questionsLeft: seance.questionsLeft });
+    this.send(spirit, { t: 'seance', role: 'spirit', active: true, questionsLeft: seance.questionsLeft });
+    this.send(spirit, {
+      t: 'narrate',
+      text: 'Something takes hold and draws you back to what you were. Five questions will come. Nothing binds you to the truth.',
+    });
+    await this.store.appendEvent('speak_with_dead', {
+      caster: conn.character.id,
+      corpseId: info.corpseId,
+      characterId: info.characterId,
+      areaId: conn.areaId,
+    });
+  }
+
+  private endSeance(seance: Seance, reason: string): void {
+    this.seancesByCaster.delete(seance.caster);
+    this.seancesBySpirit.delete(seance.spirit);
+    this.send(seance.caster, { t: 'seance', role: 'caster', active: false, questionsLeft: seance.questionsLeft });
+    this.send(seance.spirit, { t: 'seance', role: 'spirit', active: false, questionsLeft: seance.questionsLeft });
+    this.send(seance.spirit, { t: 'narrate', text: 'The hold on you loosens. You drift free of the body again.' });
+    void this.store.appendEvent('seance_ended', { corpseId: seance.corpseId, reason });
+  }
+
+  private endSeanceInvolving(conn: ConnState, reason: string): void {
+    const seance = this.seancesByCaster.get(conn) ?? this.seancesBySpirit.get(conn);
+    if (seance) this.endSeance(seance, reason);
+  }
+
+  /** D-204/D-224: raise a corpse as a walking ally, wearing what it wore. */
+  private async handleAnimateDead(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'animate_dead' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead raise nothing');
+    if (!this.hasAbility(conn, 'animate-dead')) {
+      return this.fail(conn, 'lacks_ability', 'you do not know the rites');
+    }
+    const info = this.corpsesByEntity.get(msg.targetEntityId);
+    const corpse = this.world.getEntity(msg.targetEntityId);
+    if (!info || !corpse || info.state !== 'corpse' ||
+        this.world.getEntityAreaId(corpse.id) !== conn.areaId) {
+      return this.fail(conn, 'bad_target', 'that is nothing you can raise');
+    }
+    if (chebyshev(self.pos, corpse.pos) > INTERACT_RANGE) {
+      return this.fail(conn, 'not_adjacent', 'kneel by the body first');
+    }
+    const owned = [...this.zombies.values()].filter(
+      (z) => z.ownerCharacterId === conn.character!.id,
+    ).length;
+    if (owned >= this.zombieCap(conn.character.necromancy)) {
+      return this.fail(conn, 'limit_reached', 'you cannot hold another body upright');
+    }
+    // The ritual overrides any séance in progress on this body.
+    for (const seance of [...this.seancesByCaster.values()]) {
+      if (seance.corpseEntityId === corpse.id) this.endSeance(seance, 'the body was taken');
+    }
+    const pos = { ...corpse.pos };
+    const presentation = corpse.presentation;
+    this.corpsesByEntity.delete(corpse.id);
+    const leftEvent = this.world.despawn(corpse.id);
+    if (leftEvent) {
+      this.broadcastPlane(conn.areaId, false, { t: 'delta', tick: this.world.tick, events: [leftEvent] });
+    }
+    const { entity: zombie } = this.world.spawn(conn.areaId, {
+      characterId: null,
+      name: corpse.name,
+      objectKind: 'zombie',
+      corpseOfCharacterId: info.characterId,
+      appearanceSeed: corpse.appearanceSeed,
+      pos,
+      hp: 15,
+    });
+    zombie.presentation = presentation;
+    this.zombies.set(zombie.id, {
+      corpseId: info.corpseId,
+      characterId: info.characterId,
+      ownerCharacterId: conn.character.id,
+      expiresAtTick: this.world.tick + this.zombieDurationTicks,
+    });
+    await this.store.updateCorpse(info.corpseId, {
+      state: 'animated',
+      ticksLeft: this.zombieDurationTicks,
+    });
+    for (const other of this.connsByArea.get(conn.areaId) ?? []) {
+      if (!other.character || other.entityId === null) continue;
+      if (this.world.getEntity(other.entityId)?.ghost !== false) continue;
+      this.send(other, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(zombie, await this.descriptorFor(other, zombie)) }],
+      });
+    }
+    // If the dead player is watching from the grey country, they feel it.
+    const deadConn = this.findConnByCharacter(info.characterId);
+    if (deadConn && deadConn.entityId !== null && this.world.getEntity(deadConn.entityId)?.ghost) {
+      this.send(deadConn, {
+        t: 'narrate',
+        text: 'Far away, something drags your body to its feet. You could ride along, if you can bear it.',
+      });
+    }
+    await this.store.appendEvent('corpse_animated', {
+      corpseId: info.corpseId,
+      characterId: info.characterId,
+      owner: conn.character.id,
+      areaId: conn.areaId,
+    });
+  }
+
+  /** D-224: the dead owner chooses to ride the walking body — hearing what it
+   * hears, speaking through it in the undead register. Never forced. */
+  private async handleObserveBody(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'observe_body' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    if (!msg.on) {
+      if (this.bodyObservers.delete(conn)) this.send(conn, { t: 'observing', on: false });
+      return;
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (!self.ghost) return this.fail(conn, 'not_dead', 'you are still wearing your body');
+    const zombieEntry = [...this.zombies.entries()].find(
+      ([, z]) => z.characterId === conn.character!.id,
+    );
+    if (!zombieEntry) return this.fail(conn, 'bad_target', 'your body does not walk');
+    this.bodyObservers.set(conn, zombieEntry[0]);
+    this.send(conn, { t: 'observing', on: true });
+    await this.store.appendEvent('body_observed', {
+      characterId: conn.character.id,
+      corpseId: zombieEntry[1].corpseId,
+    });
+  }
+
   private async handleDisconnect(conn: ConnState): Promise<void> {
     if (!this.conns.has(conn)) return;
     this.conns.delete(conn);
+    this.endSeanceInvolving(conn, 'departed');
+    this.bodyObservers.delete(conn);
     if (conn.entityId !== null && conn.areaId !== null && conn.character) {
       const entity = this.world.getEntity(conn.entityId);
       const event = this.world.despawn(conn.entityId);
       this.entityCharacter.delete(conn.entityId);
       this.connsByArea.get(conn.areaId)?.delete(conn);
       this.onlineCharacters.delete(conn.character.id);
-      if (event) this.broadcast(conn.areaId, { t: 'delta', tick: this.world.tick, events: [event] });
+      if (event && entity) {
+        this.broadcastPlane(conn.areaId, entity.ghost, { t: 'delta', tick: this.world.tick, events: [event] });
+      }
       if (entity) {
         // Immediate write on logout (D-106).
         this.dirtyCharacters.delete(conn.character.id);
@@ -882,6 +1478,19 @@ export class GameServer {
     if (!conn.accountId) return this.fail(conn, 'not_authenticated', 'log in first');
     const area = this.content.areas.get(this.defaultAreaId)!;
     const seed = msg.appearanceSeed ?? Math.floor(Math.random() * 2 ** 31);
+    // Class selection (D-208/D-511). Legacy-locked classes require Legacy
+    // Points on the account. PLACEHOLDER GATE: ≥1 point and no deduction —
+    // real pricing awaits stakeholder ratification (flagged in D-512).
+    if (msg.classId !== undefined) {
+      const classDef = this.content.classes.get(msg.classId);
+      if (!classDef) return this.fail(conn, 'invalid_message', 'no such class');
+      if (classDef.legacyLocked) {
+        const points = await this.store.getLegacyPoints(conn.accountId);
+        if (points < 1) {
+          return this.fail(conn, 'lacks_ability', 'that path must be earned — it is bought with a life');
+        }
+      }
+    }
     const character = await this.store.createCharacter({
       accountId: conn.accountId,
       name: msg.name,
@@ -889,6 +1498,7 @@ export class GameServer {
       areaId: area.id,
       x: area.spawn.x,
       y: area.spawn.y,
+      classId: msg.classId ?? null,
     });
     if (character === 'character_name_taken') {
       return this.fail(conn, 'character_name_taken', 'that name is taken');
@@ -897,6 +1507,7 @@ export class GameServer {
       characterId: character.id,
       accountId: conn.accountId,
       name: character.name,
+      ...(character.classId ? { classId: character.classId } : {}),
     });
     this.send(conn, { t: 'character_created', character: toSummary(character) });
   }
@@ -1010,7 +1621,14 @@ export class GameServer {
     // Knowledge is per observed identity: character × presentation (D-219).
     const strangersByPresentation = new Map<string, WorldEntity[]>();
     for (const e of entities) {
-      if (e.characterId === null) {
+      if (e.objectKind === 'pile') {
+        // Gear on the ground carries no identity — the body is gone.
+        out.set(e.id, 'a scatter of abandoned belongings');
+      } else if (e.objectKind === 'corpse' || e.objectKind === 'zombie') {
+        // The dead resolve through the same per-observer knowledge as the
+        // living (D-219): you recognise a corpse only if you knew the face.
+        out.set(e.id, await this.describeDead(observer, e));
+      } else if (e.characterId === null) {
         // NPCs wear one public face for everyone (D-507).
         out.set(e.id, e.npcDescriptor ?? describeAppearance(generateAppearance(e.appearanceSeed)));
       } else if (e.characterId === observer.character!.id) {
@@ -1044,6 +1662,24 @@ export class GameServer {
     return (await this.descriptorsFor(observer, [entity])).get(entity.id)!;
   }
 
+  /** "the corpse of ⟨what you knew them as⟩" — or of a stranger's face. */
+  private async describeDead(observer: ConnState, e: WorldEntity): Promise<string> {
+    const deadId = e.corpseOfCharacterId!;
+    let base: string;
+    if (observer.character && deadId === observer.character.id) {
+      base = observer.character.name; // your own body knows its name
+    } else {
+      const knowledge = observer.character
+        ? await this.store.getKnowledge(observer.character.id, [deadId], e.presentation)
+        : new Map();
+      const appearance = generateAppearance(e.appearanceSeed);
+      base =
+        knowledge.get(deadId)?.knownName ??
+        (e.presentation === 'hooded' ? describeHooded(appearance) : describeAppearance(appearance));
+    }
+    return e.objectKind === 'zombie' ? `the walking corpse of ${base}` : `the corpse of ${base}`;
+  }
+
   // -------------------------------------------------------------------------
   // Intents
   // -------------------------------------------------------------------------
@@ -1067,12 +1703,18 @@ export class GameServer {
     const speaker = this.world.getEntity(conn.entityId)!;
     const areaDef = this.world.getAreaDef(conn.areaId);
 
+    // Riding the body (D-224): while observing, your words leave the zombie's
+    // mouth in the undead register — nothing sounds in the grey country.
+    if (speaker.ghost && this.bodyObservers.has(conn)) {
+      return this.speakThroughBody(conn, msg.text);
+    }
+
     // Emotes: postures persist on the entity, transients play once. Objective
-    // and broadcast to the whole area.
+    // within the speaker's plane (D-203 — the living never see a ghost move).
     const emotes = this.emoteParser.parse(msg.text);
     if (emotes.posture || emotes.transients.length > 0) {
       if (emotes.posture) speaker.posture = emotes.posture;
-      this.broadcast(conn.areaId, {
+      this.broadcastPlane(conn.areaId, speaker.ghost, {
         t: 'delta',
         tick: this.world.tick,
         events: [
@@ -1111,6 +1753,92 @@ export class GameServer {
       introduce: msg.introduce && introTarget ? { target: introTarget, name: msg.introduce.name } : undefined,
     });
     this.countDeed(conn);
+    await this.seanceRelays(conn, speaker, msg.text, languageId, msg.channel);
+  }
+
+  /** The observing dead speak through the zombie, garbled into the undead
+   * register by the language scrambler (D-224). Logged in the original. */
+  private async speakThroughBody(conn: ConnState, text: string): Promise<void> {
+    const zombieId = this.bodyObservers.get(conn)!;
+    const zombie = this.world.getEntity(zombieId);
+    const areaId = zombie ? this.world.getEntityAreaId(zombieId) : undefined;
+    if (!zombie || !areaId) {
+      this.bodyObservers.delete(conn);
+      this.send(conn, { t: 'observing', on: false });
+      return this.fail(conn, 'bad_target', 'your body no longer walks');
+    }
+    const languageId = this.content.languages.has('undead') ? 'undead' : 'common';
+    await this.deliverSpeech({ speaker: zombie, areaId, channel: 'say', text, languageId });
+    // You hear what the body made of your words.
+    this.send(conn, {
+      t: 'speech',
+      speakerId: zombieId,
+      channel: 'say',
+      text: scrambleSpeech(text, 'undead'),
+      language: 'unknown',
+      speakerDescriptor: 'your own dead mouth',
+    });
+    this.countDeed(conn);
+  }
+
+  /**
+   * The sanctioned crossing (D-204): a séance bridges exactly one caster and
+   * one spirit. Questions cross to the grey country; answers come back out of
+   * the corpse's mouth for anyone nearby to hear. Both directions are logged.
+   */
+  private async seanceRelays(
+    conn: ConnState,
+    speaker: WorldEntity,
+    text: string,
+    languageId: string,
+    channel: Channel,
+  ): Promise<void> {
+    const asCaster = this.seancesByCaster.get(conn);
+    if (asCaster && !speaker.ghost) {
+      const corpse = this.world.getEntity(asCaster.corpseEntityId);
+      if (!corpse || this.world.getEntityAreaId(corpse.id) !== conn.areaId ||
+          chebyshev(speaker.pos, corpse.pos) > CHANNEL_RANGE.say) {
+        this.endSeance(asCaster, 'the circle was broken');
+      } else if (asCaster.questionsLeft > 0) {
+        asCaster.questionsLeft--;
+        const spirit = asCaster.spirit;
+        const understands = spirit.character!.languages.includes(languageId);
+        const language = this.content.languages.get(languageId)!;
+        this.send(spirit, {
+          t: 'speech',
+          speakerId: speaker.id,
+          channel: 'say',
+          text: understands ? text : scrambleSpeech(text, languageId),
+          language: understands ? language.name : 'unknown',
+          speakerDescriptor: await this.descriptorFor(spirit, speaker),
+        });
+        this.send(conn, { t: 'seance', role: 'caster', active: true, questionsLeft: asCaster.questionsLeft });
+        this.send(spirit, { t: 'seance', role: 'spirit', active: true, questionsLeft: asCaster.questionsLeft });
+        await this.store.appendEvent('seance_question', {
+          corpseId: asCaster.corpseId,
+          caster: conn.character!.id,
+          text,
+        });
+      }
+      return;
+    }
+    const asSpirit = this.seancesBySpirit.get(conn);
+    if (asSpirit && speaker.ghost && channel !== 'whisper') {
+      const corpse = this.world.getEntity(asSpirit.corpseEntityId);
+      const corpseAreaId = corpse ? this.world.getEntityAreaId(corpse.id) : undefined;
+      if (corpse && corpseAreaId) {
+        // The corpse speaks with the dead player's words — under no oath.
+        await this.deliverSpeech({ speaker: corpse, areaId: corpseAreaId, channel: 'say', text, languageId });
+        await this.store.appendEvent('seance_answer', {
+          corpseId: asSpirit.corpseId,
+          characterId: conn.character!.id,
+          text,
+        });
+      }
+      if (asSpirit.questionsLeft <= 0) {
+        this.endSeance(asSpirit, 'the five questions are spent');
+      }
+    }
   }
 
   /**
@@ -1218,6 +1946,30 @@ export class GameServer {
       });
     }
 
+    // The dead may ride their walking bodies (D-224): whatever the zombie
+    // hears within earshot, its owner hears through dead ears.
+    if (!speaker.ghost) {
+      for (const [obsConn, zombieId] of this.bodyObservers) {
+        if (!obsConn.character || speaker.id === zombieId) continue;
+        const zombie = this.world.getEntity(zombieId);
+        if (!zombie || this.world.getEntityAreaId(zombieId) !== areaId) continue;
+        if (chebyshev(speaker.pos, zombie.pos) > range) continue;
+        const seen = hasLineOfSight(areaDef, zombie.pos, speaker.pos);
+        if (!seen && channel !== 'shout') continue;
+        const understands = obsConn.character.languages.includes(languageId);
+        this.send(obsConn, {
+          t: 'speech',
+          speakerId: speaker.id,
+          channel,
+          text: understands ? text : scrambleSpeech(text, languageId),
+          language: understands ? language.name : 'unknown',
+          speakerDescriptor: seen
+            ? await this.descriptorFor(obsConn, speaker)
+            : 'a voice from somewhere unseen',
+        });
+      }
+    }
+
     // Chat is logged in full and in the original tongue (D-215).
     await this.store.appendEvent('speech', {
       ...(speakerCharacter ? { characterId: speakerCharacter.id } : { npcEntityId: speaker.id }),
@@ -1262,7 +2014,7 @@ export class GameServer {
     if (!entity || entity.characterId !== null) return false; // players leave by disconnecting
     const areaId = this.world.getEntityAreaId(entityId)!;
     const event = this.world.despawn(entityId);
-    if (event) this.broadcast(areaId, { t: 'delta', tick: this.world.tick, events: [event] });
+    if (event) this.broadcastPlane(areaId, entity.ghost, { t: 'delta', tick: this.world.tick, events: [event] });
     return true;
   }
 
@@ -1275,7 +2027,8 @@ export class GameServer {
     const emotes = this.emoteParser.parse(text);
     if (emotes.posture || emotes.transients.length > 0) {
       if (emotes.posture) speaker.posture = emotes.posture;
-      this.broadcast(areaId, {
+      // NPCs live on the living plane — ghosts must not see them move (D-203).
+      this.broadcastPlane(areaId, false, {
         t: 'delta',
         tick: this.world.tick,
         events: [{ type: 'entity_emote', id: speaker.id, posture: emotes.posture ?? undefined, transients: emotes.transients }],
@@ -1287,6 +2040,69 @@ export class GameServer {
 
   moveEntity(entityId: number, dir: Parameters<World['setMoveIntent']>[1]): void {
     this.world.setMoveIntent(entityId, dir);
+  }
+
+  /** Accepts a character uuid, or the name of a character currently online. */
+  private async resolveCharacterRef(ref: string): Promise<CharacterRecord | null> {
+    if (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(ref)) {
+      const direct = await this.store.getCharacter(ref);
+      if (direct) return direct;
+    }
+    for (const conn of this.conns) {
+      if (conn.character && conn.character.name.toLowerCase() === ref.toLowerCase()) {
+        return conn.character;
+      }
+    }
+    return null;
+  }
+
+  /** DM faucet (admin/testing only — production goods enter via play, D-220).
+   * Grants an item and refreshes the holder's client if online. */
+  async adminGrantItem(
+    ref: string,
+    templateId: string,
+    qty: number,
+  ): Promise<{ ok: boolean; error?: string }> {
+    if (!this.content.itemTemplates.has(templateId)) {
+      return { ok: false, error: `no such item template '${templateId}'` };
+    }
+    if (!Number.isInteger(qty) || qty < 1 || qty > 1000) {
+      return { ok: false, error: 'qty must be an integer 1-1000' };
+    }
+    const character = await this.resolveCharacterRef(ref);
+    if (!character) {
+      return { ok: false, error: 'no such character (offline characters need the uuid)' };
+    }
+    await this.store.grantItem(character.id, templateId, qty);
+    await this.store.appendEvent('dm_grant_item', { characterId: character.id, templateId, qty });
+    const conn = this.findConnByCharacter(character.id);
+    if (conn) await this.sendInventory(conn);
+    return { ok: true };
+  }
+
+  /** DM skill tuning (bluff/insight/necromancy), live-applied when online. */
+  async adminSetSkills(
+    ref: string,
+    skills: { bluff?: number; insight?: number; necromancy?: number },
+  ): Promise<{ ok: boolean; error?: string }> {
+    for (const v of Object.values(skills)) {
+      if (v !== undefined && (!Number.isInteger(v) || v < 0 || v > 100)) {
+        return { ok: false, error: 'skills are integers 0-100' };
+      }
+    }
+    const character = await this.resolveCharacterRef(ref);
+    if (!character) {
+      return { ok: false, error: 'no such character (offline characters need the uuid)' };
+    }
+    await this.store.setCharacterSkills(character.id, skills);
+    const conn = this.findConnByCharacter(character.id);
+    if (conn?.character) {
+      if (skills.bluff !== undefined) conn.character.bluff = skills.bluff;
+      if (skills.insight !== undefined) conn.character.insight = skills.insight;
+      if (skills.necromancy !== undefined) conn.character.necromancy = skills.necromancy;
+    }
+    await this.store.appendEvent('dm_set_skills', { characterId: character.id, ...skills });
+    return { ok: true };
   }
 
   /** Scene narration with no in-world speaker (D-216). */
@@ -1415,7 +2231,8 @@ export class GameServer {
     entity.presentation = msg.state;
     const areaDef = this.world.getAreaDef(conn.areaId);
 
-    this.broadcast(conn.areaId, {
+    // Plane-partitioned (D-203): the living must not see a ghost's hood move.
+    this.broadcastPlane(conn.areaId, entity.ghost, {
       t: 'delta',
       tick: this.world.tick,
       events: [{ type: 'entity_presentation', id: entity.id, state: msg.state }],
@@ -1424,6 +2241,7 @@ export class GameServer {
     for (const other of this.connsByArea.get(conn.areaId) ?? []) {
       if (other === conn || !other.character || other.entityId === null) continue;
       const otherEntity = this.world.getEntity(other.entityId)!;
+      if (otherEntity.ghost !== entity.ghost) continue;
       const sees = hasLineOfSight(areaDef, otherEntity.pos, entity.pos);
       if (wasHooded && msg.state === 'normal' && sees) {
         await this.store.mergeKnowledge(other.character.id, conn.character.id, 'hooded');
@@ -1583,6 +2401,13 @@ export class GameServer {
   }
 }
 
+/** Greedy step direction from movement signs (screen-space: +x e, +y s). */
+function directionFrom(dx: number, dy: number): Direction {
+  if (dy < 0) return dx < 0 ? 'nw' : dx > 0 ? 'ne' : 'n';
+  if (dy > 0) return dx < 0 ? 'sw' : dx > 0 ? 'se' : 's';
+  return dx < 0 ? 'w' : 'e';
+}
+
 function toWireItem(i: {
   id: string;
   templateId: string;
@@ -1605,5 +2430,6 @@ function toSummary(c: CharacterRecord): CharacterSummary {
     x: c.x,
     y: c.y,
     appearanceSeed: c.appearanceSeed,
+    ...(c.classId ? { classId: c.classId } : {}),
   };
 }

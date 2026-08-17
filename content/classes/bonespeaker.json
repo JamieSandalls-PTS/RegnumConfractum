@@ -1,0 +1,8 @@
+{
+  "id": "bonespeaker",
+  "name": "Bonespeaker",
+  "description": "One who treats death as a door left ajar. Bonespeakers question the dead — who are under no obligation to be honest — and can make a corpse walk. Feared, and rightly.",
+  "role": "arcane",
+  "abilities": ["speak-with-dead", "animate-dead"],
+  "legacyLocked": true
+}

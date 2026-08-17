@@ -633,10 +633,10 @@ enters — not capping what any player may earn.
 
 Unresolved, non-blocking:
 
-- Respawning empty-handed while the animated corpse retains all equipment (D-224)
-- Duration cap on animated corpses (D-224)
-- Speak With Dead behaviour when the dead player has logged off (D-204)
-- Which 8-10 classes ship at launch — depends on setting
+- ~~Respawning empty-handed while the animated corpse retains all equipment (D-224)~~ — resolved zone-dependent in D-511
+- ~~Duration cap on animated corpses (D-224)~~ — resolved in D-511
+- ~~Speak With Dead behaviour when the dead player has logged off (D-204)~~ — resolved in D-511
+- ~~Which 8-10 classes ship at launch — depends on setting~~ — ratified in D-511
 - Milestone sequencing and the definition of the first playable slice
 
 ---
@@ -879,10 +879,10 @@ easier — it is now genuine lighting rather than a shader faked over flat sprit
 
 Non-blocking, carried forward:
 
-- Respawning empty-handed while the animated corpse retains all equipment (D-224)
-- Duration cap on animated corpses (D-224)
-- Speak With Dead behaviour when the dead player has logged off (D-204)
-- Which 8-10 classes ship at launch (D-208)
+- ~~Respawning empty-handed while the animated corpse retains all equipment (D-224)~~ — resolved in D-511
+- ~~Duration cap on animated corpses (D-224)~~ — resolved in D-511
+- ~~Speak With Dead behaviour when the dead player has logged off (D-204)~~ — resolved in D-511
+- ~~Which 8-10 classes ship at launch (D-208)~~ — ratified in D-511
 - Art direction ratification against the prototype (D-406)
 
 **Resolved:** the working title is settled — **Regnum Confractum**, the broken realm.
@@ -1177,3 +1177,100 @@ list and can never be entered. Renown weighting joins the formula when
 renown exists (M5+). Nothing is yet purchasable with points — the spend
 side (RP-locked classes, D-207) arrives with the class system, and the
 hard rule is restated here: **access and flavour, never raw power.**
+
+### D-511: Stakeholder ratifications — class roster, corpse rules, zombie limits, SWD reach
+**Resolves the open items of D-204, D-208 and D-224. Ratified by the
+stakeholder 2026-08-17.**
+
+**The launch class roster (D-208) — ratified.** Nine classes, names being
+original-noun placeholders open to later renaming:
+
+| Class | Role | Notes |
+|---|---|---|
+| Man-at-Arms | armoured melee | |
+| Berserker | aggressive melee | |
+| Hunter | ranged / wilderness | |
+| Shade | stealth / larceny | |
+| Magus | arcane | |
+| Bonespeaker | necromancer | Speak With Dead, Animate Dead. **Legacy-locked.** |
+| Vessel | shaman | Plane Shift, perceives ghosts. **Legacy-locked.** |
+| Physician | treatment | the D-205 dependency |
+| Cantor | priest | divine healing, curse-breaking |
+
+Two of nine are Legacy-locked (D-207 spend side).
+
+**Animate Dead gear is zone-dependent (D-206 tiers).** In **settled** areas
+the zombie inherits the character's looks, stats and gear *score* but is a
+cosmetic copy: it **cannot be looted**, and the player respawns with their
+loot intact. In **wilderness** (and endgame) zones the harsh rule applies:
+the zombie wears everything carried at death, the player respawns
+empty-handed, and the gear drops where the zombie is destroyed. The
+hunt-your-own-corpse quest exists exactly where players chose the stakes.
+
+**Zombie limits.** Maximum duration for an animated corpse is **3 hours of
+real play time** (tick-counted, per the one-clock rule). Concurrent zombies
+per necromancer scale with skill level, **maximum 3** at the highest.
+
+**Corpse persistence (new, extends D-224).** Player corpses do not vanish
+on death: a corpse remains **at minimum the length of the respawn timer**.
+When a corpse despawns un-animated, anything it held is left **on the
+ground for 1 hour** (tick-counted) before server cleanup.
+
+**Speak With Dead out of reach (D-204).** When the target's player is
+offline or already respawned, the caster receives a **distinct "the spirit
+is beyond reach" result** — different from a reachable ghost who chooses
+silence. Chosen with the status-leak trade-off stated and accepted.
+
+### D-512: M4b spirit interactions implemented — corpses, séances, animation, class scaffold
+
+**Corpses are world entities.** Death spawns a `corpse` entity in the living
+plane at the fall (wire kinds `corpse`/`pile` join the protocol, v2). A
+`corpses` table persists them; **items may now be owned by a character OR a
+corpse** (one-of constraint) — the first non-character item owner, moved in
+bulk by the same atomic-update argument as `transferItem`. Corpse life is
+tick-counted with the remainder persisted on transitions: a restart can
+lengthen a corpse's life but never destroy items. Corpse decay is clamped to
+≥ the ghost minimum (the D-511 "at least the respawn timer" rule); decay
+leaves a lootable `pile`; the pile's hour ends in **deliberate, logged
+destruction** (`corpse_loot_cleanup` records every item) — the one item sink.
+Corpses resolve descriptors through the same per-observer knowledge as the
+living: you recognise a corpse only if you knew the face (D-219 applies to
+the dead).
+
+**Séance = the one sanctioned plane crossing, speech-only, logged.** Speak
+With Dead pulls the ghost to its body (`transferToArea`, plane preserved),
+opens a 5-question bridge: caster questions cross to the spirit; answers come
+back **out of the corpse's mouth** via the ordinary speech pipeline, so
+bystanders hear them and language rules apply. Every question and answer is
+in the event log. Beyond-reach is the distinct error `beyond_reach` (D-511).
+
+**Animate Dead.** The corpse entity becomes a `zombie` (wire kind `npc`,
+descriptor "the walking corpse of ⟨as-you-knew-them⟩") that shambles after
+its necromancer. Duration and the skill-scaled concurrency cap
+(`1 + floor(necromancy/40)`, max 3) per D-511. Destruction drops held gear
+as a pile. The **undead register is a content language** (`undead`) that no
+character speaks — the existing scrambler garbles it for every listener,
+displays "unknown", and the event log keeps the original words. The riding
+owner hears what the body hears and speaks through it; never forced (D-224).
+
+**Class scaffold (D-208).** Classes are schema-validated content
+(`content/classes/*.json`): role, ability grants, `legacyLocked`. The nine
+D-511 classes are authored. Abilities gate `speak_dead`/`animate_dead`
+server-side. **PLACEHOLDER: legacy-locked classes require ≥1 Legacy Point at
+creation with no deduction — pricing awaits stakeholder ratification.**
+Characters gain `class_id` and a `necromancy` skill (0-100, bluff/insight
+precedent).
+
+**Plane-partition hardening.** Three pre-existing unpartitioned broadcasts
+(emotes, speakAs emotes, presentation changes) and three `entity_left` paths
+now partition on the actor's ghost flag — a ghost emoting no longer reaches
+living clients.
+
+**DM verbs added:** `grant-item` (testing faucet; production goods still
+enter only via play, D-220) and `set-skills`, both in the admin UI.
+
+**Bot coverage:** `sim/test/m4c-spirits.test.ts` — 17 tests: zone-dependent
+gear rules, looting, the full séance including a lying answer, beyond-reach,
+ability gates, the cap, following, riding, gear drop on destruction,
+decay→pile→cleanup with conservation asserted throughout, and the
+legacy-lock creation gate.

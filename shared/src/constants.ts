@@ -10,7 +10,7 @@ export const MOVE_COOLDOWN_TICKS = 3;
 export const FLUSH_INTERVAL_TICKS = 300;
 
 /** Bumped on any breaking wire change; both sides assert it (D-105). */
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2; // v2: corpse/pile entity kinds, spirit actions (D-511)
 
 /** Session tokens live this long without activity. */
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -31,3 +31,15 @@ export const GHOST_MIN_TICKS = 3000; // 5 min before self-respawn (D-203)
 export const DEATH_DEBT_PER_DEATH = 100; // paid down by future XP (D-203)
 /** Untreated major wounds bleed: 1 hp per wound per interval (D-205). */
 export const BLEED_INTERVAL_TICKS = 300; // 30s
+
+// Spirit interactions (D-204/D-224, limits ratified in D-511).
+/** A corpse lies where you fell at least as long as the respawn timer. */
+export const CORPSE_DECAY_TICKS = 9000; // 15 min
+/** Gear from a decayed corpse stays on the ground this long before cleanup. */
+export const GROUND_LOOT_TICKS = 36000; // 1 h
+/** Hard cap on how long an animated corpse walks: 3 h of play, tick-counted. */
+export const ZOMBIE_DURATION_TICKS = 108000;
+/** Questions a séance may put to the dead (D-204). */
+export const SEANCE_QUESTIONS = 5;
+/** Concurrent zombies scale with necromancy skill; never above this (D-511). */
+export const MAX_ZOMBIES_PER_NECROMANCER = 3;

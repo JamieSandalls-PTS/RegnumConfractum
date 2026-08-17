@@ -49,10 +49,49 @@ function setStatus(text: string, isError = true): void {
 // State
 // ---------------------------------------------------------------------------
 
+/** Dropped gear on the ground (D-511): a sack and a bundle, nothing more.
+ * Bright albedo on purpose — mid-tones starve the palette quantiser. */
+class PileVisual {
+  readonly root = new THREE.Group();
+  constructor(private parent: THREE.Scene) {
+    const sack = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.28, 0.45),
+      new THREE.MeshLambertMaterial({ color: 0xb5875a }),
+    );
+    sack.position.y = 0.14;
+    sack.rotation.y = 0.4;
+    const bundle = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.16, 0.24),
+      new THREE.MeshLambertMaterial({ color: 0xcfc39a }),
+    );
+    bundle.position.set(0.16, 0.32, -0.06);
+    bundle.rotation.y = -0.3;
+    this.root.add(sack, bundle);
+    parent.add(this.root);
+  }
+  setPosition(x: number, z: number): void {
+    this.root.position.set(x, 0, z);
+  }
+  setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
+  setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
+  playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
+  update(_dt: number, _t: number, _moving: boolean, _wind: number): void {}
+  dispose(): void {
+    this.parent.remove(this.root);
+    this.root.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        o.geometry.dispose();
+        (o.material as THREE.Material).dispose();
+      }
+    });
+  }
+}
+
 interface EntityState {
   wire: WireEntity;
   render: InterpolatedPosition;
-  visual: CharacterVisual;
+  visual: CharacterVisual | PileVisual;
 }
 
 const conn = new Connection();
@@ -195,6 +234,24 @@ conn.onMessage = (msg: ServerMessage) => {
       );
       setTimeout(() => conn.close(), 4000);
       return;
+    case 'seance':
+      if (msg.active) {
+        appendSystemLine(
+          msg.role === 'caster'
+            ? `The séance holds. ${msg.questionsLeft} question${msg.questionsLeft === 1 ? '' : 's'} remain.`
+            : `You are held at your body. ${msg.questionsLeft} question${msg.questionsLeft === 1 ? '' : 's'} remain — answer as you please.`,
+        );
+      } else {
+        appendSystemLine(msg.role === 'caster' ? 'The séance ends.' : 'The hold on you releases.');
+      }
+      return;
+    case 'observing':
+      appendSystemLine(
+        msg.on
+          ? 'You settle into the dead weight of your own body. /observe off to let go.'
+          : 'You drift free of the body.',
+      );
+      return;
     case 'pong':
       return;
   }
@@ -219,11 +276,22 @@ function clearWorld(): void {
 
 function addEntity(wire: WireEntity): void {
   const s = ensureScene();
+  if (wire.kind === 'pile') {
+    const visual = new PileVisual(s.scene);
+    visual.setPosition(wire.x, wire.y);
+    entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
+    return;
+  }
   const visual = new CharacterVisual(wire.appearanceSeed, s.scene);
   visual.setPosition(wire.x, wire.y);
   visual.setFacing(wire.facing);
   visual.setPosture(wire.posture);
   visual.setPresentation(wire.presentation);
+  if (wire.kind === 'corpse') {
+    // The body lies where it fell. update() is skipped for corpses, so this
+    // rotation (and stillness) holds; a proper death pose is art-pass work.
+    visual.root.rotation.z = Math.PI / 2;
+  }
   entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
 }
 
@@ -441,6 +509,32 @@ function sendChat(): void {
     conn.send({ t: 'respawn' });
     return;
   }
+  if (raw === '/loot') {
+    const target = nearestBody(['corpse', 'pile']);
+    if (target === null) return appendSystemLine('Nothing here to loot.');
+    conn.send({ t: 'loot', targetEntityId: target });
+    return;
+  }
+  if (raw === '/speakdead') {
+    const target = nearestBody(['corpse']);
+    if (target === null) return appendSystemLine('No corpse near enough to question.');
+    conn.send({ t: 'speak_dead', targetEntityId: target });
+    return;
+  }
+  if (raw === '/animate') {
+    const target = nearestBody(['corpse']);
+    if (target === null) return appendSystemLine('No corpse near enough to raise.');
+    conn.send({ t: 'animate_dead', targetEntityId: target });
+    return;
+  }
+  if (raw === '/observe' || raw === '/observe on') {
+    conn.send({ t: 'observe_body', on: true });
+    return;
+  }
+  if (raw === '/observe off') {
+    conn.send({ t: 'observe_body', on: false });
+    return;
+  }
   if (raw === '/retire forever') {
     conn.send({ t: 'retire' });
     return;
@@ -490,6 +584,24 @@ function nearestOther(): number | null {
   let bestDist = 11;
   for (const [id, e] of entities) {
     if (id === youId) continue;
+    const d = Math.max(Math.abs(e.wire.x - you.wire.x), Math.abs(e.wire.y - you.wire.y));
+    if (d < bestDist) {
+      bestDist = d;
+      best = id;
+    }
+  }
+  return best;
+}
+
+/** Nearest corpse or gear pile — the targets of loot/séance/animation. */
+function nearestBody(kinds: WireEntity['kind'][]): number | null {
+  if (youId === null) return null;
+  const you = entities.get(youId);
+  if (!you) return null;
+  let best: number | null = null;
+  let bestDist = 11;
+  for (const [id, e] of entities) {
+    if (id === youId || !kinds.includes(e.wire.kind)) continue;
     const d = Math.max(Math.abs(e.wire.x - you.wire.x), Math.abs(e.wire.y - you.wire.y));
     if (d < bestDist) {
       bestDist = d;
@@ -585,10 +697,12 @@ window.addEventListener('keydown', (e) => {
   if (youId === null || isTyping()) return;
   const you = entities.get(youId);
   if (!you) return;
-  if (e.key === '1') you.visual.setEquipment({ helm: !you.visual.equipment.helm });
-  if (e.key === '2') you.visual.setEquipment({ pauldrons: !you.visual.equipment.pauldrons });
-  if (e.key === '3') you.visual.setEquipment({ weapon: !you.visual.equipment.weapon });
-  if (e.key === '4') you.visual.setEquipment({ cape: !you.visual.equipment.cape });
+  if (you.visual instanceof CharacterVisual) {
+    if (e.key === '1') you.visual.setEquipment({ helm: !you.visual.equipment.helm });
+    if (e.key === '2') you.visual.setEquipment({ pauldrons: !you.visual.equipment.pauldrons });
+    if (e.key === '3') you.visual.setEquipment({ weapon: !you.visual.equipment.weapon });
+    if (e.key === '4') you.visual.setEquipment({ cape: !you.visual.equipment.cape });
+  }
   if (e.key === 'h') toggleHood();
   if (e.key === 'f') {
     const target = nearestOther();
@@ -614,7 +728,7 @@ function stepFrame(dt: number): void {
     const moving = isMoving(e.render, target);
     stepToward(e.render, target, dt);
     e.visual.setPosition(e.render.x, e.render.y);
-    e.visual.update(dt, t, moving, wind);
+    if (e.wire.kind !== 'corpse') e.visual.update(dt, t, moving, wind); // the dead lie still
   }
 
   const you = youId !== null ? entities.get(youId) : undefined;

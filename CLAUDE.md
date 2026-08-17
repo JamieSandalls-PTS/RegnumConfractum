@@ -235,11 +235,24 @@ a character forever; the account earns points scaled by xp and deeds (meaningful
 actions, never wall-clock), diminishing on repeat sacrifice. Access and flavour,
 never power — the spend side waits on the class system.
 
-**➡ Session handoff notes: `docs/HANDOFF.md`** — mid-milestone state, next work
-(spirit interactions, endgame zones, injuries, classes), items blocked on the
-stakeholder, and the repo's hard-won working specifics. Read it after this file.
+**M4b part 2 — spirit interactions + class scaffold built (D-511 ratified,
+D-512 implemented).** Corpses are persistent world objects with zone-dependent
+gear rules (settled: cosmetic, unlootable; wilderness: wears everything, the
+hunt-your-own-corpse loop); Speak With Dead (five questions, lying free,
+distinct beyond-reach result); Animate Dead (3h cap, skill-scaled concurrency
+max 3, gear drops on destruction, owner may ride the body speaking the undead
+register); decay → ground loot → logged cleanup. Classes are content
+(`content/classes/`, nine authored per D-511), abilities gate the rites;
+**Legacy-locked class pricing is a placeholder awaiting ratification.** The
+séance is the one sanctioned plane crossing — speech-only, logged. Wire is
+protocol v2. All bot-verified (`sim/test/m4c-spirits.test.ts`, 152 tests total).
 
-**M4b remaining:** spirit interactions (D-204/D-224 corpses), endgame permadeath
-zones, richer injury/treatment types, classes/skills (**which 8-10 classes is an
-open stakeholder decision, D-208**). **Other gaps:** invisible DM observation;
-staging VPS not provisioned.
+**➡ Session handoff notes: `docs/HANDOFF.md`** — mid-milestone state, next work,
+items blocked on the stakeholder, and the repo's hard-won working specifics.
+Read it after this file.
+
+**M4b remaining:** endgame permadeath zones + revival, richer injury/treatment
+types (D-205 matrix), Vessel's Plane Shift, class skills/balance beyond the
+scaffold. **After M4 (stakeholder decision 2026-08-17): basic UI and user
+functions come BEFORE M5.** **Other gaps:** invisible DM observation; staging
+VPS not provisioned.

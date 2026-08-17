@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type {
   Account,
   CharacterRecord,
+  CorpseRecord,
   EventRecord,
   InjuryRecord,
   ItemData,
@@ -62,7 +63,7 @@ export class MemoryStore implements Store {
   }
 
   async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired' | 'necromancy'>,
   ): Promise<CharacterRecord | 'character_name_taken'> {
     const nameKey = c.name.toLowerCase();
     for (const existing of this.characters.values()) {
@@ -81,6 +82,7 @@ export class MemoryStore implements Store {
       deathDebt: 0,
       deeds: 0,
       retired: false,
+      necromancy: 0,
     };
     this.characters.set(record.id, record);
     return { ...record };
@@ -92,11 +94,15 @@ export class MemoryStore implements Store {
     c.languages = [...languages];
   }
 
-  async setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void> {
+  async setCharacterSkills(
+    id: string,
+    skills: { bluff?: number; insight?: number; necromancy?: number },
+  ): Promise<void> {
     const c = this.characters.get(id);
     if (!c) throw new Error(`setCharacterSkills: no character ${id}`);
     if (skills.bluff !== undefined) c.bluff = skills.bluff;
     if (skills.insight !== undefined) c.insight = skills.insight;
+    if (skills.necromancy !== undefined) c.necromancy = skills.necromancy;
   }
 
   async saveCharacterVitals(
@@ -223,6 +229,7 @@ export class MemoryStore implements Store {
       id: randomUUID(),
       templateId,
       ownerCharacterId,
+      ownerCorpseId: null,
       qty,
       data: data ?? null,
     };
@@ -285,6 +292,76 @@ export class MemoryStore implements Store {
     from.coin -= amount;
     to.coin += amount;
     return true;
+  }
+
+  private corpses = new Map<string, CorpseRecord>();
+
+  async createCorpse(c: Omit<CorpseRecord, 'id'>): Promise<CorpseRecord> {
+    if (!this.characters.has(c.characterId)) {
+      throw new Error(`createCorpse: no character ${c.characterId}`);
+    }
+    const record: CorpseRecord = { ...c, id: randomUUID() };
+    this.corpses.set(record.id, record);
+    return { ...record };
+  }
+
+  async updateCorpse(
+    id: string,
+    patch: { state?: CorpseRecord['state']; areaId?: string; x?: number; y?: number; ticksLeft?: number },
+  ): Promise<void> {
+    const c = this.corpses.get(id);
+    if (!c) throw new Error(`updateCorpse: no corpse ${id}`);
+    if (patch.state !== undefined) c.state = patch.state;
+    if (patch.areaId !== undefined) c.areaId = patch.areaId;
+    if (patch.x !== undefined) c.x = patch.x;
+    if (patch.y !== undefined) c.y = patch.y;
+    if (patch.ticksLeft !== undefined) c.ticksLeft = patch.ticksLeft;
+  }
+
+  async listActiveCorpses(): Promise<CorpseRecord[]> {
+    return [...this.corpses.values()].filter((c) => c.state !== 'gone').map((c) => ({ ...c }));
+  }
+
+  async getItemsByCorpse(corpseId: string): Promise<ItemRecord[]> {
+    return [...this.items.values()]
+      .filter((i) => i.ownerCorpseId === corpseId)
+      .map((i) => ({ ...i }));
+  }
+
+  async moveItemsToCorpse(characterId: string, corpseId: string): Promise<number> {
+    let moved = 0;
+    for (const item of this.items.values()) {
+      if (item.ownerCharacterId === characterId) {
+        item.ownerCharacterId = null;
+        item.ownerCorpseId = corpseId;
+        moved++;
+      }
+    }
+    return moved;
+  }
+
+  async moveItemsFromCorpse(corpseId: string, toCharacterId: string): Promise<number> {
+    if (!this.characters.has(toCharacterId)) return 0;
+    let moved = 0;
+    for (const item of this.items.values()) {
+      if (item.ownerCorpseId === corpseId) {
+        item.ownerCorpseId = null;
+        item.ownerCharacterId = toCharacterId;
+        moved++;
+      }
+    }
+    return moved;
+  }
+
+  async deleteItemsByCorpse(corpseId: string): Promise<number> {
+    let deleted = 0;
+    for (const item of [...this.items.values()]) {
+      if (item.ownerCorpseId === corpseId) {
+        this.items.delete(item.id);
+        deleted++;
+      }
+    }
+    return deleted;
   }
 
   private dmEvents = new Map<string, { id: string; name: string; doc: unknown; enabled: boolean }>();

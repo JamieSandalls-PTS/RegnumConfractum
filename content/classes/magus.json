@@ -1,0 +1,8 @@
+{
+  "id": "magus",
+  "name": "Magus",
+  "description": "A scholar of the arcane residue the empire left behind. Power, in exchange for years spent bent over things better left shut.",
+  "role": "arcane",
+  "abilities": [],
+  "legacyLocked": false
+}

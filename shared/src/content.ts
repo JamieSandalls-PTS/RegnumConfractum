@@ -183,3 +183,31 @@ export const LanguagesFileSchema = z
 export const PRESENTATIONS = ['normal', 'hooded'] as const;
 export const PresentationSchema = z.enum(PRESENTATIONS);
 export type Presentation = z.infer<typeof PresentationSchema>;
+
+/**
+ * Classes (D-208, roster ratified in D-511). A class is content, not code:
+ * it names an archetype and grants distinctive abilities. Mechanical gating
+ * reads `abilities`; everything else is presentation. Legacy-locked classes
+ * (D-207) cost Legacy Points to create — access and flavour, never power.
+ */
+export const CLASS_ABILITIES = [
+  /** D-204: pull a ghost back to its corpse for five questions. */
+  'speak-with-dead',
+  /** D-204/D-224: raise a corpse as a walking ally. */
+  'animate-dead',
+  /** D-204: perceive the ghost plane while living. Not yet implemented. */
+  'plane-shift',
+] as const;
+export const ClassAbilitySchema = z.enum(CLASS_ABILITIES);
+export type ClassAbility = z.infer<typeof ClassAbilitySchema>;
+
+export const ClassSchema = z.object({
+  id: ContentIdSchema,
+  name: z.string().min(1),
+  description: z.string().min(1),
+  /** Broad role tag for grouping in UI: 'melee', 'arcane', 'support', ... */
+  role: z.string().min(1),
+  abilities: z.array(ClassAbilitySchema).default([]),
+  legacyLocked: z.boolean().default(false),
+});
+export type ClassDef = z.infer<typeof ClassSchema>;

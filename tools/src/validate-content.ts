@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { AreaSchema, ItemTemplateSchema, type AreaDef } from '@rc/shared';
+import { AreaSchema, ClassSchema, ItemTemplateSchema, type AreaDef } from '@rc/shared';
 
 /**
  * Content validator (D-110, D-114). Run in CI on every build; exits non-zero
@@ -119,6 +119,28 @@ export function validateContent(contentDir: string): ValidationResult {
       continue;
     }
     itemIds.add(parsed.data.id);
+  }
+
+  const classIds = new Set<string>();
+  for (const file of listJson(join(contentDir, 'classes'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = ClassSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    if (classIds.has(parsed.data.id)) {
+      errors.push(`${file}: duplicate class id '${parsed.data.id}'`);
+      continue;
+    }
+    classIds.add(parsed.data.id);
   }
 
   // Cross-area checks: transitions must land on walkable tiles in areas that

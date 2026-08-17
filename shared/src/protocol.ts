@@ -64,6 +64,8 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
     t: z.literal('create_character'),
     name: CharacterNameSchema,
     appearanceSeed: z.number().int().nonnegative().optional(),
+    /** Playable class (D-208/D-511). Optional while class selection UI lands. */
+    classId: ContentIdSchema.optional(),
   }),
   z.object({ t: z.literal('enter_world'), characterId: UuidSchema }),
   z.object({ t: z.literal('move'), dir: DirectionSchema }),
@@ -87,6 +89,15 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('respawn') }),
   /** Voluntary permadeath (D-207): irreversible; earns Legacy Points. */
   z.object({ t: z.literal('retire') }),
+  /** Take everything a corpse or scatter of gear holds (D-224/D-511). */
+  z.object({ t: z.literal('loot'), targetEntityId: z.number().int() }),
+  /** D-204: draw the ghost back to this corpse for five questions. */
+  z.object({ t: z.literal('speak_dead'), targetEntityId: z.number().int() }),
+  /** D-204/D-224: raise this corpse as a walking ally. */
+  z.object({ t: z.literal('animate_dead'), targetEntityId: z.number().int() }),
+  /** Dead owner's choice (D-224): ride along in the animated body — hear what
+   * it hears, speak through it in the undead register. */
+  z.object({ t: z.literal('observe_body'), on: z.boolean() }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -123,6 +134,13 @@ export const ErrorCodeSchema = z.enum([
   'not_dead',
   'too_soon',
   'no_injury',
+  /** Speak With Dead on a spirit that is offline or already respawned — a
+   * deliberately distinct result (D-511). */
+  'beyond_reach',
+  /** The acting character's class does not grant this ability (D-204/D-208). */
+  'lacks_ability',
+  /** Concurrent-zombie cap reached (D-511: skill-scaled, max 3). */
+  'limit_reached',
   'internal',
 ]);
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -136,7 +154,8 @@ export const WireEntitySchema = z.object({
    * are therefore personalized per connection.
    */
   descriptor: z.string().min(1).max(120),
-  kind: z.enum(['player', 'npc']),
+  /** 'corpse' lies where a player fell; 'pile' is gear left after decay. */
+  kind: z.enum(['player', 'npc', 'corpse', 'pile']),
   x: z.number().int(),
   y: z.number().int(),
   facing: DirectionSchema,
@@ -163,6 +182,8 @@ export const CharacterSummarySchema = z.object({
   x: z.number().int(),
   y: z.number().int(),
   appearanceSeed: z.number().int().nonnegative(),
+  /** Playable class id (D-208/D-511); absent on pre-class characters. */
+  classId: z.string().optional(),
 });
 export type CharacterSummary = z.infer<typeof CharacterSummarySchema>;
 
@@ -281,6 +302,20 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     coin: z.number().int().nonnegative(),
   }),
   z.object({ t: z.literal('pong'), nonce: z.number().int(), tick: z.number().int() }),
+  /**
+   * Séance state (D-204). The caster learns how many questions remain; the
+   * spirit learns it has been drawn back. Answers travel as ordinary speech
+   * attributed to the corpse; questions reach the spirit the same way.
+   */
+  z.object({
+    t: z.literal('seance'),
+    role: z.enum(['caster', 'spirit']),
+    active: z.boolean(),
+    questionsLeft: z.number().int().nonnegative(),
+  }),
+  /** Confirmation of observe_body; also sent when observation ends (zombie
+   * destroyed, duration expired). */
+  z.object({ t: z.literal('observing'), on: z.boolean() }),
   /** The ending that is a beginning (D-207). */
   z.object({
     t: z.literal('retired'),

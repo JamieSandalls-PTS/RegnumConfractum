@@ -34,6 +34,10 @@ export interface CharacterRecord {
   deathDebt: number;
   deeds: number;
   retired: boolean;
+  /** Playable class (D-208/D-511); null on pre-class characters. */
+  classId: string | null;
+  /** Scales the concurrent-zombie cap (D-511). 0–100 like bluff/insight. */
+  necromancy: number;
 }
 
 export interface InjuryRecord {
@@ -62,9 +66,26 @@ export interface KnowledgeRecord {
 export interface ItemRecord {
   id: string;
   templateId: string;
-  ownerCharacterId: string;
+  /** Exactly one owner is set: a living character or a corpse (D-224). */
+  ownerCharacterId: string | null;
+  ownerCorpseId: string | null;
   qty: number;
   data: ItemData | null;
+}
+
+/**
+ * A corpse as a world object (D-224/D-511). `ticksLeft` is the countdown
+ * remaining in the current state at last write; the server resumes from it
+ * on boot, so a restart can lengthen a corpse's life but never destroy items.
+ */
+export interface CorpseRecord {
+  id: string;
+  characterId: string;
+  areaId: string;
+  x: number;
+  y: number;
+  state: 'corpse' | 'animated' | 'ground' | 'gone';
+  ticksLeft: number;
 }
 
 export interface SessionRecord {
@@ -99,7 +120,7 @@ export interface Store {
 
   // Characters
   createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired'>,
+    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired' | 'necromancy'>,
   ): Promise<CharacterRecord | 'character_name_taken'>;
   setCharacterLanguages(id: string, languages: string[]): Promise<void>;
   getCharacter(id: string): Promise<CharacterRecord | null>;
@@ -107,7 +128,10 @@ export interface Store {
   /** Batched dirty-flag flush target; also called immediately on logout (D-106). */
   saveCharacterPosition(id: string, areaId: string, x: number, y: number): Promise<void>;
   /** Skill tuning — admin/tests now, character systems (M4) later. */
-  setCharacterSkills(id: string, skills: { bluff?: number; insight?: number }): Promise<void>;
+  setCharacterSkills(
+    id: string,
+    skills: { bluff?: number; insight?: number; necromancy?: number },
+  ): Promise<void>;
   /** Immediate on death/logout, batched otherwise (D-106). */
   saveCharacterVitals(
     id: string,
@@ -161,6 +185,24 @@ export interface Store {
   getCoin(characterId: string): Promise<number>;
   /** True iff `from` had at least `amount`. Atomic, never overdraws. */
   transferCoin(fromCharacterId: string, toCharacterId: string, amount: number): Promise<boolean>;
+
+  // Corpses (D-224/D-511). All item moves here are bulk and atomic — the same
+  // no-duplication contract as transferItem.
+  createCorpse(c: Omit<CorpseRecord, 'id'>): Promise<CorpseRecord>;
+  updateCorpse(
+    id: string,
+    patch: { state?: CorpseRecord['state']; areaId?: string; x?: number; y?: number; ticksLeft?: number },
+  ): Promise<void>;
+  /** Corpses to re-materialize on boot (state <> 'gone'). */
+  listActiveCorpses(): Promise<CorpseRecord[]>;
+  getItemsByCorpse(corpseId: string): Promise<ItemRecord[]>;
+  /** Death in the wilderness (D-224): everything carried moves to the corpse. */
+  moveItemsToCorpse(characterId: string, corpseId: string): Promise<number>;
+  /** Looting: everything the corpse holds moves to the looter. */
+  moveItemsFromCorpse(corpseId: string, toCharacterId: string): Promise<number>;
+  /** The ground-loot cleanup sink (D-511: unclaimed gear is destroyed after
+   * an hour). DELIBERATE destruction — callers must log what was lost. */
+  deleteItemsByCorpse(corpseId: string): Promise<number>;
 
   // DM events (D-216) — editor documents, validated against EventDocSchema
   createDmEvent(name: string, doc: unknown): Promise<DmEventRecord>;

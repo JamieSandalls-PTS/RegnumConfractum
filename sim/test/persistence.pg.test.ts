@@ -89,11 +89,11 @@ describe.skipIf(!DATABASE_URL)('persistence across server restart (Postgres)', (
     if (account === 'username_taken') throw new Error('unreachable');
     const a = await store.createCharacter({
       accountId: account.id, name: `Atomic Alice ${letterTag}`, appearanceSeed: 1,
-      areaId: 'broken-yard', x: 2, y: 2,
+      areaId: 'broken-yard', x: 2, y: 2, classId: null,
     });
     const b = await store.createCharacter({
       accountId: account.id, name: `Atomic Bob ${letterTag}`, appearanceSeed: 2,
-      areaId: 'broken-yard', x: 2, y: 2,
+      areaId: 'broken-yard', x: 2, y: 2, classId: null,
     });
     if (typeof a === 'string' || typeof b === 'string') throw new Error('unreachable');
 
@@ -119,11 +119,11 @@ describe.skipIf(!DATABASE_URL)('persistence across server restart (Postgres)', (
     if (account === 'username_taken') throw new Error('unreachable');
     const observer = await store.createCharacter({
       accountId: account.id, name: `Observer Ode ${letterTag}`, appearanceSeed: 5,
-      areaId: 'broken-yard', x: 2, y: 2,
+      areaId: 'broken-yard', x: 2, y: 2, classId: null,
     });
     const subject = await store.createCharacter({
       accountId: account.id, name: `Subject Sil ${letterTag}`, appearanceSeed: 6,
-      areaId: 'broken-yard', x: 2, y: 2,
+      areaId: 'broken-yard', x: 2, y: 2, classId: null,
     });
     if (typeof observer === 'string' || typeof subject === 'string') throw new Error('unreachable');
 

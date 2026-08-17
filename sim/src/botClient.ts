@@ -40,6 +40,12 @@ export class BotClient {
   lastResyncDiffs: string[] | null = null;
   /** Every speech line this client has heard, in order. */
   readonly speeches: Extract<ServerMessage, { t: 'speech' }>[] = [];
+  /** Every narration line, in order (DM/scripts/spirit notices). */
+  readonly narrations: string[] = [];
+  /** Latest séance state (D-204), if any ever arrived. */
+  seance: Extract<ServerMessage, { t: 'seance' }> | null = null;
+  /** Whether this client is riding its corpse (D-224). */
+  observing = false;
   /** Latest vitals (hp, ghost, injuries, debt). */
   status: Extract<ServerMessage, { t: 'status' }> | null = null;
   area: AreaMirror | null = null;
@@ -267,6 +273,18 @@ export class BotClient {
       }
       case 'speech': {
         this.speeches.push(msg);
+        break;
+      }
+      case 'narrate': {
+        this.narrations.push(msg.text);
+        break;
+      }
+      case 'seance': {
+        this.seance = msg;
+        break;
+      }
+      case 'observing': {
+        this.observing = msg.on;
         break;
       }
       case 'status': {

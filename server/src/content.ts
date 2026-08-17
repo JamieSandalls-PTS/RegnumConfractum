@@ -2,11 +2,13 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   AreaSchema,
+  ClassSchema,
   EMPTY_LEXICON,
   EmoteLexiconSchema,
   ItemTemplateSchema,
   LanguagesFileSchema,
   type AreaDef,
+  type ClassDef,
   type EmoteLexicon,
   type ItemTemplate,
   type Language,
@@ -23,6 +25,8 @@ export interface Content {
   itemTemplates: Map<string, ItemTemplate>;
   emoteLexicon: EmoteLexicon;
   languages: Map<string, Language>;
+  /** Playable classes (D-208/D-511); empty means class selection is closed. */
+  classes: Map<string, ClassDef>;
   /** Lua sources by script id (content/scripts/<id>.lua), D-109. */
   scripts: Map<string, string>;
 }
@@ -99,6 +103,18 @@ export function loadContent(contentDir: string): Content {
     });
   }
 
+  const classes = new Map<string, ClassDef>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'classes'))) {
+    const parsed = ClassSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (classes.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate class id '${parsed.data.id}'`);
+    }
+    classes.set(parsed.data.id, parsed.data);
+  }
+
   const scripts = new Map<string, string>();
   try {
     for (const f of readdirSync(join(contentDir, 'scripts')).filter((f) => f.endsWith('.lua'))) {
@@ -121,5 +137,5 @@ export function loadContent(contentDir: string): Content {
   }
 
   if (areas.size === 0) throw new Error(`no areas found under ${contentDir}/areas`);
-  return { areas, itemTemplates, emoteLexicon, languages, scripts };
+  return { areas, itemTemplates, emoteLexicon, languages, classes, scripts };
 }

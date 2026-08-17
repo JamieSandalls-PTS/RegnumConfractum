@@ -18,5 +18,10 @@
     "id": "crypt-cant",
     "name": "Crypt Cant",
     "description": "A whispering argot of grave-robbers, cultists, and worse. Knowing it says something about you."
+  },
+  {
+    "id": "undead",
+    "name": "Undead Register",
+    "description": "The wet, broken sounds a dead throat makes when something insists it speak. No living tongue learns it; the scramble IS the voice (D-224)."
   }
 ]

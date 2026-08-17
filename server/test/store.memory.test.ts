@@ -11,10 +11,10 @@ describe('MemoryStore conservation semantics', () => {
     const account = await store.createAccount('tester', 'hash');
     if (account === 'username_taken') throw new Error('unreachable');
     const a = await store.createCharacter({
-      accountId: account.id, name: 'Alice', appearanceSeed: 1, areaId: 'x', x: 0, y: 0,
+      accountId: account.id, name: 'Alice', appearanceSeed: 1, areaId: 'x', x: 0, y: 0, classId: null,
     });
     const b = await store.createCharacter({
-      accountId: account.id, name: 'Bob', appearanceSeed: 2, areaId: 'x', x: 0, y: 0,
+      accountId: account.id, name: 'Bob', appearanceSeed: 2, areaId: 'x', x: 0, y: 0, classId: null,
     });
     if (typeof a === 'string' || typeof b === 'string') throw new Error('unreachable');
     alice = a.id;
@@ -43,7 +43,7 @@ describe('MemoryStore conservation semantics', () => {
   it('duplicate usernames and character names are rejected', async () => {
     expect(await store.createAccount('TESTER', 'hash2')).toBe('username_taken');
     const dup = await store.createCharacter({
-      accountId: 'whatever', name: 'alice', appearanceSeed: 3, areaId: 'x', x: 0, y: 0,
+      accountId: 'whatever', name: 'alice', appearanceSeed: 3, areaId: 'x', x: 0, y: 0, classId: null,
     });
     expect(dup).toBe('character_name_taken');
   });
