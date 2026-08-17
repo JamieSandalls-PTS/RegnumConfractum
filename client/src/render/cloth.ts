@@ -202,6 +202,7 @@ export class SolidHair {
     else cap.scale.set(1.04, 0.9, 1.12);
     cap.position.set(0, headH * 0.55, -headH * 0.04);
     cap.castShadow = true;
+    cap.name = 'hair cap';
     this.capGroup.add(cap);
     // Fringe: a slim band at the HAIRLINE, high on the forehead — round 7's
     // reference shows the face fully open, hair framing it from above.
@@ -212,6 +213,7 @@ export class SolidHair {
     );
     fringe.position.set(0, headH * 0.52, -headH * 0.02);
     fringe.castShadow = true;
+    fringe.name = 'hair fringe';
     this.capGroup.add(fringe);
 
     if (style === 'bob' || style === 'long') {
@@ -225,6 +227,7 @@ export class SolidHair {
         side.position.set(s * headH * 0.34, headH * 0.28, -headH * 0.08);
         side.rotation.z = s * -0.06; // flares slightly outward at the jaw
         side.castShadow = true;
+        side.name = s === 1 ? 'hair side left' : 'hair side right';
         this.capGroup.add(side);
       }
       // Back mass: a squashed sphere so the nape ROUNDS off (a box left a
@@ -233,12 +236,14 @@ export class SolidHair {
       back.scale.set(0.85, 0.95, 0.5);
       back.position.set(0, headH * 0.3, -headH * 0.26);
       back.castShadow = true;
+      back.name = 'hair back';
       this.capGroup.add(back);
     }
     if (style === 'tail') {
       // The gather at the back of the head the tail hangs from.
       const tie = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.14, 8, 6), mat());
       tie.position.set(0, headH * 0.58, -headH * 0.36);
+      tie.name = 'hair tie';
       this.capGroup.add(tie);
     }
     headBone.add(this.capGroup);

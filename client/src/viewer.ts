@@ -219,13 +219,16 @@ function collectParts(): void {
   const target = shown[0];
   if (!target) return;
   let i = 0;
+  const seen = new Map<string, number>();
   target.visual.root.traverse((o) => {
     if (o instanceof THREE.Mesh) {
-      const g = o.geometry.type.replace('Geometry', '');
-      const wp = new THREE.Vector3();
-      o.getWorldPosition(wp);
+      // Semantic names come from the construction code (nm() tags); repeats
+      // like a limb's three segments get a numeric suffix.
+      const base = o.name || o.geometry.type.replace('Geometry', '');
+      const n = (seen.get(base) ?? 0) + 1;
+      seen.set(base, n);
       editParts.push({
-        name: `#${String(i).padStart(2, '0')} ${g} y≈${wp.y.toFixed(2)}`,
+        name: `#${String(i).padStart(2, '0')} ${base}${n > 1 ? ` (${n})` : ''}`,
         mesh: o,
         base: {
           px: o.position.x, py: o.position.y, pz: o.position.z,
@@ -241,8 +244,13 @@ function slider(label: string, min: number, max: number, step: number, value: nu
   onInput: (v: number) => void): HTMLElement {
   const row = document.createElement('div');
   row.className = 'sl';
-  const val = document.createElement('b');
-  val.textContent = value.toFixed(3);
+  // Paired range + number inputs, kept in sync: drag for feel, type for
+  // fine-tuning (stakeholder request).
+  const num = document.createElement('input');
+  num.type = 'number';
+  num.step = String(step);
+  num.value = value.toFixed(3);
+  num.style.width = '62px';
   const input = document.createElement('input');
   input.type = 'range';
   input.min = String(min);
@@ -251,12 +259,19 @@ function slider(label: string, min: number, max: number, step: number, value: nu
   input.value = String(value);
   input.addEventListener('input', () => {
     const v = Number(input.value);
-    val.textContent = v.toFixed(3);
+    num.value = v.toFixed(3);
+    onInput(v);
+  });
+  num.addEventListener('change', () => {
+    const v = Number(num.value);
+    if (!Number.isFinite(v)) return;
+    input.value = String(v);
     onInput(v);
   });
   const tag = document.createElement('span');
   tag.textContent = label;
-  row.append(tag, input, val);
+  tag.style.width = '64px';
+  row.append(tag, input, num);
   return row;
 }
 
@@ -288,12 +303,12 @@ function renderEditor(): void {
 
   const p = part.mesh.position;
   const s = part.mesh.scale;
-  editorEl.appendChild(slider('px', p.x - 0.25, p.x + 0.25, 0.002, p.x, (v) => { p.x = v; }));
-  editorEl.appendChild(slider('py', p.y - 0.25, p.y + 0.25, 0.002, p.y, (v) => { p.y = v; }));
-  editorEl.appendChild(slider('pz', p.z - 0.25, p.z + 0.25, 0.002, p.z, (v) => { p.z = v; }));
-  editorEl.appendChild(slider('sx', 0.1, 3, 0.01, s.x, (v) => { s.x = v; }));
-  editorEl.appendChild(slider('sy', 0.1, 3, 0.01, s.y, (v) => { s.y = v; }));
-  editorEl.appendChild(slider('sz', 0.1, 3, 0.01, s.z, (v) => { s.z = v; }));
+  editorEl.appendChild(slider('Pos X (left/right)', p.x - 0.25, p.x + 0.25, 0.002, p.x, (v) => { p.x = v; }));
+  editorEl.appendChild(slider('Pos Y (up/down)', p.y - 0.25, p.y + 0.25, 0.002, p.y, (v) => { p.y = v; }));
+  editorEl.appendChild(slider('Pos Z (fwd/back)', p.z - 0.25, p.z + 0.25, 0.002, p.z, (v) => { p.z = v; }));
+  editorEl.appendChild(slider('Width (scale X)', 0.1, 3, 0.01, s.x, (v) => { s.x = v; }));
+  editorEl.appendChild(slider('Height (scale Y)', 0.1, 3, 0.01, s.y, (v) => { s.y = v; }));
+  editorEl.appendChild(slider('Depth (scale Z)', 0.1, 3, 0.01, s.z, (v) => { s.z = v; }));
 
   const row = document.createElement('div');
   row.className = 'row2';

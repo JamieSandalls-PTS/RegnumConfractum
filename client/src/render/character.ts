@@ -129,9 +129,17 @@ export class CharacterVisual {
     return new THREE.MeshLambertMaterial({ color });
   }
 
+  /** Editor part-naming: meshes built after nm('x') are named 'x' — the
+   * viewer's model editor shows these instead of raw geometry types. */
+  private partName = 'part';
+  private nm(name: string): void {
+    this.partName = name;
+  }
+
   private addMesh(parent: THREE.Object3D, geom: THREE.BufferGeometry, color: number,
     pos: [number, number, number] = [0, 0, 0]): THREE.Mesh {
     const mesh = new THREE.Mesh(geom, this.material(color));
+    mesh.name = this.partName;
     mesh.position.set(pos[0], pos[1], pos[2]);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -180,6 +188,7 @@ export class CharacterVisual {
       geom.computeVertexNormals();
     }
     const mesh = new THREE.Mesh(geom, this.material(color));
+    mesh.name = this.partName;
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     parent.add(mesh);
@@ -253,6 +262,7 @@ export class CharacterVisual {
     const seamWaist = waistW * 0.58; // abdomen top = ribcage bottom
 
     this.pelvis = this.joint(this.root, [0, hipY, 0]);
+    this.nm('pelvis');
     // The pelvis DROPS between the thighs (review round 3): a V-profile
     // whose centre descends past the hip joints, so the crotch reads as
     // trousers meeting, not the underside of a ball.
@@ -271,11 +281,13 @@ export class CharacterVisual {
     pelvisMesh.position.z = -hipW * 0.06;
     // One wide flattened mass under the cloth, faintly creased by the fold
     // ripples — two bare spheres read as exactly that (round 8).
+    this.nm('buttocks');
     const glutes = this.addMesh(this.pelvis, new THREE.SphereGeometry(hipW * 0.26, 14, 10), p.cloth,
       [0, torsoH * 0.01, -hipW * 0.2]);
     glutes.scale.set(1.5, 0.85, 0.62);
 
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
+    this.nm('abdomen');
     const belly = this.lathe(this.spine, [
       [seamHip, 0],
       [waistW * 0.52, torsoH * 0.18],
@@ -284,6 +296,7 @@ export class CharacterVisual {
     belly.scale.z = 0.68; // flat-fronted, like the reference — not a pot
     belly.position.z = -waistW * 0.04;
     // Abdominal mass: one soft flattened swell, not carved bands.
+    this.nm('stomach');
     const abs = this.addMesh(this.spine, new THREE.SphereGeometry(waistW * 0.28, 12, 9), p.cloth,
       [0, torsoH * 0.18, this.frontZ() * 0.3]);
     abs.scale.set(1.0, 1.2, 0.22);
@@ -295,6 +308,7 @@ export class CharacterVisual {
     // the chest reaches the deltoids, and the shoulder slope stays small the
     // way a clavicle line does. Female chest band slightly slimmer.
     const bandW = shoulderW * (fem ? 0.92 : 0.98);
+    this.nm('chest');
     const ribcage = this.lathe(this.chest, [
       [seamWaist, 0],
       [shoulderW * 0.84, torsoH * 0.18],
@@ -306,6 +320,7 @@ export class CharacterVisual {
     ], p.cloth);
     ribcage.scale.z = 0.66;
     // Trapezius: a soft saddle behind the neck, not a slab.
+    this.nm('upper back');
     const traps = this.addMesh(this.chest, new THREE.SphereGeometry(shoulderW * 0.46, 12, 9), p.cloth,
       [0, torsoH * 0.4, -this.frontZ() * 0.24]);
     traps.scale.set(1.45, 0.4, 0.66);
@@ -319,6 +334,7 @@ export class CharacterVisual {
       this.bustGroup.position.copy(this.bustBase);
       this.chest.add(this.bustGroup);
       for (const s of [1, -1]) {
+        this.nm(s === 1 ? 'breast left' : 'breast right');
         const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.21, 10, 8), p.cloth,
           [s * bodyW * 0.16, -bodyW * 0.02, 0]); // a slight hang, not bolted-on
         b.scale.set(1.0, 1.0, 0.85);
@@ -327,6 +343,7 @@ export class CharacterVisual {
       // Pectorals: proud of the ribcage so the SIDE profile has a chest
       // plane, not a flat slab (cycle B).
       for (const s of [1, -1]) {
+        this.nm(s === 1 ? 'pectoral left' : 'pectoral right');
         const pec = this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.17, 10, 8), p.cloth,
           [s * bodyW * 0.14, torsoH * 0.28, this.frontZ() * 0.5]);
         pec.scale.set(1.05, 0.72, 0.55);
@@ -334,22 +351,26 @@ export class CharacterVisual {
     }
     // Belt: at the HIPS, where trousers are belted (review round 6 — it had
     // drifted to the ribs). Parented to the spine so it rides the hip line.
+    this.nm('belt');
     const belt = this.addMesh(this.spine,
       new THREE.CylinderGeometry(seamHip * 1.05, seamHip * 1.08, torsoH * 0.07, 18),
       p.accent, [0, torsoH * 0.03, 0]);
     belt.scale.z = 0.85; // must stay proud of the rippled cloth beneath
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
+    this.nm('neck');
     this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.15, headH * 0.24, 8),
       p.skin, [0, headH * 0.1, 0]);
 
     // Head: a capsule cranium with a hinted jaw — rounder than the old box.
     this.head = this.joint(this.neck, [0, headH * 0.22, 0]);
+    this.nm('head');
     this.addMesh(this.head,
       new THREE.CapsuleGeometry(headH * 0.35, headH * 0.14, 4, 10),
       p.skin, [0, headH * 0.42, 0]);
     // Jaw: an ellipsoid, not a box — the box corners read as "a cube near
     // the chin" (round 8). Narrower on the female build (reference: oval).
+    this.nm('jaw');
     const jaw = this.addMesh(this.head,
       new THREE.SphereGeometry(headH * 0.26, 12, 9),
       p.skin, [0, headH * 0.22, headH * 0.04]);
@@ -409,22 +430,28 @@ export class CharacterVisual {
     const iris = CharacterVisual.shade(p.hairColor, 0.5);
     const faceZ = headH * 0.3;
     for (const s of [1, -1]) {
+      const lr = s === 1 ? 'left' : 'right';
+      this.nm(`eye ${lr}`);
       const white = this.addMesh(this.head, new THREE.SphereGeometry(headH * 0.055, 8, 6), eyeWhite,
         [s * headH * 0.13, headH * 0.44, faceZ]);
       white.scale.z = 0.45;
+      this.nm(`iris ${lr}`);
       const pupil = this.addMesh(this.head, new THREE.SphereGeometry(headH * 0.028, 6, 5), iris,
         [s * headH * 0.13, headH * 0.44, faceZ + headH * 0.028]);
       pupil.scale.z = 0.5;
+      this.nm(`brow ${lr}`);
       const brow = this.box(this.head, headH * 0.14, headH * 0.032, headH * 0.03, browCol,
         [s * headH * 0.13, headH * 0.53, faceZ + headH * 0.012]);
       brow.rotation.z = s * -0.12;
     }
     // Nose: a small three-sided prism, point forward.
+    this.nm('nose');
     const nose = this.addMesh(this.head,
       new THREE.CylinderGeometry(headH * 0.035, headH * 0.05, headH * 0.14, 3),
       p.skin, [0, headH * 0.33, faceZ + headH * 0.02]);
     nose.rotation.x = -0.12;
     // Mouth: a soft darker line on the jaw.
+    this.nm('mouth');
     const mouth = this.box(this.head, headH * 0.16, headH * 0.025, headH * 0.02, lipCol,
       [0, headH * 0.16, headH * 0.235]);
     mouth.rotation.x = 0.05;
@@ -433,29 +460,36 @@ export class CharacterVisual {
   private buildArm(side: 'L' | 'R', bodyW: number, upperArm: number, lowerArm: number, torsoH: number): Limb {
     const p = this.appearance;
     const s = side === 'L' ? 1 : -1;
+    const lr = side === 'L' ? 'left' : 'right';
     const sh = this.joint(this.chest, [s * this.dims.shoulderW, this.dims.baseShY, 0]);
     // Deltoid: an egg-shaped mass ON the arm bone, so it rides every arm
     // move and blends the shoulder into the upper arm (review: not a bare
     // sphere hovering at the joint).
+    this.nm(`${lr} shoulder`);
     const deltoid = this.addMesh(sh, new THREE.SphereGeometry(bodyW * 0.135, 10, 8), p.cloth,
       [-s * bodyW * 0.05, -bodyW * 0.04, 0]); // buried in the chest edge
     deltoid.scale.set(1.15, 1.2, 0.95);
     // Deltoid → wrist taper; sleeves run to the wrist (bare pale forearms
     // read as gauntlet mitts at distance — cycle B), hands alone are skin.
+    this.nm(`${lr} upper arm`);
     this.taperedLimb(sh, bodyW * 0.125, bodyW * 0.1, upperArm, p.cloth);
     const el = this.joint(sh, [0, -upperArm, 0]);
+    this.nm(`${lr} forearm`);
     this.taperedLimb(el, bodyW * 0.105, bodyW * 0.07, lowerArm, p.cloth);
     const hand = this.joint(el, [0, -lowerArm, 0]);
     // A hand (next-tier pass): palm, a gently curled finger mass, and an
     // opposable thumb on the inner side — not a mitt sphere.
+    this.nm(`${lr} palm`);
     const palm = this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.085, 8, 6), p.skin,
       [0, -bodyW * 0.04, 0]);
     palm.scale.set(0.8, 1.0, 0.55);
+    this.nm(`${lr} fingers`);
     const fingers = this.addMesh(hand,
       new THREE.CapsuleGeometry(bodyW * 0.055, bodyW * 0.09, 3, 7), p.skin,
       [0, -bodyW * 0.14, bodyW * 0.012]);
     fingers.scale.set(1.25, 1.0, 0.7);
     fingers.rotation.x = 0.28; // relaxed curl
+    this.nm(`${lr} thumb`);
     const thumb = this.addMesh(hand,
       new THREE.CapsuleGeometry(bodyW * 0.032, bodyW * 0.07, 3, 6), p.skin,
       [-s * bodyW * 0.075, -bodyW * 0.06, bodyW * 0.03]);
@@ -467,22 +501,27 @@ export class CharacterVisual {
   private buildLeg(side: 'L' | 'R', hipW: number, upperLeg: number, lowerLeg: number, fem: boolean): Leg {
     const p = this.appearance;
     const s = side === 'L' ? 1 : -1;
+    const lr = side === 'L' ? 'left' : 'right';
     // Hip joints tucked in so the thighs nearly meet — cycle C found a
     // cowboy gap between the legs.
     const hip = this.joint(this.pelvis, [s * hipW * 0.24, 0, 0]);
     // Thigh: thick at the top, narrowing to the knee (the review's example).
+    this.nm(`${lr} thigh`);
     this.taperedLimb(hip, hipW * (fem ? 0.23 : 0.22), hipW * 0.135, upperLeg, p.cloth);
     const knee = this.joint(hip, [0, -upperLeg, 0]);
     // Calf: a bulge below the knee, tapering hard to the ankle.
+    this.nm(`${lr} calf`);
     this.taperedLimb(knee, hipW * 0.15, hipW * 0.085, lowerLeg, p.cloth);
     const foot = this.joint(knee, [0, -lowerLeg, 0]);
     // A shaped foot (review: not a rectangle): rounded heel under the ankle
     // and a wedge tapering toward the toes. The 4-sided frustum, spun 45°,
     // gives a flat-soled taper no box can.
     const boot = 0x3a3028; // bright enough to survive the quantiser
+    this.nm(`${lr} heel`);
     const heel = this.addMesh(foot, new THREE.SphereGeometry(hipW * 0.115, 8, 6), boot,
       [0, -hipW * 0.05, -hipW * 0.02]);
     heel.scale.set(0.95, 0.68, 1.05);
+    this.nm(`${lr} foot`);
     const toe = this.addMesh(
       foot,
       new THREE.CylinderGeometry(hipW * 0.075, hipW * 0.12, hipW * 0.34, 4, 1)
@@ -506,6 +545,7 @@ export class CharacterVisual {
 
     if (this.helmGroup) { this.head.remove(this.helmGroup); this.helmGroup = null; }
     if (this.equipment.helm) {
+      this.nm('helm');
       this.helmGroup = new THREE.Group();
       this.head.add(this.helmGroup);
       const dome = this.addMesh(this.helmGroup,
@@ -519,6 +559,7 @@ export class CharacterVisual {
     if (this.equipment.pauldrons) {
       this.pauldronGroup = new THREE.Group();
       this.chest.add(this.pauldronGroup);
+      this.nm('pauldron');
       for (const s of [1, -1]) {
         this.addMesh(this.pauldronGroup, new THREE.SphereGeometry(bodyW * 0.22, 8, 6), p.metal,
           [s * (shoulderW + 0.02), torsoH * 0.32, 0]);
@@ -530,6 +571,7 @@ export class CharacterVisual {
       // Gripped in the fist, blade pointing FORWARD from the character
       // (review point): the group builds blade-down, then rotates -90° about
       // X so "down" becomes "out in front", angled slightly toward the ground.
+      this.nm('sword');
       this.weaponGroup = new THREE.Group();
       this.arms.R.hand.add(this.weaponGroup);
       this.weaponGroup.position.set(0, -bodyW * 0.05, 0);
@@ -582,6 +624,7 @@ export class CharacterVisual {
       this.cowlGroup = null;
     }
     if (presentation === 'hooded') {
+      this.nm('hood');
       this.cowlGroup = new THREE.Group();
       this.head.add(this.cowlGroup);
       this.box(this.cowlGroup, headH * 0.9, headH * 0.95, headH * 0.85, 0x241f1c, [0, headH * 0.45, -headH * 0.06]);
