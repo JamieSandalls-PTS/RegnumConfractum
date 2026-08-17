@@ -77,7 +77,7 @@ export class CharacterVisual {
    * seam, and pinning there was the review's cape-from-the-waist bug. */
   private capeAnchor: THREE.Group | null = null;
   private helmGroup: THREE.Group | null = null;
-  private pauldronGroup: THREE.Group | null = null;
+  private pauldronMeshes: THREE.Mesh[] = [];
   private weaponGroup: THREE.Group | null = null;
   private cowlGroup: THREE.Group | null = null;
   private cape: Cloth | null = null;
@@ -335,9 +335,10 @@ export class CharacterVisual {
       this.chest.add(this.bustGroup);
       for (const s of [1, -1]) {
         this.nm(s === 1 ? 'breast left' : 'breast right');
+        // Stakeholder-tuned via the model editor (export, seed 1005).
         const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.21, 10, 8), p.cloth,
-          [s * bodyW * 0.16, -bodyW * 0.02, 0]); // a slight hang, not bolted-on
-        b.scale.set(1.0, 1.0, 0.85);
+          [s * bodyW * 0.16, -bodyW * 0.065, bodyW * 0.075]);
+        b.scale.set(1.2, 1.3, 1.3);
       }
     } else {
       // Pectorals: proud of the ribcage so the SIDE profile has a chest
@@ -352,10 +353,11 @@ export class CharacterVisual {
     // Belt: at the HIPS, where trousers are belted (review round 6 — it had
     // drifted to the ribs). Parented to the spine so it rides the hip line.
     this.nm('belt');
+    // Stakeholder-tuned via the model editor: slimmer, flatter, set back.
     const belt = this.addMesh(this.spine,
-      new THREE.CylinderGeometry(seamHip * 1.05, seamHip * 1.08, torsoH * 0.07, 18),
-      p.accent, [0, torsoH * 0.03, 0]);
-    belt.scale.z = 0.85; // must stay proud of the rippled cloth beneath
+      new THREE.CylinderGeometry(seamHip * 0.99, seamHip * 1.02, torsoH * 0.07, 18),
+      p.accent, [0, torsoH * 0.03, -0.012]);
+    belt.scale.z = 0.64;
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
     this.nm('neck');
@@ -555,14 +557,17 @@ export class CharacterVisual {
       this.box(this.helmGroup, headH * 0.1, headH * 0.3, headH * 0.7, p.metal, [0, headH * 0.52, 0.01]);
     }
 
-    if (this.pauldronGroup) { this.chest.remove(this.pauldronGroup); this.pauldronGroup = null; }
+    for (const m of this.pauldronMeshes) m.parent?.remove(m);
+    this.pauldronMeshes = [];
     if (this.equipment.pauldrons) {
-      this.pauldronGroup = new THREE.Group();
-      this.chest.add(this.pauldronGroup);
-      this.nm('pauldron');
-      for (const s of [1, -1]) {
-        this.addMesh(this.pauldronGroup, new THREE.SphereGeometry(bodyW * 0.22, 8, 6), p.metal,
-          [s * (shoulderW + 0.02), torsoH * 0.32, 0]);
+      // On the ARM bones, so they ride every shoulder move (stakeholder bug
+      // report), tucked in and raised per the editor export.
+      for (const side of ['L', 'R'] as const) {
+        const s = side === 'L' ? 1 : -1;
+        this.nm(side === 'L' ? 'pauldron left' : 'pauldron right');
+        const m = this.addMesh(this.arms[side].sh, new THREE.SphereGeometry(bodyW * 0.2, 8, 6),
+          p.metal, [-s * bodyW * 0.02, bodyW * 0.06, 0]);
+        this.pauldronMeshes.push(m);
       }
     }
 

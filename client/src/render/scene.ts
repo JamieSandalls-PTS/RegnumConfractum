@@ -159,7 +159,7 @@ export class GameScene {
   /** Jump zoom to an exact factor (viewer/automation use). Allows tighter
    * close-ups than the in-game wheel clamp — zoomBy() keeps the game limit. */
   setZoom(zoom: number): void {
-    this.zoom = Math.min(ZOOM_MAX, Math.max(0.12, zoom));
+    this.zoom = Math.min(ZOOM_MAX, Math.max(0.02, zoom)); // near-macro for the editor
     this.zoomTarget = this.zoom;
     this.applyFrustum();
   }

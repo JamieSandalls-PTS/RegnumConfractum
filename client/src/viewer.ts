@@ -121,23 +121,40 @@ $('in-pixelscale').addEventListener('input', () => {
   scene.resize();
 });
 
-// Orbit + zoom, same feel as the game client.
+// Free-look: drag orbits (yaw AND pitch), shift-drag pans the focus point,
+// wheel zooms without the in-game clamp.
+const cam = { az: Math.PI / 4, el: 0.59, dist: 15.3, target: new THREE.Vector3(0, 0.9, 0) };
+let viewerZoom = 1;
 let dragging = false;
 let lastX = 0;
+let lastY = 0;
 stage.addEventListener('pointerdown', (e) => {
   dragging = true;
   lastX = e.clientX;
+  lastY = e.clientY;
 });
 window.addEventListener('pointerup', () => { dragging = false; });
 window.addEventListener('pointermove', (e) => {
-  if (dragging) {
-    scene.rotateBy((e.clientX - lastX) * 0.008);
-    lastX = e.clientX;
+  if (!dragging) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  if (e.shiftKey) {
+    // Pan in the camera's screen plane, scaled by zoom so it stays 1:1-ish.
+    const k = 0.0035 * viewerZoom;
+    cam.target.x += (Math.sin(cam.az) * dx) * k;
+    cam.target.z += (-Math.cos(cam.az) * dx) * k;
+    cam.target.y += dy * k;
+  } else {
+    cam.az += dx * 0.008;
+    cam.el = Math.min(1.5, Math.max(-0.2, cam.el + dy * 0.006));
   }
 });
 stage.addEventListener('wheel', (e) => {
   e.preventDefault();
-  scene.zoomBy(e.deltaY > 0 ? 1.12 : 1 / 1.12);
+  viewerZoom = Math.min(2.2, Math.max(0.02, viewerZoom * (e.deltaY > 0 ? 1.12 : 1 / 1.12)));
+  scene.setZoom(viewerZoom);
 }, { passive: false });
 
 // --- Animation driving ------------------------------------------------------
@@ -178,8 +195,15 @@ function stepViewer(dt: number): void {
   }
   const { moving } = drive(mode, t);
   for (const s of shown) s.visual.update(dt, t + s.phase, moving, wind);
-  scene.updateCamera(dt);
-  scene.follow(new THREE.Vector3(0, 0, 0));
+  // Free-look camera (stakeholder request): full orbit including elevation,
+  // pannable target, near-macro zoom. Lights/shadows still track the target.
+  scene.follow(cam.target);
+  scene.camera.position.set(
+    cam.target.x + Math.cos(cam.az) * Math.cos(cam.el) * cam.dist,
+    cam.target.y + Math.sin(cam.el) * cam.dist,
+    cam.target.z + Math.sin(cam.az) * Math.cos(cam.el) * cam.dist,
+  );
+  scene.camera.lookAt(cam.target);
   if ($<HTMLInputElement>('in-pixel').checked) {
     scene.render();
   } else {
@@ -207,10 +231,16 @@ frame();
 interface PartRef {
   name: string;
   mesh: THREE.Mesh;
-  base: { px: number; py: number; pz: number; sx: number; sy: number; sz: number };
+  base: {
+    px: number; py: number; pz: number;
+    sx: number; sy: number; sz: number;
+    rx: number; ry: number; rz: number;
+  };
 }
 let editParts: PartRef[] = [];
 let editSelected = 0;
+/** Multi-selection (stakeholder request): all of these nudge together. */
+let editSelectedAll: number[] = [];
 let addedCount = 0;
 const editorEl = $('editor');
 
@@ -233,6 +263,7 @@ function collectParts(): void {
         base: {
           px: o.position.x, py: o.position.y, pz: o.position.z,
           sx: o.scale.x, sy: o.scale.y, sz: o.scale.z,
+          rx: o.rotation.x, ry: o.rotation.y, rz: o.rotation.z,
         },
       });
       i++;
@@ -282,18 +313,26 @@ function renderEditor(): void {
     return;
   }
   const select = document.createElement('select');
+  select.multiple = true; // ctrl/shift-click to group parts (e.g. both breasts)
+  select.size = 8;
+  select.style.width = '100%';
   for (let i = 0; i < editParts.length; i++) {
     const opt = document.createElement('option');
     opt.value = String(i);
     opt.textContent = editParts[i]!.name + (editParts[i]!.mesh.visible ? '' : ' (hidden)');
+    if (editSelectedAll.includes(i) || i === editSelected) opt.selected = true;
     select.appendChild(opt);
   }
-  select.value = String(Math.min(editSelected, editParts.length - 1));
   select.addEventListener('change', () => {
-    editSelected = Number(select.value);
+    editSelectedAll = [...select.selectedOptions].map((o) => Number(o.value));
+    editSelected = editSelectedAll[0] ?? 0;
     renderEditor();
   });
   editorEl.appendChild(select);
+  const hint = document.createElement('div');
+  hint.className = 'drawer-title';
+  hint.textContent = 'arrows: nudge ALL selected (←→ X, ↑↓ Y, ctrl+↑↓ Z; shift = ×5)';
+  editorEl.appendChild(hint);
   const part = editParts[Math.min(editSelected, editParts.length - 1)]!;
   // Flash the selected part so it can be found on screen.
   const m = part.mesh.material as THREE.MeshLambertMaterial;
@@ -309,6 +348,12 @@ function renderEditor(): void {
   editorEl.appendChild(slider('Width (scale X)', 0.1, 3, 0.01, s.x, (v) => { s.x = v; }));
   editorEl.appendChild(slider('Height (scale Y)', 0.1, 3, 0.01, s.y, (v) => { s.y = v; }));
   editorEl.appendChild(slider('Depth (scale Z)', 0.1, 3, 0.01, s.z, (v) => { s.z = v; }));
+  const r = part.mesh.rotation;
+  const deg = (rad: number) => (rad * 180) / Math.PI;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  editorEl.appendChild(slider('Rotate X (deg)', -180, 180, 1, deg(r.x), (v) => { r.x = rad(v); }));
+  editorEl.appendChild(slider('Rotate Y (deg)', -180, 180, 1, deg(r.y), (v) => { r.y = rad(v); }));
+  editorEl.appendChild(slider('Rotate Z (deg)', -180, 180, 1, deg(r.z), (v) => { r.z = rad(v); }));
 
   const row = document.createElement('div');
   row.className = 'row2';
@@ -336,6 +381,20 @@ function renderEditor(): void {
   addBox.addEventListener('click', () => addShape(new THREE.BoxGeometry(0.1, 0.1, 0.1)));
   row.append(hide, addSphere, addBox);
   editorEl.appendChild(row);
+  const row3 = document.createElement('div');
+  row3.className = 'row2';
+  const mk = (label: string, geom: () => THREE.BufferGeometry) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.addEventListener('click', () => addShape(geom()));
+    return b;
+  };
+  row3.append(
+    mk('+ capsule', () => new THREE.CapsuleGeometry(0.04, 0.1, 3, 8)),
+    mk('+ cylinder', () => new THREE.CylinderGeometry(0.05, 0.05, 0.12, 12)),
+    mk('+ cone', () => new THREE.CylinderGeometry(0.01, 0.06, 0.12, 12)),
+  );
+  editorEl.appendChild(row3);
 
   const exportBtn = document.createElement('button');
   exportBtn.textContent = 'Export tweaks (paste to Claude)';
@@ -347,10 +406,13 @@ function renderEditor(): void {
       const d = {
         dpos: [q.mesh.position.x - q.base.px, q.mesh.position.y - q.base.py, q.mesh.position.z - q.base.pz],
         scale: [q.mesh.scale.x / q.base.sx, q.mesh.scale.y / q.base.sy, q.mesh.scale.z / q.base.sz],
+        drotDeg: [q.mesh.rotation.x - q.base.rx, q.mesh.rotation.y - q.base.ry, q.mesh.rotation.z - q.base.rz]
+          .map((v) => (v * 180) / Math.PI),
         hidden: !q.mesh.visible,
       };
       const changed = d.hidden || d.dpos.some((v) => Math.abs(v) > 1e-4) ||
-        d.scale.some((v) => Math.abs(v - 1) > 1e-3);
+        d.scale.some((v) => Math.abs(v - 1) > 1e-3) ||
+        d.drotDeg.some((v) => Math.abs(v) > 0.1);
       if (changed) tweaks[q.name] = d;
     }
     out.value = JSON.stringify(tweaks, null, 1);
@@ -366,8 +428,27 @@ $('btn-edit').addEventListener('click', () => {
   populate();
   collectParts();
   editSelected = 0;
+  editSelectedAll = [0];
   editorEl.classList.remove('hidden');
   renderEditor();
+});
+
+// Arrow-key nudging for the whole selection (stakeholder request): move a
+// grouped set — both breasts, a full arm — in one gesture.
+window.addEventListener('keydown', (e) => {
+  if (editorEl.classList.contains('hidden')) return;
+  if (document.activeElement instanceof HTMLInputElement) return;
+  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+  e.preventDefault();
+  const step = 0.004 * (e.shiftKey ? 5 : 1);
+  for (const i of editSelectedAll) {
+    const q = editParts[i];
+    if (!q) continue;
+    if (e.key === 'ArrowLeft') q.mesh.position.x -= step;
+    if (e.key === 'ArrowRight') q.mesh.position.x += step;
+    if (e.key === 'ArrowUp') (e.ctrlKey ? q.mesh.position.z -= step : q.mesh.position.y += step);
+    if (e.key === 'ArrowDown') (e.ctrlKey ? q.mesh.position.z += step : q.mesh.position.y -= step);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -405,9 +486,10 @@ window.__viewer = {
     }
   },
   view(azimuthRad, zoom, orbitHeight) {
-    scene.setAzimuth(azimuthRad);
+    cam.az = azimuthRad;
+    viewerZoom = zoom;
     scene.setZoom(zoom);
-    if (orbitHeight !== undefined) scene.setOrbitHeight(orbitHeight);
+    if (orbitHeight !== undefined) cam.el = Math.atan2(orbitHeight, 12.7);
   },
   advance(seconds) {
     const steps = Math.max(1, Math.round(seconds * 60));

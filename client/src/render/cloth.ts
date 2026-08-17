@@ -198,9 +198,14 @@ export class SolidHair {
       new THREE.SphereGeometry(headH * 0.395, 20, 14, 0, Math.PI * 2, 0, Math.PI * 0.55),
       mat(),
     );
-    if (style === 'crop') cap.scale.set(1.0, 0.78, 1.03); // close-cut
-    else cap.scale.set(1.04, 0.9, 1.12);
-    cap.position.set(0, headH * 0.55, -headH * 0.04);
+    // Non-crop proportions stakeholder-tuned via the model editor.
+    if (style === 'crop') {
+      cap.scale.set(1.0, 0.78, 1.03); // close-cut
+      cap.position.set(0, headH * 0.55, -headH * 0.04);
+    } else {
+      cap.scale.set(0.95, 0.9, 0.9);
+      cap.position.set(0, headH * 0.55, -headH * 0.01);
+    }
     cap.castShadow = true;
     cap.name = 'hair cap';
     this.capGroup.add(cap);
@@ -211,7 +216,9 @@ export class SolidHair {
       new THREE.SphereGeometry(headH * 0.375, 16, 10, Math.PI * 0.08, Math.PI * 0.84, Math.PI * 0.2, Math.PI * 0.1),
       mat(),
     );
-    fringe.position.set(0, headH * 0.52, -headH * 0.02);
+    // Stakeholder-tuned: lower and forward, framing the brow; a touch wider.
+    fringe.position.set(0, headH * 0.26, headH * 0.09);
+    fringe.scale.x = 1.14;
     fringe.castShadow = true;
     fringe.name = 'hair fringe';
     this.capGroup.add(fringe);
