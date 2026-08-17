@@ -197,6 +197,165 @@ populate();
 frame();
 
 // ---------------------------------------------------------------------------
+// Model editor (stakeholder request, round 8): pick any mesh of a soloed
+// character, nudge its position/scale, hide it, or add new primitives — then
+// export the tweaks as JSON to paste back into the conversation. The export
+// keys parts by their deterministic build order, so a tweak like
+// "part 12: y +0.03" maps straight to a line of construction code.
+// ---------------------------------------------------------------------------
+
+interface PartRef {
+  name: string;
+  mesh: THREE.Mesh;
+  base: { px: number; py: number; pz: number; sx: number; sy: number; sz: number };
+}
+let editParts: PartRef[] = [];
+let editSelected = 0;
+let addedCount = 0;
+const editorEl = $('editor');
+
+function collectParts(): void {
+  editParts = [];
+  const target = shown[0];
+  if (!target) return;
+  let i = 0;
+  target.visual.root.traverse((o) => {
+    if (o instanceof THREE.Mesh) {
+      const g = o.geometry.type.replace('Geometry', '');
+      const wp = new THREE.Vector3();
+      o.getWorldPosition(wp);
+      editParts.push({
+        name: `#${String(i).padStart(2, '0')} ${g} y≈${wp.y.toFixed(2)}`,
+        mesh: o,
+        base: {
+          px: o.position.x, py: o.position.y, pz: o.position.z,
+          sx: o.scale.x, sy: o.scale.y, sz: o.scale.z,
+        },
+      });
+      i++;
+    }
+  });
+}
+
+function slider(label: string, min: number, max: number, step: number, value: number,
+  onInput: (v: number) => void): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'sl';
+  const val = document.createElement('b');
+  val.textContent = value.toFixed(3);
+  const input = document.createElement('input');
+  input.type = 'range';
+  input.min = String(min);
+  input.max = String(max);
+  input.step = String(step);
+  input.value = String(value);
+  input.addEventListener('input', () => {
+    const v = Number(input.value);
+    val.textContent = v.toFixed(3);
+    onInput(v);
+  });
+  const tag = document.createElement('span');
+  tag.textContent = label;
+  row.append(tag, input, val);
+  return row;
+}
+
+function renderEditor(): void {
+  editorEl.innerHTML = '';
+  if (editParts.length === 0) {
+    editorEl.textContent = 'Solo a seed first (button above).';
+    return;
+  }
+  const select = document.createElement('select');
+  for (let i = 0; i < editParts.length; i++) {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = editParts[i]!.name + (editParts[i]!.mesh.visible ? '' : ' (hidden)');
+    select.appendChild(opt);
+  }
+  select.value = String(Math.min(editSelected, editParts.length - 1));
+  select.addEventListener('change', () => {
+    editSelected = Number(select.value);
+    renderEditor();
+  });
+  editorEl.appendChild(select);
+  const part = editParts[Math.min(editSelected, editParts.length - 1)]!;
+  // Flash the selected part so it can be found on screen.
+  const m = part.mesh.material as THREE.MeshLambertMaterial;
+  const orig = m.emissive.getHex();
+  m.emissive.setHex(0xa04010);
+  setTimeout(() => m.emissive.setHex(orig), 700);
+
+  const p = part.mesh.position;
+  const s = part.mesh.scale;
+  editorEl.appendChild(slider('px', p.x - 0.25, p.x + 0.25, 0.002, p.x, (v) => { p.x = v; }));
+  editorEl.appendChild(slider('py', p.y - 0.25, p.y + 0.25, 0.002, p.y, (v) => { p.y = v; }));
+  editorEl.appendChild(slider('pz', p.z - 0.25, p.z + 0.25, 0.002, p.z, (v) => { p.z = v; }));
+  editorEl.appendChild(slider('sx', 0.1, 3, 0.01, s.x, (v) => { s.x = v; }));
+  editorEl.appendChild(slider('sy', 0.1, 3, 0.01, s.y, (v) => { s.y = v; }));
+  editorEl.appendChild(slider('sz', 0.1, 3, 0.01, s.z, (v) => { s.z = v; }));
+
+  const row = document.createElement('div');
+  row.className = 'row2';
+  const hide = document.createElement('button');
+  hide.textContent = part.mesh.visible ? 'Hide part' : 'Show part';
+  hide.addEventListener('click', () => {
+    part.mesh.visible = !part.mesh.visible;
+    renderEditor();
+  });
+  const addSphere = document.createElement('button');
+  addSphere.textContent = '+ sphere';
+  const addBox = document.createElement('button');
+  addBox.textContent = '+ box';
+  const addShape = (geom: THREE.BufferGeometry) => {
+    const mesh = new THREE.Mesh(geom, new THREE.MeshLambertMaterial({ color: 0xb5875a }));
+    mesh.castShadow = true;
+    part.mesh.parent!.add(mesh);
+    mesh.position.copy(part.mesh.position);
+    addedCount++;
+    collectParts();
+    editSelected = editParts.findIndex((q) => q.mesh === mesh);
+    renderEditor();
+  };
+  addSphere.addEventListener('click', () => addShape(new THREE.SphereGeometry(0.06, 12, 9)));
+  addBox.addEventListener('click', () => addShape(new THREE.BoxGeometry(0.1, 0.1, 0.1)));
+  row.append(hide, addSphere, addBox);
+  editorEl.appendChild(row);
+
+  const exportBtn = document.createElement('button');
+  exportBtn.textContent = 'Export tweaks (paste to Claude)';
+  exportBtn.style.marginTop = '6px';
+  const out = document.createElement('textarea');
+  exportBtn.addEventListener('click', () => {
+    const tweaks: Record<string, unknown> = { seed: shown[0]?.seed, added: addedCount };
+    for (const q of editParts) {
+      const d = {
+        dpos: [q.mesh.position.x - q.base.px, q.mesh.position.y - q.base.py, q.mesh.position.z - q.base.pz],
+        scale: [q.mesh.scale.x / q.base.sx, q.mesh.scale.y / q.base.sy, q.mesh.scale.z / q.base.sz],
+        hidden: !q.mesh.visible,
+      };
+      const changed = d.hidden || d.dpos.some((v) => Math.abs(v) > 1e-4) ||
+        d.scale.some((v) => Math.abs(v - 1) > 1e-3);
+      if (changed) tweaks[q.name] = d;
+    }
+    out.value = JSON.stringify(tweaks, null, 1);
+    out.select();
+  });
+  editorEl.appendChild(exportBtn);
+  editorEl.appendChild(out);
+}
+
+$('btn-edit').addEventListener('click', () => {
+  const seed = Number($<HTMLInputElement>('in-solo').value) || 1005;
+  soloSeed = seed;
+  populate();
+  collectParts();
+  editSelected = 0;
+  editorEl.classList.remove('hidden');
+  renderEditor();
+});
+
+// ---------------------------------------------------------------------------
 // Automation hook: lets headless review drive the viewer without rAF (the
 // browser pane stops compositing when hidden) and post frames to a local
 // receiver for inspection (D-503 technique). Not part of the product.

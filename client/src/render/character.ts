@@ -269,11 +269,11 @@ export class CharacterVisual {
     // give the rear its projection with glute masses.
     pelvisMesh.scale.z = 0.68;
     pelvisMesh.position.z = -hipW * 0.06;
-    for (const s of [1, -1]) {
-      const glute = this.addMesh(this.pelvis, new THREE.SphereGeometry(hipW * 0.22, 10, 8), p.cloth,
-        [s * hipW * 0.16, torsoH * 0.0, -hipW * 0.26]);
-      glute.scale.set(1.0, 0.95, 0.75);
-    }
+    // One wide flattened mass under the cloth, faintly creased by the fold
+    // ripples — two bare spheres read as exactly that (round 8).
+    const glutes = this.addMesh(this.pelvis, new THREE.SphereGeometry(hipW * 0.26, 14, 10), p.cloth,
+      [0, torsoH * 0.01, -hipW * 0.2]);
+    glutes.scale.set(1.5, 0.85, 0.62);
 
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
     const belly = this.lathe(this.spine, [
@@ -348,11 +348,12 @@ export class CharacterVisual {
     this.addMesh(this.head,
       new THREE.CapsuleGeometry(headH * 0.35, headH * 0.14, 4, 10),
       p.skin, [0, headH * 0.42, 0]);
-    // Jaw: narrower and softer on the female build (reference: oval face).
+    // Jaw: an ellipsoid, not a box — the box corners read as "a cube near
+    // the chin" (round 8). Narrower on the female build (reference: oval).
     const jaw = this.addMesh(this.head,
-      new THREE.BoxGeometry(headH * (fem ? 0.4 : 0.48), headH * 0.28, headH * 0.36),
-      p.skin, [0, headH * 0.2, headH * 0.05]);
-    jaw.rotation.x = 0.02;
+      new THREE.SphereGeometry(headH * 0.26, 12, 9),
+      p.skin, [0, headH * 0.22, headH * 0.04]);
+    jaw.scale.set(fem ? 0.82 : 0.95, 0.66, 0.8);
     this.buildFace(headH);
 
     this.arms = {

@@ -37,6 +37,16 @@
   #panel .hint { color: var(--dim); font-size: 11px; margin-top: 14px; line-height: 1.5; }
   #seeds { color: var(--dim); font-size: 10.5px; margin-top: 10px; line-height: 1.6;
     word-break: break-all; }
+  .hidden { display: none !important; }
+  #editor label { margin-top: 8px; }
+  #editor .sl { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+  #editor .sl span { width: 14px; color: var(--dim); font-size: 10px; }
+  #editor .sl input[type=range] { flex: 1; padding: 0; }
+  #editor .sl b { width: 46px; font-weight: 400; font-size: 10px; color: var(--text); }
+  #editor textarea { width: 100%; height: 90px; background: #0f0e12; color: var(--text);
+    border: 1px solid var(--line); font-size: 10px; font-family: monospace; }
+  #editor .row2 { display: flex; gap: 4px; margin-top: 4px; }
+  #editor .row2 button { flex: 1; }
 </style>
 </head>
 <body>
@@ -90,6 +100,11 @@
     <div class="check"><input id="in-hood" type="checkbox"> hoods up</div>
     <div class="check"><input id="in-gear" type="checkbox" checked> seed equipment</div>
     <div class="check"><input id="in-slow" type="checkbox"> slow motion (½ speed)</div>
+
+    <label>model editor (solo a seed first)</label>
+    <button id="btn-edit">Open editor on seed below</button>
+    <input id="in-solo" type="number" placeholder="seed to solo/edit" value="1005">
+    <div id="editor" class="hidden" style="margin-top:8px"></div>
 
     <div class="hint">
       Drag to orbit · wheel to zoom.<br>

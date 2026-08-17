@@ -192,7 +192,12 @@ export class SolidHair {
     // The cap: a smooth, back-weighted mass that clearly COVERS the crown —
     // round 4 found the old cap ended level with the cranium top, leaving a
     // bald patch. High segment counts: hair must not read as a polyhedron.
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.395, 20, 14), mat());
+    // A DOME, not a full sphere: the sphere's lower front quadrant wrapped
+    // down over the face (round 8: "hair too far down the front").
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(headH * 0.395, 20, 14, 0, Math.PI * 2, 0, Math.PI * 0.55),
+      mat(),
+    );
     if (style === 'crop') cap.scale.set(1.0, 0.78, 1.03); // close-cut
     else cap.scale.set(1.04, 0.9, 1.12);
     cap.position.set(0, headH * 0.55, -headH * 0.04);
@@ -202,10 +207,10 @@ export class SolidHair {
     // reference shows the face fully open, hair framing it from above.
     const fringe = new THREE.Mesh(
       // phi centred on π/2 = the +Z face in three.js's sphere convention.
-      new THREE.SphereGeometry(headH * 0.375, 16, 10, Math.PI * 0.08, Math.PI * 0.84, Math.PI * 0.2, Math.PI * 0.14),
+      new THREE.SphereGeometry(headH * 0.375, 16, 10, Math.PI * 0.08, Math.PI * 0.84, Math.PI * 0.2, Math.PI * 0.1),
       mat(),
     );
-    fringe.position.set(0, headH * 0.5, -headH * 0.02);
+    fringe.position.set(0, headH * 0.52, -headH * 0.02);
     fringe.castShadow = true;
     this.capGroup.add(fringe);
 
