@@ -49,14 +49,25 @@ export class Cloth {
     this.constraints.push({ a, b, len: this.pos[a]!.distanceTo(this.pos[b]!) });
   }
 
-  step(dt: number, wind: number, t: number, chestMatrix: THREE.Matrix4): void {
+  step(
+    dt: number,
+    wind: number,
+    t: number,
+    pinMatrix: THREE.Matrix4,
+    /** The BODY the cloth must not pass through — the pin point is at the
+     * upper back, so colliding around it protected nothing (review round 6:
+     * capes swung straight through the chest). */
+    collider?: { matrix: THREE.Matrix4; radius: number; height: number },
+  ): void {
     const cols = this.cols;
     const gravity = new THREE.Vector3(0, -9.0, 0);
+    // Gusts oscillate around ~zero: a PERMANENT side bias made capes climb
+    // around the body collider and hang off the front (review round 6).
     const w = new THREE.Vector3(
-      Math.sin(t * 1.7) * 0.6 + 0.5,
+      Math.sin(t * 1.7) * 0.6 + 0.12,
       Math.sin(t * 2.3) * 0.2,
-      Math.cos(t * 1.1) * 0.6 + 0.3,
-    ).multiplyScalar(wind * 7.0);
+      Math.cos(t * 1.1) * 0.6 + 0.08,
+    ).multiplyScalar(wind * 5.0);
 
     const acc = new THREE.Vector3();
     for (let i = cols; i < this.pos.length; i++) {
@@ -72,10 +83,10 @@ export class Cloth {
       p.z += vz + acc.z * dt * dt;
     }
 
-    // pin the top row to the shoulders in world space
+    // pin the top row to the anchor (upper back) in world space
     for (let x = 0; x < cols; x++) {
-      const local = new THREE.Vector3((x / (cols - 1) - 0.5) * this.width, 0, -0.04);
-      local.applyMatrix4(chestMatrix);
+      const local = new THREE.Vector3((x / (cols - 1) - 0.5) * this.width, 0, -0.02);
+      local.applyMatrix4(pinMatrix);
       this.pos[x]!.copy(local);
       this.prev[x]!.copy(local);
     }
@@ -92,17 +103,21 @@ export class Cloth {
         if (c.a >= cols) pa.add(d);
         if (c.b >= cols) pb.sub(d);
       }
-      torso.set(0, 0, 0).applyMatrix4(chestMatrix);
-      for (let i = cols; i < this.pos.length; i++) {
-        const p = this.pos[i]!;
-        const ddx = p.x - torso.x;
-        const ddz = p.z - torso.z;
-        const rad = 0.2;
-        const len = Math.hypot(ddx, ddz);
-        if (len < rad && p.y < torso.y + 0.05 && p.y > torso.y - this.height * 0.6) {
-          const s = rad / (len || 1e-6);
-          p.x = torso.x + ddx * s;
-          p.z = torso.z + ddz * s;
+      if (collider) {
+        // Push nodes out of a body-sized cylinder centred on the TORSO,
+        // spanning from below the waist up past the shoulders.
+        torso.setFromMatrixPosition(collider.matrix);
+        for (let i = cols; i < this.pos.length; i++) {
+          const p = this.pos[i]!;
+          if (p.y < torso.y - this.height * 0.55 || p.y > torso.y + collider.height) continue;
+          const ddx = p.x - torso.x;
+          const ddz = p.z - torso.z;
+          const len = Math.hypot(ddx, ddz);
+          if (len < collider.radius) {
+            const s = collider.radius / (len || 1e-6);
+            p.x = torso.x + ddx * s;
+            p.z = torso.z + ddz * s;
+          }
         }
       }
     }

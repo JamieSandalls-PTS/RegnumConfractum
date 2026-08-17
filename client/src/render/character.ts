@@ -322,11 +322,12 @@ export class CharacterVisual {
         pec.scale.set(1.05, 0.72, 0.55);
       }
     }
-    // Belt line: hugs the waist seam it sits on — a strap, not a hoop.
-    const belt = this.addMesh(this.chest,
-      new THREE.CylinderGeometry(seamWaist * 1.08, seamWaist * 1.1, torsoH * 0.06, 18),
-      p.accent, [0, torsoH * 0.01, 0]);
-    belt.scale.z = 0.8; // must stay proud of the rippled cloth beneath
+    // Belt: at the HIPS, where trousers are belted (review round 6 — it had
+    // drifted to the ribs). Parented to the spine so it rides the hip line.
+    const belt = this.addMesh(this.spine,
+      new THREE.CylinderGeometry(seamHip * 1.05, seamHip * 1.08, torsoH * 0.07, 18),
+      p.accent, [0, torsoH * 0.03, 0]);
+    belt.scale.z = 0.85; // must stay proud of the rippled cloth beneath
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
     this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.15, headH * 0.24, 8),
@@ -641,7 +642,13 @@ export class CharacterVisual {
     this.root.updateMatrixWorld(true);
     this.stepBust(dt);
     if (this.cape) {
-      this.cape.step(dt, wind, t, (this.capeAnchor ?? this.chest).matrixWorld);
+      // Collider = the torso CORE, not the full shoulder span: the cloth
+      // must be able to rest against the back, only never pass through.
+      this.cape.step(dt, wind, t, (this.capeAnchor ?? this.chest).matrixWorld, {
+        matrix: this.chest.matrixWorld,
+        radius: this.dims.bodyW * 0.45,
+        height: this.dims.torsoH * 0.55,
+      });
     }
     if (this.hair) this.hair.step(dt, wind, t, this.head.matrixWorld);
   }
