@@ -73,6 +73,9 @@ export class CharacterVisual {
     baseShY: number;
   };
 
+  /** Cape pin point: the UPPER BACK. The chest bone's origin is the waist
+   * seam, and pinning there was the review's cape-from-the-waist bug. */
+  private capeAnchor: THREE.Group | null = null;
   private helmGroup: THREE.Group | null = null;
   private pauldronGroup: THREE.Group | null = null;
   private weaponGroup: THREE.Group | null = null;
@@ -147,9 +150,36 @@ export class CharacterVisual {
    * and read as one blended body instead of stacked primitives (review).
    * End the profile near radius 0 to close the shape with a rounded cap.
    */
-  private lathe(parent: THREE.Object3D, profile: [number, number][], color: number): THREE.Mesh {
+  private lathe(
+    parent: THREE.Object3D,
+    profile: [number, number][],
+    color: number,
+    /** Cloth folds: subtle vertical ridges, strongest toward the hem. */
+    folds?: { count: number; amp: number },
+  ): THREE.Mesh {
     const pts = profile.map(([r, y]) => new THREE.Vector2(Math.max(0.008, r), y));
-    const mesh = new THREE.Mesh(new THREE.LatheGeometry(pts, 18), this.material(color));
+    const geom = new THREE.LatheGeometry(pts, folds ? 28 : 18);
+    if (folds) {
+      const pos = geom.attributes.position!;
+      const ys = profile.map(([, y]) => y);
+      const yMin = Math.min(...ys);
+      const yMax = Math.max(...ys);
+      const phase = (this.appearance.seed % 7) * 0.9;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        const r = Math.hypot(x, z);
+        if (r < 0.02) continue; // leave the caps alone
+        const angle = Math.atan2(z, x);
+        const hem = 1 - (y - yMin) / Math.max(1e-6, yMax - yMin); // 1 at bottom
+        const ripple = 1 + Math.sin(angle * folds.count + phase) * folds.amp * (0.35 + 0.65 * hem);
+        pos.setX(i, x * ripple);
+        pos.setZ(i, z * ripple);
+      }
+      geom.computeVertexNormals();
+    }
+    const mesh = new THREE.Mesh(geom, this.material(color));
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     parent.add(mesh);
@@ -233,7 +263,7 @@ export class CharacterVisual {
       [hipW * 0.5, torsoH * 0.04],
       [hipW * 0.49, torsoH * 0.13],
       [seamHip, torsoH * 0.24],
-    ], p.cloth);
+    ], p.cloth, { count: 7, amp: 0.035 });
     pelvisMesh.scale.z = 0.8;
 
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
@@ -241,7 +271,7 @@ export class CharacterVisual {
       [seamHip, 0],
       [waistW * 0.52, torsoH * 0.18],
       [seamWaist, torsoH * 0.35],
-    ], p.cloth);
+    ], p.cloth, { count: 6, amp: 0.025 });
     belly.scale.z = 0.78;
     // Abdominal mass: one soft flattened swell, not carved bands.
     const abs = this.addMesh(this.spine, new THREE.SphereGeometry(waistW * 0.3, 12, 9), p.cloth,
@@ -269,6 +299,8 @@ export class CharacterVisual {
     const traps = this.addMesh(this.chest, new THREE.SphereGeometry(shoulderW * 0.46, 12, 9), p.cloth,
       [0, torsoH * 0.4, -this.frontZ() * 0.24]);
     traps.scale.set(1.45, 0.4, 0.66);
+    // The cape hangs from between the shoulder blades.
+    this.capeAnchor = this.joint(this.chest, [0, torsoH * 0.38, -this.frontZ() * 0.66]);
     if (fem) {
       // The sprung chest: geometry on its own group so physics can move it.
       // Sized to be READ at game distance (review round 3), not hinted.
@@ -292,9 +324,9 @@ export class CharacterVisual {
     }
     // Belt line: hugs the waist seam it sits on — a strap, not a hoop.
     const belt = this.addMesh(this.chest,
-      new THREE.CylinderGeometry(seamWaist * 1.04, seamWaist * 1.06, torsoH * 0.06, 18),
+      new THREE.CylinderGeometry(seamWaist * 1.08, seamWaist * 1.1, torsoH * 0.06, 18),
       p.accent, [0, torsoH * 0.01, 0]);
-    belt.scale.z = 0.7;
+    belt.scale.z = 0.8; // must stay proud of the rippled cloth beneath
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
     this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.15, headH * 0.24, 8),
@@ -307,6 +339,7 @@ export class CharacterVisual {
       p.skin, [0, headH * 0.42, 0]);
     this.addMesh(this.head, new THREE.BoxGeometry(headH * 0.48, headH * 0.28, headH * 0.38),
       p.skin, [0, headH * 0.2, headH * 0.05]);
+    this.buildFace(headH);
 
     this.arms = {
       L: this.buildArm('L', bodyW, upperArm, lowerArm, torsoH),
@@ -340,6 +373,48 @@ export class CharacterVisual {
     return this.dims.bodyW * 0.31;
   }
 
+  /** Multiplies a hex colour toward black — shading for lips/brows/nose. */
+  private static shade(color: number, f: number): number {
+    const r = Math.round(((color >> 16) & 255) * f);
+    const g = Math.round(((color >> 8) & 255) * f);
+    const b = Math.round((color & 255) * f);
+    return (r << 16) | (g << 8) | b;
+  }
+
+  /**
+   * A face (next-tier pass): eyes, brows, a nose, a mouth line. At game
+   * distance these read as the dark pixels a face needs; up close they are
+   * honest features. All deterministic from the appearance.
+   */
+  private buildFace(headH: number): void {
+    const p = this.appearance;
+    const browCol = CharacterVisual.shade(p.hairColor, 0.85);
+    const lipCol = CharacterVisual.shade(p.skin, 0.72);
+    const eyeWhite = 0xe8e2d6;
+    const iris = CharacterVisual.shade(p.hairColor, 0.5);
+    const faceZ = headH * 0.3;
+    for (const s of [1, -1]) {
+      const white = this.addMesh(this.head, new THREE.SphereGeometry(headH * 0.055, 8, 6), eyeWhite,
+        [s * headH * 0.13, headH * 0.44, faceZ]);
+      white.scale.z = 0.45;
+      const pupil = this.addMesh(this.head, new THREE.SphereGeometry(headH * 0.028, 6, 5), iris,
+        [s * headH * 0.13, headH * 0.44, faceZ + headH * 0.028]);
+      pupil.scale.z = 0.5;
+      const brow = this.box(this.head, headH * 0.14, headH * 0.032, headH * 0.03, browCol,
+        [s * headH * 0.13, headH * 0.53, faceZ + headH * 0.012]);
+      brow.rotation.z = s * -0.12;
+    }
+    // Nose: a small three-sided prism, point forward.
+    const nose = this.addMesh(this.head,
+      new THREE.CylinderGeometry(headH * 0.035, headH * 0.05, headH * 0.14, 3),
+      p.skin, [0, headH * 0.33, faceZ + headH * 0.02]);
+    nose.rotation.x = -0.12;
+    // Mouth: a soft darker line on the jaw.
+    const mouth = this.box(this.head, headH * 0.16, headH * 0.025, headH * 0.02, lipCol,
+      [0, headH * 0.16, headH * 0.235]);
+    mouth.rotation.x = 0.05;
+  }
+
   private buildArm(side: 'L' | 'R', bodyW: number, upperArm: number, lowerArm: number, torsoH: number): Limb {
     const p = this.appearance;
     const s = side === 'L' ? 1 : -1;
@@ -356,8 +431,21 @@ export class CharacterVisual {
     const el = this.joint(sh, [0, -upperArm, 0]);
     this.taperedLimb(el, bodyW * 0.105, bodyW * 0.07, lowerArm, p.cloth);
     const hand = this.joint(el, [0, -lowerArm, 0]);
-    const palm = this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.095, 8, 6), p.skin, [0, -bodyW * 0.05, 0]);
-    palm.scale.set(0.85, 1.2, 0.65);
+    // A hand (next-tier pass): palm, a gently curled finger mass, and an
+    // opposable thumb on the inner side — not a mitt sphere.
+    const palm = this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.085, 8, 6), p.skin,
+      [0, -bodyW * 0.04, 0]);
+    palm.scale.set(0.8, 1.0, 0.55);
+    const fingers = this.addMesh(hand,
+      new THREE.CapsuleGeometry(bodyW * 0.055, bodyW * 0.09, 3, 7), p.skin,
+      [0, -bodyW * 0.14, bodyW * 0.012]);
+    fingers.scale.set(1.25, 1.0, 0.7);
+    fingers.rotation.x = 0.28; // relaxed curl
+    const thumb = this.addMesh(hand,
+      new THREE.CapsuleGeometry(bodyW * 0.032, bodyW * 0.07, 3, 6), p.skin,
+      [-s * bodyW * 0.075, -bodyW * 0.06, bodyW * 0.03]);
+    thumb.rotation.z = -s * 0.7;
+    thumb.rotation.x = 0.35;
     return { sh, el, hand };
   }
 
@@ -552,7 +640,9 @@ export class CharacterVisual {
 
     this.root.updateMatrixWorld(true);
     this.stepBust(dt);
-    if (this.cape) this.cape.step(dt, wind, t, this.chest.matrixWorld);
+    if (this.cape) {
+      this.cape.step(dt, wind, t, (this.capeAnchor ?? this.chest).matrixWorld);
+    }
     if (this.hair) this.hair.step(dt, wind, t, this.head.matrixWorld);
   }
 

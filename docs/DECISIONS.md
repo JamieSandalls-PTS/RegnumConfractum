@@ -1439,3 +1439,22 @@ human front/side references") — three measured cycles:**
   joints tucked to 0.24·hipW with thicker thigh tops.
 Signed off against front and side captures of male 1001 and female 1011,
 the walk mid-stride, and the quantised game-distance grid.
+
+**Review round 5 (stakeholder: "take it a tier further, even if more
+work") — the detail tier, plus the cape bug:**
+- **Cape origin fixed:** the cloth pinned its top row to the chest BONE's
+  origin, which is the waist seam — the reported cape-from-the-waist bug.
+  A dedicated `capeAnchor` joint between the shoulder blades now carries
+  the pin; verified hanging from the upper back on a caped seed.
+- **Faces:** deterministic per seed — eye whites with hair-toned irises,
+  tilted brows, a three-sided nose prism, a shaded mouth line. At game
+  distance they read as the dark pixels a face needs; up close they are
+  honest features.
+- **Hands:** palm + gently curled finger mass + opposable thumb per side,
+  replacing the mitt spheres.
+- **Cloth folds:** the garment lathes take a radial ripple displacement
+  (seed-phased, strongest toward the hem) with recomputed normals —
+  trousers and tunic catch light like cloth. The belt was re-proportioned
+  to stay proud of the rippled surface beneath it.
+Next candidates when this returns: focus-height control in the viewer for
+true head close-ups, fold shading at quantised distance, finger separation.
