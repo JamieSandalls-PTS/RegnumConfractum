@@ -1510,15 +1510,24 @@ export class CharacterVisual {
       const hipBack = 0.26;
       const hipAmp = hipBack + (hipFwd - hipBack) * (0.5 + 0.5 * swing);
       c.legs[s].hip.rotation.x = -swing * hipAmp + lift * 0.14;
-      // Double knee action: the stance knee takes a soft loading flex
-      // after heel-strike instead of locking ramrod straight.
-      const load = Math.pow(Math.max(0, Math.sin(ph + o - 1.4)), 3) * 0.14;
-      // Stance-knee flexion through mid-stance (Saunders' third gait
+      // Double knee action: the loading flex arrives WITH the heel
+      // strike (peak just after contact, ~0.16 rad) so the body visibly
+      // drops onto the front foot as it takes the weight — the old later
+      // peak made the dip lag the strike (stakeholder report).
+      const load = Math.pow(Math.max(0, Math.sin(ph + o - 0.93)), 3) * 0.13;
+      // Stance-knee flexion through stance (Saunders' third gait
       // determinant): the support knee stays softly bent while the body
       // vaults over it, shaving the top off the inverted-pendulum arc.
-      // Peaked where this leg passes vertical (ph + o = π).
-      const midFlex = Math.pow(Math.max(0, Math.sin(ph + o - Math.PI / 2)), 2) * 0.22;
-      c.legs[s].knee.rotation.x = lift * 0.68 + load + midFlex + 0.05;
+      // Centred slightly PAST vertical, into terminal stance — that is
+      // where the solved pelvis path actually peaks.
+      const midFlex = Math.pow(Math.max(0, Math.sin(ph + o - 1.9)), 2) * 0.26;
+      // Pre-swing knee break (terminal stance → toe-off): the trailing
+      // knee folds while the toe is still down, UNLOADING the rear leg —
+      // without this the toe-standing rear leg propped the body up
+      // through double support and the dip missed the front foot's
+      // strike entirely. Fades as the swing lift takes over.
+      const preSwing = Math.pow(Math.max(0, Math.sin(ph + o - 3.9)), 3) * 0.32 * (1 - lift);
+      c.legs[s].knee.rotation.x = lift * 0.68 + load + midFlex + preSwing + 0.05;
       // Foot roll (Muybridge side row): heel leading at the front, and a
       // STRONG heel rise at the rear push-off — the ankle rocker that
       // keeps the trailing leg effectively long through double support
