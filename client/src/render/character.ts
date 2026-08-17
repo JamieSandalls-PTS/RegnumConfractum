@@ -1464,7 +1464,6 @@ export class CharacterVisual {
     // down, barely bounces, and swings near-straight arms.
     const ph = t * 3.7 + this.walkPhase;
     const stride = Math.sin(ph);
-    c.pelvis.position.y = c.dims.hipY + Math.abs(stride) * 0.018 - 0.011;
     // Gait differentiation against the references (stakeholder walk-cycle
     // illustration vs Muybridge Plate 1): the female walk carries more hip
     // rotation and a narrower, quieter arm swing; the male more shoulder.
@@ -1511,6 +1510,34 @@ export class CharacterVisual {
       // the old -0.55 peak was a jogger's carry.
       c.arms[s].el.rotation.x = -0.14 - Math.max(0, swing) * 0.12;
     }
+    // GROUNDING (stakeholder: at no point may both feet be off the floor).
+    // The old hand-tuned bounce constant never guaranteed contact — with
+    // both legs splayed the geometric leg span shortens and both soles
+    // hung in the air. Instead, solve each leg's contact height from its
+    // actual angles and set the pelvis so the LOWER foot touches y=0; the
+    // inverted-pendulum bob (high at mid-stance, dipping through double
+    // support) then emerges from the geometry itself.
+    const { hipY, hipW } = c.dims;
+    const legLen = hipY - hipW * 0.11; // dims.hipY carries the ankle lift
+    const upperLeg = legLen * 0.52;
+    const lowerLeg = legLen * 0.48;
+    const sole = hipW * 0.11;
+    const toeLen = hipW * 0.3; // ankle→toe-tip reach along +z
+    let need = 0;
+    for (const s of ['L', 'R'] as const) {
+      const sgn = s === 'L' ? 1 : -1;
+      const hipRx = c.legs[s].hip.rotation.x;
+      const kneeRx = c.legs[s].knee.rotation.x;
+      const pitch = hipRx + kneeRx + c.legs[s].foot.rotation.x; // world foot pitch
+      const drop = upperLeg * Math.cos(hipRx) + lowerLeg * Math.cos(hipRx + kneeRx);
+      // Contact point: the sole when the foot is level-ish, the toe tip
+      // when it points down at push-off (pitch > 0 = toes down).
+      const contact = sole * Math.cos(pitch) + toeLen * Math.max(0, Math.sin(pitch));
+      // Pelvis roll raises one hip socket and lowers the other.
+      const hipLift = sgn * hipW * 0.24 * Math.sin(c.pelvis.rotation.z);
+      need = Math.max(need, drop + contact - hipLift);
+    }
+    c.pelvis.position.y = need;
   }
 
   /** Puts every piece of this character (body, cape, loose hair) on a render
