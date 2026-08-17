@@ -133,9 +133,11 @@ export class CharacterVisual {
   /** Seconds a transient emote plays for. */
   private static TRANSIENT_SECONDS = 1.4;
 
-  constructor(seed: number, private parent: THREE.Object3D) {
-    this.appearance = generateAppearance(seed);
-    this.walkPhase = (seed % 628) / 100;
+  /** Pass a seed for the deterministic D-402 look, or a full Appearance
+   * to drive every parameter explicitly (the character creator does). */
+  constructor(seed: number | Appearance, private parent: THREE.Object3D) {
+    this.appearance = typeof seed === 'number' ? generateAppearance(seed) : seed;
+    this.walkPhase = (this.appearance.seed % 628) / 100;
     this.equipment = {
       helm: this.appearance.helm,
       pauldrons: this.appearance.pauldrons,
@@ -370,11 +372,14 @@ export class CharacterVisual {
       this.bustBase.set(0, torsoH * 0.26, this.frontZ() * 0.52);
       this.bustGroup.position.copy(this.bustBase);
       this.chest.add(this.bustGroup);
+      // Volume from the appearance's bust parameter (0..1): 0.5 reproduces
+      // the stakeholder-tuned fixed size exactly (model editor, seed 1005).
+      const bust = p.bust ?? 0.5;
+      const bustR = bodyW * (0.13 + 0.16 * bust);
       for (const s of [1, -1]) {
         this.nm(s === 1 ? 'breast left' : 'breast right');
-        // Stakeholder-tuned via the model editor (export, seed 1005).
-        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.21, 10, 8), p.cloth,
-          [s * bodyW * 0.16, -bodyW * 0.065, bodyW * 0.075]);
+        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bustR, 10, 8), p.cloth,
+          [s * bodyW * (0.12 + 0.08 * bust), -bodyW * 0.065, bodyW * 0.075]);
         b.scale.set(1.2, 1.3, 1.3);
       }
     } else {
@@ -759,11 +764,12 @@ export class CharacterVisual {
       // The tunic covers the bust: capeColor overlays riding the same
       // sprung group, slightly larger than the forms beneath (stakeholder).
       if (this.bustGroup) {
+        const bust = p.bust ?? 0.5;
         for (const sb of [1, -1]) {
           this.nm('robe bodice');
           const cover = this.addMesh(this.bustGroup,
-            new THREE.SphereGeometry(bodyW * 0.21 * 1.1, 10, 8), p.capeColor,
-            [sb * bodyW * 0.16, -bodyW * 0.065, bodyW * 0.075]);
+            new THREE.SphereGeometry(bodyW * (0.13 + 0.16 * bust) * 1.1, 10, 8), p.capeColor,
+            [sb * bodyW * (0.12 + 0.08 * bust), -bodyW * 0.065, bodyW * 0.075]);
           cover.scale.set(1.2, 1.3, 1.3);
           this.robeParts.push(cover);
         }
@@ -902,40 +908,72 @@ export class CharacterVisual {
         g.dispose();
         return n;
       };
-      // Per the stakeholder's hood-varieties sheet: the rim OVERHANGS the
-      // brow, the opening is narrow enough that the face sits deep inside,
-      // and the silhouette flows back into a slack point.
-      // The hood per the stakeholder's side-view photo: ONE tilted faceted
-      // cone whose APEX is the rim tip jutting forward-up over the face.
-      // From the side that reads as the photo does — near-horizontal top
-      // edge running back from the tip, one long straight edge falling to
-      // the shoulders, the face deep under the overhang. The underside
-      // sector is cut away so the face looks out from beneath the apex.
+      // The hood per the stakeholder's two reference photos (2026-08-17,
+      // round 16). The SIDE photo dictates the silhouette: the front tip
+      // overhangs the brow, the top edge runs back near-horizontal over
+      // the crown, and ONE straight diagonal falls from the top-back
+      // corner to the shoulders. The FRONT photo dictates the opening: a
+      // pointed arch, edges dropping in straight diagonals framing the
+      // face closely, the face recessed under the overhang. Built as a
+      // hand-lofted ridge tent — a centre ridge polyline and, per side, a
+      // mid (volume) and rim (opening + hem) polyline, laddered into flat
+      // triangles. A cone/dome assembly could not make this silhouette:
+      // its apex read as a forward horn from the side (round 15).
       this.nm('hood');
-      // Front reference photo: a pointed arch — the edges fall in straight
-      // diagonals framing the face closely, so the opening is a ~95°
-      // sector, not a barn door.
-      const wedge = new THREE.Mesh(
-        faceted(new THREE.CylinderGeometry(headH * 0.03, headH * 0.6, headH * 1.2, 8, 1, true,
-          Math.PI * 0.27, Math.PI * 1.46)),
-        shellMat,
-      );
-      wedge.name = 'hood';
-      wedge.castShadow = true;
-      // Axis: base centre behind the neck, apex at the front rim tip.
-      wedge.rotation.x = 0.9;
-      wedge.position.set(0, headH * 0.54, headH * 0.02);
-      wedge.scale.set(0.92, 1.1, 1);
-      this.cowlGroup.add(wedge);
-      // A snug dome where the fabric rests on the crown, under the wedge.
-      const crown = new THREE.Mesh(
-        faceted(new THREE.SphereGeometry(headH * 0.46, 8, 3, 0, Math.PI * 2, 0, Math.PI * 0.42)),
-        shellMat,
-      );
-      crown.name = 'hood';
-      crown.castShadow = true;
-      crown.position.set(0, headH * 0.42, 0);
-      this.cowlGroup.add(crown);
+      const h = headH;
+      const V = (x: number, y: number, z: number) => new THREE.Vector3(x * h, y * h, z * h);
+      // Centre ridge: tip → over crown (near-horizontal, slight peak) →
+      // top-back corner → ONE straight diagonal to the nape hem.
+      const ridge = [V(0, 0.86, 0.66), V(0, 0.94, 0.05), V(0, 0.86, -0.32), V(0, -0.25, -0.50)];
+      const tip = ridge[0]!;
+      const nape = ridge[3]!;
+      const sideLines = (s: number) => ({
+        // Mid line: pushes the side sheet out so it clears skull + hair cap.
+        mid: [tip, V(s * 0.20, 0.76, 0.60), V(s * 0.36, 0.78, 0.02), V(s * 0.32, 0.66, -0.34),
+          V(s * 0.18, -0.22, -0.46), nape] as THREE.Vector3[],
+        // Rim: down the face opening (temple, jaw), then the hem sweeping
+        // back over the shoulder to the nape. The jaw corner tucks BACK so
+        // the side profile recedes under the tip's overhang instead of
+        // standing as a vertical wall.
+        rim: [tip, V(s * 0.40, 0.48, 0.50), V(s * 0.46, 0.08, 0.26), V(s * 0.50, -0.20, -0.12),
+          V(s * 0.34, -0.20, -0.38), nape] as THREE.Vector3[],
+      });
+      // Ladder two polylines sharing endpoints into a triangle strip,
+      // advancing along whichever side's next vertex is nearer in
+      // normalised arc length — keeps every authored corner crisp.
+      const positions: number[] = [];
+      const ladder = (a: THREE.Vector3[], b: THREE.Vector3[]): void => {
+        const params = (pts: THREE.Vector3[]): number[] => {
+          const t = [0];
+          for (let i = 1; i < pts.length; i++) t.push(t[i - 1]! + pts[i]!.distanceTo(pts[i - 1]!));
+          return t.map((v) => v / (t[t.length - 1]! || 1));
+        };
+        const ta = params(a);
+        const tb = params(b);
+        let i = 0;
+        let j = 0;
+        while (i < a.length - 1 || j < b.length - 1) {
+          if (j >= b.length - 1 || (i < a.length - 1 && ta[i + 1]! <= tb[j + 1]!)) {
+            positions.push(...a[i]!.toArray(), ...b[j]!.toArray(), ...a[i + 1]!.toArray());
+            i++;
+          } else {
+            positions.push(...a[i]!.toArray(), ...b[j]!.toArray(), ...b[j + 1]!.toArray());
+            j++;
+          }
+        }
+      };
+      for (const s of [1, -1]) {
+        const { mid, rim } = sideLines(s);
+        ladder(ridge, mid);
+        ladder(mid, rim);
+      }
+      const shellGeo = new THREE.BufferGeometry();
+      shellGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      shellGeo.computeVertexNormals();
+      const shell = new THREE.Mesh(shellGeo, shellMat);
+      shell.name = 'hood';
+      shell.castShadow = true;
+      this.cowlGroup.add(shell);
       this.nm('hood gather');
       // The fabric roll where the hood gathers at the neck (reference
       // sheet: nearly every drawing has it).
@@ -949,9 +987,12 @@ export class CharacterVisual {
       // the shoulders.
       for (const side of ['L', 'R'] as const) {
         const s = side === 'L' ? 1 : -1;
-        const anchor = this.joint(this.head, [s * headH * 0.4, headH * 0.34, headH * 0.24]);
-        anchor.rotation.y = s * 0.9; // strip plane faces outward-forward
-        const flap = new Cloth(3, 4, headH * 0.34, headH * 0.6, hoodCol);
+        // Anchored at the rim's jaw corner: a narrow drape falling down
+        // the chest beside the face (front reference photo) — the old
+        // wide temple flap curtained across the whole side view.
+        const anchor = this.joint(this.head, [s * headH * 0.4, headH * 0.06, headH * 0.24]);
+        anchor.rotation.y = s * 0.35; // strip plane faces outward-forward
+        const flap = new Cloth(3, 4, headH * 0.18, headH * 0.36, hoodCol);
         this.parentOrRoot().add(flap.mesh);
         this.hoodFlaps.push({ cloth: flap, anchor, side });
       }
@@ -971,11 +1012,11 @@ export class CharacterVisual {
       // long version read as a poncho over the torso (stakeholder). Few,
       // deep folds; faceted like the shell.
       const mantle = this.lathe(this.mantleGroup, [
-        [shoulderW * 1.08, torsoH * 0.3],
-        [bodyW * 0.5, torsoH * 0.44],
-        [bodyW * 0.22, torsoH * 0.54],
-      ], hoodCol, { count: 6, amp: 0.09 });
-      mantle.scale.z = 0.78;
+        [shoulderW * 1.02, torsoH * 0.32],
+        [bodyW * 0.48, torsoH * 0.46],
+        [bodyW * 0.24, torsoH * 0.56],
+      ], hoodCol, { count: 6, amp: 0.05 });
+      mantle.scale.z = 0.82;
       mantle.geometry = ((): THREE.BufferGeometry => {
         const n = mantle.geometry.toNonIndexed();
         n.computeVertexNormals();
@@ -987,7 +1028,7 @@ export class CharacterVisual {
       // D-219 concealment hides the hair entirely (identity). A clothing
       // hood only tucks the loose strands away; the fringe still peeks.
       this.hair.setVisible(!veiled);
-      if (!veiled) this.hair.setLooseVisible(!hoodUp);
+      if (!veiled) this.hair.setUnderHood(hoodUp);
     }
   }
 
@@ -1158,7 +1199,10 @@ export class CharacterVisual {
         // The bust is proud of the chest capsule — without its own collider
         // front-falling strands vanished into it (stakeholder screenshot).
         ...(this.bustGroup
-          ? [{ matrix: this.bustGroup.matrixWorld, radius: this.dims.bodyW * 0.3 }]
+          ? [{
+            matrix: this.bustGroup.matrixWorld,
+            radius: this.dims.bodyW * (0.19 + 0.22 * (this.appearance.bust ?? 0.5)),
+          }]
           : []),
       ]);
     }

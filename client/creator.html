@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regnum Confractum — Character Creator</title>
+<style>
+  :root {
+    --ink: #0b0a0c; --panel: #16151a; --line: #2a2830;
+    --text: #b9b2a6; --dim: #6d6760; --warm: #c4703a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+  #stage { position: absolute; inset: 0 300px 0 0; }
+  #stage canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+  #panel {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 300px;
+    background: var(--panel); border-left: 1px solid var(--line);
+    padding: 14px; overflow-y: auto; font-size: 12.5px;
+  }
+  #panel h1 { font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--warm); margin: 0 0 2px; font-weight: 600; }
+  #panel .sub { color: var(--dim); font-size: 11px; margin-bottom: 10px; }
+  #panel h2 { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--warm); margin: 16px 0 4px; font-weight: 600;
+    border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+  #panel label { display: block; color: var(--dim); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: .1em; margin: 10px 0 3px; }
+  #panel select, #panel button, #panel textarea {
+    width: 100%; background: #0f0e12; color: var(--text); border: 1px solid var(--line);
+    padding: 5px 8px; font: inherit; font-size: 12px; border-radius: 2px; outline: none;
+  }
+  #panel button { cursor: pointer; margin-top: 6px; background: #211f26; }
+  #panel button:hover { border-color: var(--warm); color: #e0d8c8; }
+  #panel .check { display: flex; align-items: center; gap: 8px; margin-top: 6px;
+    color: var(--text); font-size: 12px; }
+  #panel .check input { width: auto; }
+  .sl { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
+  .sl input[type=range] { flex: 1; padding: 0; background: transparent; }
+  .sl b { width: 52px; font-weight: 400; font-size: 11px; color: var(--text);
+    text-align: right; font-family: monospace; }
+  .swatches { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
+  .swatches button { width: 24px; height: 24px; padding: 0; border-radius: 2px;
+    border: 1px solid var(--line); margin: 0; flex: none; }
+  .swatches button.active { border: 2px solid var(--warm); }
+  .swatches input[type=color] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--line);
+    background: #0f0e12; flex: none; }
+  .swatches span { font-family: monospace; font-size: 10.5px; color: var(--dim); }
+  #descriptor { color: var(--text); font-size: 11.5px; font-style: italic; margin-top: 6px;
+    line-height: 1.5; }
+  #export-out { height: 130px; font-family: monospace; font-size: 10px; margin-top: 4px; }
+  .hidden { display: none !important; }
+  .hint { color: var(--dim); font-size: 10.5px; margin-top: 8px; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div id="panel">
+    <h1>Character Creator</h1>
+    <div class="sub">range-finding for creation limits — quote values when ratifying</div>
+
+    <h2>Body</h2>
+
+    <label>gender</label>
+    <select id="in-sex">
+      <option value="male">male</option>
+      <option value="female">female</option>
+    </select>
+
+    <div id="row-bust">
+      <label>breast size (female only)</label>
+      <div class="sl"><input type="range" id="in-bust" min="0" max="1" step="0.01" value="0.5"><b id="v-bust"></b></div>
+    </div>
+
+    <label>height (m)</label>
+    <div class="sl"><input type="range" id="in-height" min="1.30" max="2.30" step="0.01" value="1.75"><b id="v-height"></b></div>
+
+    <label>body size / weight (bulk)</label>
+    <div class="sl"><input type="range" id="in-bulk" min="0.05" max="1.00" step="0.01" value="0.35"><b id="v-bulk"></b></div>
+
+    <label>shoulder width</label>
+    <div class="sl"><input type="range" id="in-shoulder" min="0.14" max="0.50" step="0.005" value="0.28"><b id="v-shoulder"></b></div>
+
+    <label>limb length factor</label>
+    <div class="sl"><input type="range" id="in-limb" min="0.85" max="1.25" step="0.01" value="1.05"><b id="v-limb"></b></div>
+
+    <label>head scale</label>
+    <div class="sl"><input type="range" id="in-headscale" min="0.75" max="1.20" step="0.01" value="1.0"><b id="v-headscale"></b></div>
+
+    <label>body type preset (sets the sliders above)</label>
+    <select id="in-archetype">
+      <option value="">— custom —</option>
+      <option value="brute">brute</option>
+      <option value="soldier">soldier</option>
+      <option value="rogue">rogue</option>
+      <option value="ascetic">ascetic</option>
+    </select>
+
+    <label>skin colour</label>
+    <div class="swatches" id="sw-skin"></div>
+
+    <h2>Hair</h2>
+
+    <label>style</label>
+    <select id="in-hairstyle">
+      <option value="crop">crop</option>
+      <option value="bob">bob</option>
+      <option value="tail">tail</option>
+      <option value="long">long</option>
+    </select>
+
+    <label>length</label>
+    <div class="sl"><input type="range" id="in-hairlen" min="0" max="1" step="0.01" value="0.3"><b id="v-hairlen"></b></div>
+
+    <label>colour</label>
+    <div class="swatches" id="sw-hair"></div>
+
+    <h2>Clothing</h2>
+
+    <div class="check"><input type="checkbox" id="in-robe"><span>robe (carries the hood)</span></div>
+    <div class="check"><input type="checkbox" id="in-cape"><span>cape</span></div>
+    <div class="check"><input type="checkbox" id="in-helm"><span>helm</span></div>
+    <div class="check"><input type="checkbox" id="in-pauldrons"><span>pauldrons</span></div>
+    <div class="check"><input type="checkbox" id="in-hood"><span>hood up (D-219 presentation)</span></div>
+
+    <label>weapon</label>
+    <select id="in-weapon">
+      <option value="none">none</option>
+      <option value="sword">sword</option>
+      <option value="staff">staff</option>
+    </select>
+
+    <label>robe / cape colour</label>
+    <div class="swatches" id="sw-cape"></div>
+
+    <label>tunic / underclothes colour</label>
+    <div class="swatches" id="sw-cloth"></div>
+
+    <h2>Review</h2>
+
+    <label>animation</label>
+    <select id="in-anim">
+      <option value="idle">idle</option>
+      <option value="walk">walk</option>
+      <option value="sitting">sit</option>
+      <option value="kneeling">kneel</option>
+      <option value="bow">bow</option>
+      <option value="wave">wave</option>
+      <option value="laugh">laugh</option>
+      <option value="point">point</option>
+      <option value="shrug">shrug</option>
+      <option value="cycle">cycle everything</option>
+    </select>
+
+    <div class="check"><input type="checkbox" id="in-slow"><span>slow motion</span></div>
+
+    <label>render</label>
+    <select id="in-style">
+      <option value="raw">raw (full res)</option>
+      <option value="uniform">pixelated (game look)</option>
+    </select>
+    <label>pixel scale</label>
+    <div class="sl"><input type="range" id="in-pixelscale" min="1" max="6" step="1" value="4"><b id="v-pixelscale"></b></div>
+
+    <label>lighting</label>
+    <select id="in-light">
+      <option value="overcast">overcast</option>
+      <option value="interior">interior</option>
+      <option value="night">night</option>
+      <option value="underground">underground</option>
+    </select>
+
+    <label>fold-variation seed</label>
+    <div class="sl"><input type="range" id="in-seed" min="1" max="20" step="1" value="1"><b id="v-seed"></b></div>
+
+    <label>a stranger sees</label>
+    <div id="descriptor"></div>
+
+    <button id="btn-export">Export values (paste to Claude / decisions)</button>
+    <textarea id="export-out" readonly></textarea>
+
+    <div class="hint">
+      Drag to orbit, shift-drag to pan, wheel to zoom. Slider ranges here are
+      deliberately wider than the current archetype ranges — the point is to
+      find where the model breaks and ratify the real limits.
+    </div>
+  </div>
+  <script type="module" src="/src/creator.ts"></script>
+</body>
+</html>

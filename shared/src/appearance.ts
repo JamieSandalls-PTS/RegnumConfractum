@@ -86,6 +86,10 @@ export interface Appearance {
   sex: 'male' | 'female';
   hairStyle: HairStyle;
   hairColor: number;
+  /** Bust volume 0..1, female builds only (renderer maps to geometry;
+   * male builds ignore it). Range limits await stakeholder ratification
+   * via the character creator. */
+  bust: number;
 }
 
 const rangePick = (rnd: () => number, r: readonly [number, number]) => r[0] + rnd() * (r[1] - r[0]);
@@ -161,5 +165,6 @@ export function generateAppearance(seed: number): Appearance {
     sex: rnd() < 0.5 ? 'female' : 'male',
     hairStyle: pick(rnd, HAIR_STYLES),
     hairColor: pick(rnd, HAIR_COLORS),
+    bust: 0.35 + rnd() * 0.3,
   };
 }

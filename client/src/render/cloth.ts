@@ -536,6 +536,15 @@ export class SolidHair {
     this.looseGroup.visible = v;
   }
 
+  /** A worn-up hood contains everything except the fringe at the brow:
+   * the back mass and tail tie poked THROUGH the cowl shell otherwise. */
+  setUnderHood(hooded: boolean): void {
+    this.looseGroup.visible = !hooded;
+    for (const m of this.capGroup.children) {
+      if (m.name === 'hair back' || m.name === 'hair tie') m.visible = !hooded;
+    }
+  }
+
   step(
     dt: number,
     wind: number,

@@ -166,15 +166,42 @@ pass.
   views hid every failure the stakeholder caught.
 - ROBE skirt: elliptical waist rows (zk 0.68->1 by row 4) fix the belt gap;
   rigid rows = 2; floor collision keeps hems pooling when seated.
-- HOOD: wedge = tilted faceted cone, apex = rim tip over the brow
-  (character.ts refreshHood). Front view ratified-ish vs the Jedi photo
-  (face visible under pointed arch). SIDE view still cluttered: wedge apex
-  reads as a forward horn + spike at top-back + crown dome bulge. Next:
-  clean the side silhouette to match the stakeholder's brown-hood photo
-  (near-horizontal top edge, ONE straight diagonal to the shoulder). Their
-  reference images live in chat (2026-08-17); consider asking them to drop
-  copies in docs/reference/.
+- HOOD (round 16, this session): rebuilt as a hand-lofted RIDGE TENT —
+  centre ridge polyline (tip over the brow → near-horizontal over the
+  crown → ONE straight diagonal to the nape) plus per-side mid and rim
+  polylines laddered into flat triangles (character.ts refreshHood; the
+  `ladder` helper preserves authored corners). The cone+dome assembly is
+  gone — its apex read as a forward horn from the side. Verified vs both
+  reference photos: front = pointed arch, face visible; side = horizontal
+  top edge, one diagonal, face hidden by the side sheet. Hair back-mass
+  and tail-tie now hide under a worn hood (SolidHair.setUnderHood) — the
+  bun used to bulge through the shell. Flaps shrunk to narrow jaw drapes.
+  Reference images still only live in chat (2026-08-17) — worth asking
+  the stakeholder to drop copies in docs/reference/.
 - Stakeholder rulings this stretch (record in DECISIONS.md when the art is
   ratified): palette pixelation IS the character direction; reference-
   driven 8-direction review is the workflow; in-house verlet stays over
   Jolt/ammo (assessment given 2026-08-17); clothing/hair physics-based.
+
+## Character creator (2026-08-17, stakeholder-requested range-finder)
+
+- `/creator.html` (client/src/creator.ts): standalone page, one character,
+  EVERY appearance parameter on an explicit control with its numeric value
+  shown — sex, bust (female-only slider), skin/hair/robe/tunic colours
+  (palette swatches + free picker + hex readout), height, bulk, shoulder,
+  limb, head scale, archetype presets, hair style/length, clothing
+  toggles, weapon, hood-up, all animations, lighting profiles, raw vs
+  pixelated, and an Export-values button. Purpose: the stakeholder pushes
+  sliders till the model breaks, then ratifies creation ranges — slider
+  bounds are deliberately wider than ARCHETYPES.
+- To support it: `Appearance.bust` (0..1) added at the END of the seed
+  draw order (existing seeds keep their look; seeded range 0.35–0.65,
+  0.5 = the old fixed size exactly); CharacterVisual's constructor now
+  accepts a full Appearance object as an alternative to a seed;
+  bust drives breast/bodice geometry and the hair collider.
+- Automation hook: `window.__creator` (set/get/view/advance/shoot), same
+  screenshot-receiver workflow as the viewer.
+- NOT yet in-game: creation flow/protocol unchanged (class picker and
+  appearance creation UI remain for the UI milestone). Ranges chosen in
+  the creator must be baked into ARCHETYPES / a creation schema once
+  ratified.
