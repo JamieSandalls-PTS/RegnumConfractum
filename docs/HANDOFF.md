@@ -157,3 +157,24 @@ pass.
   `0007_spirits.sql` applies on next server/test start (`PgStore.init()`
   runs migrations automatically). Safe to wipe: `docker compose down -v`.
 - No dev servers were left running (killed at session start; none started).
+
+## Round 15 (2026-08-17, late): clothing state, mid-iteration
+
+- CAPE: attachment is a YOKE across the upper back rising over the deltoid
+  tops (cloth.ts collar layout, `over` factor 0.75, ends +/-115deg). Review
+  capes from TOP-ANGLE views (game camera h=8.5, plus h=30/60) - eye-level
+  views hid every failure the stakeholder caught.
+- ROBE skirt: elliptical waist rows (zk 0.68->1 by row 4) fix the belt gap;
+  rigid rows = 2; floor collision keeps hems pooling when seated.
+- HOOD: wedge = tilted faceted cone, apex = rim tip over the brow
+  (character.ts refreshHood). Front view ratified-ish vs the Jedi photo
+  (face visible under pointed arch). SIDE view still cluttered: wedge apex
+  reads as a forward horn + spike at top-back + crown dome bulge. Next:
+  clean the side silhouette to match the stakeholder's brown-hood photo
+  (near-horizontal top edge, ONE straight diagonal to the shoulder). Their
+  reference images live in chat (2026-08-17); consider asking them to drop
+  copies in docs/reference/.
+- Stakeholder rulings this stretch (record in DECISIONS.md when the art is
+  ratified): palette pixelation IS the character direction; reference-
+  driven 8-direction review is the workflow; in-house verlet stays over
+  Jolt/ammo (assessment given 2026-08-17); clothing/hair physics-based.

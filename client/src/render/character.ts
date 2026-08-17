@@ -671,7 +671,7 @@ export class CharacterVisual {
       // moment it moved (stakeholder).
       this.cape = new Cloth(11, 10, shoulderW * 1.6 + bodyW * 0.95, p.height * 0.62,
         p.capeColor, 'collar',
-        Math.max(shoulderW * 0.8, bodyW * 0.42), shoulderW + bodyW * 0.21);
+        Math.max(shoulderW * 0.8, bodyW * 0.42), shoulderW + bodyW * 0.12);
       this.parentOrRoot().add(this.cape.mesh);
       // The tie at the throat, so the collar reads as fastened.
       this.nm('cape tie');
@@ -905,29 +905,37 @@ export class CharacterVisual {
       // Per the stakeholder's hood-varieties sheet: the rim OVERHANGS the
       // brow, the opening is narrow enough that the face sits deep inside,
       // and the silhouette flows back into a slack point.
+      // The hood per the stakeholder's side-view photo: ONE tilted faceted
+      // cone whose APEX is the rim tip jutting forward-up over the face.
+      // From the side that reads as the photo does — near-horizontal top
+      // edge running back from the tip, one long straight edge falling to
+      // the shoulders, the face deep under the overhang. The underside
+      // sector is cut away so the face looks out from beneath the apex.
+      this.nm('hood');
+      // Front reference photo: a pointed arch — the edges fall in straight
+      // diagonals framing the face closely, so the opening is a ~95°
+      // sector, not a barn door.
+      const wedge = new THREE.Mesh(
+        faceted(new THREE.CylinderGeometry(headH * 0.03, headH * 0.6, headH * 1.2, 8, 1, true,
+          Math.PI * 0.27, Math.PI * 1.46)),
+        shellMat,
+      );
+      wedge.name = 'hood';
+      wedge.castShadow = true;
+      // Axis: base centre behind the neck, apex at the front rim tip.
+      wedge.rotation.x = 0.9;
+      wedge.position.set(0, headH * 0.54, headH * 0.02);
+      wedge.scale.set(0.92, 1.1, 1);
+      this.cowlGroup.add(wedge);
+      // A snug dome where the fabric rests on the crown, under the wedge.
       const crown = new THREE.Mesh(
-        faceted(new THREE.SphereGeometry(headH * 0.56, 8, 3, 0, Math.PI * 2, 0, Math.PI * 0.3)),
+        faceted(new THREE.SphereGeometry(headH * 0.46, 8, 3, 0, Math.PI * 2, 0, Math.PI * 0.42)),
         shellMat,
       );
-      const shell = new THREE.Mesh(
-        faceted(new THREE.SphereGeometry(headH * 0.56, 8, 5, Math.PI * 0.69, Math.PI * 1.62, Math.PI * 0.28, Math.PI * 0.46)),
-        shellMat,
-      );
-      for (const m of [crown, shell]) {
-        m.name = 'hood';
-        m.castShadow = true;
-        m.position.set(0, headH * 0.42, headH * 0.06);
-        m.scale.set(0.94, 1.02, 1.45); // deep, swept back to a point
-        m.rotation.x = -0.02;
-        this.cowlGroup.add(m);
-      }
-      this.nm('hood peak');
-      // A four-sided pyramid continuing the crown line into the slack point.
-      const peak = this.addMesh(this.cowlGroup,
-        new THREE.CylinderGeometry(0.008, headH * 0.24, headH * 0.6, 4, 1)
-          .rotateY(Math.PI / 4),
-        hoodCol, [0, headH * 0.2, -headH * 0.62]);
-      peak.rotation.x = 2.55; // tip points down-and-back
+      crown.name = 'hood';
+      crown.castShadow = true;
+      crown.position.set(0, headH * 0.42, 0);
+      this.cowlGroup.add(crown);
       this.nm('hood gather');
       // The fabric roll where the hood gathers at the neck (reference
       // sheet: nearly every drawing has it).

@@ -74,25 +74,34 @@ export class Cloth {
         const u = x / (cols - 1);
         if (layout === 'tube') {
           // Rigid rows follow the cone: ring radius grows toward the hem.
+          // The WAIST rows are elliptical — the body is flattened front-to-
+          // back there, and a circular ring left a visible gap between the
+          // skirt and the belt (stakeholder). Rounds out by mid-skirt.
           const a = u * Math.PI * 2;
           const r = collarRadius + (shoulderHalfWidth - collarRadius) * (row / (rows - 1));
+          const zk = 0.68 + 0.32 * Math.min(1, row / 4);
           this.pinLocal.push(new THREE.Vector3(
-            Math.sin(a) * r, -row * rowDrop, Math.cos(a) * r));
+            Math.sin(a) * r, -row * rowDrop, Math.cos(a) * r * zk));
           this.pinMask.push(true);
         } else if (layout === 'collar') {
-          // The attachment line lies across the TOP OF THE BACK and out to
-          // the sides (stakeholder: the cape wraps the upper back and
-          // deltoids, only the TIE sits at the neck — fabric must not
-          // gather in a ring around the throat). Row 0 spans ±90°, ending
-          // at the shoulder sides; row 1's soft ring reaches past the
-          // deltoids and slightly forward.
-          const a = (u - 0.5) * Math.PI * (row === 0 ? 1.0 : 1.15);
-          const rx = row === 0 ? collarRadius : (shoulderHalfWidth || collarRadius * 1.8);
+          // The attachment line is a YOKE (top-angle review, stakeholder):
+          // across the top of the back, RISING AND WIDENING over the
+          // shoulder points so fabric is attached ON the deltoid tops —
+          // an edge that stops at the shoulder sides leaves the caps bare
+          // when seen from the game's high camera. Ends reach ±115°,
+          // slightly forward of the shoulder line.
+          const a = (u - 0.5) * Math.PI * (row === 0 ? 1.28 : 1.15);
+          const over = Math.pow(Math.abs(Math.sin(a)), 2); // 1 at the shoulder points
+          const rx = row === 0
+            ? collarRadius * (1 + 0.75 * over)
+            : (shoulderHalfWidth || collarRadius * 1.8);
           const rz = row === 0 ? collarRadius * 0.72 : collarRadius * 0.9;
           // The shoulder ring barely drops: it must clear the TOPS of the
           // deltoids, or the pinned fabric slices through the shoulder caps.
+          // The yoke's ends dip slightly as they ride over the shoulders.
+          const dip = row === 0 ? -over * rowDrop * 0.25 : -row * rowDrop * 0.07;
           this.pinLocal.push(new THREE.Vector3(
-            Math.sin(a) * rx, -row * rowDrop * 0.07, -Math.cos(a) * rz));
+            Math.sin(a) * rx, dip, -Math.cos(a) * rz));
           // Row 0 (collar) is fully fastened. Row 1 is NEVER hard-pinned:
           // rigid ring corners tented the fabric into wing spikes whenever
           // a pose moved the shoulders (stakeholder, seated). The ring is a
@@ -109,10 +118,12 @@ export class Cloth {
       for (let x = 0; x < cols; x++) {
         if (layout === 'tube') {
           // A-line cone: waist radius at the top, hem radius at the bottom.
+          // Elliptical at the waist, round by mid-skirt (see pinLocal).
           const a = (x / (cols - 1)) * Math.PI * 2;
           const r = collarRadius + (shoulderHalfWidth - collarRadius) * (y / (rows - 1));
+          const zk = 0.68 + 0.32 * Math.min(1, y / 4);
           const v = new THREE.Vector3(
-            Math.sin(a) * r, (-y / (rows - 1)) * height, Math.cos(a) * r);
+            Math.sin(a) * r, (-y / (rows - 1)) * height, Math.cos(a) * r * zk);
           this.pos.push(v);
           this.prev.push(v.clone());
           continue;
