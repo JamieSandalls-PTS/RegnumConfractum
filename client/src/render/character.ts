@@ -141,6 +141,21 @@ export class CharacterVisual {
   }
 
   /**
+   * A smooth lathe-turned volume from an [radius, height] profile — the
+   * torso is built from these so pelvis/abdomen/ribcage share seam radii
+   * and read as one blended body instead of stacked primitives (review).
+   * End the profile near radius 0 to close the shape with a rounded cap.
+   */
+  private lathe(parent: THREE.Object3D, profile: [number, number][], color: number): THREE.Mesh {
+    const pts = profile.map(([r, y]) => new THREE.Vector2(Math.max(0.008, r), y));
+    const mesh = new THREE.Mesh(new THREE.LatheGeometry(pts, 18), this.material(color));
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+
+  /**
    * A hanging limb segment with anatomical taper: a ball at the joint, a
    * cylinder thicker at the top than the bottom (thighs, calves, arms all
    * narrow toward their far end — the stakeholder's review point).
@@ -178,91 +193,94 @@ export class CharacterVisual {
     const torsoH = H * 0.3;
     const upperLeg = legLen * 0.52;
     const lowerLeg = legLen * 0.48;
-    const armLen = H * 0.4 * p.limb;
+    // Long-limb seeds only half-apply to arms — full application reaches
+    // past the knees. Fingertips belong near mid-thigh.
+    const armLen = H * 0.41 * (1 + (p.limb - 1) * 0.5);
     const upperArm = armLen * 0.5;
     const lowerArm = armLen * 0.5;
     const hipY = legLen;
 
     // Sex-derived proportions on top of the neutral parameters (the neutral
     // values keep old seeds' silhouettes; these reshape, never re-roll).
-    const bodyW = p.bulk * (fem ? 0.94 : 1.0);
-    const shoulderW = p.shoulder * (fem ? 0.84 : 1.02);
-    const hipW = bodyW * (fem ? 1.16 : 0.94);
+    // Floor the body width: the slightest seeds still need human hips and
+    // limbs, not sticks. (Bulk above the floor differentiates as before.)
+    const bodyW = Math.max(p.bulk, 0.3) * (fem ? 0.94 : 1.0);
+    // Compressed from the heroic archetype numbers: real shoulders span
+    // ~2.5 head-widths; the uncompressed seeds render past 4 (gorilla zone).
+    const shoulderW = p.shoulder * (fem ? 0.72 : 0.87);
+    const hipW = bodyW * (fem ? 1.12 : 0.86); // male hips clearly inside the shoulders
     const waistW = bodyW * (fem ? 0.68 : 0.82);
     this.dims = { hipY, torsoH, headH, shoulderW, hipW, bodyW, baseShY: torsoH * 0.3 };
 
-    // Pelvis: a rounded block the width of the hips.
+    // --- Torso (review round 2): three lathe-turned volumes — pelvis,
+    // abdomen, ribcage — whose seam radii MATCH, flattened front-to-back,
+    // with soft masses (abs, pecs/bust, trapezius) laid over them. No
+    // stacked-primitive creases, no bare spheres.
+    const seamHip = hipW * 0.47; // pelvis top = abdomen bottom
+    const seamWaist = waistW * 0.58; // abdomen top = ribcage bottom
+
     this.pelvis = this.joint(this.root, [0, hipY, 0]);
-    this.addMesh(
-      this.pelvis,
-      new THREE.CapsuleGeometry(hipW * 0.5, torsoH * 0.1, 3, 10).rotateZ(Math.PI / 2),
-      p.cloth,
-      [0, torsoH * 0.08, 0],
-    );
+    // Shallow saddle, no hanging crotch dome — trousers, not a sack.
+    const pelvisMesh = this.lathe(this.pelvis, [
+      [0.008, -torsoH * 0.12],
+      [hipW * 0.34, -torsoH * 0.09],
+      [hipW * 0.5, torsoH * 0.02],
+      [hipW * 0.49, torsoH * 0.12],
+      [seamHip, torsoH * 0.24],
+    ], p.cloth);
+    pelvisMesh.scale.z = 0.8;
 
-    // Waist: visibly narrower — the box figure's biggest tell.
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
-    const waist = this.addMesh(
-      this.spine,
-      new THREE.CylinderGeometry(waistW * 0.5, hipW * 0.46, torsoH * 0.34, 10),
-      p.cloth,
-      [0, torsoH * 0.14, 0],
-    );
-    waist.scale.z = 0.8;
-    // Abdominal plane (per review): three subtle stacked bands on the front
-    // of the waist so the midsection reads muscled under the cloth.
-    for (let i = 0; i < 3; i++) {
-      const band = this.addMesh(
-        this.spine,
-        new THREE.BoxGeometry(waistW * (0.72 - i * 0.06), torsoH * 0.075, bodyW * 0.1),
-        p.cloth,
-        [0, torsoH * (0.24 - i * 0.09), this.frontZ() * (0.62 - i * 0.045)],
-      );
-      band.scale.z = 0.8;
-    }
+    const belly = this.lathe(this.spine, [
+      [seamHip, 0],
+      [waistW * 0.52, torsoH * 0.18],
+      [seamWaist, torsoH * 0.35],
+    ], p.cloth);
+    belly.scale.z = 0.78;
+    // Abdominal mass: one soft flattened swell, not carved bands.
+    const abs = this.addMesh(this.spine, new THREE.SphereGeometry(waistW * 0.3, 12, 9), p.cloth,
+      [0, torsoH * 0.18, this.frontZ() * 0.4]);
+    abs.scale.set(1.0, 1.2, 0.3);
 
-    // Chest (compound, per review): a flattened ribcage core, a separate
-    // upper-chest plane — pectoral plates for the male build, the sprung
-    // bust for the female — and shoulder caps. One cone reads as a bollard;
-    // this reads as a torso.
+    // The torso garment is ONE material (cloth) so the body reads as a
+    // single form; metal is reserved for actual armour pieces.
     this.chest = this.joint(this.spine, [0, torsoH * 0.34, 0]);
-    const ribcage = this.addMesh(
-      this.chest,
-      new THREE.CylinderGeometry(shoulderW * 0.82, waistW * 0.6, torsoH * 0.42, 10),
-      p.metal,
-      [0, torsoH * 0.18, 0],
-    );
-    ribcage.scale.z = 0.74; // front-back flattening — torsos are not round
-    // Upper-back plane (trapezius slab) so the back is not a cylinder wall.
-    this.addMesh(this.chest, new THREE.BoxGeometry(shoulderW * 1.5, torsoH * 0.2, bodyW * 0.14),
-      p.metal, [0, torsoH * 0.3, -this.frontZ() * 0.42]);
+    const ribcage = this.lathe(this.chest, [
+      [seamWaist, 0],
+      [shoulderW * 0.8, torsoH * 0.18],
+      [shoulderW * 0.85, torsoH * 0.3],
+      [shoulderW * 0.6, torsoH * 0.42],
+      [bodyW * 0.17, torsoH * 0.45], // stops BELOW the neck root — the head
+      [0.008, torsoH * 0.47],        // must never sit buried in the chest
+    ], p.cloth);
+    ribcage.scale.z = 0.72;
+    // Trapezius: a soft saddle behind the neck, not a slab.
+    const traps = this.addMesh(this.chest, new THREE.SphereGeometry(shoulderW * 0.46, 12, 9), p.cloth,
+      [0, torsoH * 0.4, -this.frontZ() * 0.24]);
+    traps.scale.set(1.45, 0.4, 0.66);
     if (fem) {
       // The sprung chest: geometry on its own group so physics can move it.
       this.bustGroup = new THREE.Group();
-      this.bustGroup.position.set(0, torsoH * 0.24, this.frontZ() * 0.52);
+      this.bustGroup.position.set(0, torsoH * 0.24, this.frontZ() * 0.42);
       this.chest.add(this.bustGroup);
       for (const s of [1, -1]) {
-        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.15, 8, 6), p.metal,
-          [s * bodyW * 0.15, 0, 0]);
-        b.scale.set(1.0, 0.9, 0.82);
+        const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bodyW * 0.15, 10, 8), p.cloth,
+          [s * bodyW * 0.14, 0, 0]);
+        b.scale.set(1.0, 0.88, 0.7);
       }
     } else {
-      // Pectoral plates: two flattened spheres on the upper chest.
+      // Pectorals: two soft plates blending into the ribcage front.
       for (const s of [1, -1]) {
-        const pec = this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.17, 8, 6), p.metal,
-          [s * bodyW * 0.16, torsoH * 0.26, this.frontZ() * 0.5]);
-        pec.scale.set(1.1, 0.72, 0.5);
+        const pec = this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.17, 10, 8), p.cloth,
+          [s * bodyW * 0.14, torsoH * 0.28, this.frontZ() * 0.36]);
+        pec.scale.set(1.05, 0.68, 0.42);
       }
     }
-    // Shoulder caps — garment, not armour: cloth-coloured and tucked in, or
-    // they read as a puffy collar next to the (metal) pauldrons.
-    for (const s of [1, -1]) {
-      this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.125, 8, 6), p.cloth,
-        [s * shoulderW * 0.96, torsoH * 0.3, 0]);
-    }
-    // Belt line.
-    this.addMesh(this.chest, new THREE.CylinderGeometry(waistW * 0.6, waistW * 0.6, torsoH * 0.07, 10),
-      p.accent, [0, -torsoH * 0.02, 0]);
+    // Belt line, elliptical like the waist it wraps.
+    const belt = this.addMesh(this.chest,
+      new THREE.CylinderGeometry(waistW * 0.62, waistW * 0.64, torsoH * 0.07, 16),
+      p.accent, [0, -torsoH * 0.015, 0]);
+    belt.scale.z = 0.82;
 
     this.neck = this.joint(this.chest, [0, torsoH * 0.38, 0]);
     this.addMesh(this.neck, new THREE.CylinderGeometry(bodyW * 0.13, bodyW * 0.15, headH * 0.24, 8),
@@ -271,10 +289,10 @@ export class CharacterVisual {
     // Head: a capsule cranium with a hinted jaw — rounder than the old box.
     this.head = this.joint(this.neck, [0, headH * 0.22, 0]);
     this.addMesh(this.head,
-      new THREE.CapsuleGeometry(headH * 0.33, headH * 0.16, 4, 10),
+      new THREE.CapsuleGeometry(headH * 0.35, headH * 0.14, 4, 10),
       p.skin, [0, headH * 0.42, 0]);
-    this.addMesh(this.head, new THREE.BoxGeometry(headH * 0.46, headH * 0.26, headH * 0.36),
-      p.skin, [0, headH * 0.2, headH * 0.06]);
+    this.addMesh(this.head, new THREE.BoxGeometry(headH * 0.48, headH * 0.28, headH * 0.38),
+      p.skin, [0, headH * 0.2, headH * 0.05]);
 
     this.arms = {
       L: this.buildArm('L', bodyW, upperArm, lowerArm, torsoH),
@@ -312,12 +330,19 @@ export class CharacterVisual {
     const p = this.appearance;
     const s = side === 'L' ? 1 : -1;
     const sh = this.joint(this.chest, [s * this.dims.shoulderW, this.dims.baseShY, 0]);
+    // Deltoid: an egg-shaped mass ON the arm bone, so it rides every arm
+    // move and blends the shoulder into the upper arm (review: not a bare
+    // sphere hovering at the joint).
+    const deltoid = this.addMesh(sh, new THREE.SphereGeometry(bodyW * 0.13, 10, 8), p.cloth,
+      [-s * bodyW * 0.02, -bodyW * 0.05, 0]); // tucked INTO the chest edge
+    deltoid.scale.set(1.0, 1.22, 1.0);
     // Deltoid → wrist taper (review: limb width varies along its length).
-    this.taperedLimb(sh, bodyW * 0.15, bodyW * 0.105, upperArm, p.cloth);
+    this.taperedLimb(sh, bodyW * 0.125, bodyW * 0.1, upperArm, p.cloth);
     const el = this.joint(sh, [0, -upperArm, 0]);
-    this.taperedLimb(el, bodyW * 0.115, bodyW * 0.08, lowerArm, p.skin);
+    this.taperedLimb(el, bodyW * 0.11, bodyW * 0.075, lowerArm, p.skin);
     const hand = this.joint(el, [0, -lowerArm, 0]);
-    this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.11, 6, 5), p.skin, [0, -bodyW * 0.05, 0]);
+    const palm = this.addMesh(hand, new THREE.SphereGeometry(bodyW * 0.1, 8, 6), p.skin, [0, -bodyW * 0.05, 0]);
+    palm.scale.set(0.9, 1.15, 0.7);
     return { sh, el, hand };
   }
 
@@ -331,7 +356,22 @@ export class CharacterVisual {
     // Calf: a bulge below the knee, tapering hard to the ankle.
     this.taperedLimb(knee, hipW * 0.15, hipW * 0.085, lowerLeg, p.cloth);
     const foot = this.joint(knee, [0, -lowerLeg, 0]);
-    this.box(foot, hipW * 0.24, hipW * 0.13, hipW * 0.44, 0x241e19, [0, -hipW * 0.05, hipW * 0.09]);
+    // A shaped foot (review: not a rectangle): rounded heel under the ankle
+    // and a wedge tapering toward the toes. The 4-sided frustum, spun 45°,
+    // gives a flat-soled taper no box can.
+    const boot = 0x3a3028; // bright enough to survive the quantiser
+    const heel = this.addMesh(foot, new THREE.SphereGeometry(hipW * 0.115, 8, 6), boot,
+      [0, -hipW * 0.05, -hipW * 0.02]);
+    heel.scale.set(0.95, 0.68, 1.05);
+    const toe = this.addMesh(
+      foot,
+      new THREE.CylinderGeometry(hipW * 0.075, hipW * 0.12, hipW * 0.34, 4, 1)
+        .rotateY(Math.PI / 4)
+        .rotateX(Math.PI / 2),
+      boot,
+      [0, -hipW * 0.075, hipW * 0.16],
+    );
+    toe.scale.y = 0.62;
     return { hip, knee, foot };
   }
 
@@ -588,7 +628,7 @@ export class CharacterVisual {
     for (const s of ['L', 'R'] as const) {
       const sg = s === 'L' ? 1 : -1;
       c.arms[s].sh.rotation.x = Math.sin(t * 1.4 + sg) * 0.03;
-      c.arms[s].sh.rotation.z = sg * (0.1 + Math.sin(t * 1.2) * 0.015);
+      c.arms[s].sh.rotation.z = sg * (0.05 + Math.sin(t * 1.2) * 0.015); // arms hang close
       c.arms[s].el.rotation.x = -0.18 - Math.sin(t * 1.4) * 0.02;
       c.legs[s].hip.rotation.z = sg * -0.02 + sway * 0.01;
     }

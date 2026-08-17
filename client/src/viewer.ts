@@ -46,9 +46,22 @@ function matchesFilter(seed: number, filter: string): boolean {
   return true;
 }
 
+/** When set, the grid collapses to this one seed at the origin. */
+let soloSeed: number | null = null;
+
 function populate(): void {
   for (const s of shown) s.visual.dispose();
   shown = [];
+  if (soloSeed !== null) {
+    const visual = new CharacterVisual(soloSeed, scene.scene);
+    visual.setPosition(0, 0);
+    visual.setFacing('s');
+    shown.push({ visual, seed: soloSeed, phase: 0 });
+    applyGear();
+    applyHoods();
+    $('seeds').textContent = `solo: ${soloSeed}`;
+    return;
+  }
   const base = Number($<HTMLInputElement>('in-seed').value) || 0;
   const filter = $<HTMLSelectElement>('in-filter').value;
   const seedList: number[] = [];
@@ -151,13 +164,10 @@ function drive(mode: string, t: number): { moving: boolean } {
 
 const clock = new THREE.Clock();
 let t = 0;
-function frame(): void {
-  requestAnimationFrame(frame);
-  const slow = $<HTMLInputElement>('in-slow').checked ? 0.5 : 1;
-  const dt = Math.min(clock.getDelta(), 0.033) * slow;
+
+function stepViewer(dt: number): void {
   t += dt;
   const wind = 0.25 + Math.sin(t * 0.13) * 0.12;
-
   let mode = $<HTMLSelectElement>('in-anim').value;
   if (mode === 'cycle') {
     if (t - cycleAt > 3.2) {
@@ -167,9 +177,7 @@ function frame(): void {
     mode = CYCLE[cycleIndex]!;
   }
   const { moving } = drive(mode, t);
-
   for (const s of shown) s.visual.update(dt, t + s.phase, moving, wind);
-
   scene.updateCamera(dt);
   scene.follow(new THREE.Vector3(0, 0, 0));
   if ($<HTMLInputElement>('in-pixel').checked) {
@@ -179,5 +187,63 @@ function frame(): void {
   }
 }
 
+function frame(): void {
+  requestAnimationFrame(frame);
+  const slow = $<HTMLInputElement>('in-slow').checked ? 0.5 : 1;
+  stepViewer(Math.min(clock.getDelta(), 0.033) * slow);
+}
+
 populate();
 frame();
+
+// ---------------------------------------------------------------------------
+// Automation hook: lets headless review drive the viewer without rAF (the
+// browser pane stops compositing when hidden) and post frames to a local
+// receiver for inspection (D-503 technique). Not part of the product.
+// ---------------------------------------------------------------------------
+
+declare global {
+  interface Window {
+    __viewer?: {
+      solo: (seed: number | null) => void;
+      setAnim: (mode: string) => void;
+      setPixel: (on: boolean, scale?: number) => void;
+      view: (azimuthRad: number, zoom: number, orbitHeight?: number) => void;
+      advance: (seconds: number) => void;
+      shoot: (name: string) => Promise<string>;
+    };
+  }
+}
+
+window.__viewer = {
+  solo(seed) {
+    soloSeed = seed;
+    populate();
+  },
+  setAnim(mode) {
+    $<HTMLSelectElement>('in-anim').value = mode;
+  },
+  setPixel(on, scale) {
+    $<HTMLInputElement>('in-pixel').checked = on;
+    if (scale) {
+      scene.post.pixelScale = scale;
+      scene.resize();
+    }
+  },
+  view(azimuthRad, zoom, orbitHeight) {
+    scene.setAzimuth(azimuthRad);
+    scene.setZoom(zoom);
+    if (orbitHeight !== undefined) scene.setOrbitHeight(orbitHeight);
+  },
+  advance(seconds) {
+    const steps = Math.max(1, Math.round(seconds * 60));
+    for (let i = 0; i < steps; i++) stepViewer(1 / 60);
+  },
+  async shoot(name) {
+    stepViewer(1 / 60); // fresh render in this task so toDataURL sees pixels
+    const canvas = scene.renderer.domElement;
+    const url = canvas.toDataURL('image/png');
+    await fetch(`http://127.0.0.1:8123/${name}`, { method: 'POST', body: url, mode: 'no-cors' });
+    return `sent ${name} (${canvas.width}x${canvas.height})`;
+  },
+};

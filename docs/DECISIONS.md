@@ -1376,3 +1376,29 @@ viewer page itself.
   and back slabs (no helmet-band artefact); locks are overlapping tapered
   capsules on the verlet chains; tail gets a visible gather.
 - **Viewer:** pixelation degree slider (1–6; the game ships at 4).
+
+**Review round 2 (stakeholder, same day) — body fidelity, applied with a
+closed visual loop.** The viewer gained an automation hook (`window.__viewer`:
+solo a seed, set animation/camera/pixelation, advance fixed frames, POST the
+canvas to a local receiver — the D-503 technique) so renders could be
+INSPECTED from front and side and iterated like an artist would, without the
+browser pane compositing. Five look-adjust cycles produced:
+- **Torso as three lathe-turned volumes** (pelvis/abdomen/ribcage) with
+  MATCHING seam radii, flattened front-to-back — no stacked-primitive
+  creases. The ribcage stops below the neck root (an early iteration buried
+  the head — caught on camera). One cloth material across the torso so the
+  body reads as a single garment; metal is reserved for armour.
+- **Soft masses over the volumes:** abdominal swell, pectoral plates / the
+  sprung bust, trapezius saddle; **deltoids ride the arm bone** and tuck
+  into the chest edge (they read as puffed sleeves hovering at the joint
+  until moved).
+- **Feet:** rounded heel + 45°-spun 4-sided frustum toe wedge — a shaped
+  boot, not a rectangle.
+- **Proportion calibration from screenshots:** shoulder span compressed
+  toward ~2.5–3 head-widths (heroic seeds rendered past 4), male hips
+  clearly inside the shoulders, a body-width floor so slight seeds keep
+  human hips instead of sticks, arm length capped near mid-thigh, no
+  hanging crotch dome.
+Verified at review distance AND at game quantisation (grid of 12, swords
+reading correctly, silhouettes distinct). The capture loop is reusable —
+`scratchpad shot-receiver` + `__viewer.shoot()` — and documented in HANDOFF.

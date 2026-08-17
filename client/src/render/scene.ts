@@ -150,6 +150,26 @@ export class GameScene {
     this.azimuthTarget += delta;
   }
 
+  /** Jump the orbit to an exact angle (viewer/automation use). */
+  setAzimuth(angle: number): void {
+    this.azimuth = angle;
+    this.azimuthTarget = angle;
+  }
+
+  /** Jump zoom to an exact factor (viewer/automation use). */
+  setZoom(zoom: number): void {
+    this.zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom));
+    this.zoomTarget = this.zoom;
+    this.applyFrustum();
+  }
+
+  /** Viewer-only: override orbit elevation for near-eye-level model review.
+   * Keeps |offset| under the fog near plane; the game never calls this. */
+  private orbitHeight = ORBIT_HEIGHT;
+  setOrbitHeight(h: number): void {
+    this.orbitHeight = h;
+  }
+
   /** Multiplicative zoom (wheel): > 1 zooms out, < 1 zooms in. */
   zoomBy(factor: number): void {
     this.zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, this.zoomTarget * factor));
@@ -174,7 +194,7 @@ export class GameScene {
     this.focus.copy(point);
     this.camera.position.set(
       point.x + Math.cos(this.azimuth) * ORBIT_RADIUS,
-      point.y + ORBIT_HEIGHT,
+      point.y + this.orbitHeight,
       point.z + Math.sin(this.azimuth) * ORBIT_RADIUS,
     );
     this.camera.lookAt(point.x, point.y + 0.9, point.z);

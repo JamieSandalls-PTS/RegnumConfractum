@@ -42,12 +42,35 @@ and user functions BEFORE starting M5** (world content and economy).
 
 **Partially begun early at Jamie's direction (D-514, same day):** click-to-move
 with A*, hover highlights, target selection, right-click context menus, the
-1–9 hotbar with drag-and-drop, wheel zoom + drag orbit, character model v2
-(sex-derived bodies, solid physics hair, sprung chest, animation cross-fades),
+1–9 hotbar with drag-and-drop, wheel zoom + drag orbit, character model v3
+(two review rounds applied: corrected joint conventions, lathe-turned blended
+torso, deltoids/feet/hair sculpted, proportions calibrated from screenshots),
 and the character viewer at `/viewer.html` for art feedback. **Jamie owes
-feedback on the viewer** — quote seeds when judging. Still open for the UI
-milestone: clickable inventory/equipment, character sheet, class selection at
-creation (protocol field exists), séance/observe affordances, settings.
+round-3 feedback on the viewer** — quote seeds when judging. Still open for
+the UI milestone: clickable inventory/equipment, character sheet, class
+selection at creation (protocol field exists), séance/observe affordances,
+settings.
+
+**The visual iteration loop (USE THIS for all model/animation work):**
+1. `node <scratchpad>/shot-receiver.mjs <scratchpad>` in the background
+   (writes POSTed dataURLs as PNGs; script is in the session scratchpad —
+   recreate from D-514's description if gone).
+2. Browser pane on `/viewer.html`, then drive `window.__viewer` via
+   javascript: `solo(seed)`, `setAnim('walk')`, `setPixel(false)`,
+   `view(azimuthRad, zoom, orbitHeight)` (π/2 = front since models face +Z;
+   0 = side; orbitHeight ~1.4 for eye-level), `advance(seconds)`,
+   `await shoot('name')` — then Read the PNG and LOOK at it.
+   Works even when the pane isn't compositing (no rAF needed).
+3. Judge front AND side, adjust, re-shoot. Also re-check at
+   `setPixel(true, 4)` grid view — game distance hides some sins and
+   creates others.
+
+**Model conventions that cost a debugging cycle each — do not re-learn:**
+- Models face +Z; for hanging children `rotation.x > 0` swings BACKWARD
+  (knees positive, forward-pointing thighs negative, elbows negative).
+- The ribcage lathe must stop BELOW the neck root or heads sit buried.
+- Keep torso volumes' seam radii matching (seamHip/seamWaist consts).
+- Width floors matter: slight seeds go stick-figure without them.
 
 ## Open items that need JAMIE, not code
 

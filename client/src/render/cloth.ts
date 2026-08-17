@@ -159,13 +159,13 @@ export class SolidHair {
     color: number,
     headBone: THREE.Object3D,
   ) {
-    this.headRadius = headH * 0.36;
+    this.headRadius = headH * 0.38;
     this.headCenter = new THREE.Vector3(0, headH * 0.42, 0);
     const mat = () => new THREE.MeshLambertMaterial({ color });
 
     // The cap: a flattened, back-weighted mass over the cranium — hair has
     // VOLUME, it is not shrink-wrap — plus a fringe over the brow.
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.35, 12, 9), mat());
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.375, 12, 9), mat());
     if (style === 'crop') cap.scale.set(1.02, 0.72, 1.05); // close-cut
     else cap.scale.set(1.06, 0.82, 1.14);
     cap.position.set(0, headH * 0.52, -headH * 0.04);
