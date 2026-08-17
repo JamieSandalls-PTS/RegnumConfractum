@@ -7,12 +7,41 @@ import * as THREE from 'three';
  * capes react to weather for free.
  */
 
+/**
+ * Closest point to `p` on a bone-axis segment (collider centre ± axis ·
+ * halfLen), written into `out`. Colliders were once VERTICAL cylinders that
+ * ignored bone rotation — a bowing torso left its collider standing upright
+ * and hair fell straight through the inclined chest (stakeholder, bow
+ * animation). Oriented capsules follow the bone.
+ */
+function closestOnBoneSegment(
+  p: THREE.Vector3,
+  centre: THREE.Vector3,
+  axis: THREE.Vector3,
+  halfLen: number,
+  out: THREE.Vector3,
+): THREE.Vector3 {
+  let t = (p.x - centre.x) * axis.x + (p.y - centre.y) * axis.y + (p.z - centre.z) * axis.z;
+  t = Math.max(-halfLen, Math.min(halfLen, t));
+  return out.set(centre.x + axis.x * t, centre.y + axis.y * t, centre.z + axis.z * t);
+}
+
 export class Cloth {
   private pos: THREE.Vector3[] = [];
   private prev: THREE.Vector3[] = [];
   private constraints: { a: number; b: number; len: number }[] = [];
   private geom: THREE.PlaneGeometry;
   readonly mesh: THREE.Mesh;
+  /** Pin positions for the pinned rows, row-major, in pin-bone space. */
+  private pinLocal: THREE.Vector3[] = [];
+  /** How many leading rows carry pins (collar: two — see pinMask). */
+  private pinnedRows = 1;
+  /** Per-node pin flags for the leading rows. Collar mode pins the whole
+   * collar ring but ONLY THE LATERAL (shoulder) sections of the second
+   * ring: pinning its back span held the fabric out in a rigid box
+   * (stakeholder: "capes are very square... should conform to the body").
+   * The unpinned back span falls in and drapes against the torso collider. */
+  private pinMask: boolean[] = [];
 
   constructor(
     private cols: number,
@@ -20,10 +49,80 @@ export class Cloth {
     private width: number,
     private height: number,
     color: number,
+    /** 'bar': straight pin row (banners, the old cape). 'collar': the pin
+     * row curves around the neck so fabric wraps OVER the shoulder tops and
+     * ties at the front — the stakeholder's cape reference (2026-08-17).
+     * 'tube': a CLOSED ring of fabric — robe skirts and sleeve cuffs. The
+     * top ring is pinned; rest positions form an A-line cone from
+     * `collarRadius` (waist) to `shoulderHalfWidth` (hem radius — the
+     * parameter is reused); the seam column welds to column 0. */
+    private layout: 'bar' | 'collar' | 'tube' = 'bar',
+    collarRadius = 0,
+    /** Collar mode: x-radius of the pinned SHOULDER ring (defaults to
+     * 1.8 × collarRadius). Tube mode: the HEM radius of the A-line cone. */
+    shoulderHalfWidth = 0,
+    /** Tube mode: how many leading rows are RIGID (pinned to the bone,
+     * following it exactly). The robe skirt is a fitted garment from waist
+     * to knee and only flows below (stakeholder) — rigid rows cost no
+     * physics and never misbehave. */
+    rigidRows = 1,
   ) {
+    this.pinnedRows = layout === 'collar' ? 2 : layout === 'tube' ? Math.max(1, rigidRows) : 1;
+    const rowDrop = height / (rows - 1);
+    for (let row = 0; row < this.pinnedRows; row++) {
+      for (let x = 0; x < cols; x++) {
+        const u = x / (cols - 1);
+        if (layout === 'tube') {
+          // Rigid rows follow the cone: ring radius grows toward the hem.
+          const a = u * Math.PI * 2;
+          const r = collarRadius + (shoulderHalfWidth - collarRadius) * (row / (rows - 1));
+          this.pinLocal.push(new THREE.Vector3(
+            Math.sin(a) * r, -row * rowDrop, Math.cos(a) * r));
+          this.pinMask.push(true);
+        } else if (layout === 'collar') {
+          // ±105° around the neck, 0° at the spine: ends meet near the
+          // clavicles, like a cape tied at the throat. Row 1 repeats the
+          // arc at shoulder-ring radius, one rest-length lower — the drape
+          // over the shoulder tops is anchored, not luck.
+          const a = (u - 0.5) * Math.PI * 1.17;
+          const rx = row === 0 ? collarRadius : (shoulderHalfWidth || collarRadius * 1.8);
+          const rz = row === 0 ? collarRadius : collarRadius * 1.2;
+          // The shoulder ring barely drops: it must clear the TOPS of the
+          // deltoids, or the pinned fabric slices through the shoulder caps.
+          this.pinLocal.push(new THREE.Vector3(
+            Math.sin(a) * rx, -row * rowDrop * 0.07, -Math.cos(a) * rz));
+          // Row 0 (collar) is fully fastened. Row 1 is NEVER hard-pinned:
+          // rigid ring corners tented the fabric into wing spikes whenever
+          // a pose moved the shoulders (stakeholder, seated). The ring is a
+          // weak soft target only; real shoulder support comes from
+          // COLLIDING with the shoulder spheres, like fabric on shoulders.
+          this.pinMask.push(row === 0);
+        } else {
+          this.pinLocal.push(new THREE.Vector3((u - 0.5) * width, 0, -0.02));
+          this.pinMask.push(row === 0);
+        }
+      }
+    }
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
-        const v = new THREE.Vector3((x / (cols - 1) - 0.5) * width, (-y / (rows - 1)) * height, 0);
+        if (layout === 'tube') {
+          // A-line cone: waist radius at the top, hem radius at the bottom.
+          const a = (x / (cols - 1)) * Math.PI * 2;
+          const r = collarRadius + (shoulderHalfWidth - collarRadius) * (y / (rows - 1));
+          const v = new THREE.Vector3(
+            Math.sin(a) * r, (-y / (rows - 1)) * height, Math.cos(a) * r);
+          this.pos.push(v);
+          this.prev.push(v.clone());
+          continue;
+        }
+        // Rest positions use the FLAT cut of the fabric: when the cloth is
+        // wider than the collar arc it gathers at the pins and billows out
+        // over the shoulders — exactly how the reference cape drapes.
+        const v = new THREE.Vector3(
+          (x / (cols - 1) - 0.5) * width,
+          (-y / (rows - 1)) * height,
+          layout === 'collar' ? -collarRadius : 0,
+        );
         this.pos.push(v);
         this.prev.push(v.clone());
       }
@@ -34,6 +133,12 @@ export class Cloth {
         if (x < cols - 1) this.addConstraint(idx(x, y), idx(x + 1, y));
         if (y < rows - 1) this.addConstraint(idx(x, y), idx(x, y + 1));
         if (x < cols - 1 && y < rows - 1) this.addConstraint(idx(x, y), idx(x + 1, y + 1));
+        // Bend resistance across the upper rows (skip-one constraints):
+        // gathered surplus at a collar folds in wide, ordered waves instead
+        // of crumpling (stakeholder round: the conforming cape buckled).
+        if (this.layout === 'collar' && y < 4 && x < cols - 2) {
+          this.addConstraint(idx(x, y), idx(x + 2, y));
+        }
       }
     }
     this.geom = new THREE.PlaneGeometry(width, height, cols - 1, rows - 1);
@@ -55,11 +160,17 @@ export class Cloth {
     t: number,
     pinMatrix: THREE.Matrix4,
     /** The BODY volumes the cloth must not pass through — torso AND pelvis
-     * (round 7: one waist-up cylinder let the cape clip the buttocks). */
-    colliders?: { matrix: THREE.Matrix4; radius: number; height: number }[],
+     * (round 7: one waist-up cylinder let the cape clip the buttocks).
+     * `height` present = capsule along the bone axis (or the axis in matrix
+     * column `axisCol`); absent = SPHERE (shoulder caps, so the collar cape
+     * rests ON the deltoids instead of cutting through). `off` shifts the
+     * capsule centre along its axis — limb capsules hang BELOW their joint. */
+    colliders?: { matrix: THREE.Matrix4; radius: number; height?: number; axisCol?: number; off?: number }[],
     /** Half-space constraint: cloth stays BEHIND the wearer's coronal plane
-     * (local z ≤ maxZ). Cylinders alone let the cape orbit to the front. */
-    backPlane?: { matrix: THREE.Matrix4; maxZ: number },
+     * (local z ≤ maxZ). Cylinders alone let the cape orbit to the front.
+     * Nodes above `exemptAboveY` (local) skip it — collar-wrapped fabric
+     * legitimately sits on and in front of the shoulder line. */
+    backPlane?: { matrix: THREE.Matrix4; maxZ: number; exemptAboveY?: number },
   ): void {
     const cols = this.cols;
     const gravity = new THREE.Vector3(0, -9.0, 0);
@@ -71,26 +182,69 @@ export class Cloth {
       Math.cos(t * 1.1) * 0.6 + 0.08,
     ).multiplyScalar(wind * 5.0);
 
+    const pinCount = this.pinnedRows * cols;
+    const isPinned = (i: number): boolean => i < pinCount && this.pinMask[i]!;
+    // Cloth clings (stakeholder: capes must conform to the body, not box
+    // over it): free nodes feel a gentle pull toward the wearer's axis;
+    // the body colliders stop them at the surface.
+    // No hug for tubes: a closed ring holds its own shape, and pulling it
+    // toward the axis collapsed the skirt into the legs (robe sheet r1).
+    const hugCentre = this.layout === 'collar' && colliders?.[0]
+      ? new THREE.Vector3().setFromMatrixPosition(colliders[0].matrix)
+      : null;
+    // The hug only makes sense on an UPRIGHT torso. When the chest pitches
+    // (bowing), pulling fabric toward the chest axis drags it onto the
+    // near-horizontal back where it bunches at the collar (stakeholder) —
+    // fade it with tilt so the fabric slides off the sides instead.
+    const uprightK = colliders?.[0]
+      ? Math.max(0, new THREE.Vector3().setFromMatrixColumn(colliders[0].matrix, 1).normalize().y) ** 2
+      : 1;
+    const HUG = 3.2 * uprightK;
+    // Tubes are HEAVY garments: extra velocity damping and much less wind,
+    // or the skirt flaps like a flag and momentum flips it in a bow.
+    const damp = this.layout === 'tube' ? 0.88 : 0.97;
+    const windK = this.layout === 'tube' ? 0.3 : 1;
     const acc = new THREE.Vector3();
-    for (let i = cols; i < this.pos.length; i++) {
+    for (let i = 0; i < this.pos.length; i++) {
+      if (isPinned(i)) continue;
       const p = this.pos[i]!;
       const pr = this.prev[i]!;
-      acc.copy(gravity).add(w);
-      const vx = (p.x - pr.x) * 0.97;
-      const vy = (p.y - pr.y) * 0.97;
-      const vz = (p.z - pr.z) * 0.97;
+      acc.copy(gravity).addScaledVector(w, windK);
+      if (hugCentre) {
+        // The hug fades toward the hem: full-strength it pressed the lower
+        // fabric against the legs, which read as wrapping them (8-dir
+        // sheet). The top conforms; the skirt of the cape swings free.
+        const hemK = Math.floor(i / cols) / (this.rows - 1) > 0.55 ? 0.3 : 1;
+        const hx = hugCentre.x - p.x;
+        const hz = hugCentre.z - p.z;
+        const hl = Math.hypot(hx, hz) || 1e-6;
+        acc.x += (hx / hl) * HUG * hemK;
+        acc.z += (hz / hl) * HUG * hemK;
+      }
+      const vx = (p.x - pr.x) * damp;
+      const vy = (p.y - pr.y) * damp;
+      const vz = (p.z - pr.z) * damp;
       pr.copy(p);
       p.x += vx + acc.x * dt * dt;
       p.y += vy + acc.y * dt * dt;
       p.z += vz + acc.z * dt * dt;
     }
 
-    // pin the top row to the anchor (upper back) in world space
-    for (let x = 0; x < cols; x++) {
-      const local = new THREE.Vector3((x / (cols - 1) - 0.5) * this.width, 0, -0.02);
+    // pin the masked nodes of the leading rows to the anchor, per layout
+    for (let i = 0; i < pinCount; i++) {
+      const local = new THREE.Vector3().copy(this.pinLocal[i]!);
       local.applyMatrix4(pinMatrix);
-      this.pos[x]!.copy(local);
-      this.prev[x]!.copy(local);
+      if (this.pinMask[i]) {
+        this.pos[i]!.copy(local);
+        this.prev[i]!.copy(local);
+      } else {
+        // Unpinned ring nodes are SOFT-pinned: eased toward their ring
+        // target so the top edge stays tidy while still settling inward
+        // (hard-freeing them crumpled the fabric around the collar).
+        // Strong enough to re-centre a cape shaken sideways by an emote,
+        // weak enough never to hold a rigid point against the drape.
+        this.pos[i]!.lerp(local, 0.3);
+      }
     }
 
     const d = new THREE.Vector3();
@@ -102,15 +256,17 @@ export class Cloth {
         d.subVectors(pb, pa);
         const dist = d.length() || 1e-6;
         d.multiplyScalar(((dist - c.len) / dist) * 0.5);
-        if (c.a >= cols) pa.add(d);
-        if (c.b >= cols) pb.sub(d);
+        if (!isPinned(c.a)) pa.add(d);
+        if (!isPinned(c.b)) pb.sub(d);
       }
       if (backPlane) {
         const inv = new THREE.Matrix4().copy(backPlane.matrix).invert();
         const local = new THREE.Vector3();
-        for (let i = cols; i < this.pos.length; i++) {
+        const exempt = backPlane.exemptAboveY ?? Infinity;
+        for (let i = 0; i < this.pos.length; i++) {
+          if (isPinned(i)) continue;
           local.copy(this.pos[i]!).applyMatrix4(inv);
-          if (local.z > backPlane.maxZ) {
+          if (local.z > backPlane.maxZ && local.y < exempt) {
             local.z = backPlane.maxZ;
             this.pos[i]!.copy(local).applyMatrix4(backPlane.matrix);
           }
@@ -118,18 +274,41 @@ export class Cloth {
       }
       for (const collider of colliders ?? []) {
         torso.setFromMatrixPosition(collider.matrix);
-        for (let i = cols; i < this.pos.length; i++) {
+        const axis = new THREE.Vector3().setFromMatrixColumn(collider.matrix, collider.axisCol ?? 1).normalize();
+        if (collider.off) torso.addScaledVector(axis, collider.off);
+        const near = new THREE.Vector3();
+        for (let i = 0; i < this.pos.length; i++) {
+          if (isPinned(i)) continue;
           const p = this.pos[i]!;
-          if (p.y < torso.y - collider.height || p.y > torso.y + collider.height) continue;
-          const ddx = p.x - torso.x;
-          const ddz = p.z - torso.z;
-          const len = Math.hypot(ddx, ddz);
+          if (collider.height === undefined) {
+            // Sphere: radial push-out in 3D.
+            d.subVectors(p, torso);
+            const len = d.length();
+            if (len < collider.radius) {
+              p.copy(torso).addScaledVector(d, collider.radius / (len || 1e-6));
+            }
+            continue;
+          }
+          // Oriented capsule along the bone's axis (bows, sitting, kneeling
+          // incline the torso — a vertical cylinder stops covering it).
+          closestOnBoneSegment(p, torso, axis, collider.height, near);
+          d.subVectors(p, near);
+          const len = d.length();
           if (len < collider.radius) {
-            const s = collider.radius / (len || 1e-6);
-            p.x = torso.x + ddx * s;
-            p.z = torso.z + ddz * s;
+            p.copy(near).addScaledVector(d, collider.radius / (len || 1e-6));
           }
         }
+      }
+    }
+
+    // Tube: weld the seam — the last column IS the first column, so the
+    // ring closes and the mesh's seam faces stay stitched.
+    if (this.layout === 'tube') {
+      for (let y = 0; y < this.rows; y++) {
+        const i0 = y * cols;
+        const i1 = y * cols + cols - 1;
+        this.pos[i1]!.copy(this.pos[i0]!);
+        this.prev[i1]!.copy(this.prev[i0]!);
       }
     }
 
@@ -157,6 +336,17 @@ interface Lock {
   off: THREE.Vector3;
   meshes: THREE.Mesh[];
   segLen: number;
+  /** Which side of the shoulders this lock falls to: +1 front, -1 behind.
+   * Real hair sheds off the shoulder ridge into one basin and stays; without
+   * a committed side, locks balance on the collider's top edge and dance
+   * there (stakeholder report, 2026-08-17). */
+  bias: number;
+  /** 1 where the node touched a collider last step — rests get damped. */
+  contact: number[];
+  /** Half-thickness of the rendered strand: collision pushes the chain this
+   * much clear of a surface, so strands DRAPE OVER body parts instead of
+   * running half-buried through them (stakeholder round 2). */
+  halfW: number;
 }
 
 import type { HairStyle } from '@rc/shared';
@@ -224,21 +414,10 @@ export class SolidHair {
     this.capGroup.add(fringe);
 
     if (style === 'bob' || style === 'long') {
-      // A jaw-length bob built from slabs: cheek panels and a back panel,
-      // leaving the face open — solid silhouette, no helmet-band artefact.
-      for (const s of [1, -1]) {
-        const side = new THREE.Mesh(
-          new THREE.BoxGeometry(headH * 0.13, headH * 0.52, headH * 0.42),
-          mat(),
-        );
-        side.position.set(s * headH * 0.34, headH * 0.28, -headH * 0.08);
-        side.rotation.z = s * -0.06; // flares slightly outward at the jaw
-        side.castShadow = true;
-        side.name = s === 1 ? 'hair side left' : 'hair side right';
-        this.capGroup.add(side);
-      }
       // Back mass: a squashed sphere so the nape ROUNDS off (a box left a
-      // squared step at the neck — cycle B).
+      // squared step at the neck — cycle B). The old box cheek panels are
+      // gone (stakeholder: "the side hair parts are just cubes") — the sides
+      // are now physics locks, defined below with the rest.
       const back = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.36, 16, 12), mat());
       back.scale.set(0.85, 0.95, 0.5);
       back.position.set(0, headH * 0.3, -headH * 0.26);
@@ -257,19 +436,40 @@ export class SolidHair {
 
     // Physics locks: verlet chains rendered as OVERLAPPING tapered capsules,
     // so a lock reads as one continuous piece of hair, not stacked crates.
-    const lockDefs: { off: THREE.Vector3; len: number; width: number }[] = [];
+    const lockDefs: { off: THREE.Vector3; len: number; width: number; bias: number }[] = [];
     if (style === 'tail') {
-      lockDefs.push({
-        off: new THREE.Vector3(0, headH * 0.58, -headH * 0.4),
-        len: len * 1.3 + headH * 0.4,
-        width: headH * 0.19,
-      });
-    } else if (style === 'long') {
+      // A gathered tail of three OVERLAPPING strands falling BEHIND the
+      // shoulders: thin separated strands read as rope (stakeholder), so
+      // widths overlap the neighbours into one moving mass.
       lockDefs.push(
-        { off: new THREE.Vector3(0, headH * 0.44, -headH * 0.38), len: len * 1.5 + headH * 0.5, width: headH * 0.24 },
-        { off: new THREE.Vector3(headH * 0.32, headH * 0.4, -headH * 0.18), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
-        { off: new THREE.Vector3(-headH * 0.32, headH * 0.4, -headH * 0.18), len: len * 1.2 + headH * 0.35, width: headH * 0.15 },
+        { off: new THREE.Vector3(0, headH * 0.58, -headH * 0.4), len: len * 1.3 + headH * 0.4, width: headH * 0.24, bias: -1 },
+        { off: new THREE.Vector3(headH * 0.07, headH * 0.54, -headH * 0.38), len: len * 1.15 + headH * 0.35, width: headH * 0.16, bias: -1 },
+        { off: new THREE.Vector3(-headH * 0.07, headH * 0.54, -headH * 0.38), len: len * 1.15 + headH * 0.35, width: headH * 0.16, bias: -1 },
       );
+    } else if (style === 'long') {
+      // A full head: a fan of back locks behind the shoulders, side-back
+      // locks past the ears, temple locks framing the face in front. The
+      // anchors cluster and the widths OVERLAP so the fan reads as a mass
+      // of hair with strand definition, not parallel noodles.
+      lockDefs.push(
+        { off: new THREE.Vector3(0, headH * 0.46, -headH * 0.36), len: len * 1.5 + headH * 0.5, width: headH * 0.3, bias: -1 },
+        { off: new THREE.Vector3(headH * 0.14, headH * 0.44, -headH * 0.32), len: len * 1.4 + headH * 0.45, width: headH * 0.24, bias: -1 },
+        { off: new THREE.Vector3(-headH * 0.14, headH * 0.44, -headH * 0.32), len: len * 1.4 + headH * 0.45, width: headH * 0.24, bias: -1 },
+        { off: new THREE.Vector3(headH * 0.26, headH * 0.42, -headH * 0.2), len: len * 1.3 + headH * 0.4, width: headH * 0.2, bias: -0.6 },
+        { off: new THREE.Vector3(-headH * 0.26, headH * 0.42, -headH * 0.2), len: len * 1.3 + headH * 0.4, width: headH * 0.2, bias: -0.6 },
+        { off: new THREE.Vector3(headH * 0.31, headH * 0.4, -headH * 0.06), len: len * 1.15 + headH * 0.32, width: headH * 0.18, bias: 0.7 },
+        { off: new THREE.Vector3(-headH * 0.31, headH * 0.4, -headH * 0.06), len: len * 1.15 + headH * 0.32, width: headH * 0.18, bias: 0.7 },
+      );
+    }
+    if (style === 'bob') {
+      // The bob: cheek locks framing the face, ear locks behind them —
+      // four chunky overlapping strands, shedding FRONT of the shoulders.
+      for (const s of [1, -1]) {
+        lockDefs.push(
+          { off: new THREE.Vector3(s * headH * 0.32, headH * 0.44, -headH * 0.02), len: headH * 0.6, width: headH * 0.22, bias: 0.85 },
+          { off: new THREE.Vector3(s * headH * 0.33, headH * 0.42, -headH * 0.18), len: headH * 0.68, width: headH * 0.2, bias: 0.4 },
+        );
+      }
     }
     const SEG = 4;
     for (const def of lockDefs) {
@@ -292,7 +492,11 @@ export class SolidHair {
         meshes.push(seg);
         this.looseGroup.add(seg);
       }
-      this.locks.push({ pos, prev, off: def.off, meshes, segLen: def.len / SEG });
+      this.locks.push({
+        pos, prev, off: def.off, meshes, segLen: def.len / SEG,
+        bias: def.bias, contact: new Array<number>(pos.length).fill(0),
+        halfW: def.width * 0.5,
+      });
     }
   }
 
@@ -301,30 +505,73 @@ export class SolidHair {
     this.looseGroup.visible = v;
   }
 
-  step(dt: number, wind: number, t: number, headMatrix: THREE.Matrix4): void {
+  step(
+    dt: number,
+    wind: number,
+    t: number,
+    headMatrix: THREE.Matrix4,
+    /** Body volumes the locks must not pass through — the ponytail clipped
+     * straight through the torso without these (stakeholder report). Same
+     * convention as the cape: `height` present = capsule along the bone
+     * axis (or matrix column `axisCol`), absent = sphere (shoulder caps).
+     * Pushes are padded by the strand's own half-thickness so hair drapes
+     * ON surfaces, not half-inside them. `off` shifts a capsule's centre
+     * along its axis (limb capsules hang below their joint). */
+    colliders?: { matrix: THREE.Matrix4; radius: number; height?: number; axisCol?: number; off?: number }[],
+  ): void {
     if (this.locks.length === 0) return;
     const g = new THREE.Vector3(0, -9.0, 0);
     const w = new THREE.Vector3(Math.sin(t * 2.1) * 0.6 + 0.4, 0, Math.cos(t * 1.4) * 0.5)
       .multiplyScalar(wind * 4.0);
     const d = new THREE.Vector3();
     const headWorld = this.headCenter.clone().applyMatrix4(headMatrix);
+    const colliderAxes = (colliders ?? []).map((c) =>
+      new THREE.Vector3().setFromMatrixColumn(c.matrix, c.axisCol ?? 1).normalize());
+    const colliderCenters = (colliders ?? []).map((c, ci) => {
+      const v = new THREE.Vector3().setFromMatrixPosition(c.matrix);
+      if (c.off) v.addScaledVector(colliderAxes[ci]!, c.off);
+      return v;
+    });
+    const near = new THREE.Vector3();
     const up = new THREE.Vector3(0, -1, 0);
     const q = new THREE.Quaternion();
+    // The wearer's facing, from the head bone: locks shed to their side of
+    // the shoulders along this axis.
+    const forward = new THREE.Vector3().setFromMatrixColumn(headMatrix, 2);
+    forward.y = 0;
+    forward.normalize();
+    // The shed force acts only in the SHOULDER BAND (the top of the first —
+    // chest — collider): that is where a lock can balance on the ridge.
+    // Applied full-length it shoved whole locks off the body like a rod.
+    const chest = colliderCenters[0];
+    const chestCol = colliders?.[0];
+    const chestTop = chest && chestCol ? chest.y + (chestCol.height ?? 0) : null;
+    const bandLo = chestTop !== null ? chestTop - 0.14 : -Infinity;
+    const bandHi = chestTop !== null ? chestTop + 0.22 : -Infinity;
 
     for (const lock of this.locks) {
       const anchor = lock.off.clone().applyMatrix4(headMatrix);
       lock.pos[0]!.copy(anchor);
       lock.prev[0]!.copy(anchor);
+      const shedX = forward.x * lock.bias * 2.4;
+      const shedZ = forward.z * lock.bias * 2.4;
       for (let i = 1; i < lock.pos.length; i++) {
         const p = lock.pos[i]!;
         const pr = lock.prev[i]!;
-        const vx = (p.x - pr.x) * 0.9;
-        const vy = (p.y - pr.y) * 0.9;
-        const vz = (p.z - pr.z) * 0.9;
+        // Resting hair rests: nodes in contact last step lose most of their
+        // velocity, so collider edges can't keep re-exciting them. Contacted
+        // nodes also stop hearing the wind — it was the jitter's metronome.
+        const damp = lock.contact[i] ? 0.55 : 0.9;
+        const windK = lock.contact[i] ? 0 : 1;
+        const inBand = p.y > bandLo && p.y < bandHi ? 1 : 0;
+        const vx = (p.x - pr.x) * damp;
+        const vy = (p.y - pr.y) * damp;
+        const vz = (p.z - pr.z) * damp;
         pr.copy(p);
-        p.x += vx + (g.x + w.x) * dt * dt;
+        p.x += vx + (g.x + w.x * windK + shedX * inBand) * dt * dt;
         p.y += vy + g.y * dt * dt;
-        p.z += vz + (g.z + w.z) * dt * dt;
+        p.z += vz + (g.z + w.z * windK + shedZ * inBand) * dt * dt;
+        lock.contact[i] = 0;
       }
       for (let it = 0; it < 8; it++) {
         for (let i = 0; i < lock.pos.length - 1; i++) {
@@ -337,12 +584,48 @@ export class SolidHair {
           b.sub(d);
         }
         // Keep locks off the face: push nodes outside the cranium sphere.
-        for (let i = 1; i < lock.pos.length; i++) {
+        // NO thickness padding here — strands hug the scalp, and padding
+        // put short tail/bob chains inside the pushed radius, splaying them
+        // upward like pins (stakeholder screenshot, tavern). Node 1 is also
+        // exempt: it IS on the scalp, and pushing it bulged strand roots
+        // off the head like spider legs.
+        for (let i = 2; i < lock.pos.length; i++) {
           const p = lock.pos[i]!;
           d.subVectors(p, headWorld);
           const dist = d.length();
           const min = this.headRadius * 1.02;
           if (dist < min) p.copy(headWorld).addScaledVector(d, min / (dist || 1e-6));
+        }
+        // Keep locks off the body: capsule/sphere push-out (cape rules),
+        // padded by the strand's half-thickness so it drapes on the surface.
+        for (let ci = 0; ci < colliderCenters.length; ci++) {
+          const col = colliders![ci]!;
+          const centre = colliderCenters[ci]!;
+          const axis = colliderAxes[ci]!;
+          const reach = col.radius + lock.halfW * 0.7;
+          for (let i = 1; i < lock.pos.length; i++) {
+            const p = lock.pos[i]!;
+            if (col.height === undefined) {
+              // Sphere (shoulder cap): radial 3D push.
+              d.subVectors(p, centre);
+              const dist = d.length();
+              if (dist < reach) {
+                p.copy(centre).addScaledVector(d, reach / (dist || 1e-6));
+                lock.contact[i] = 1;
+              }
+              continue;
+            }
+            // Oriented capsule following the bone: a bowing chest tilts its
+            // collider with it, so hair rests on the inclined back instead
+            // of falling through it (stakeholder, bow animation).
+            closestOnBoneSegment(p, centre, axis, col.height, near);
+            d.subVectors(p, near);
+            const dist = d.length();
+            if (dist < reach) {
+              p.copy(near).addScaledVector(d, reach / (dist || 1e-6));
+              lock.contact[i] = 1;
+            }
+          }
         }
       }
       // Solid segments follow the chain: midpoint position, oriented along it.

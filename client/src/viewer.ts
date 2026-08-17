@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { generateAppearance, type LightingProfile, type TransientAnim } from '@rc/shared';
+import { generateAppearance, type Direction, type LightingProfile, type TransientAnim } from '@rc/shared';
 import { GameScene } from './render/scene';
 import { CharacterVisual } from './render/character';
 
@@ -90,13 +90,22 @@ function applyHoods(): void {
 
 function applyGear(): void {
   const gear = $<HTMLInputElement>('in-gear').checked;
+  const weaponSel = $<HTMLSelectElement>('in-weapon').value;
+  const robe = $<HTMLInputElement>('in-robe').checked;
   for (const s of shown) {
-    if (gear) {
-      const a = s.visual.appearance;
-      s.visual.setEquipment({ helm: a.helm, pauldrons: a.pauldrons, weapon: a.weapon, cape: a.hasCape });
-    } else {
-      s.visual.setEquipment({ helm: false, pauldrons: false, weapon: false, cape: false });
-    }
+    const a = s.visual.appearance;
+    const base = gear
+      ? { helm: a.helm, pauldrons: a.pauldrons, weapon: a.weapon, cape: a.hasCape }
+      : { helm: false, pauldrons: false, weapon: false, cape: false };
+    // The weapon selector overrides the seed: staff forces one into every
+    // hand for review; none empties them.
+    if (weaponSel === 'staff') base.weapon = true;
+    if (weaponSel === 'none') base.weapon = false;
+    s.visual.setEquipment({
+      ...base,
+      weaponKind: weaponSel === 'staff' ? 'staff' : 'sword',
+      robe,
+    });
     s.visual.setRenderLayer(1); // characters live on the pixel layer (split mode)
   }
 }
@@ -117,6 +126,8 @@ $('in-seed').addEventListener('change', populate);
 $('in-filter').addEventListener('change', populate);
 $('in-hood').addEventListener('change', applyHoods);
 $('in-gear').addEventListener('change', applyGear);
+$('in-weapon').addEventListener('change', applyGear);
+$('in-robe').addEventListener('change', applyGear);
 $('in-light').addEventListener('change', () => {
   scene.applyLighting($<HTMLSelectElement>('in-light').value as LightingProfile);
 });
@@ -258,9 +269,6 @@ function stepViewer(dt: number): void {
   }
 }
 
-$('in-charshader').addEventListener('change', () => {
-  scene.post.shaderMode = Number($<HTMLSelectElement>('in-charshader').value);
-});
 $('in-envscale').addEventListener('input', () => {
   scene.post.envPixelScale = Number($<HTMLInputElement>('in-envscale').value);
   scene.resize();
@@ -559,10 +567,12 @@ declare global {
       solo: (seed: number | null) => void;
       setAnim: (mode: string) => void;
       setPixel: (on: boolean, scale?: number) => void;
-      view: (azimuthRad: number, zoom: number, orbitHeight?: number) => void;
+      view: (azimuthRad: number, zoom: number, orbitHeight?: number, targetY?: number) => void;
       pick: (fx: number, fy: number) => unknown;
       advance: (seconds: number) => void;
       shoot: (name: string) => Promise<string>;
+      sheet: (name: string, style?: string) => Promise<string>;
+      equip: (partial: Record<string, unknown>) => string;
     };
   }
 }
@@ -582,11 +592,12 @@ window.__viewer = {
       scene.resize();
     }
   },
-  view(azimuthRad, zoom, orbitHeight) {
+  view(azimuthRad, zoom, orbitHeight, targetY) {
     cam.az = azimuthRad;
     viewerZoom = zoom;
     scene.setZoom(zoom);
     if (orbitHeight !== undefined) cam.el = Math.atan2(orbitHeight, 12.7);
+    if (targetY !== undefined) cam.target.y = targetY; // frame heads close up
   },
   advance(seconds) {
     const steps = Math.max(1, Math.round(seconds * 60));
@@ -617,5 +628,72 @@ window.__viewer = {
     const url = canvas.toDataURL('image/png');
     await fetch(`http://127.0.0.1:8123/${name}`, { method: 'POST', body: url, mode: 'no-cors' });
     return `sent ${name} (${canvas.width}x${canvas.height})`;
+  },
+  /** Automation: equipment override on every shown character. */
+  equip(partial) {
+    for (const s of shown) s.visual.setEquipment(partial as Parameters<typeof s.visual.setEquipment>[0]);
+    return `equipped ${JSON.stringify(partial)} on ${shown.length}`;
+  },
+  /**
+   * The 8-direction contact sheet (stakeholder workflow, 2026-08-17): one
+   * PNG, columns = facings, rows = idle + four walk keyframes, captured at
+   * a near-level camera like the Muybridge plates. Requires a soloed seed.
+   */
+  async sheet(name, style = 'raw') {
+    if (!shown[0]) return 'solo a seed first';
+    const visual = shown[0].visual;
+    const styleSel = $<HTMLSelectElement>('in-style');
+    const prevStyle = styleSel.value;
+    styleSel.value = style;
+    const animSel = $<HTMLSelectElement>('in-anim');
+    const prevAnim = animSel.value;
+    // Muybridge-level camera: azimuth fixed at the model's front, low
+    // elevation, full body framed.
+    window.__viewer!.view(Math.PI / 2, 0.24, 1.6, 0.85);
+    window.__viewer!.advance(3.5); // physics settle: cloth starts at rest-local coords
+    const dirs: Direction[] = ['s', 'se', 'e', 'ne', 'n', 'nw', 'w', 'sw'];
+    const CELL = 220;
+    // The bow row exists because bent poses caught three bugs the upright
+    // rows never showed (colliders, cape bunching): review them always.
+    const rowLabels = ['idle', 'walk ¼', 'walk ½', 'walk ¾', 'walk 4/4', 'bow'];
+    const out = document.createElement('canvas');
+    out.width = CELL * dirs.length;
+    out.height = CELL * rowLabels.length;
+    const ctx = out.getContext('2d')!;
+    ctx.fillStyle = '#141318';
+    ctx.fillRect(0, 0, out.width, out.height);
+    const src = scene.renderer.domElement;
+    const grab = (col: number, row: number) => {
+      const side = Math.min(src.width, src.height);
+      ctx.drawImage(src, (src.width - side) / 2, (src.height - side) / 2, side, side,
+        col * CELL, row * CELL, CELL, CELL);
+    };
+    for (let c = 0; c < dirs.length; c++) {
+      visual.setFacing(dirs[c]!);
+      animSel.value = 'idle';
+      window.__viewer!.advance(0.9); // turn + cloth settle
+      grab(c, 0);
+      animSel.value = 'walk';
+      window.__viewer!.advance(0.8); // stride in
+      for (let k = 0; k < 4; k++) {
+        window.__viewer!.advance((2 * Math.PI / 3.7) / 4); // quarter walk cycle
+        grab(c, 1 + k);
+      }
+      animSel.value = 'idle';
+      window.__viewer!.advance(1.8); // settle, and let the bow re-queue
+      animSel.value = 'bow';
+      window.__viewer!.advance(0.75); // mid-bow
+      grab(c, 5);
+      animSel.value = 'idle';
+    }
+    ctx.fillStyle = '#d8d0c0';
+    ctx.font = '13px monospace';
+    dirs.forEach((d, c) => ctx.fillText(d.toUpperCase(), c * CELL + 6, 16));
+    rowLabels.forEach((l, r) => ctx.fillText(l, 6, r * CELL + 32));
+    animSel.value = prevAnim;
+    styleSel.value = prevStyle;
+    const url = out.toDataURL('image/png');
+    await fetch(`http://127.0.0.1:8123/${name}`, { method: 'POST', body: url, mode: 'no-cors' });
+    return `sheet ${name}: ${out.width}x${out.height} (${style})`;
   },
 };

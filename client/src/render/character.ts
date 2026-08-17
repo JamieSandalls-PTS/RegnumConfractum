@@ -8,6 +8,7 @@ import {
   type TransientAnim,
 } from '@rc/shared';
 import { Cloth, SolidHair } from './cloth';
+import { toonMaterial } from './toon';
 
 /**
  * A character built entirely from rules at runtime (D-401/402): a "bone" is a
@@ -37,7 +38,11 @@ export interface EquipmentState {
   helm: boolean;
   pauldrons: boolean;
   weapon: boolean;
+  /** What the weapon hand holds when `weapon` is true. */
+  weaponKind: 'sword' | 'staff';
   cape: boolean;
+  /** Full-length robe: skirt to the ankles, overtunic, rope belt. */
+  robe: boolean;
 }
 
 interface Limb {
@@ -71,6 +76,8 @@ export class CharacterVisual {
     shoulderW: number; hipW: number; bodyW: number;
     /** Shoulder joints' rest height — the shrug raises them from here. */
     baseShY: number;
+    /** Limb segment lengths — the robe's cloth colliders need them. */
+    upperLeg: number; lowerLeg: number; lowerArm: number;
   };
 
   /** Cape pin point: the UPPER BACK. The chest bone's origin is the waist
@@ -80,7 +87,15 @@ export class CharacterVisual {
   private pauldronMeshes: THREE.Mesh[] = [];
   private weaponGroup: THREE.Group | null = null;
   private cowlGroup: THREE.Group | null = null;
+  /** The hood's shoulder mantle lives on the chest, not the head. */
+  private mantleGroup: THREE.Group | null = null;
+  /** Robe meshes, parented across several bones — tracked for teardown. */
+  private robeParts: THREE.Mesh[] = [];
+  /** The robe's PHYSICS pieces: the skirt tube and two sleeve cuffs. */
+  private robeSkirt: Cloth | null = null;
+  private robeSleeves: { cloth: Cloth; side: 'L' | 'R' }[] = [];
   private cape: Cloth | null = null;
+  private capeTie: THREE.Mesh | null = null;
   private hair: SolidHair | null = null;
   presentation: Presentation = 'normal';
 
@@ -90,6 +105,14 @@ export class CharacterVisual {
   private bustBase = new THREE.Vector3();
   private bustSpring = { y: 0, vy: 0, z: 0, vz: 0 };
   private lastChestWorld: THREE.Vector3 | null = null;
+
+  /** Grip-to-ground length of the held staff (0 = no staff). */
+  private staffBelow = 0;
+  private static UP_AXIS = new THREE.Vector3(0, 1, 0);
+  private tmpQ = new THREE.Quaternion();
+  private tmpQ2 = new THREE.Quaternion();
+  private tmpV = new THREE.Vector3();
+  private tmpV2 = new THREE.Vector3();
 
   private targetAngle = 0;
   private currentAngle = 0;
@@ -115,7 +138,9 @@ export class CharacterVisual {
       helm: this.appearance.helm,
       pauldrons: this.appearance.pauldrons,
       weapon: this.appearance.weapon,
+      weaponKind: 'sword',
       cape: this.appearance.hasCape,
+      robe: false,
     };
     this.build();
     parent.add(this.root);
@@ -125,8 +150,10 @@ export class CharacterVisual {
   // Construction
   // -------------------------------------------------------------------------
 
-  private material(color: number): THREE.MeshLambertMaterial {
-    return new THREE.MeshLambertMaterial({ color });
+  private material(color: number): THREE.Material {
+    // Banded toon shading: intersection creases between overlapping
+    // primitives land in the same shade band and vanish (see toon.ts).
+    return toonMaterial(color);
   }
 
   /** Editor part-naming: meshes built after nm('x') are named 'x' — the
@@ -142,7 +169,8 @@ export class CharacterVisual {
     mesh.name = this.partName;
     mesh.position.set(pos[0], pos[1], pos[2]);
     mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    // No receiveShadow: primitive-on-primitive self-shadows draw hard lines
+    // along every overlap — the other half of the visible-seams problem.
     parent.add(mesh);
     return mesh;
   }
@@ -190,7 +218,6 @@ export class CharacterVisual {
     const mesh = new THREE.Mesh(geom, this.material(color));
     mesh.name = this.partName;
     mesh.castShadow = true;
-    mesh.receiveShadow = true;
     parent.add(mesh);
     return mesh;
   }
@@ -254,7 +281,10 @@ export class CharacterVisual {
     // it (stakeholder: the model sat below the floor to the ankles).
     const hipYAdj = hipY + hipW * 0.11;
     // Shoulder height and arm seating stakeholder-tuned via editor export 2.
-    this.dims = { hipY: hipYAdj, torsoH, headH, shoulderW, hipW, bodyW, baseShY: torsoH * 0.32 };
+    this.dims = {
+      hipY: hipYAdj, torsoH, headH, shoulderW, hipW, bodyW,
+      baseShY: torsoH * 0.32, upperLeg, lowerLeg, lowerArm,
+    };
 
     // --- Torso (review round 2): three lathe-turned volumes — pelvis,
     // abdomen, ribcage — whose seam radii MATCH, flattened front-to-back,
@@ -284,8 +314,9 @@ export class CharacterVisual {
     // ripples — two bare spheres read as exactly that (round 8).
     this.nm('buttocks');
     const glutes = this.addMesh(this.pelvis, new THREE.SphereGeometry(hipW * 0.26, 14, 10), p.cloth,
-      [0, torsoH * 0.07, -hipW * 0.2]); // editor export 2: higher, wider
-    glutes.scale.set(1.74, 0.85, 0.7);
+      [0, torsoH * 0.07, -hipW * 0.18]); // editor export 2: higher, wider
+    // Depth pulled in (Muybridge side rows: the round-1 sheet showed a shelf).
+    glutes.scale.set(1.74, 0.85, 0.58);
 
     this.spine = this.joint(this.pelvis, [0, torsoH * 0.24, 0]);
     this.nm('abdomen');
@@ -305,7 +336,9 @@ export class CharacterVisual {
     // Full width HELD to the (raised) shoulder line, then a SHORT round-over:
     // the chest reaches the deltoids, and the shoulder slope stays small the
     // way a clavicle line does. Female chest band slightly slimmer.
-    const bandW = shoulderW * (fem ? 0.92 : 0.98);
+    // Male band pulled in from 0.98 (stakeholder: "the male torso looks very
+    // odd") — the near-shoulder-width band read as a barrel slab.
+    const bandW = shoulderW * (fem ? 0.92 : 0.93);
     this.nm('chest');
     const ribcage = this.lathe(this.chest, [
       [seamWaist, 0],
@@ -322,8 +355,10 @@ export class CharacterVisual {
     const traps = this.addMesh(this.chest, new THREE.SphereGeometry(shoulderW * 0.46, 12, 9), p.cloth,
       [0, torsoH * 0.4, -this.frontZ() * 0.24]);
     traps.scale.set(1.45, 0.4, 0.66);
-    // The cape hangs from between the shoulder blades.
-    this.capeAnchor = this.joint(this.chest, [0, torsoH * 0.38, -this.frontZ() * 0.66]);
+    // The cape's collar arc is centred on the NECK ROOT (stakeholder cape
+    // reference: fabric ties at the throat and wraps the shoulder tops —
+    // the old between-the-shoulder-blades pin hung off the back only).
+    this.capeAnchor = this.joint(this.chest, [0, torsoH * 0.49, 0]);
     if (fem) {
       // The sprung chest: geometry on its own group so physics can move it.
       // Sized to be READ at game distance (review round 3), not hinted.
@@ -339,14 +374,15 @@ export class CharacterVisual {
         b.scale.set(1.2, 1.3, 1.3);
       }
     } else {
-      // Pectorals: proud of the ribcage so the SIDE profile has a chest
-      // plane, not a flat slab (cycle B).
-      for (const s of [1, -1]) {
-        this.nm(s === 1 ? 'pectoral left' : 'pectoral right');
-        const pec = this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.17, 10, 8), p.cloth,
-          [s * bodyW * 0.14, torsoH * 0.28, this.frontZ() * 0.5]);
-        pec.scale.set(1.05, 0.72, 0.55);
-      }
+      // The male chest, reworked the way the female one was (stakeholder
+      // pass): ONE wide flattened mass under the cloth instead of two proud
+      // spheres — the pair read as exactly that, the same twin-sphere bug the
+      // glutes fix solved. A single plate gives the side profile its chest
+      // plane and the front a clean pectoral shelf.
+      this.nm('pectorals');
+      const pecs = this.addMesh(this.chest, new THREE.SphereGeometry(bodyW * 0.2, 14, 10), p.cloth,
+        [0, torsoH * 0.27, this.frontZ() * 0.42]);
+      pecs.scale.set(1.62, 0.68, 0.5);
     }
     // Belt: at the HIPS, where trousers are belted (review round 6 — it had
     // drifted to the ribs). Parented to the spine so it rides the hip line.
@@ -573,7 +609,29 @@ export class CharacterVisual {
     }
 
     if (this.weaponGroup) { this.arms.R.hand.remove(this.weaponGroup); this.weaponGroup = null; }
-    if (this.equipment.weapon) {
+    if (this.equipment.weapon && this.equipment.weaponKind === 'staff') {
+      // A walking staff: built VERTICAL with the grip at the group origin.
+      // update() keeps the group world-upright every frame and, when the
+      // character is stationary, slides it in the grip so the iron-shod base
+      // sits exactly on the ground — a planted staff, not a carried stick.
+      this.nm('staff');
+      this.weaponGroup = new THREE.Group();
+      this.arms.R.hand.add(this.weaponGroup);
+      const above = p.height * 0.34; // shaft above the grip
+      const below = p.height * 0.58; // grip down to the ground shoe
+      this.staffBelow = below;
+      const wood = 0x4a3a28;
+      this.addMesh(this.weaponGroup,
+        new THREE.CylinderGeometry(0.021, 0.027, above + below, 8),
+        wood, [0, (above - below) / 2, 0]);
+      // A gnarled head-knot rather than a wizardly orb — low fantasy.
+      const knot = this.addMesh(this.weaponGroup, new THREE.SphereGeometry(0.045, 8, 6),
+        CharacterVisual.shade(wood, 1.25), [0, above, 0]);
+      knot.scale.set(1, 1.3, 1);
+      this.nm('staff ferrule');
+      this.addMesh(this.weaponGroup, new THREE.CylinderGeometry(0.024, 0.03, 0.07, 8),
+        p.metal, [0, -below + 0.035, 0]);
+    } else if (this.equipment.weapon) {
       // Gripped in the fist, blade pointing FORWARD from the character
       // (review point): the group builds blade-down, then rotates -90° about
       // X so "down" becomes "out in front", angled slightly toward the ground.
@@ -592,10 +650,166 @@ export class CharacterVisual {
       this.cape.dispose();
       this.cape = null;
     }
-    if (this.equipment.cape) {
-      this.cape = new Cloth(7, 9, shoulderW * 1.9, p.height * 0.46, p.capeColor);
-      this.parentOrRoot().add(this.cape.mesh);
+    if (this.capeTie) {
+      this.capeTie.parent?.remove(this.capeTie);
+      this.capeTie.geometry.dispose();
+      (this.capeTie.material as THREE.Material).dispose();
+      this.capeTie = null;
     }
+    if (this.equipment.cape) {
+      // Collar layout: pinned in an arc around the neck; the fabric is cut
+      // WIDER than the arc so it gathers at the collar and spreads over the
+      // shoulder caps (reference image), falling to mid-calf.
+      // The shoulder ring reaches past the deltoids: the cape drapes over
+      // the tops of the ARMS (stakeholder correction), not just the torso.
+      this.cape = new Cloth(9, 10, shoulderW * 2.3, p.height * 0.62, p.capeColor,
+        'collar', shoulderW * 0.55, shoulderW + bodyW * 0.21);
+      this.parentOrRoot().add(this.cape.mesh);
+      // The tie at the throat, so the collar reads as fastened.
+      this.nm('cape tie');
+      this.capeTie = this.addMesh(this.chest,
+        new THREE.CylinderGeometry(bodyW * 0.15, bodyW * 0.16, torsoH * 0.05, 12),
+        CharacterVisual.shade(p.capeColor, 0.75), [0, torsoH * 0.45, 0]);
+      this.capeTie.scale.z = 0.7;
+    }
+
+    for (const m of this.robeParts) {
+      m.parent?.remove(m);
+      m.geometry.dispose();
+      (m.material as THREE.Material).dispose();
+    }
+    this.robeParts = [];
+    if (this.robeSkirt) {
+      this.parentOrRoot().remove(this.robeSkirt.mesh);
+      this.robeSkirt.dispose();
+      this.robeSkirt = null;
+    }
+    for (const s of this.robeSleeves) {
+      this.parentOrRoot().remove(s.cloth.mesh);
+      s.cloth.dispose();
+    }
+    this.robeSleeves = [];
+    if (this.equipment.robe) {
+      // A full-length robe in the cape colour so robed figures read as a
+      // distinct silhouette. The fitted overtunic and rope belt are rigid;
+      // the SKIRT and SLEEVE CUFFS are cloth tubes ("flowing material
+      // around the sleeves/legs" — stakeholder), colliding with the limbs.
+      // Legs stay visible under the moving fabric.
+      const fem = p.sex === 'female';
+      const hipW = this.dims.hipW;
+      const seamHip = hipW * 0.47;
+      const waistW = bodyW * (fem ? 0.68 : 0.82);
+      this.nm('robe tunic');
+      const tunic = this.lathe(this.chest, [
+        [waistW * 0.64, -torsoH * 0.12],
+        [shoulderW * 0.88, torsoH * 0.18],
+        [shoulderW * 1.0, torsoH * 0.32],
+        [shoulderW * 0.52, torsoH * 0.45],
+        [0.008, torsoH * 0.47],
+      ], p.capeColor, { count: 8, amp: 0.03 });
+      tunic.scale.z = 0.68;
+      this.robeParts.push(tunic);
+      this.nm('rope belt');
+      const rope = this.addMesh(this.spine,
+        new THREE.CylinderGeometry(seamHip * 1.04, seamHip * 1.06, torsoH * 0.045, 18),
+        0x6b5a3a, [0, torsoH * 0.03, -0.01]);
+      rope.scale.z = 0.66;
+      this.robeParts.push(rope);
+      // The skirt: a closed A-line tube from the waist to above the ankle.
+      // RIGID (bone-following) from waist to the knee line — a fitted
+      // garment — with free-flowing cloth only below (stakeholder).
+      const skirtLen = this.dims.hipY * 0.9;
+      const skirtRows = 12;
+      // Rigid only through the fitted WAIST band — a knee-length rigid
+      // cone jutted straight out when sitting (stakeholder); from the hips
+      // down the fabric flexes with the pose.
+      this.robeSkirt = new Cloth(13, skirtRows, 0, skirtLen, p.capeColor,
+        'tube', seamHip * 1.05, hipW * 0.95, 2);
+      this.parentOrRoot().add(this.robeSkirt.mesh);
+      // Sleeves: shoulder cap over the deltoid joins the tunic to the arm,
+      // the rigid upper sleeve runs to the elbow, and the cloth cuff pins
+      // at the SAME radius the sleeve ends with — one continuous garment.
+      const armLen = p.height * 0.31 * (1 + (p.limb - 1) * 0.4);
+      const upperArm = armLen * 0.55;
+      for (const side of ['L', 'R'] as const) {
+        const s = side === 'L' ? 1 : -1;
+        this.nm(side === 'L' ? 'robe shoulder left' : 'robe shoulder right');
+        const cap = this.addMesh(this.arms[side].sh,
+          new THREE.SphereGeometry(bodyW * 0.15, 10, 8), p.capeColor,
+          [-s * bodyW * 0.12, bodyW * 0.02, 0]);
+        cap.scale.set(1.4, 1.25, 1.5);
+        this.robeParts.push(cap);
+        this.nm(side === 'L' ? 'robe sleeve left' : 'robe sleeve right');
+        this.robeParts.push(this.addMesh(this.arms[side].sh,
+          new THREE.CylinderGeometry(bodyW * 0.16, bodyW * 0.18, upperArm * 1.05, 10),
+          p.capeColor, [0, -upperArm * 0.5, 0]));
+        const cuff = new Cloth(9, 5, 0, this.dims.lowerArm * 0.85, p.capeColor,
+          'tube', bodyW * 0.18, bodyW * 0.26);
+        this.parentOrRoot().add(cuff.mesh);
+        this.robeSleeves.push({ cloth: cuff, side });
+      }
+      // The tunic covers the bust: capeColor overlays riding the same
+      // sprung group, slightly larger than the forms beneath (stakeholder).
+      if (this.bustGroup) {
+        for (const sb of [1, -1]) {
+          this.nm('robe bodice');
+          const cover = this.addMesh(this.bustGroup,
+            new THREE.SphereGeometry(bodyW * 0.21 * 1.1, 10, 8), p.capeColor,
+            [sb * bodyW * 0.16, -bodyW * 0.065, bodyW * 0.075]);
+          cover.scale.set(1.2, 1.3, 1.3);
+          this.robeParts.push(cover);
+        }
+      }
+      // Warm-start: the cloth spawns at rest-local coordinates and takes a
+      // couple of seconds to drape in; pre-stepping hides that from players
+      // (and from the review sheets).
+      this.root.updateMatrixWorld(true);
+      for (let i = 0; i < 50; i++) {
+        this.robeSkirt.step(1 / 30, 0, 0, this.spine.matrixWorld, this.skirtColliders());
+        for (const s of this.robeSleeves) {
+          s.cloth.step(1 / 30, 0, 0, this.arms[s.side].el.matrixWorld, this.sleeveColliders(s.side));
+        }
+      }
+    }
+  }
+
+  /** The skirt flows around the LEGS: a capsule per thigh and calf,
+   * hanging below its joint (`off`), plus the pelvis core. */
+  private skirtColliders(): { matrix: THREE.Matrix4; radius: number; height?: number; off?: number }[] {
+    return [
+      {
+        matrix: this.pelvis.matrixWorld,
+        radius: this.dims.hipW * 0.48,
+        height: this.dims.torsoH * 0.18,
+      },
+      ...(['L', 'R'] as const).flatMap((s) => [
+        {
+          matrix: this.legs[s].hip.matrixWorld,
+          radius: this.dims.hipW * 0.26,
+          height: this.dims.upperLeg / 2,
+          off: -this.dims.upperLeg / 2,
+        },
+        {
+          matrix: this.legs[s].knee.matrixWorld,
+          radius: this.dims.hipW * 0.17,
+          height: this.dims.lowerLeg / 2,
+          off: -this.dims.lowerLeg / 2,
+        },
+      ]),
+    ];
+  }
+
+  private sleeveColliders(side: 'L' | 'R'): { matrix: THREE.Matrix4; radius: number; height?: number; off?: number }[] {
+    const arm = this.arms[side];
+    return [
+      {
+        matrix: arm.el.matrixWorld,
+        radius: this.dims.bodyW * 0.11,
+        height: this.dims.lowerArm / 2,
+        off: -this.dims.lowerArm / 2,
+      },
+      { matrix: arm.hand.matrixWorld, radius: this.dims.bodyW * 0.1 },
+    ];
   }
 
   private parentOrRoot(): THREE.Object3D {
@@ -624,17 +838,75 @@ export class CharacterVisual {
   setPresentation(presentation: Presentation): void {
     if (this.presentation === presentation) return;
     this.presentation = presentation;
-    const { headH } = this.dims;
-    if (this.cowlGroup) {
-      this.head.remove(this.cowlGroup);
-      this.cowlGroup = null;
+    const { headH, torsoH, shoulderW, bodyW } = this.dims;
+    for (const g of [this.cowlGroup, this.mantleGroup]) {
+      if (!g) continue;
+      g.parent?.remove(g);
+      g.traverse((o) => {
+        if (o instanceof THREE.Mesh) {
+          o.geometry.dispose();
+          (o.material as THREE.Material).dispose();
+        }
+      });
     }
+    this.cowlGroup = null;
+    this.mantleGroup = null;
     if (presentation === 'hooded') {
-      this.nm('hood');
+      // A PROPER hood (stakeholder: "the current hood is a cube"): an
+      // open-front sphere shell draped over the cranium, a pointed drape
+      // falling behind, a shadow mass filling the opening so the face is
+      // dark (the concealment is the point — D-219), and a mantle over the
+      // shoulders parented to the CHEST so it rides the torso, not the head.
+      const hoodCol = 0x241f1c;
       this.cowlGroup = new THREE.Group();
       this.head.add(this.cowlGroup);
-      this.box(this.cowlGroup, headH * 0.9, headH * 0.95, headH * 0.85, 0x241f1c, [0, headH * 0.45, -headH * 0.06]);
-      this.box(this.cowlGroup, headH * 0.86, headH * 0.4, headH * 0.3, 0x1c1815, [0, headH * 0.2, headH * 0.28]);
+      this.nm('hood');
+      // Sphere phi: π/2 faces +Z, so coverage 0.72π → 2.28π leaves an
+      // opening of ~0.44π centred exactly on the face.
+      const shellMat = toonMaterial(hoodCol);
+      shellMat.side = THREE.DoubleSide; // the inside shows through the opening
+      // Two pieces: a CLOSED crown ring (the face opening must not reach the
+      // top — from an isometric camera you could see the scalp through it),
+      // and the open-front shell below it.
+      const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(headH * 0.52, 20, 6, 0, Math.PI * 2, 0, Math.PI * 0.3),
+        shellMat,
+      );
+      const shell = new THREE.Mesh(
+        new THREE.SphereGeometry(headH * 0.52, 20, 12, Math.PI * 0.72, Math.PI * 1.56, Math.PI * 0.28, Math.PI * 0.44),
+        shellMat,
+      );
+      for (const m of [crown, shell]) {
+        m.name = 'hood';
+        m.castShadow = true;
+        m.position.set(0, headH * 0.38, -headH * 0.03);
+        m.scale.set(0.98, 1.02, 1.1); // slightly deep — it drapes backward
+        this.cowlGroup.add(m);
+      }
+      this.nm('hood peak');
+      // The peak: a soft cone folding down the back of the shell.
+      const peak = this.addMesh(this.cowlGroup,
+        new THREE.CylinderGeometry(0.008, headH * 0.2, headH * 0.55, 8),
+        hoodCol, [0, headH * 0.52, -headH * 0.42]);
+      peak.rotation.x = 2.5; // tip points down-and-back
+      this.nm('hood shadow');
+      // The void where a face would be: matte near-black, large enough that
+      // every facial feature sits INSIDE it — observers must read shadow,
+      // not features (checked from the front; the first cut left the nose
+      // and eyes poking out of the dark).
+      const shadow = this.addMesh(this.cowlGroup, new THREE.SphereGeometry(headH * 0.36, 12, 9),
+        0x0e0c0a, [0, headH * 0.36, headH * 0.08]);
+      shadow.scale.set(0.95, 1.08, 1.0);
+      // Mantle: the hood's cloth spreading over the shoulders.
+      this.mantleGroup = new THREE.Group();
+      this.chest.add(this.mantleGroup);
+      this.nm('hood mantle');
+      const mantle = this.lathe(this.mantleGroup, [
+        [shoulderW * 1.12, torsoH * 0.14],
+        [bodyW * 0.62, torsoH * 0.38],
+        [bodyW * 0.24, torsoH * 0.52],
+      ], hoodCol, { count: 9, amp: 0.04 });
+      mantle.scale.z = 0.78;
     }
     if (this.hair) this.hair.setVisible(presentation !== 'hooded');
   }
@@ -703,6 +975,25 @@ export class CharacterVisual {
     this.lastPose = this.capturePose(this.lastPose);
 
     this.root.updateMatrixWorld(true);
+
+    // The staff's own idle behaviour: held world-vertical (turning with the
+    // body), and PLANTED — when stationary, it slides in the grip so the
+    // ferrule rests exactly on the ground however the arm bobs.
+    if (this.weaponGroup && this.equipment.weapon && this.equipment.weaponKind === 'staff') {
+      const hand = this.arms.R.hand;
+      hand.getWorldQuaternion(this.tmpQ);
+      this.tmpQ2.setFromAxisAngle(CharacterVisual.UP_AXIS, this.currentAngle);
+      this.weaponGroup.quaternion.copy(this.tmpQ).invert().multiply(this.tmpQ2);
+      this.weaponGroup.position.set(0, -this.dims.bodyW * 0.06, this.dims.bodyW * 0.06);
+      if (!moving) {
+        this.tmpV.copy(this.weaponGroup.position).applyMatrix4(hand.matrixWorld);
+        const dy = this.staffBelow - this.tmpV.y; // world lift to touch ground
+        this.tmpQ2.copy(this.tmpQ).invert();
+        this.tmpV2.set(0, dy, 0).applyQuaternion(this.tmpQ2);
+        this.weaponGroup.position.add(this.tmpV2);
+      }
+    }
+
     this.stepBust(dt);
     if (this.cape) {
       // Colliders = torso core AND pelvis: the cloth rests on the back and
@@ -711,22 +1002,75 @@ export class CharacterVisual {
         dt, wind, t,
         (this.capeAnchor ?? this.chest).matrixWorld,
         [
+          // Half-lengths shrunk by radius (capsule reach = halfLen+radius),
+          // matching the old cylinders' vertical extent.
           {
             matrix: this.chest.matrixWorld,
             radius: this.dims.bodyW * 0.45,
-            height: this.dims.torsoH * 0.55,
+            height: Math.max(0.02, this.dims.torsoH * 0.55 - this.dims.bodyW * 0.45),
           },
           {
             matrix: this.pelvis.matrixWorld,
             radius: this.dims.hipW * 0.5,
-            height: this.dims.torsoH * 0.35,
+            height: Math.max(0.02, this.dims.torsoH * 0.35 - this.dims.hipW * 0.5),
           },
+          // Shoulder caps (spheres): the collar-pinned fabric drapes OVER
+          // the deltoids and rests there, per the cape reference image.
+          { matrix: this.arms.L.sh.matrixWorld, radius: this.dims.bodyW * 0.27 },
+          { matrix: this.arms.R.sh.matrixWorld, radius: this.dims.bodyW * 0.27 },
         ],
-        // A pinned cape can never cross its wearer's coronal plane.
-        { matrix: this.chest.matrixWorld, maxZ: -this.dims.bodyW * 0.12 },
+        // Below the shoulder line the cape stays behind the coronal plane;
+        // above it, wrapped fabric may sit on and ahead of the shoulders.
+        {
+          matrix: this.chest.matrixWorld,
+          maxZ: -this.dims.bodyW * 0.12,
+          exemptAboveY: this.dims.torsoH * 0.26,
+        },
       );
     }
-    if (this.hair) this.hair.step(dt, wind, t, this.head.matrixWorld);
+    if (this.robeSkirt) {
+      this.robeSkirt.step(dt, wind, t, this.spine.matrixWorld, this.skirtColliders());
+    }
+    for (const sleeve of this.robeSleeves) {
+      sleeve.cloth.step(dt, wind, t, this.arms[sleeve.side].el.matrixWorld,
+        this.sleeveColliders(sleeve.side));
+    }
+    if (this.hair) {
+      // Same colliders as the cape — chest and pelvis cylinders PLUS the
+      // shoulder-cap spheres, so locks drape over the shoulders and arms
+      // instead of clipping through them (stakeholder round 2).
+      // Capsule half-lengths are SHRUNK by the radius: a capsule's reach is
+      // halfLen + radius, and on bulky builds the unshrunk chest cap
+      // swallowed the neck, flinging short hair upward (tavern screenshot).
+      this.hair.step(dt, wind, t, this.head.matrixWorld, [
+        {
+          matrix: this.chest.matrixWorld,
+          radius: this.dims.bodyW * 0.45,
+          height: Math.max(0.02, this.dims.torsoH * 0.55 - this.dims.bodyW * 0.45),
+        },
+        {
+          matrix: this.pelvis.matrixWorld,
+          radius: this.dims.hipW * 0.5,
+          height: Math.max(0.02, this.dims.torsoH * 0.35 - this.dims.hipW * 0.5),
+        },
+        { matrix: this.arms.L.sh.matrixWorld, radius: this.dims.bodyW * 0.24 },
+        { matrix: this.arms.R.sh.matrixWorld, radius: this.dims.bodyW * 0.24 },
+        // Clavicle bar: a horizontal capsule across the shoulder line
+        // (chest local X). Shrinking the chest capsule uncovered the upper
+        // chest laterally — strands slipped through at the collarbones.
+        {
+          matrix: this.chest.matrixWorld,
+          radius: this.dims.bodyW * 0.26,
+          height: this.dims.shoulderW * 0.75,
+          axisCol: 0,
+        },
+        // The bust is proud of the chest capsule — without its own collider
+        // front-falling strands vanished into it (stakeholder screenshot).
+        ...(this.bustGroup
+          ? [{ matrix: this.bustGroup.matrixWorld, radius: this.dims.bodyW * 0.3 }]
+          : []),
+      ]);
+    }
   }
 
   /** Pose layout: [rx,ry,rz]×joints + pelvis.y + chest.y + shoulder ys. */
@@ -831,6 +1175,16 @@ export class CharacterVisual {
       c.arms[s].sh.rotation.z = sg * (0.05 + Math.sin(t * 1.2) * 0.015); // arms hang close
       c.arms[s].el.rotation.x = -0.18 - Math.sin(t * 1.4) * 0.02;
       c.legs[s].hip.rotation.z = sg * -0.02 + sway * 0.01;
+    }
+    // The staff-bearer's idle: the weapon arm reaches forward to the planted
+    // staff and the body settles a little of its weight onto it.
+    if (this.equipment.weapon && this.equipment.weaponKind === 'staff') {
+      c.arms.R.sh.rotation.x = -0.52 + Math.sin(t * 1.4) * 0.02;
+      c.arms.R.sh.rotation.z = -0.08;
+      c.arms.R.el.rotation.x = -0.28;
+      c.arms.R.hand.rotation.x = 0.2; // knuckles wrap the shaft
+      c.chest.rotation.z = -0.028;    // lean toward the support
+      c.head.rotation.z = 0.02;       // head counter-tilts level
     }
   }
 
@@ -969,17 +1323,25 @@ export class CharacterVisual {
 
   private animWalk(t: number): void {
     const c = this;
-    const ph = t * 4.2 + this.walkPhase;
+    const fem = this.appearance.sex === 'female';
+    // 3.7 rad/s and a quiet pelvis: at 4.2 with 3cm of bounce and bent
+    // elbows the gait read as a JOG (stakeholder). A walk keeps one foot
+    // down, barely bounces, and swings near-straight arms.
+    const ph = t * 3.7 + this.walkPhase;
     const stride = Math.sin(ph);
-    c.pelvis.position.y = c.dims.hipY + Math.abs(stride) * 0.03 - 0.018;
-    c.pelvis.rotation.y = stride * 0.09;
-    c.pelvis.rotation.z = stride * 0.04;
+    c.pelvis.position.y = c.dims.hipY + Math.abs(stride) * 0.018 - 0.011;
+    // Gait differentiation against the references (stakeholder walk-cycle
+    // illustration vs Muybridge Plate 1): the female walk carries more hip
+    // rotation and a narrower, quieter arm swing; the male more shoulder.
+    c.pelvis.rotation.y = stride * (fem ? 0.13 : 0.09);
+    c.pelvis.rotation.z = stride * (fem ? 0.055 : 0.04);
     c.spine.rotation.y = -stride * 0.055;
-    c.chest.rotation.y = -stride * 0.09;
-    c.chest.rotation.x = 0.055;
+    c.chest.rotation.y = -stride * (fem ? 0.07 : 0.1);
+    c.chest.rotation.x = 0.075; // Muybridge: a walker leans slightly in
     c.head.rotation.y = stride * 0.045;
     // Counter-rotation keeps the head level while hips roll.
     c.head.rotation.z = -stride * 0.02;
+    const armAmp = fem ? 0.28 : 0.36;
     for (const s of ['L', 'R'] as const) {
       const o = s === 'L' ? 0 : Math.PI;
       const sg = s === 'L' ? 1 : -1;
@@ -987,14 +1349,32 @@ export class CharacterVisual {
       // The knee bends most just after the foot leaves the ground at the
       // rear and straightens for heel-strike at the front, with a smooth
       // raised-cosine hump (a clipped max() snaps at footfall).
+      // Muybridge check (Plate 1, contact-sheet round 1): a walking swing
+      // leg stays LOW, foot skimming the ground — the previous 1.05 rad
+      // knee fold read as a soldier's high-step from every direction.
       const lift = Math.pow(Math.max(0, Math.sin(ph + o + 2.17)), 1.6);
-      c.legs[s].hip.rotation.x = -swing * 0.55 + lift * 0.25;
-      c.legs[s].knee.rotation.x = lift * 1.05 + 0.06; // shin BACK — a knee, not a bird leg
-      // Feet stay roughly level with the ground through the stride.
-      c.legs[s].foot.rotation.x = -(c.legs[s].hip.rotation.x + c.legs[s].knee.rotation.x) * 0.55;
-      c.arms[s].sh.rotation.x = swing * 0.45; // opposite arm to leg
-      c.arms[s].sh.rotation.z = sg * 0.11;
-      c.arms[s].el.rotation.x = -0.25 - Math.max(0, swing) * 0.3;
+      // ASYMMETRIC hip range (Muybridge): the thigh reaches well forward
+      // but extends only modestly behind — the symmetric ±25° pendulum was
+      // half the wrongness of the leg action.
+      const hipFwd = fem ? 0.48 : 0.52;
+      const hipBack = 0.26;
+      const hipAmp = hipBack + (hipFwd - hipBack) * (0.5 + 0.5 * swing);
+      c.legs[s].hip.rotation.x = -swing * hipAmp + lift * 0.14;
+      // Double knee action: the stance knee takes a soft loading flex
+      // after heel-strike instead of locking ramrod straight.
+      const load = Math.pow(Math.max(0, Math.sin(ph + o - 1.4)), 3) * 0.14;
+      c.legs[s].knee.rotation.x = lift * 0.68 + load + 0.05;
+      // Foot roll (Muybridge side row): level through the stride, heel
+      // leading at the front, toes pointing at the rear push-off.
+      c.legs[s].foot.rotation.x =
+        -(c.legs[s].hip.rotation.x + c.legs[s].knee.rotation.x) * 0.55
+        - Math.max(0, swing) * 0.14   // heel-strike: toes up at the front
+        + Math.max(0, -swing) * 0.3;  // toe-off: foot points at the back
+      c.arms[s].sh.rotation.x = swing * armAmp; // opposite arm to leg
+      c.arms[s].sh.rotation.z = sg * (fem ? 0.09 : 0.11);
+      // Near-straight arms: a walker's elbow barely bends (Muybridge);
+      // the old -0.55 peak was a jogger's carry.
+      c.arms[s].el.rotation.x = -0.14 - Math.max(0, swing) * 0.12;
     }
   }
 
@@ -1005,6 +1385,8 @@ export class CharacterVisual {
     apply(this.root);
     if (this.cape) apply(this.cape.mesh);
     if (this.hair) apply(this.hair.looseGroup);
+    if (this.robeSkirt) apply(this.robeSkirt.mesh);
+    for (const s of this.robeSleeves) apply(s.cloth.mesh);
   }
 
   dispose(): void {
@@ -1012,6 +1394,14 @@ export class CharacterVisual {
     if (this.cape) {
       this.parent.remove(this.cape.mesh);
       this.cape.dispose();
+    }
+    if (this.robeSkirt) {
+      this.parent.remove(this.robeSkirt.mesh);
+      this.robeSkirt.dispose();
+    }
+    for (const s of this.robeSleeves) {
+      this.parent.remove(s.cloth.mesh);
+      s.cloth.dispose();
     }
     if (this.hair) {
       this.parent.remove(this.hair.looseGroup);

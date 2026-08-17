@@ -69,8 +69,6 @@ export class PixelPost {
         uComposite: { value: 0 },
         /** 0 = keep true colours (no palette snap, no dither). */
         uQuantize: { value: 1 },
-        /** Character-shader style: 0 palette, 1 posterize, 2 soft, 3 plain. */
-        uMode: { value: 0 },
       },
       vertexShader: /* glsl */ `
         varying vec2 vUv;
@@ -97,19 +95,10 @@ export class PixelPost {
         }
 
         uniform int uComposite;
-        uniform int uMode;
+        uniform int uQuantize;
 
         void main() {
           vec4 t = texture2D(tDiffuse, vUv);
-          if (uMode == 2) {
-            // soft: a small cross blur that melts primitive seams
-            vec2 o = 1.4 / uRes;
-            t = (t
-              + texture2D(tDiffuse, vUv + vec2(o.x, 0.0))
-              + texture2D(tDiffuse, vUv - vec2(o.x, 0.0))
-              + texture2D(tDiffuse, vUv + vec2(0.0, o.y))
-              + texture2D(tDiffuse, vUv - vec2(0.0, o.y))) / 5.0;
-          }
           if (uComposite == 1 && t.a < 0.4) discard;
           vec3 c = t.rgb;
           vec2 px = vUv * uRes;
@@ -123,7 +112,7 @@ export class PixelPost {
           c = clamp((c - 0.5) * 1.12 + 0.5, 0.0, 1.0);
 
           vec3 bc = c;
-          if (uMode == 0 && uQuantize == 1) {
+          if (uQuantize == 1) {
             c += bayer(px) * 0.030;
             float best = 1e9;
             for (int i = 0; i < ${PALETTE.length}; i++) {
@@ -132,8 +121,6 @@ export class PixelPost {
               float dist = d.r*d.r*0.50 + d.g*d.g*0.58 + d.b*d.b*0.42;
               if (dist < best) { best = dist; bc = uPalette[i]; }
             }
-          } else if (uMode == 1) {
-            bc = floor(c * 6.0 + 0.5) / 6.0; // posterize: banded, no palette
           }
           gl_FragColor = vec4(bc, 1.0);
         }
@@ -158,12 +145,10 @@ export class PixelPost {
     this.material.uniforms.tDiffuse!.value = this.renderTarget.texture;
   }
 
-  /** Character-shader style (stakeholder A/B): 0 palette-pixel, 1 posterize,
-   * 2 soft blur, 3 plain low-res. */
-  shaderMode = 0;
+  // (The round-11 character-shader A/B — posterize/soft/plain — is gone:
+  // the stakeholder ruled palette pixelation IS the direction, 2026-08-17.)
 
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): void {
-    this.material.uniforms.uMode!.value = this.shaderMode;
     this.material.uniforms.uComposite!.value = 0;
     renderer.setRenderTarget(this.renderTarget);
     renderer.render(scene, camera);
@@ -198,7 +183,6 @@ export class PixelPost {
         Math.max(60, Math.floor(this.lastH / this.envPixelScale)),
       );
       this.material.uniforms.uComposite!.value = 0;
-      this.material.uniforms.uMode!.value = 0; // the world uses the palette path
       this.material.uniforms.uQuantize!.value = envPalette ? 1 : 0;
       renderer.setRenderTarget(null);
       renderer.render(this.postScene, this.postCamera);
@@ -206,7 +190,6 @@ export class PixelPost {
       (this.material.uniforms.uRes!.value as THREE.Vector2).set(this.internalWidth, this.internalHeight);
       this.material.uniforms.uQuantize!.value = 1;
     }
-    this.material.uniforms.uMode!.value = this.shaderMode; // characters
     // Pass 2: characters to the low-res target with a transparent clear.
     cam.layers.set(1);
     const bg = scene.background;
