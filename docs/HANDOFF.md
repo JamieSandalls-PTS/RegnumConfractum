@@ -51,6 +51,13 @@ the UI milestone: clickable inventory/equipment, character sheet, class
 selection at creation (protocol field exists), séance/observe affordances,
 settings.
 
+**Stakeholder model editor:** the viewer has an "Open editor" panel — solo a
+seed, pick parts by SEMANTIC NAME (pelvis…right foot, tagged via nm() in
+character.ts), nudge with labelled slider+number pairs, hide parts, add
+primitives, and export a JSON of deltas. When Jamie pastes an export, map
+part names straight to the nm()-tagged construction lines and bake the
+changes into the generator.
+
 **The visual iteration loop (USE THIS for all model/animation work):**
 1. `node <scratchpad>/shot-receiver.mjs <scratchpad>` in the background
    (writes POSTed dataURLs as PNGs; script is in the session scratchpad —
