@@ -344,6 +344,12 @@ holds *only while antagonist assignment stays random*; random assignment is
 what makes “X was the traitor last round” worthless. **Dying forfeits the
 round's xp** (earnings from that round, not banked totals).
 
+⚠ **Implementation rule that is easy to undo by accident:** the
+persistent world grants **25 xp + 5 deeds for killing a player**
+(`gateway.ts`, `handleAttack`). In a round that is payment for lynching,
+so it is gated on `!this.roundRunning`. **Do not remove that guard** —
+`sim/test/mr1-round.test.ts` asserts it.
+
 Round mode does not relax a single invariant. In particular: **ghosts
 still see only ghosts** (a dead player with vision is a perfect
 informant, and the antagonist's position is the whole game); **Insight

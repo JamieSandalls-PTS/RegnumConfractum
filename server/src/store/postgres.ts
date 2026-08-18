@@ -212,6 +212,18 @@ export class PgStore implements Store {
     return out;
   }
 
+  async clearAllKnowledge(): Promise<number> {
+    const res = await this.pool.query('delete from identity_knowledge');
+    return res.rowCount ?? 0;
+  }
+
+  async stripCharacterItems(characterId: string): Promise<number> {
+    const res = await this.pool.query('delete from items where owner_character_id = $1', [
+      characterId,
+    ]);
+    return res.rowCount ?? 0;
+  }
+
   async upsertKnowledge(k: KnowledgeRecord): Promise<void> {
     await this.pool.query(
       `insert into identity_knowledge

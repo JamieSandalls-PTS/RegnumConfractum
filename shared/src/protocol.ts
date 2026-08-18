@@ -11,6 +11,7 @@ import {
   SpellSchema,
   TransientAnimSchema,
 } from './content';
+import { RoundOutcomeSchema, RoundPhaseSchema } from './round';
 
 /**
  * The wire protocol, defined once and consumed by both server and client
@@ -386,6 +387,49 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     t: z.literal('retired'),
     awarded: z.number().int().nonnegative(),
     totalLegacyPoints: z.number().int().nonnegative(),
+  }),
+  // ---------------------------------------------------------------------
+  // The Round (D-521). Three messages, and the split between them is a
+  // security boundary rather than a convenience:
+  //
+  //   round_state  — BROADCAST. Never carries the objective or the
+  //                  antagonist's identity. Anything added here is public.
+  //   round_role   — to ONE connection, at round start. Everyone receives
+  //                  one; only the antagonist's carries an objective, so the
+  //                  mere arrival of the message is not a tell.
+  //   round_ended  — the reveal. The only message that names the antagonist.
+  // ---------------------------------------------------------------------
+  z.object({
+    t: z.literal('round_state'),
+    phase: RoundPhaseSchema,
+    /** How many are in the cast, and how many are needed to begin. */
+    cast: z.number().int().nonnegative(),
+    minCast: z.number().int().positive(),
+    /** Ticks left in the round; null outside a running round. */
+    remainingTicks: z.number().int().nonnegative().nullable(),
+    /** The round's compressed clock (D-527) — drives lighting and dread. */
+    hour: z.number().int().min(0).max(23),
+    night: z.boolean(),
+  }),
+  z.object({
+    t: z.literal('round_role'),
+    antagonist: z.boolean(),
+    /** Null for the whole cast except one. The brief is world-voice text and
+     * is the antagonist's only briefing. */
+    objective: z
+      .object({ id: ContentIdSchema, name: z.string(), brief: z.string() })
+      .nullable(),
+  }),
+  z.object({
+    t: z.literal('round_ended'),
+    outcome: RoundOutcomeSchema,
+    winner: z.enum(['cast', 'antagonist', 'nobody']),
+    objectiveName: z.string(),
+    /** The reveal: who was carrying it. Sent nowhere else, ever. */
+    antagonistName: z.string(),
+    /** What this player banked — zero if they died (D-524). */
+    xpBanked: z.number().int().nonnegative(),
+    survived: z.boolean(),
   }),
   /** Your own vitals — sent on change. Others never see your numbers. */
   z.object({

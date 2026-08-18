@@ -51,6 +51,14 @@ export class BotClient {
   observing = false;
   /** Latest vitals (hp, ghost, injuries, debt). */
   status: Extract<ServerMessage, { t: 'status' }> | null = null;
+  /** Latest round state (D-521): phase, cast size, clock. Broadcast, so it
+   * must never carry the objective or the antagonist's identity. */
+  roundState: Extract<ServerMessage, { t: 'round_state' }> | null = null;
+  /** This client's role, delivered once at round start. Every player gets
+   * one; only the antagonist's carries an objective. */
+  roundRole: Extract<ServerMessage, { t: 'round_role' }> | null = null;
+  /** Every round this client saw end, in order — including the reveal. */
+  readonly roundsEnded: Extract<ServerMessage, { t: 'round_ended' }>[] = [];
   area: AreaMirror | null = null;
   you: number | null = null;
   inventory: WireItem[] = [];
@@ -302,6 +310,18 @@ export class BotClient {
       }
       case 'status': {
         this.status = msg;
+        break;
+      }
+      case 'round_state': {
+        this.roundState = msg;
+        break;
+      }
+      case 'round_role': {
+        this.roundRole = msg;
+        break;
+      }
+      case 'round_ended': {
+        this.roundsEnded.push(msg);
         break;
       }
       default:

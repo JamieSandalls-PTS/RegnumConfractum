@@ -219,6 +219,14 @@ export interface Store {
    * name wins when both exist) and is deleted.
    */
   mergeKnowledge(observerId: string, subjectId: string, fromPresentation: string): Promise<void>;
+  /**
+   * Wipes ALL recognition knowledge (D-525). The Round calls this at reset so
+   * every round opens with strangers even among familiar faces. Note what
+   * this does NOT touch: names and appearances persist, because knowing who
+   * someone is says nothing about what they are this round — the antagonist
+   * is drawn at random. The persistent world must never call it.
+   */
+  clearAllKnowledge(): Promise<number>;
 
   // Items & coin
   grantItem(
@@ -232,6 +240,12 @@ export interface Store {
   /** Removes one unit of a template from the owner (decrement or delete).
    * False if they hold none. Atomic — the writing-material sink. */
   consumeOneItem(ownerCharacterId: string, templateId: string): Promise<boolean>;
+  /**
+   * Removes everything a character owns, returning how many rows went.
+   * Gear is stripped between rounds (D-522) — only xp and the character
+   * itself survive.
+   */
+  stripCharacterItems(characterId: string): Promise<number>;
   /** True iff the item existed AND belonged to `from` at transfer time. Atomic. */
   transferItem(itemId: string, fromCharacterId: string, toCharacterId: string): Promise<boolean>;
   /** Test/admin faucet — production coin enters via player trade only (D-220). */

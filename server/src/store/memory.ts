@@ -235,6 +235,23 @@ export class MemoryStore implements Store {
     return { ...item };
   }
 
+  async clearAllKnowledge(): Promise<number> {
+    const n = this.knowledge.size;
+    this.knowledge.clear();
+    return n;
+  }
+
+  async stripCharacterItems(characterId: string): Promise<number> {
+    let removed = 0;
+    for (const [id, item] of [...this.items]) {
+      if (item.ownerCharacterId === characterId) {
+        this.items.delete(id);
+        removed++;
+      }
+    }
+    return removed;
+  }
+
   async getItem(itemId: string): Promise<ItemRecord | null> {
     const item = this.items.get(itemId);
     return item ? { ...item } : null;

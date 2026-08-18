@@ -10,7 +10,7 @@ export const MOVE_COOLDOWN_TICKS = 3;
 export const FLUSH_INTERVAL_TICKS = 300;
 
 /** Bumped on any breaking wire change; both sides assert it (D-105). */
-export const PROTOCOL_VERSION = 3; // v3: combat state, attack variants, carried bodies
+export const PROTOCOL_VERSION = 4; // v4: the Round — round_state/role/ended (D-521)
 
 /** Session tokens live this long without activity. */
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;

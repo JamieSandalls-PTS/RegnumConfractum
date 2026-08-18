@@ -100,6 +100,32 @@ nights. **Night NPCs roam outdoors** — the third movement force. Needs an
 - **Hood reference photos** still only exist in chat (2026-08-17/18);
   worth asking for copies in docs/reference/.
 
+## MR1 state (this session)
+
+Branch `mr-round-spine`. The round spine is **built and bot-verified**:
+`shared/src/round.ts` (objectives, phases, D-527 clock),
+`server/src/game/round.ts` (pure engine), gateway wiring, wire v4
+(`round_state` / `round_role` / `round_ended`), `content/objectives/`
+(3 live, 2 planned), `sim/test/mr1-round.test.ts` + `server/test/round.test.ts`.
+**232 tests green.**
+
+⚠ **Two traps found the hard way, both now covered by tests:**
+- **`gainXp(conn, 25)` on a PLAYER kill violated D-522** — the persistent
+  world pays 25 xp + 5 deeds for killing a player, which in a round is
+  literally payment for lynching. Now gated on `!this.roundRunning`.
+  **Do not remove that guard.**
+- A round **opens at dawn**, not midnight. `roundHour()` carries a
+  `ROUND_DAWN_HOUR` offset; without it a 25-min round gets three nights
+  starting in the dark.
+
+**Test pacing:** the server runs **~60 ticks/s under test load**, not the
+nominal 200 — a `lengthTicks` budget sized as if 200 will blow the 30s
+vitest timeout. Prefer ending a test round by the DEED (spawn an NPC next
+to the antagonist via `server.spawnNpc`) rather than waiting on the clock.
+
+**Not yet built in MR1:** the round HUD (client-side), night roamers
+(MR2, needs the `outdoor` area flag), and the dungeon.
+
 ## How to work in this repo (hard-won specifics)
 
 - **Dev loop:** `npm run db:up` (Docker Desktop must be RUNNING — start it

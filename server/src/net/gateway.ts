@@ -42,11 +42,18 @@ import {
   type Direction,
   type ErrorCode,
   type ServerMessage,
+  isNight,
+  roundHour,
+  type ObjectiveDef,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
 import type { CharacterRecord, InjuryRecord, Store } from '../store/types';
 import { World, toWireEntity, type WorldEntity } from '../game/world';
+import { RoundEngine, type RoundResolution } from '../game/round';
+
+/** How long a resolved round holds the reveal before resetting to lobby. */
+const ROUND_RESOLUTION_TICKS = 150; // 15s
 import { EmoteParser } from '../game/emotes';
 import { hasLineOfSight } from '../game/los';
 import { resolveNameContest } from '../game/contest';
@@ -88,6 +95,25 @@ export interface GameServerOptions {
   /** Combat-state pacing — tests shrink these; the rule is tick-based. */
   combatLeaveTicks?: number;
   combatProximityTiles?: number;
+  /**
+   * The Round (D-521). Off by default: without it this is the persistent
+   * world, with respawn, death debt and enduring recognition. Turning it on
+   * changes the rules of death, progression and memory all at once, which is
+   * why it is one switch rather than several.
+   */
+  round?: {
+    enabled: boolean;
+    /** Defaults to ROUND_LENGTH_TICKS; tests shrink it. */
+    lengthTicks?: number;
+    /** Defaults to ROUND_MIN_CAST (three). */
+    minCast?: number;
+    /** Seeds antagonist and objective selection. Fixed in tests. */
+    seed?: number | string;
+    /** Overrides content objectives — tests use a known scenario. */
+    objectives?: ObjectiveDef[];
+    /** Ticks to hold the resolution before resetting to lobby. */
+    resolutionTicks?: number;
+  };
   log?: (msg: string) => void;
 }
 
@@ -198,6 +224,25 @@ export class GameServer {
   private combatLeaveTicks = COMBAT_LEAVE_TICKS;
   private combatProximityTiles = COMBAT_PROXIMITY_TILES;
 
+  // --- The Round (D-521). Null in the persistent world. -------------------
+  private round: RoundEngine | null = null;
+  private roundResolutionTicks = ROUND_RESOLUTION_TICKS;
+  /** Tick at which a resolved round resets; null unless one is resolved. */
+  private roundResetAtTick: number | null = null;
+  /** Tick the running round started at — the origin of its own clock. */
+  private roundStartedAtTick = 0;
+  /** Last broadcast day-night phase, so lighting changes fire once. */
+  private roundLastNight: boolean | null = null;
+  /**
+   * XP earned this round, per connection, banked to the character only if
+   * they are alive at the end (D-524). Dying forfeits the round's earnings —
+   * that is the whole cost of death, and it is why this is a separate pot
+   * rather than a write straight to vitals.
+   */
+  private roundXp = new Map<ConnState, number>();
+  /** Characters who have died this round — no respawn, so this only grows. */
+  private roundDead = new Set<string>();
+
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
     this.content = opts.content;
@@ -215,6 +260,16 @@ export class GameServer {
     this.reviveWindowTicks = opts.reviveWindowTicks ?? REVIVE_WINDOW_TICKS;
     this.combatLeaveTicks = opts.combatLeaveTicks ?? COMBAT_LEAVE_TICKS;
     this.combatProximityTiles = opts.combatProximityTiles ?? COMBAT_PROXIMITY_TILES;
+    if (opts.round?.enabled) {
+      this.round = new RoundEngine({
+        objectives: opts.round.objectives ?? opts.content.objectives,
+        rng: new Rng(opts.round.seed ?? Math.floor(Math.random() * 2 ** 31)),
+        lengthTicks: opts.round.lengthTicks,
+        minCast: opts.round.minCast,
+        log: this.log,
+      });
+      this.roundResolutionTicks = opts.round.resolutionTicks ?? ROUND_RESOLUTION_TICKS;
+    }
     for (const def of opts.content.areas.values()) this.world.addArea(def);
     const fallback = opts.content.areas.keys().next().value as string;
     this.defaultAreaId = opts.defaultAreaId ?? fallback;
@@ -307,10 +362,214 @@ export class GameServer {
     await this.downedTick();
     this.combatTick();
     this.carryTick();
+    await this.roundTick();
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
       await this.flushDirty();
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // The Round (D-521 - D-527)
+  //
+  // The gateway owns the round's *world side*; the engine owns its logic and
+  // stays pure. What lives here is everything that touches connections,
+  // persistence or the clock: who is in the cast, telling one player their
+  // secret, banking or forfeiting xp, and the reset that wipes recognition
+  // and strips gear.
+  // -------------------------------------------------------------------------
+
+  /** Everyone currently in the world with a character - the round's cast. */
+  private roundCast(): { characterId: string; entityId: number }[] {
+    return [...this.conns]
+      .filter((c) => c.character !== null && c.entityId !== null)
+      .map((c) => ({ characterId: c.character!.id, entityId: c.entityId! }));
+  }
+
+  /** True while a round is running - the switch for round death rules. */
+  private get roundRunning(): boolean {
+    return this.round?.phase === 'running';
+  }
+
+  /** Ticks elapsed in the current round - the origin of its own clock. */
+  private roundTickOffset(): number {
+    return Math.max(0, this.world.tick - this.roundStartedAtTick);
+  }
+
+  private async roundTick(): Promise<void> {
+    const r = this.round;
+    if (!r) return;
+    if (r.phase === 'lobby') {
+      const cast = this.roundCast();
+      if (cast.length >= r.minimumCast) await this.startRound(cast);
+      else if (this.world.tick % 50 === 0) this.broadcastRoundState();
+      return;
+    }
+    if (r.phase === 'running') {
+      this.roundDayNightTick();
+      const resolution = r.evaluate(this.world.tick);
+      if (resolution) await this.finishRound(resolution);
+      else if (this.world.tick % 10 === 0) this.broadcastRoundState();
+      return;
+    }
+    if (this.roundResetAtTick !== null && this.world.tick >= this.roundResetAtTick) {
+      await this.resetRound();
+    }
+  }
+
+  private async startRound(cast: { characterId: string; entityId: number }[]): Promise<void> {
+    const assignment = this.round!.start(cast, this.world.tick);
+    if (!assignment) return; // no objective fits this cast; wait for another player
+    this.roundStartedAtTick = this.world.tick;
+    this.roundLastNight = null;
+    this.roundXp.clear();
+    this.roundDead.clear();
+    // EVERY player receives a role message. Only one carries an objective, so
+    // the arrival of the message is not itself a tell - which it would be if
+    // only the antagonist were told anything.
+    for (const conn of this.conns) {
+      if (!conn.character) continue;
+      const secret = this.round!.secretRole(conn.character.id);
+      this.send(conn, {
+        t: 'round_role',
+        antagonist: secret !== null,
+        objective: secret
+          ? { id: secret.objective.id, name: secret.objective.name, brief: secret.objective.brief }
+          : null,
+      });
+    }
+    // Logged for moderation (invariant 10). This is the one place the
+    // antagonist's identity is written down while the round is live, and it
+    // goes to the event log, never to a connection.
+    await this.store.appendEvent('round_started', {
+      objective: assignment.objective.id,
+      antagonist: assignment.antagonistCharacterId,
+      target: assignment.targetCharacterId,
+      castSize: cast.length,
+    });
+    this.broadcastRoundState();
+    this.roundDayNightTick();
+  }
+
+  /**
+   * Drives the compressed day-night cycle (D-527). Night is the round's
+   * pressure inwards; the lighting change is the only warning players get, so
+   * it fires on the tick the hour turns rather than at the next state
+   * broadcast.
+   */
+  private roundDayNightTick(): void {
+    const night = isNight(this.roundTickOffset());
+    if (night === this.roundLastNight) return;
+    this.roundLastNight = night;
+    for (const areaId of this.world.areaIds()) {
+      const def = this.world.getAreaDef(areaId);
+      // Interiors and the underground have their own light and do not follow
+      // the sun. Only open ground darkens.
+      if (def.lighting === 'interior' || def.lighting === 'underground') continue;
+      this.broadcast(areaId, { t: 'area_lighting', lighting: night ? 'night' : def.lighting });
+    }
+    this.broadcastNarrate(
+      night
+        ? 'The light goes out of the sky. Whatever walks abroad is walking now.'
+        : 'Grey light returns. It is over, for a while.',
+    );
+    this.broadcastRoundState();
+  }
+
+  private broadcastNarrate(text: string): void {
+    for (const conn of this.conns) {
+      if (conn.character) this.send(conn, { t: 'narrate', text });
+    }
+  }
+
+  private broadcastRoundState(): void {
+    const r = this.round;
+    if (!r) return;
+    const offset = this.roundTickOffset();
+    const running = r.phase === 'running';
+    const msg = {
+      t: 'round_state' as const,
+      phase: r.phase,
+      cast: this.roundCast().length,
+      minCast: r.minimumCast,
+      remainingTicks: r.remainingTicks(this.world.tick),
+      // Outside a running round the clock has no meaning; show first light.
+      hour: running ? roundHour(offset) : 6,
+      night: running ? isNight(offset) : false,
+    };
+    for (const conn of this.conns) {
+      if (conn.character) this.send(conn, msg);
+    }
+  }
+
+  /**
+   * Ends the round: banks what the living earned, forfeits what the dead did
+   * (D-524), and reveals who was carrying the objective. The reveal is the
+   * only message that ever names the antagonist.
+   */
+  private async finishRound(res: RoundResolution): Promise<void> {
+    const antagonistName =
+      (await this.store.getCharacter(res.antagonistCharacterId))?.name ?? 'someone unaccounted for';
+    for (const conn of this.conns) {
+      if (!conn.character || !conn.vitals) continue;
+      const pot = this.roundXp.get(conn) ?? 0;
+      const survived = !this.roundDead.has(conn.character.id);
+      // Dying costs you the round's earnings - the whole cost of death, and
+      // the reason a rich late dive is a gamble rather than free value.
+      if (survived && pot > 0) {
+        conn.vitals.xp += pot;
+        await this.store.saveCharacterVitals(conn.character.id, { xp: conn.vitals.xp });
+      }
+      this.send(conn, {
+        t: 'round_ended',
+        outcome: res.outcome,
+        winner: res.winner,
+        objectiveName: res.objective.name,
+        antagonistName,
+        xpBanked: survived ? pot : 0,
+        survived,
+      });
+      this.sendStatus(conn);
+    }
+    await this.store.appendEvent('round_ended', {
+      outcome: res.outcome,
+      winner: res.winner,
+      objective: res.objective.id,
+      antagonist: res.antagonistCharacterId,
+    });
+    this.roundResetAtTick = this.world.tick + this.roundResolutionTicks;
+    this.broadcastRoundState();
+  }
+
+  /**
+   * Clears the round. Two wipes matter and both are easy to forget:
+   * recognition knowledge (D-525) so the next round opens with strangers even
+   * among familiar faces, and gear (D-522) so nothing but xp crosses the
+   * boundary. Names, faces and levels persist - the character is the same
+   * person, and knowing who they are still says nothing about what they are.
+   */
+  private async resetRound(): Promise<void> {
+    const forgotten = await this.store.clearAllKnowledge();
+    let stripped = 0;
+    for (const conn of this.conns) {
+      if (conn.character) stripped += await this.store.stripCharacterItems(conn.character.id);
+    }
+    this.round!.reset();
+    this.roundResetAtTick = null;
+    this.roundStartedAtTick = this.world.tick;
+    this.roundLastNight = null;
+    this.roundXp.clear();
+    this.roundDead.clear();
+    await this.store.appendEvent('round_reset', { forgotten, stripped });
+    this.log(`round: reset - ${forgotten} memories wiped, ${stripped} items stripped`);
+    this.broadcastRoundState();
+  }
+
+  /** A death the round cares about. No respawn, so this is terminal. */
+  private noteRoundDeath(characterId: string): void {
+    if (!this.roundRunning) return;
+    this.roundDead.add(characterId);
+    this.round!.noteCharacterDeath(characterId);
   }
 
   // -------------------------------------------------------------------------
@@ -697,6 +956,13 @@ export class GameServer {
   /** XP pays down death debt before it advances the character (D-203). */
   private gainXp(conn: ConnState, amount: number): void {
     if (!conn.vitals) return;
+    // Inside a round, earnings go to a pot that is banked only if you live to
+    // the end (D-524). There is no death debt to pay down in a round, so the
+    // debt path is skipped entirely rather than being paid from the pot.
+    if (this.roundRunning) {
+      this.roundXp.set(conn, (this.roundXp.get(conn) ?? 0) + amount);
+      return;
+    }
     const paid = Math.min(conn.vitals.deathDebt, amount);
     conn.vitals.deathDebt -= paid;
     conn.vitals.xp += amount - paid;
@@ -808,6 +1074,11 @@ export class GameServer {
           tick: this.world.tick,
           events: [{ type: 'entity_died', id: targetId }],
         });
+        // The round watches NPC deaths by public descriptor - this is how a
+        // 'kill the keeper' objective resolves (D-526).
+        if (this.roundRunning && target.npcDescriptor) {
+          this.round!.noteNpcDeath(target.npcDescriptor);
+        }
         this.world.despawn(targetId);
         this.gainXp(conn, 10);
         this.sendStatus(conn);
@@ -843,8 +1114,18 @@ export class GameServer {
     }
     this.sendStatus(targetConn);
     if (targetConn.vitals.hp <= 0) {
-      this.gainXp(conn, 25);
-      this.countDeed(conn, 5);
+      // NO REWARD FOR KILLING A PLAYER IN A ROUND (D-522). The persistent
+      // world pays for a kill; a round must not, at any layer. At a cast of
+      // three to eight, xp-for-player-kills is xp-for-lynching — it pays the
+      // cast to execute whoever they suspect, which is precisely the
+      // mechanical reward for accusation that D-303 forbids and that D-521
+      // restated as a rule the Round may not break. Deeds are suppressed for
+      // the same reason: they feed Legacy (D-510), so paying them here would
+      // reinstate the same incentive one layer up, at account level.
+      if (!this.roundRunning) {
+        this.gainXp(conn, 25);
+        this.countDeed(conn, 5);
+      }
       this.sendStatus(conn);
       await this.die(targetConn, conn.character.name);
     }
@@ -926,7 +1207,11 @@ export class GameServer {
     }
     const entity = this.world.getEntity(conn.entityId)!;
     conn.vitals.hp = 0;
-    conn.vitals.deathDebt += DEATH_DEBT_PER_DEATH;
+    // A round has no death debt and no respawn: you are dead until revived or
+    // until the round ends, and what it costs you is the round's earnings
+    // (D-521, D-524). Debt belongs to the persistent world's walk-it-off loop.
+    if (!this.roundRunning) conn.vitals.deathDebt += DEATH_DEBT_PER_DEATH;
+    else this.noteRoundDeath(conn.character.id);
     entity.ghost = true;
     entity.intent = null;
     entity.diedAtTick = this.world.tick;
@@ -1074,6 +1359,7 @@ export class GameServer {
    * stakeholder ratification (flagged in D-513).
    */
   private async finalizeEndgameDeath(conn: ConnState, cause: string): Promise<void> {
+    if (conn.character) this.noteRoundDeath(conn.character.id);
     if (!conn.character || !conn.vitals || conn.entityId === null || !conn.areaId) return;
     const entity = this.world.getEntity(conn.entityId)!;
     conn.downed = null;
@@ -1132,6 +1418,12 @@ export class GameServer {
 
   /** Self-respawn at the town spawn after the minimum ghost time (D-203). */
   private async handleRespawn(conn: ConnState): Promise<void> {
+    // No respawn in a round (D-521). Dead is dead until revived by another
+    // player or until the round ends - this is THE difference between the
+    // Round and the persistent world, so it is refused at the door.
+    if (this.roundRunning) {
+      return this.fail(conn, 'not_dead', 'the dead stay down until the round ends');
+    }
     if (conn.entityId === null || !conn.character || !conn.vitals || !conn.areaId) {
       return this.fail(conn, 'not_in_world', 'enter the world first');
     }
