@@ -271,9 +271,84 @@ Creation catalogues are content (`content/skills|feats|spells/`);
 the authority (D-102). Garments are cut to the RIG, never to nominal
 height (D-519).
 
+**➡ SCOPE CHANGE, 2026-08-18 (D-521) — the shipping target is now
+MR — the Round.** The first shipped iteration is a **20-30 minute
+scenario mode** in the spirit of Space Station 13 / Werewolf: a small
+cast starts in the tavern, survives, levels, crafts and farms through a
+compressed day-night cycle; **one player is the antagonist**, with a
+secret objective (kill a target, steal an object). **There is no
+respawn** — dead is dead until revived or until the round ends. The
+round ends when the antagonist dies, the good cast is wiped, or the
+objective completes. The persistent world (M5-M7) is **resequenced
+behind this, not cancelled**; every system already built is retained and
+most of them are exactly what the mode needs. Milestones **MR1 (round
+spine) → MR2 (gather/craft/farm/level) → MR3 (map and scenario
+library)** are specified in BUILD_PLAN. **The M2 go/no-go gate is
+absorbed into the MR gate.**
+
+**The cast, ratified (D-522):** minimum **three** players (a floor, not a
+target — deduction needs five-plus). **Characters are persistent and
+level across rounds** — xp for crafting, farming, healing, surviving,
+winning, and NPC combat; **gear is stripped between rounds**. Creation
+happens at the roster screen, outside the round. Two rules follow and are
+load-bearing: **no xp for killing another player** (at these cast sizes
+that pays the good team to lynch, violating D-303), and **levels buy
+access and options, never raw power** (D-207's rule applied to levels, or
+veterans dominate). Round death is **not** permadeath — retirement
+(D-510) stays the only route to Legacy.
+
+**The dungeon (D-523)** is structural, not side content: a per-round
+`wilderness` dungeon farmable for xp, loot and materials is what pulls the
+cast apart voluntarily. Without it everyone sits in the tavern, nobody can
+be killed unwitnessed, and the antagonist cannot act. It is also where
+D-522's NPC-only combat xp lives. ⚠ **Never `endgame` tier** — that
+carries involuntary permadeath, and a round death must not cost a
+character levelled across fifty rounds.
+
+**What resets between rounds (D-524, D-525):** the **recognition system's
+per-observer knowledge** — who was introduced to whom, which threads
+merged, which false name was swallowed — is round-scoped state, cleared at
+reset and **never written to the character's persistent record**.
+Characters keep their names and faces; it is the *feature* that wipes, not
+the person. Safe because the antagonist is assigned **at random**, so
+knowing *who* someone is says nothing about *what* they are this round.
+⚠ The implementation trap is the reverse — quietly persisting it because
+D-219 assumes it endures.
+
+**Survival needs (D-526):** food and water are the anti-camping mechanic
+(the dungeon pulls players out, hunger pushes them out) and the reason
+farming exists. **Coarse, not continuous** — two or three need events on
+the day-night cycle, never a draining bar; the first stage forces a
+decision, not damage; consequences plateau, no death spiral. They hand the
+antagonist a **non-violent attack surface** (poison the well, spoil the
+stores, burn the crop), which at a cast of three is a better antagonist
+than a duellist. A cast of three is carried by objectives that never
+require the antagonist to win a fight — kill-a-named-NPC (the tavern
+keeper already exists), starve-out, steal, escape, survive.
+
+**Ratified in D-524:** **recognition memory is round-scoped** — the cast
+meets as strangers every round, so false names and hoods never decay. This
+holds *only while antagonist assignment stays random*; random assignment is
+what makes “X was the traitor last round” worthless. **Dying forfeits the
+round's xp** (earnings from that round, not banked totals).
+
+Round mode does not relax a single invariant. In particular: **ghosts
+still see only ghosts** (a dead player with vision is a perfect
+informant, and the antagonist's position is the whole game); **Insight
+stays fallible** (no detect-traitor); and **D-303 still forbids
+rewarding virtue** — the round must never score correct accusation or
+execution, or it teaches the opposite of the north star.
+
 **M4b remaining:** richer injury/treatment types (D-205 matrix), Vessel's
 Plane Shift, class skills/balance beyond the scaffold. **Other gaps:**
 inventory/character-sheet UI, invisible DM observation, staging VPS not
-provisioned. ⚠ **Unratified balance awaiting the stakeholder:** creation
+provisioned. ⚠ **Blocked on the stakeholder, MR-specific:** hunger tuning (need events
+per round, what the first stage costs, whether starvation can kill inside a
+round or only incapacitate); multiple antagonists above a cast size, and
+whether they know each other; minimum party size to enter the dungeon at low
+cast counts; whether an objective may ever sit *inside* the dungeon; what a revived
+player returns with.
+
+⚠ **Unratified balance awaiting the stakeholder:** creation
 budget (D-515), combat window / attack roster / carry formula (D-516),
 Legacy class pricing (D-512), zero-award endgame death (D-513).

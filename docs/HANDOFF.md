@@ -38,7 +38,37 @@ is well underway. This session shipped D-515 through D-520:
   sleeves are BAKED into `CharacterVisual`; hood flap physics removed
   entirely; workbench presets re-baselined so its zero = the game.
 
-## Next work (rough priority)
+## ⚠ Scope change landed after this handoff was written
+
+**2026-08-18, D-521:** the shipping target is now **MR — the Round**
+(20-30 min scenario, hidden antagonist, no respawn). See CLAUDE.md's
+current position and BUILD_PLAN's MR section. The priority list below is
+superseded where it conflicts: **inventory UI is promoted** (MR2 cannot
+exist without it), **richer injuries and Plane Shift are demoted**, and
+the immediate next build is **MR1, the round spine**. Combat-feel
+iteration with the stakeholder still stands and is independent.
+
+**D-522 followed the same day:** characters are **persistent** across
+rounds (xp/level kept, gear stripped), creation is at a roster screen
+outside the round, minimum cast three. Two hard rules for whoever builds
+MR2: **no xp for player kills** and **levels buy access, not power**.
+
+**D-523/D-524 same day:** the **dungeon** is the round's separation engine
+(per-round reset, `wilderness` tier — **never `endgame`**, which would
+permadeath a persistent character); **recognition memory resets each
+round**; **dying forfeits that round's xp**. Antagonist assignment must
+stay **random** — D-524's recognition reset depends on it.
+
+**D-525/D-526 same day:** characters **keep** their names and faces across
+rounds; what wipes is the **recognition system's per-observer knowledge** —
+round-scoped state, never written to the persistent character record.
+(D-525 briefly recorded a per-round-anonymity mechanism; that was an
+over-reading, withdrawn, and the entry now says so.) **Food and water** are in as the anti-camping mechanic and
+farming's consumer — coarse events on the day-night cycle, never a
+draining bar, no death spiral. Cast of three is carried by objectives that
+never need the antagonist to win a fight.
+
+## Next work (rough priority — pre-D-521, retained for context)
 
 1. **Combat-feel iteration with the stakeholder** — they now have the full
    loop (stance, draw/sheathe, four swings, cast bolts, ragdoll death,

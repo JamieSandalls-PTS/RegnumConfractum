@@ -1775,3 +1775,495 @@ the cloth tab shows exactly what the game renders and an untouched export
 round-trips to no change. The garment-scale test's collar assertion was
 re-expressed around the failure mode it guards (a collar approaching head
 size) rather than a spread bound calibrated to the pre-tune constants.
+
+### D-521: The first shipped iteration is a round-based scenario mode
+
+**Stakeholder, 2026-08-18:** "I originally wanted to build the full RP game
+and world, but now I think I should focus on a short scenario-based version
+of it in the first instance. All the features etc will remain... sort of
+like Space Station 13, or Werewolf. 20-30 minute rounds. Day-night cycle.
+All players start in the tavern, and must survive, level up, craft, farm
+etc. One player is evil, with an objective... The only difference is, there
+is no respawn timer. If you are dead, you are dead until revived, or the
+game ends."
+
+**Decision:** the first shippable product is **the Round** — a 20–30 minute
+scenario played by a small cast in a compact map, with a hidden antagonist,
+a compressed day-night cycle, and no respawn. The persistent world
+(D-101 through D-406) is **not cancelled and not superseded**; it is
+resequenced behind the Round. Every system already built is retained.
+
+**Why this is the right move, stated plainly rather than accepted on
+authority:**
+
+1. **It pays the oldest debt in the project.** BUILD_PLAN's declared go/no-go
+   gate — two writers, ninety minutes, the tavern — has never been run,
+   because unstructured roleplay needs a rare kind of player to ignite. The
+   Round manufactures the ignition: a hidden traitor gives every player a
+   reason to lie and a reason to read the person opposite. **The M2 gate is
+   now tested inside the Round rather than beside it.**
+2. **It makes the built systems load-bearing instead of latent.** Recognition
+   and false names (D-219, D-218), hoods that merge threads when they drop
+   (D-506), fallible Insight, scrambled languages, unsigned letters
+   (forgery is native), the physician dependency for untreatable wounds
+   (D-509), corpses as carryable world objects (D-518), Speak With Dead and
+   the dead's freedom to lie (D-512) — these are not features that a
+   Werewolf-like *tolerates*. They are its entire mechanical vocabulary, and
+   they are finished. The unusual thing about this pivot is how little of it
+   is new code.
+3. **It shrinks the two hardest unbuilt problems to a size that fits.**
+   A persistent economy (M5) and a persistent world (M6) are open-ended.
+   A round-scoped crafting loop and a five-area map are bounded, shippable,
+   and — critically — testable by bots in seconds.
+
+**What the Round is, mechanically:**
+
+- **A server-owned session over the existing world.** Phases: lobby →
+  running → resolution → reset. The victory conditions are exactly the
+  trigger vocabulary the DM event engine already speaks (`entity_death`,
+  `at_hour`, `after_seconds`, `player_count`) — **a scenario is a DM event
+  document that plays itself**, and it should be built on that engine, not
+  beside it (D-508).
+- ~~**Characters are round-scoped.** Progression must complete inside 25
+  minutes, so levels, skills and goods are created and discarded with the
+  round.~~ — **superseded by D-522: the character persists and levels
+  across rounds; only gear is stripped.** The **account** also persists:
+  Legacy Points, statistics, unlocks. D-207 still holds — Legacy buys
+  access and flavour, never power.
+- **Death is the endgame rule applied globally.** D-513 already built the
+  downed state, the `revive` window, and death without respawn. In the Round
+  that becomes the default: no respawn timer, no death debt, no walking it
+  off. Dead is dead until revived or until the round ends.
+- **The clock is round-scoped.** `TICKS_PER_GAME_HOUR` is currently fixed at
+  two real minutes (a 48-minute day). It becomes a round parameter so one
+  round is one day, and **area lighting must follow the hour** rather than
+  only following script and DM actions.
+- **Evil is assigned, not chosen.** The antagonist is picked server-side and
+  in secret at round start, and carries an objective document from content
+  (`kill <target>`, `steal <object>`, `survive`, `escape`).
+
+**Rulings this forces, which are not negotiable design-wise:**
+
+- **Invariant 4 holds, and holds harder.** Ghosts see only ghosts. SS13 lets
+  the dead observe freely; we cannot, because a dead player with full vision
+  and a voice channel is a perfect informant and the antagonist's position
+  is the whole game. Being dead in the Round is *quiet*, and if that proves
+  unbearable the fix is a shorter round, not a relaxed invariant.
+- **Invariant 5 holds.** There is no detect-traitor. Insight remains graded
+  and fallible. A reliable read on the antagonist ends the mode instantly.
+- **The north star (D-303) is unchanged and now easier to violate by
+  accident.** Evil being *assigned* does not license scoring virtue. The
+  round must **not** reward correct accusation, execution, or a clean sweep —
+  if points accrue for lynching, the game teaches the exact opposite of
+  D-303. Mercy toward a suspect (restrain, exile, lock in the cellar) must
+  be *supported* and never *optimal*. The round ends; it does not grade.
+- **Invariant 2 holds.** Round-kit items go through the orphan validator like
+  everything else (D-210).
+- **Invariant 10 holds.** The event log stays append-only across rounds; the
+  round id is a column, not a reason to reset the table.
+
+**What this costs, honestly.** Crafting, farming, gathering and the
+inventory UI do not exist — that is M5 work pulled forward, and it is the
+bulk of the new build. Levelling exists as an `xp` integer with no curve and
+no unlocks. The map is three areas (tavern, yard, crypt) and a round needs
+perhaps five. Everything else is configuration and a session engine.
+
+**Open questions for the stakeholder — flagged, not assumed:**
+
+- Cast size per round, and what happens below it (bots? merge lobbies?).
+- Whether characters are pre-rolled or created in the lobby — the creation
+  wizard (D-515) is a five-minute experience in front of a 25-minute round.
+- More than one antagonist above a certain cast size, and whether they know
+  each other.
+- Whether a revived player returns with anything, or naked and wounded.
+- What, if anything, an account earns from a round, given D-207.
+
+### D-522: The Round's cast — persistent characters, stripped gear, a floor of three
+
+**Stakeholder rulings, 2026-08-18,** answering D-521's open questions:
+
+> "Minimum 3 players per round. Character creation is done before attempting
+> to join a game/round. The idea is, your character is persistent, and levels
+> up by playing the rounds (xp for crafting, farming, healing others, killing
+> enemies, winning the round etc), and that xp/level is kept between games.
+> Gear/items however are stripped between rounds."
+
+**This supersedes D-521's round-scoped-character bullet.** The shape is now:
+
+| Layer | Between rounds |
+|---|---|
+| Account (Legacy Points, unlocks, statistics) | persists |
+| **Character (identity, xp, level, skills)** | **persists** |
+| Gear, items, crafted goods, harvested crops | **stripped** |
+
+Character creation (D-515) happens **outside** the round, at the roster
+screen — which removes the bad ratio D-521 worried about, a five-minute
+wizard in front of a twenty-five-minute round. The lobby is a join queue,
+not a creation step.
+
+**Why this is a better design than what D-521 assumed, and where it is more
+dangerous:**
+
+**Better:** a character that survives the round is a character worth being
+careful with. Round-scoped characters make death free — lose, shrug, requeue.
+Persistence gives the no-respawn rule its teeth and gives the roleplay core
+something to accrete around: a name with a reputation across rounds is
+exactly the social texture Arelith runs on.
+
+**More dangerous — three consequences that need managing, not just noting:**
+
+1. **Veteran dominance will kill the mode if the curve is not flat.** A cast
+   mixing a hundred-round veteran with three first-timers is not the same
+   game for either. The discipline that saves this is already written down:
+   **D-207's rule for Legacy Points must govern round levels too — levels buy
+   access and options, never raw power.** A level should unlock a craft, a
+   rite, a skill *verb*; it must not multiply damage or hit points enough to
+   make a veteran unkillable by three novices. If the mode drifts toward
+   stat-scaling it needs level-banded queues instead, which a 300-player
+   target cannot afford.
+2. **XP sources are an incentive system, and one of them is a trap.** Craft,
+   farm, heal, survive, win — all fine; they are services and outcomes.
+   **But xp must not be paid for killing another player.** At a cast of three
+   to five, xp-for-player-kills is xp-for-lynching: it pays the good team to
+   execute suspects, which is precisely the mechanical reward for
+   accusation that D-303 and D-521 both forbid. Combat xp comes from
+   **NPCs and hostile spawns**; the antagonist earns from **completing its
+   objective**, not from the body count. The good team earns from **surviving
+   and winning**, not from being right about who to kill.
+   Implementation note: this vocabulary already exists — D-510's Legacy
+   formula scales on *deeds*, "meaningful actions, never wall-clock"
+   (`server/src/game/legacy.ts`). Round xp should extend that deed list
+   rather than invent a parallel one.
+3. **Death now needs a defined cost, and D-521 left it undefined.** Round
+   death is **not** permadeath — the character survives a lost round, and
+   permadeath stays what D-510 made it: voluntary retirement, the only route
+   to Legacy Points. So dying in a round must still cost something or the
+   no-respawn rule is theatre. **Recommendation: the round's earnings are
+   forfeit.** Die and you bank nothing from those twenty-five minutes — a
+   real loss, no death spiral, no bookkeeping. The alternative worth
+   considering is a **wound that carries into the next round**, which would
+   finally give D-205's injury matrix a job; it is more interesting and it
+   risks a downward spiral for unlucky players. **Unratified — stakeholder
+   call.**
+
+**On the floor of three, stated plainly: three players is a technical floor,
+not a functioning mystery.** Social deduction does not work at 2-versus-1 —
+a single accusation is a coin flip, and one lucky ambush ends the round
+before anyone has spoken. Three should be what lets a round *start*, not what
+rounds are designed for; five to eight is where a hidden antagonist becomes a
+game. Two consequences follow:
+
+- **Objective type should scale with cast size.** "Kill player X" at a cast
+  of three is near-deterministic and reduces to a duel. **Steal**, **escape**
+  and **survive** objectives still function at three because they do not
+  require the antagonist to win a fight. Assassination objectives should be
+  reserved for larger casts.
+- **NPCs are the low-count fix.** The tavern already has a scripted keeper
+  (D-507). A room with connectionless NPCs in it gives a three-player round
+  crowd to hide in and hostiles to earn xp from without inflating the cast.
+
+**A new open question this creates, and it is the sharpest one yet:
+does recognition memory persist between rounds?** The recognition system
+(D-219) makes names per-observer knowledge. If that knowledge carries across
+rounds, then within a small player base every regular is recognised on sight
+within weeks, false names stop working, and "Torvald was the traitor last
+round" becomes the dominant strategy — the deception core degrades into
+metagame. If it resets each round, the deception core stays sharp but a
+persistent character's reputation cannot accumulate, which is half the point
+of persistence. **These pull in opposite directions and cannot both be had
+in full.** The masks and hoods are already built (D-506) and are the obvious
+partial answer. **Flagged for the stakeholder — do not resolve it in code
+by accident.**
+
+**Remaining open from D-521:** more than one antagonist above a given cast
+size and whether they know each other; what a revived player returns with.
+
+### D-523: The dungeon — the round's separation engine
+
+**Stakeholder, 2026-08-18:** "there should be a dungeon that resets daily,
+that can be farmed for loot and materials. This is a source of XP, and a
+distraction for the good players. The enemy player may join them in the
+dungeon and strike at an opportune time, or they may be left free to complete
+other objectives."
+
+**Decision: accepted, and it is load-bearing rather than optional content.**
+The dungeon is not a side activity bolted onto the Round — it is the
+mechanism that makes a hidden antagonist playable at all.
+
+**Why it is structural.** A hidden-traitor round only works if players
+**separate**. If the whole cast sits in the tavern for twenty-five minutes,
+nobody can be killed unwitnessed, the antagonist can never act, and the round
+resolves by timer. Something has to pull people apart — and forced tasks
+(the Among Us answer) make separation feel like a chore assigned by the game.
+The dungeon separates people **voluntarily**, for reasons they own: xp, loot,
+materials. That is a far better mechanism, because the player chooses the
+exposure and therefore owns the consequence.
+
+**The tension it creates is self-balancing, which is the mark of a good
+mechanic.** Attention is the scarce resource. Diving earns but leaves the
+tavern unwatched and the antagonist unobserved; staying watches but earns
+nothing. If everyone stays, nobody progresses and the round is dull. If
+everyone dives, the antagonist walks its objective unopposed. There is no
+dominant strategy, and the group must negotiate the split out loud — which
+is itself roleplay, and which makes *who volunteered to go where* a fact the
+cast can later reason about.
+
+**It closes a hole D-522 left open.** D-522 ruled that combat xp comes from
+**NPCs, never from killing another player** (xp for player kills pays the
+good team to lynch suspects, violating D-303). That rule had no content
+behind it — there were no NPC hostiles anywhere. **The dungeon is where that
+xp lives.**
+
+**Existing mechanics it activates, none of which need building:**
+
+- **Zone tier (D-206).** The dungeon is `wilderness`; the tavern is
+  `settled`. That single content field already means the tavern requires a
+  spoken, logged hostility declaration with a ten-second window, and the
+  dungeon requires nothing. **The dungeon is mechanically the place where
+  you can be struck without announcement** — already implemented, already
+  bot-tested.
+- **Wilderness corpse rules (D-511/D-512).** A wilderness corpse wears
+  everything. Die in the dungeon and your loot goes to whoever finds the body
+   — including your killer. The antagonist murdering a diver and taking the
+  haul is a complete, built loop.
+- **Plausible death.** Deaths underground are *expected*. "The undead took
+  him" is a survivable lie; "he died in the tavern cellar" is not. The
+  dungeon is the antagonist's alibi factory.
+- **Speak With Dead (D-512), in which the dead may lie.** A body recovered
+  from the dungeon can be questioned and can mislead. This is a murder
+  mystery mechanic that has been finished and unused since M4b.
+
+**"Resets daily" needs disambiguating, because the pivot changed what a day
+is.** D-521 made the clock round-scoped: **one round is one day.** So
+"daily" and "per round" are now the same statement, and the dungeon resets
+**per round**. Recording this explicitly because the alternative reading —
+a persistent dungeon on a real-world 24-hour timer — would be a mistake:
+it would make loot a race *between* rounds, hand the day's first cast a full
+dungeon and its fifth a stripped one, and reintroduce exactly the
+cross-round item persistence that D-522 deliberately deleted. **Per-round
+reset.** (A mid-round refresh at dawn is available later as a pacing beat if
+a round needs a second wave; not for the first build.)
+
+**What the dungeon pays in, and what it must never pay in.** Loot and
+materials are **round-scoped** — stripped at the end like all gear (D-522).
+Only **xp persists**. This is the correct shape and it should be defended:
+**the dungeon must pay in a currency that cannot win the round.** Loot arms
+you for the next twenty minutes; xp banks to a character you will play
+tomorrow; neither completes an objective or identifies the antagonist. What
+diving costs is **absence**, and absence is the whole point.
+
+**The risk, stated plainly: the dungeon can eat the round.** A farmable
+dungeon inside a 25-minute social-deduction game can easily collapse into
+"everyone dives, twenty minutes of PvE, the traitor wins by default or gets
+bored" — a co-op crawler with a griefer in it. The mode dies there. Three
+levers keep it in its place, and they should be built in from the start
+rather than retrofitted when it goes wrong:
+
+1. **Diminishing returns per clear.** The first run pays well, the second
+   little. Farming is bounded by design, not by the round timer.
+2. **Dangerous enough to need company.** If a dive requires two or more, the
+   split is *visible* — the cast knows who went below and who stayed. That
+   feeds deduction instead of starving it. A solo dive should be a
+   conspicuous, risky choice, not the efficient one.
+3. **An objective clock that punishes over-diving.** If the antagonist can
+   complete its objective while the cast is underground, over-committing is
+   self-correcting. This needs no new system; it is a tuning relationship
+   between objective duration and dungeon depth.
+
+**At the minimum cast of three, the dungeon is sharper than it looks.** If
+two dive and one stays, and the antagonist is one of the divers, the dive is
+an unobservable 1v1. That may be an honest and interesting risk, or it may
+make diving suicidal and therefore dead content at low counts. **Consider a
+minimum party size to enter, scaled to cast size.** Unratified.
+
+**Implementation trap, recorded before someone steps in it.** `sunken-crypt`
+already exists (D-513) and is the obvious starting geometry — but its zone
+is `endgame`, which carries **involuntary permadeath**. D-522 ruled that
+round death is **not** permadeath; the persistent character survives a lost
+round. **A round dungeon must be `wilderness`, never `endgame`.** Reuse the
+area, not its tier — or a bad pull costs a player the character they have
+levelled across fifty rounds.
+
+**Open for the stakeholder:** how many dungeon layouts at launch and whether
+they rotate per round; whether the antagonist's objective can ever be *inside*
+the dungeon (it would force the cast down, which is either excellent or a
+collapse of the tension above); minimum party size at low cast counts.
+
+### D-524: Recognition resets per round; dying forfeits the round's xp
+
+**Stakeholder, 2026-08-18:** "recognition memory would not persist between
+rounds. The cost for dying is loss of XP still."
+
+**Ruling 1 — recognition memory is round-scoped.** This resolves the
+question D-522 flagged as the sharpest one open. Per-observer name knowledge
+(D-219) is created and discarded with the round. Every round, the cast meets
+as strangers; false names, hoods and introductions work on round one and on
+round five hundred.
+
+**What this costs, so nobody is surprised later:** a persistent character
+cannot accumulate reputation *through the recognition system*. Being widely
+known is no longer something the mechanics track across rounds. In the
+persistent world (M5–M7) that would be a serious loss — renown is half of
+Arelith. In the Round it is the correct trade, because a deduction game whose
+deception layer decays with familiarity has a shelf life measured in weeks.
+
+**A nuance worth stating, because it prevents a false sense of security:**
+resetting recognition stops the *game* from helping players metagame; it does
+not stop players metagaming. Regulars will know each other's characters on
+sight regardless of what the server remembers. **The reason this is
+nonetheless sufficient is that the antagonist is assigned at random each
+round** — so "Torvald was the traitor last round" carries no predictive
+information whatsoever. Identity-deception degrades with familiarity;
+**role-deception does not**, and role-deception is the one the Round is built
+on. Any future change that makes antagonist assignment predictable —
+weighting, queues, opt-in — would destroy this property and must be treated
+as a serious design change, not a tuning knob.
+
+**Ruling 2 — death forfeits the round's xp.** Confirming the recommendation
+in D-522: die, and you bank nothing from that round. The twenty-five minutes
+are the stake, which is a real loss with no bookkeeping and no spiral. The
+carried-wound alternative is set aside.
+
+**Recorded assumption, cheap to correct:** this is read as **forfeiting xp
+earned in that round**, not as **deducting xp already banked** from previous
+rounds. The distinction matters — deducting banked xp can de-level a
+character and puts unlucky players into a downward spiral, which is the
+failure mode that made the carried-wound option unattractive in the first
+place. Built as forfeit-the-round's-earnings. **If the intent was a deduction
+from the character's total, say so and it is a one-line change.**
+
+**Interaction with D-523 that makes the dungeon sharper.** Dungeon xp is
+banked only if you live to the end of the round. So a player who dives, farms
+hard, and is then murdered by the antagonist on the way home loses the entire
+haul — xp and, under wilderness corpse rules, the loot to the killer. **The
+richer the dive, the more there is to lose by dying with it.** Farming late
+in a round is therefore a genuine gamble rather than free value, and no
+special-case rule was needed to make it one.
+
+### D-525: What resets between rounds is the *feature*, not the face
+
+**Stakeholder, 2026-08-18, correcting an over-reading:** "It doesn't matter
+if they recognize a character between rounds (character name/appearance)
+because they may not be evil that round. However, the in-game name
+recognition feature should only persist across one round, then be wiped."
+
+**This entry exists to correct the record.** The stakeholder's earlier line
+— "players should not know each other between rounds" — was first read as a
+requirement for **anonymity**, and this decision number briefly recorded a
+mechanism for it: per-round `appearanceSeed` and presented names, so a
+character would be a build rather than a face. **That was never ratified and
+is withdrawn.** It is recorded here rather than deleted so that a future
+session does not re-propose it believing it to be new.
+
+**The actual ruling, which is narrower and better:**
+
+- **Characters stay recognisable across rounds.** Persistent name, persistent
+  appearance, persistent identity. Torvald is Torvald every round.
+- **The recognition *system* (D-219) is wiped between rounds.** Per-observer
+  name knowledge — who has been introduced to whom, which threads have
+  merged, which false name was swallowed — is created and discarded with the
+  round. Mechanically, every round opens with an empty knowledge table.
+
+**Why the face may safely persist, in the stakeholder's own reasoning:
+knowing *who* someone is tells you nothing about *what* they are this round.**
+The antagonist is assigned at random each round, so cross-round familiarity
+carries no predictive information about the only fact that matters. This is
+the same property D-524 identified: identity-deception decays with
+familiarity, **role-deception does not**, and the Round is built on
+role-deception. Anonymity was solving a problem randomness had already
+solved.
+
+**And the cost anonymity would have carried is now avoided.** A character
+nobody can recognise is a build, not a person — capability without renown.
+Keeping the face keeps the thing players actually become attached to, and
+keeps a door open to M5–M7, where renown is half the point and a per-round
+face would have been actively wrong.
+
+**One acknowledged leak, not worth engineering against.** A player who
+remembers a character from a previous round can address them by name without
+having been introduced this round — speaking a name is a mechanical act
+here (D-218), so out-of-round knowledge can shortcut an in-round
+introduction. This is inherent to the ruling and is **acceptable**, because
+it reveals nothing about the antagonist. Do not add machinery to prevent it.
+
+**Implementation note:** this is a lifecycle change to existing storage, not
+new behaviour. Recognition knowledge must be **round-scoped state**, cleared
+at round reset, and must not be written to the character's persistent record.
+The trap to avoid is the reverse — quietly persisting it because the
+persistent-world design (D-219) assumes it endures.
+
+### D-526: Survival needs, and the low-cast objective set
+
+**Stakeholder, 2026-08-18:** "I think we can handle 3 players minimum with
+some creative objective choices. Maybe killing an NPC, or starving out the
+other players etc. Food/water needs will need to be part of it, so players
+cannot camp one spot."
+
+**Ruling 1 — the minimum cast of three stands, carried by objective design.**
+D-522 warned that three players is a technical floor rather than a functioning
+mystery, and that assassination objectives at that size reduce to a duel. The
+resolution is not a higher floor but a **cast-scaled objective set**:
+
+- **Kill a named NPC.** Excellent at three. The tavern already has a scripted
+  keeper (D-507) — a fixed, known, defenceless target the cast must *protect*
+  rather than a player they must *suspect*. It converts the round from "who
+  is the traitor" (thin at three) into "the keeper must live" (a defence
+  problem that works at any size), and the antagonist is exposed by what it
+  does, not by a coin-flip accusation.
+- **Starve the cast out.** Attrition rather than assassination — the
+  antagonist wins by denial: spoiling stores, poisoning the well, burning the
+  crop. **This objective does not require the antagonist to win a single
+  fight**, which is exactly what a 2-versus-1 needs.
+- **Steal / escape / survive**, as already recorded in D-522.
+
+Assassination objectives stay reserved for larger casts.
+
+**Ruling 2 — food and water are in, as an anti-camping mechanic.** This is
+accepted for the same structural reason as the dungeon (D-523): it is a
+**movement engine**. The dungeon pulls players apart by offering reward;
+hunger pushes them out of a defensible corner by denying them the option to
+sit in it. Between them, the round has both a carrot and a stick against the
+degenerate strategy of the whole cast barricading in one room — which is
+otherwise the *correct* play in a hidden-traitor game and would kill the mode
+outright.
+
+**It also makes farming load-bearing.** MR2's farming was, honestly, content
+without a consumer — you farm because the milestone says so. Now you farm
+because the cast eats. That is the D-210 no-orphans discipline applied to a
+verb rather than an item, and it is a better argument for farming than the
+one MR2 previously had.
+
+**And it hands the antagonist a non-violent attack surface.** Poisoning the
+well, spoiling the stores, torching a field — unwitnessed, deniable, and
+requiring no combat at all. At a cast of three, where any fight is decisive
+and obvious, **a poisoner is a far more interesting antagonist than a
+duellist.** This is the single strongest argument for the mechanic.
+
+**It couples to the dungeon in a way that bounds farming for free.** Diving
+takes you away from food and water. A long dive is therefore self-limiting
+without any artificial timer — a fourth lever alongside D-523's three, and
+the only one that costs nothing to implement once needs exist.
+
+**It fits the north star exactly.** Scarce food makes **feeding someone else
+a costly kindness** — possible, never optimal, and validated only by the
+person you fed. D-303 asks for precisely this and has had very little to
+work with mechanically until now.
+
+**The failure mode, which is well documented in this genre: tedium.** Hunger
+systems become chores — a bar that ticks, a sandwich clicked every ninety
+seconds, attention taxed for no decision. The rule that prevents it:
+**hunger must force a decision, not a chore.** Concretely, for a 25-minute
+round:
+
+- **Coarse, not continuous.** Two or three meaningful need events per round,
+  pinned to the day-night cycle (dawn / noon / dusk), not a draining bar.
+- **The first bite of pressure is a *choice*, not damage** — it should make
+  you leave a room, not shave your hit points.
+- **No death spiral.** Consequences must plateau. Starvation may weaken and
+  eventually kill, but it must never make a losing cast unable to act; a
+  round decided by a hunger bar rather than by a person is a failed round.
+- **Water and food should fail differently**, or one of them is decoration.
+
+**Unratified and needed before build:** the number of need events per round,
+what the first stage actually costs, and whether starvation can kill inside a
+round or only incapacitate.

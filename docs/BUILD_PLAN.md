@@ -19,6 +19,14 @@ everything downstream is worth building.
 This is why combat, economy and progression come **after** the roleplay core, despite
 being what most MMO projects build first. Most MMO projects are also not this.
 
+**Amendment, 2026-08-18 (D-521).** A third principle now sits above both:
+**ship a bounded thing first.** The persistent world is the destination, but
+the first *product* is **MR — the Round**, a 20-30 minute scenario with a
+hidden antagonist and no respawn. It is inserted after the interface work and
+before M5. M5, M6 and M7 keep their content and their order; they now describe
+the persistent world that the Round is a proving ground for. **Nothing below
+is cancelled.**
+
 **Second principle: the harness comes before the game.** D-114 established that the
 stakeholder is hands-off and correctness therefore cannot depend on human code review.
 The test harness is not overhead to be added later; it is the thing that makes the
@@ -123,6 +131,161 @@ and a major wound genuinely requires finding another player to treat it.
 
 ---
 
+## MU — Interface (in progress, inserted post-M4 by stakeholder ruling)
+
+*Not in the original sequence. The stakeholder ruled after M4 that basic
+interface work precedes M5.* Click-to-move, hotbar, context menus, character
+creation, split pixelation and the Graphics panel, speech bubbles, combat
+state with draw/sheathe/stance/attack variants, ragdoll death, carryable
+bodies, and the tabbed viewer with its cloth workbench. (D-514 – D-520.)
+
+**Remaining:** inventory and character-sheet UI — now a hard dependency of
+MR, below, because you cannot craft or farm without somewhere to put things.
+
+---
+
+## MR — The Round *(the first shipped product, D-521)*
+
+*Inserted 2026-08-18. The persistent world is resequenced behind this, not
+cancelled. Nothing already built is discarded.*
+
+A 20–30 minute scenario: a small cast, a compact map, a compressed day-night
+cycle, a hidden antagonist with a secret objective, and **no respawn** —
+dead is dead until revived or until the round ends. The round ends when the
+antagonist dies, the objective completes, or the good cast is wiped.
+
+**The cast (D-522, D-525).** Minimum **three** players to start, carried at
+that size by objectives that never require the antagonist to win a fight
+(D-526). **Characters persist and level across rounds; gear is stripped
+between them.** Names and faces persist too — what wipes is the *recognition
+system's* per-observer knowledge, so every round opens with an empty
+knowledge table even among familiar faces. Knowing who someone is says
+nothing about what they are this round, because the antagonist is assigned
+at random. Creation happens at the roster screen, outside the round, so the
+lobby is a join queue.
+
+**The dungeon (D-523).** A per-round dungeon farmable for xp, loot and
+materials is what pulls the cast apart voluntarily — without it, everyone
+sits in the tavern, nobody can be killed unwitnessed, and the antagonist
+cannot act. Attention is the scarce resource: dive and earn, or stay and
+watch. It is structural, not side content.
+
+### MR1 — The round spine
+
+*Prove the loop with no economy in it at all.*
+
+- Round lifecycle as a server-owned session: lobby → running →
+  resolution → reset, built **on the DM event engine** (D-508), not beside it — a
+  scenario is an event document that plays itself
+- Antagonist assignment, secret and server-side; objective documents as
+  content (`content/objectives/`): kill target, steal object, survive, escape
+- Victory evaluation and round resolution, with the reveal at the end
+- Round death rules: D-513's downed state and the `revive` window become the
+  default; no respawn timer, no death debt
+- Round-scoped clock — `TICKS_PER_GAME_HOUR` becomes a round parameter so one
+  round is one day — and **area lighting driven by the hour**
+- Character roster outside the round: create, select, and carry a persistent
+  character in; **gear stripped on entry and on exit** (D-522)
+- **Recognition is round-scoped state (D-524, D-525):** per-observer name
+  knowledge is cleared at round reset and **never written to the character's
+  persistent record**. Characters keep their name and face across rounds —
+  it is the *feature* that wipes, not the person. The trap is the reverse:
+  quietly persisting it because D-219 assumes it endures.
+- Minimum cast of three enforced at start; **objective scaled to cast size**
+  (D-522, D-526) — kill-a-named-NPC, starve-out, steal, escape and survive
+  all work at three because none require the antagonist to win a fight;
+  assassination is reserved for larger casts
+- Round HUD: time remaining, objective card, the living and the fallen
+
+**Done when:** headless bots play a full round end to end — one bot is
+assigned the antagonist, kills its target, and the round resolves — and three
+invariants are asserted with the round running: a ghost bot still sees only
+ghosts (invariant 4), a character carries its level **out** of the round and
+its gear **not at all**, and the event log is unbroken across the reset
+(invariant 10).
+
+### MR2 — The loop inside the round
+
+*The M5 economy, cut down to what fits in 25 minutes.*
+
+- Inventory and character-sheet UI (carried from MU)
+- **The dungeon (D-523)** — the round's separation engine, not side content:
+  a `wilderness` area (never `endgame`; a round death must not cost the
+  persistent character), repopulated **per round** — one round is one day, so
+  “daily” and “per round” are the same statement. It is where NPC combat xp
+  lives, which is what D-522's no-xp-for-player-kills rule requires. Built in
+  from the start: **diminishing returns per clear**, **dangerous enough to
+  need company** so the split is visible to the cast, and an objective clock
+  that punishes over-diving.
+- Gathering: resource nodes, a harvest verb, respawn within the round
+- A round kit of items with a closed loop — every item consumed by a recipe,
+  a use, or a win condition, green under the orphan validator (D-210)
+- Crafting: recipes as content, a workbench, timed under interruption
+- **Food and water needs (D-526)** — the anti-camping mechanic, and the
+  reason farming exists. **Coarse, not continuous:** two or three need events
+  pinned to the day-night cycle, never a draining bar. The first stage forces
+  a *decision* (leave the room), not damage. **No death spiral** —
+  consequences plateau; a round decided by a hunger bar is a failed round.
+  Water and food must fail differently or one is decoration.
+- Farming: plant, grow against the round clock, harvest — now consumed by
+  the cast rather than orphaned content
+- **The antagonist's non-violent attack surface:** poison the well, spoil the
+  stores, burn the crop. Unwitnessed, deniable, no combat required — at a
+  cast of three a poisoner is a better antagonist than a duellist (D-526).
+- **Persistent progression (D-522):** xp banked to the character and kept
+  between rounds, earned from crafting, farming, healing, surviving and
+  winning — and from **NPC** combat only. **No xp for killing another
+  player**, ever: at these cast sizes that pays the good team to lynch
+  suspects, which is the D-303 violation MR must not commit. Extend D-510's
+  *deeds* list rather than building a second vocabulary.
+- A level curve that buys **access and options, never raw power** — D-207's
+  rule applied to levels. A veteran must not be unkillable by three novices;
+  if the curve drifts toward stat-scaling, the mode needs level-banded
+  queues, which the player-count target cannot afford.
+- **The cost of dying: the round's xp is forfeit** (ratified, D-524) — bank
+  nothing from a round you died in. Dungeon hauls are therefore a gamble:
+  farm late, die on the way home, and the whole haul is lost — xp to nobody,
+  loot to your killer under wilderness corpse rules.
+
+**Done when:** a bot round runs the whole chain — dive, gather, craft, arm,
+fight — the orphan validator is green across the round kit, and two
+assertions hold: a bot that dies banks **no** xp for that round, and a bot
+that survives banks its dungeon xp and **loses its gear** at the reset. Plus:
+a cast that never leaves one room **starves**, and a bot that learned another
+character's name in round one **does not know it** in round two (D-525).
+
+### MR3 — The scenario library and the map
+
+- Five or so linked areas sized for a 25-minute round (tavern, yard, farm,
+  wood, mine or chapel)
+- Multiple scenarios as data, chosen or rotated per round
+- Lobby, cast assembly, round rotation, results
+- NPC crowd and hostile spawns per area — the low-cast fix: somewhere to hide
+  at a cast of three, and something to earn xp from without inflating it
+- Round statistics and the account-level meta (Legacy between rounds only —
+  never power inside a round, D-207)
+- Multiple dungeon layouts, rotated per round (D-523)
+- **Recognition memory is round-scoped** (ratified, D-524) — the cast meets as
+  strangers every round, so false names and hoods keep working indefinitely.
+  This holds only while **antagonist assignment stays random**: random
+  assignment is what makes “X was the traitor last round” worthless. Any
+  future weighting or opt-in would break it and is a design change, not a
+  tuning knob.
+
+**Done when:** the stakeholder can run back-to-back rounds with different
+scenarios without a restart or an admin action.
+
+### The MR gate — which is also the M2 gate
+
+**This absorbs the go/no-go test below.** Put a cast in a round with a hidden
+antagonist. If they lie to each other, read each other, hide a body, question
+a corpse, or wrongly execute an innocent — the roleplay core is real, and it
+was proven by people playing rather than by two writers volunteering to
+improvise. If a round is dull with a traitor in it, the problem is deeper
+than content.
+
+---
+
 ## M5 — World content and economy
 
 - Area content pipeline; browser-based map editor (D-110)
@@ -161,6 +324,12 @@ stolen map.
 ---
 
 ## The first playable slice — specified precisely
+
+> **Superseded as the shipping target by D-521.** M0 + M1 + M2 are built, and
+> this section is retained as the record of what the first slice was scoped to
+> be. The shipping target is now **MR — the Round**, and the ninety-minute
+> two-writer test below is absorbed into the MR gate. The slice's *contents*
+> all survive inside MR; what changed is that they are now framed by a round.
 
 **Scope: M0 + M1 + M2.** Nothing else. Resist every temptation to add combat.
 
