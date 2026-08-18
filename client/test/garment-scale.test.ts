@@ -85,9 +85,15 @@ describe('a cape is cut to the body it hangs on', () => {
 
   it('keeps the collar a neck ring on every build', () => {
     const collars = SAMPLES.map((s) => s.collarPerHead);
-    // The old max(shoulderW, bodyW) term nearly doubled across builds and
-    // carried the fabric up around heavy characters' heads.
-    expect(ratio(collars), 'collar drifts across builds').toBeLessThan(1.3);
+    // The failure mode this guards is the collar growing HEAD-sized: the
+    // old max(shoulderW, bodyW) term carried fabric up around heavy
+    // characters' heads. The stakeholder's tuned cut (D-520) shrank the
+    // head-proportional constant, so the shoulder share — and the spread —
+    // legitimately grew a little; what must hold is the absolute ceiling
+    // and that the ring never collapses either.
+    expect(Math.max(...collars), 'collar approaches head size').toBeLessThan(0.85);
+    expect(Math.min(...collars), 'collar pinches to nothing').toBeGreaterThan(0.3);
+    expect(ratio(collars), 'collar drifts across builds').toBeLessThan(1.45);
   });
 
   it('holds for the extremes, not just on average', () => {

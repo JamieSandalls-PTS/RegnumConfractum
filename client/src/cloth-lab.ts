@@ -16,7 +16,7 @@ import type { CharacterVisual } from './render/character';
 
 export interface GarmentConfig {
   /** Which of the game's garments this stands in for. */
-  preset: 'cape' | 'robe skirt' | 'sleeve' | 'hood flap';
+  preset: 'cape' | 'robe skirt' | 'sleeve';
   /** Bone the top edge is pinned to, by CharacterVisual.bones() name. */
   bone: string;
   /** Pin offset from that bone, in body-width units so it scales. */
@@ -58,17 +58,28 @@ export function presetConfig(preset: GarmentConfig['preset']): GarmentConfig {
         preset,
         bone: 'upper back (cape anchor)',
         layout: 'collar',
-        cols: 11,
+        cols: 13,
         rows: 10,
-        // Body-relative: width = 2.9·shoulder + 0.25·bodyW, length =
-        // 0.76·anchor height, collar = 0.62·headH + 0.16·shoulder.
+        // Body-relative, matching the baked game cape exactly (D-520):
+        // width = 2.9·shoulder + 0.25·bodyW, length = 0.91·anchor height,
+        // collar = 0.38·headH + 0.16·shoulder, hem ring = 1.99·shoulder.
+        // The anchor offset/tilt are baked into the BONE, so zero here
+        // means "where the game puts it".
         width: 2.9,
-        height: 0.76,
-        collarRadius: 0.62,
-        shoulderHalfWidth: 1.0,
-        colliders: ['chest', 'pelvis', 'shoulder left', 'shoulder right'],
-        backPlane: { enabled: true, maxZ: -0.12, exemptAboveY: 0.26 },
-        params: defaultClothParams('collar'),
+        height: 0.91,
+        collarRadius: 0.38,
+        shoulderHalfWidth: 1.99,
+        colliders: [
+          'chest', 'pelvis',
+          'forearm right', 'hand right', 'forearm left', 'hand left',
+          'thigh left', 'thigh right', 'shin left', 'shin right',
+        ],
+        backPlane: { enabled: true, maxZ: -0.04, exemptAboveY: 0.46 },
+        params: {
+          ...defaultClothParams('collar'),
+          gravity: -24.5, damping: 0.875, windScale: 0.6, windStrength: 20,
+          hug: 0, hugHemFalloff: 1, hugHemStart: 0.05, softPin: 0.02,
+        },
       };
     case 'robe skirt':
       return {
@@ -76,17 +87,21 @@ export function presetConfig(preset: GarmentConfig['preset']): GarmentConfig {
         preset,
         bone: 'spine',
         layout: 'tube',
-        cols: 13,
-        rows: 12,
-        width: 0,
-        height: 0.9,
+        cols: 22,
+        rows: 18,
+        width: 1,
+        height: 0.99,
         collarRadius: 0.47,
-        shoulderHalfWidth: 0.95,
-        rigidRows: 2,
+        shoulderHalfWidth: 0.94,
+        rigidRows: 8,
         colliders: ['hips (skirt)', 'thigh left', 'thigh right', 'shin left', 'shin right'],
-        params: defaultClothParams('tube'),
+        params: {
+          ...defaultClothParams('tube'),
+          gravity: -29, damping: 0.625, softPin: 0.2,
+          hugHemFalloff: 0.25, hugHemStart: 0.2, floor: 0,
+        },
       };
-    case 'sleeve':
+    default:
       return {
         ...base,
         preset,
@@ -95,26 +110,12 @@ export function presetConfig(preset: GarmentConfig['preset']): GarmentConfig {
         cols: 9,
         rows: 5,
         width: 0,
-        height: 0.85,
-        collarRadius: 0.18,
-        shoulderHalfWidth: 0.26,
+        height: 0.33,
+        collarRadius: 0.15,
+        shoulderHalfWidth: 0.22,
+        rigidRows: 3,
         colliders: ['forearm right', 'hand right'],
         params: defaultClothParams('tube'),
-      };
-    default:
-      return {
-        ...base,
-        preset,
-        bone: 'head',
-        layout: 'bar',
-        cols: 3,
-        rows: 4,
-        width: 0.34,
-        height: 0.6,
-        collarRadius: 0,
-        shoulderHalfWidth: 0,
-        colliders: ['chest', 'shoulder left', 'shoulder right'],
-        params: defaultClothParams('bar'),
       };
   }
 }
@@ -156,19 +157,12 @@ export class LabGarment {
           collar: m.hipW * c.collarRadius * 1.05 + m.hipW * 0.0,
           shoulder: m.hipW * c.shoulderHalfWidth,
         };
-      case 'sleeve':
+      default:
         return {
           width: 0,
           height: m.bodyW * 2.2 * c.height,
           collar: m.bodyW * c.collarRadius,
           shoulder: m.bodyW * c.shoulderHalfWidth,
-        };
-      default:
-        return {
-          width: m.height * 0.13 * c.width,
-          height: m.height * 0.13 * c.height,
-          collar: 0,
-          shoulder: 0,
         };
     }
   }

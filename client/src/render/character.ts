@@ -90,8 +90,6 @@ export class CharacterVisual {
   private cowlGroup: THREE.Group | null = null;
   /** The hood's shoulder mantle lives on the chest, not the head. */
   private mantleGroup: THREE.Group | null = null;
-  /** Physics flaps hanging from the hood's front rim (stakeholder). */
-  private hoodFlaps: { cloth: Cloth; anchor: THREE.Group; side: 'L' | 'R' }[] = [];
   /** Robe meshes, parented across several bones — tracked for teardown. */
   private robeParts: THREE.Mesh[] = [];
   /** The robe's PHYSICS pieces: the skirt tube and two sleeve cuffs. */
@@ -418,7 +416,12 @@ export class CharacterVisual {
     // the old between-the-shoulder-blades pin hung off the back only).
     // Anchor at the upper back, not the neck: the pinned line spreads
     // across the trapezius/deltoid breadth (stakeholder correction).
-    this.capeAnchor = this.joint(this.chest, [0, torsoH * 0.45, 0]);
+    // Position and tilt carry the stakeholder's workbench export
+    // (2026-08-18): raised a little, pulled back off the spine, and tilted
+    // so the pinned collar ring follows the slope of the upper back.
+    // Offsets are body-relative, matching the lab's units exactly.
+    this.capeAnchor = this.joint(this.chest, [0, torsoH * 0.49, -bodyW * 0.12]);
+    this.capeAnchor.rotation.x = -0.28;
     if (fem) {
       // The sprung chest: geometry on its own group so physics can move it.
       // Sized to be READ at game distance (review round 3), not hinted.
@@ -747,21 +750,27 @@ export class CharacterVisual {
       // Length is a fraction of the ANCHOR's own height, so the hem lands
       // at the same point on the leg for a long-limbed ascetic and a
       // squat brute alike (stakeholder: "anchored at the same relative Y").
-      const capeLen = this.dims.capeAnchorY * 0.76;
+      const capeLen = this.dims.capeAnchorY * 0.91;
       // The collar is a NECK ring, so it is sized off the head — not off
       // bulk. The old max(shoulderW, bodyW) term nearly doubled across
       // builds, and on heavy bodies the pinned ring grew wide enough to
       // carry the fabric up around the head.
-      const collar = headH * 0.62 + shoulderW * 0.16;
+      const collar = headH * 0.38 + shoulderW * 0.16;
       // The cut follows the SHOULDER SPAN, which is what a cape hangs
       // from, with only a modest allowance for girth. Driving it off bulk
       // (the old 0.95·bodyW) made a heavy character's cape 1.9× its own
       // shoulder span against a lean one's 1.5× — the same garment read as
       // a cloak on one build and a blanket on another.
+      // Every number here (and the physics below) is the stakeholder's
+      // cloth-workbench export, 2026-08-18 — tune THERE, then re-bake.
       const capeWidth = shoulderW * 2.9 + bodyW * 0.25;
       this.capeCut = { width: capeWidth, length: capeLen, collar, anchorY: this.dims.capeAnchorY };
-      this.cape = new Cloth(11, 10, capeWidth, capeLen,
-        p.capeColor, 'collar', collar, shoulderW + bodyW * 0.12);
+      this.cape = new Cloth(13, 10, capeWidth, capeLen,
+        p.capeColor, 'collar', collar, shoulderW * 1.99 + bodyW * 0.12);
+      Object.assign(this.cape.params, {
+        gravity: -24.5, damping: 0.875, windScale: 0.6, windStrength: 20,
+        hug: 0, hugHemFalloff: 1, hugHemStart: 0.05, softPin: 0.02,
+      });
       this.parentOrRoot().add(this.cape.mesh);
       // The tie at the throat, so the collar reads as fastened.
       this.nm('cape tie');
@@ -821,13 +830,17 @@ export class CharacterVisual {
       // The skirt: a closed A-line tube from the waist to above the ankle.
       // RIGID (bone-following) from waist to the knee line — a fitted
       // garment — with free-flowing cloth only below (stakeholder).
-      const skirtLen = this.dims.hipY * 0.9;
-      const skirtRows = 12;
-      // Rigid only through the fitted WAIST band — a knee-length rigid
-      // cone jutted straight out when sitting (stakeholder); from the hips
-      // down the fabric flexes with the pose.
-      this.robeSkirt = new Cloth(13, skirtRows, 0, skirtLen, p.capeColor,
-        'tube', seamHip * 1.05, hipW * 0.95, 2);
+      // Cut and physics are the stakeholder's workbench export
+      // (2026-08-18): a denser grid, rigid through EIGHT rows (a fitted
+      // garment to below the hip), heavy fast-settling fabric.
+      const skirtLen = p.height * 0.47 * 0.99;
+      this.robeSkirt = new Cloth(22, 18, 0, skirtLen, p.capeColor,
+        'tube', seamHip * 1.05, hipW * 0.94, 8);
+      Object.assign(this.robeSkirt.params, {
+        gravity: -29, damping: 0.625, windScale: 0.3, windStrength: 5,
+        hug: 0, hugHemFalloff: 0.25, hugHemStart: 0.2, softPin: 0.2,
+        floor: 0,
+      });
       this.parentOrRoot().add(this.robeSkirt.mesh);
       // Sleeves: shoulder cap over the deltoid joins the tunic to the arm,
       // the rigid upper sleeve runs to the elbow, and the cloth cuff pins
@@ -851,8 +864,11 @@ export class CharacterVisual {
         this.robeParts.push(this.addMesh(this.arms[side].sh,
           new THREE.CylinderGeometry(bodyW * 0.17, bodyW * 0.18, upperArm * 1.05, 10),
           p.capeColor, [0, -upperArm * 0.5, 0]));
-        const cuff = new Cloth(9, 5, 0, this.dims.lowerArm * 0.85, p.capeColor,
-          'tube', bodyW * 0.18, bodyW * 0.26);
+        // Workbench export (2026-08-18), tuned on the right arm and
+        // mirrored to both: slimmer rings, three rigid rows, default
+        // tube physics. Length is bodyW-based per the lab's sizing.
+        const cuff = new Cloth(9, 5, 0, bodyW * 0.726, p.capeColor,
+          'tube', bodyW * 0.15, bodyW * 0.22, 3);
         this.parentOrRoot().add(cuff.mesh);
         this.robeSleeves.push({ cloth: cuff, side });
       }
@@ -1088,12 +1104,6 @@ export class CharacterVisual {
     }
     this.cowlGroup = null;
     this.mantleGroup = null;
-    for (const f of this.hoodFlaps) {
-      this.parentOrRoot().remove(f.cloth.mesh);
-      f.cloth.dispose();
-      f.anchor.parent?.remove(f.anchor);
-    }
-    this.hoodFlaps = [];
     const veiled = this.presentation === 'hooded';
     const hoodUp = veiled || this.equipment.robe;
     if (hoodUp) {
@@ -1190,20 +1200,6 @@ export class CharacterVisual {
         hoodCol, [0, headH * 0.04, headH * 0.06]);
       gather.rotation.x = Math.PI * 0.46;
       gather.scale.set(1, 1, 0.85);
-      // PHYSICS on the front/side rim (stakeholder): a small cloth strip
-      // hangs from each rim edge, swaying with the head and resting on
-      // the shoulders.
-      for (const side of ['L', 'R'] as const) {
-        const s = side === 'L' ? 1 : -1;
-        // Anchored at the rim's jaw corner: a narrow drape falling down
-        // the chest beside the face (front reference photo) — the old
-        // wide temple flap curtained across the whole side view.
-        const anchor = this.joint(this.head, [s * headH * 0.4, headH * 0.06, headH * 0.24]);
-        anchor.rotation.y = s * 0.35; // strip plane faces outward-forward
-        const flap = new Cloth(3, 4, headH * 0.18, headH * 0.36, hoodCol);
-        this.parentOrRoot().add(flap.mesh);
-        this.hoodFlaps.push({ cloth: flap, anchor, side });
-      }
       if (veiled) {
         this.nm('veil');
         // Lower-face veil: top edge just under the eye line, reaching
@@ -1511,35 +1507,28 @@ export class CharacterVisual {
   private stepCloth(dt: number, t: number, wind: number): void {
     this.stepBust(dt);
     if (this.cape) {
-      // Colliders = torso core AND pelvis: the cloth rests on the back and
-      // drapes over the buttocks instead of clipping through them.
+      // Collider set and back plane are the stakeholder's workbench export
+      // (2026-08-18): torso core, pelvis, and the LIMBS — a long cape must
+      // part around a swinging forearm and drape off the shins, and the
+      // hug is off so collision is all that shapes it. The catalogue is
+      // the same one the workbench offers, so the sets cannot drift.
+      const cat = this.colliderCatalog();
       this.cape.step(
         dt, wind, t,
         (this.capeAnchor ?? this.chest).matrixWorld,
         [
-          // Half-lengths shrunk by radius (capsule reach = halfLen+radius),
-          // matching the old cylinders' vertical extent.
-          {
-            matrix: this.chest.matrixWorld,
-            radius: this.dims.bodyW * 0.45,
-            height: Math.max(0.02, this.dims.torsoH * 0.55 - this.dims.bodyW * 0.45),
-          },
-          {
-            matrix: this.pelvis.matrixWorld,
-            radius: this.dims.hipW * 0.5,
-            height: Math.max(0.02, this.dims.torsoH * 0.35 - this.dims.hipW * 0.5),
-          },
-          // Shoulder caps (spheres): the collar-pinned fabric drapes OVER
-          // the deltoids and rests there, per the cape reference image.
-          { matrix: this.arms.L.sh.matrixWorld, radius: this.dims.bodyW * 0.27 },
-          { matrix: this.arms.R.sh.matrixWorld, radius: this.dims.bodyW * 0.27 },
+          cat.chest!, cat.pelvis!,
+          cat['forearm right']!, cat['hand right']!,
+          cat['forearm left']!, cat['hand left']!,
+          cat['thigh left']!, cat['thigh right']!,
+          cat['shin left']!, cat['shin right']!,
         ],
-        // Below the shoulder line the cape stays behind the coronal plane;
-        // above it, wrapped fabric may sit on and ahead of the shoulders.
+        // A shallower plane than before, released higher: the collar sits
+        // proud of the shoulders now that the anchor is tilted back.
         {
           matrix: this.chest.matrixWorld,
-          maxZ: -this.dims.bodyW * 0.12,
-          exemptAboveY: this.dims.torsoH * 0.26,
+          maxZ: -this.dims.bodyW * 0.04,
+          exemptAboveY: this.dims.torsoH * 0.46,
         },
       );
     }
@@ -1549,17 +1538,6 @@ export class CharacterVisual {
     for (const sleeve of this.robeSleeves) {
       sleeve.cloth.step(dt, wind, t, this.arms[sleeve.side].el.matrixWorld,
         this.sleeveColliders(sleeve.side));
-    }
-    for (const flap of this.hoodFlaps) {
-      flap.cloth.step(dt, wind, t, flap.anchor.matrixWorld, [
-        { matrix: this.arms[flap.side].sh.matrixWorld, radius: this.dims.bodyW * 0.26 },
-        {
-          matrix: this.chest.matrixWorld,
-          radius: this.dims.bodyW * 0.26,
-          height: this.dims.shoulderW * 0.75,
-          axisCol: 0,
-        },
-      ]);
     }
     if (this.hair) {
       // Same colliders as the cape — chest and pelvis cylinders PLUS the
@@ -2126,7 +2104,6 @@ export class CharacterVisual {
     if (this.hair) apply(this.hair.looseGroup);
     if (this.robeSkirt) apply(this.robeSkirt.mesh);
     for (const s of this.robeSleeves) apply(s.cloth.mesh);
-    for (const f of this.hoodFlaps) apply(f.cloth.mesh);
   }
 
   dispose(): void {
@@ -2142,10 +2119,6 @@ export class CharacterVisual {
     for (const s of this.robeSleeves) {
       this.parent.remove(s.cloth.mesh);
       s.cloth.dispose();
-    }
-    for (const f of this.hoodFlaps) {
-      this.parent.remove(f.cloth.mesh);
-      f.cloth.dispose();
     }
     if (this.hair) {
       this.parent.remove(this.hair.looseGroup);

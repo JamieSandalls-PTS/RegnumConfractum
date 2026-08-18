@@ -151,7 +151,7 @@ export class ClothTab {
     count.textContent = `Tuning ${this.garments.length} garment(s) — one per character on stage.`;
     this.root.appendChild(count);
 
-    this.select('garment', ['cape', 'robe skirt', 'sleeve', 'hood flap'], c.preset, (v) => {
+    this.select('garment', ['cape', 'robe skirt', 'sleeve'], c.preset, (v) => {
       // A different garment starts from its own sensible defaults.
       this.config = presetConfig(v as GarmentConfig['preset']);
       for (const g of this.garments) g.config = this.config;

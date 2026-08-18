@@ -1733,3 +1733,45 @@ basis.
 `client/test/garment-scale.test.ts` asserts the proportions across 240
 seeds spanning every archetype, including the brute-versus-ascetic
 extreme. It fails against the old formulas.
+
+### D-520: Stakeholder-ratified cloth settings baked; hood flaps removed
+
+**The workbench loop closed for the first time.** The stakeholder tuned the
+cape, robe skirt and sleeve in the cloth workbench (D-517) and handed back
+three JSON exports (2026-08-18). Those numbers are now the game's garment
+construction — the first art numbers in the project ratified by direct
+manipulation rather than by screenshot round-trips.
+
+**Cape:** longer (0.91 of anchor height, near the ankle), a tighter collar
+(0.38·headH + 0.16·shoulder), a wider pinned shoulder ring
+(1.99·shoulder), 13 columns, and the anchor itself raised, pulled back
+off the spine and tilted (−0.28 rad) — baked into the `capeAnchor` joint
+so the workbench's zero stays "where the game puts it". Physics: heavy
+(gravity −24.5), fast-settling (damping 0.875), wind-responsive, **hug
+off** — the body-hug force is replaced by honest collision, with the
+collider set extended to the forearms, hands, thighs and shins so a long
+cape parts around a swinging arm. Back plane shallower (−0.04·bodyW) and
+released higher (0.46·torsoH).
+
+**Robe skirt:** denser grid (22×18), rigid through EIGHT rows — a fitted
+garment to below the hip, flowing only beneath — very heavy and very
+damped (gravity −29, damping 0.625), floor at 0. Length moved to
+`height × 0.465` per the export's own sizing. ⚠ Note: that is NOMINAL
+height, limb-independent — the one garment not on D-519's rig-derived
+basis, kept faithful to what the stakeholder validated. If skirt hems
+misbehave on extreme-limb seeds, this is where to look.
+
+**Sleeves:** tuned on the right arm, mirrored to both — shorter
+(0.726·bodyW), slimmer rings (0.15/0.22·bodyW), three rigid rows, default
+tube physics.
+
+**Hood flaps removed** (stakeholder: "useless"). The two physics strips
+hanging from the hood rim are gone from construction, stepping, layering
+and teardown, and the workbench no longer offers the preset. The hood is
+now entirely rigid geometry — shell, gather, mantle — plus the veil.
+
+**The workbench presets were re-baselined** to these values, so opening
+the cloth tab shows exactly what the game renders and an untouched export
+round-trips to no change. The garment-scale test's collar assertion was
+re-expressed around the failure mode it guards (a collar approaching head
+size) rather than a spread bound calibrated to the pre-tune constants.

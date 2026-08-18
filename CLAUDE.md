@@ -258,17 +258,22 @@ Legacy award (unratified ruling — flag for the stakeholder)**; the
 `sunken-crypt` is the first endgame area. Bot-verified
 (`sim/test/m4d-endgame.test.ts`; 158 tests total).
 
-**UI milestone in progress (D-514, D-515).** Click-to-move, hotbar, context
-menus, the character viewer and creator, and now the **character creation
-screen** (calling → skills → feats → spells → name), **split pixelation**
-(pixel characters, crisp world) with a Graphics settings panel, and
-**speech bubbles** above speakers. Creation catalogues are content
-(`content/skills|feats|spells/`); `validateBuild()` in `shared/` is the
-single rule set and the server is the authority (D-102).
+**UI milestone in progress (D-514 – D-520).** Click-to-move, hotbar, context
+menus, the **character creation screen** (calling → skills → feats →
+spells → name), **split pixelation** with a depth-tested composite and a
+Graphics settings panel, **speech bubbles**, a server-owned **combat
+state** driving sheathe/draw/stance/attack-variant animations with
+projectiles and particles (D-516), **ragdoll death** and carryable bodies
+(D-518), and a **tabbed viewer** whose cloth workbench round-trips garment
+settings — the stakeholder's first tuned exports are baked (D-520).
+Creation catalogues are content (`content/skills|feats|spells/`);
+`validateBuild()` in `shared/` is the single rule set and the server is
+the authority (D-102). Garments are cut to the RIG, never to nominal
+height (D-519).
 
 **M4b remaining:** richer injury/treatment types (D-205 matrix), Vessel's
 Plane Shift, class skills/balance beyond the scaffold. **Other gaps:**
 inventory/character-sheet UI, invisible DM observation, staging VPS not
 provisioned. ⚠ **Unratified balance awaiting the stakeholder:** creation
-budget (D-515), Legacy class pricing (D-512), zero-award endgame death
-(D-513).
+budget (D-515), combat window / attack roster / carry formula (D-516),
+Legacy class pricing (D-512), zero-award endgame death (D-513).
