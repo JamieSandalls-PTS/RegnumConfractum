@@ -171,6 +171,41 @@ scripted clicks do not count. Someone has to click the page and listen. **MR2:**
 roamers, hunger, gathering/crafting, facility potency (D-530), and the
 dungeon's contents — the areas exist but are empty.
 
+## MR2 in progress — gathering and crafting (server side done)
+
+`shared/src/gathering.ts` (node + recipe schemas, `findOrphans`),
+`content/nodes/` (5), `content/recipes/` (4), 6 new items, nodes placed by
+`tools/src/build-round-map.py` on all four spokes. Server: nodes are
+ENTITIES (wire kind `node`), spawned by the round and cleared at reset;
+`harvest`/`craft`/`cancel_work` verbs; work is timed and interruptible.
+Wire is v6. `sim/test/mr2-gathering.test.ts` (11 tests).
+
+✅ **INVARIANT 2 IS NOW ENFORCED.** D-210's orphan check has been declared
+since Phase 2 and was uncheckable until recipes existed. `findOrphans` runs
+in CI: a base material no recipe consumes, or that no node yields, fails the
+build. Verified by adding an orphan and watching it fail.
+
+⚠ **`atStation()` is coarse:** a "workshop" recipe currently means "you are
+in round-town". The buildings are authored geometry with no identity of
+their own. MR3 should make stations real placed objects.
+
+⚠ **Two bugs found by tests, worth not re-introducing:** (1) `spawnNodes`
+wrote to the world without broadcasting, so nodes were invisible to every
+client that snapshotted before the round began — which is all of them.
+(2) `sendWork` read `conn.work` to label its report, but completion clears
+that slot first, so **every finished craft reported as a harvest**. The job
+is passed in explicitly now.
+
+**Test notes:** the mine is dense with rock and a greedy walker wedges
+itself on the first outcrop — `mr2-gathering.test.ts` reuses the CLIENT's A*
+(`client/src/game/path.ts`). And ONE blow interrupts work: do not loop
+attacks in a test, it kills the subject and breaks every later test.
+
+**Still to build in MR2:** client UI for inventory / harvest / craft
+(the server is complete and bot-verified, but nothing is clickable yet),
+hunger and thirst (D-526), facility potency (D-530), night roamers
+(D-527/D-529), and the dungeon's contents.
+
 ## How to work in this repo (hard-won specifics)
 
 - **Dev loop:** `npm run db:up` (Docker Desktop must be RUNNING — start it
