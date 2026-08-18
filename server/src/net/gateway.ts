@@ -42,6 +42,9 @@ import {
   type Direction,
   type ErrorCode,
   type ServerMessage,
+  COMBAT_NOISE_NEAR_TILES,
+  COMBAT_NOISE_TILES,
+  type Vec2,
   applyNightBonus,
   isNight,
   roundHour,
@@ -52,6 +55,24 @@ import type { Content } from '../content';
 import type { CharacterRecord, InjuryRecord, Store } from '../store/types';
 import { World, toWireEntity, type WorldEntity } from '../game/world';
 import { RoundEngine, type RoundResolution } from '../game/round';
+
+/** Words for a bearing, so the wire stays terse and the prose lives here. */
+const COMPASS_WORDS: Record<string, string> = {
+  n: 'north', ne: 'north-east', e: 'east', se: 'south-east',
+  s: 'south', sw: 'south-west', w: 'west', nw: 'north-west', here: 'here',
+};
+
+/**
+ * Eight-point bearing from a listener to a source. Deliberately coarse: a
+ * precise angle would let a listener triangulate, and a sound is meant to
+ * send you looking in roughly the right direction, not hand you a position.
+ */
+function bearingFrom(dx: number, dy: number): 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw' | 'here' {
+  if (dx === 0 && dy === 0) return 'here';
+  const ns = Math.abs(dy) * 2 >= Math.abs(dx) ? (dy < 0 ? 'n' : 's') : '';
+  const ew = Math.abs(dx) * 2 >= Math.abs(dy) ? (dx > 0 ? 'e' : 'w') : '';
+  return ((ns + ew) || 'here') as 'n';
+}
 
 /** How long a resolved round holds the reveal before resetting to lobby. */
 const ROUND_RESOLUTION_TICKS = 150; // 15s
@@ -567,6 +588,51 @@ export class GameServer {
     this.broadcastRoundState();
   }
 
+  /**
+   * The sound of fighting (D-531), to everyone in earshot but the fighters.
+   *
+   * Three properties are deliberate and each is load-bearing:
+   *
+   *   - **It ignores line of sight.** You hear a brawl through a wall. Sound
+   *     travelling where sight cannot is the whole mechanic — otherwise
+   *     killing someone indoors would be silent and the town would be free.
+   *   - **It names nobody.** A bearing and a distance band, never an id, a
+   *     descriptor or a coordinate. It is a lead worth walking towards, not
+   *     evidence, which is what keeps D-217 intact.
+   *   - **It respects the plane.** Ghosts never hear the living. A dead
+   *     player who could hear where fighting was happening would be a live
+   *     scout on a voice call, which is invariant 4 by another route.
+   *
+   * NPC fights are just as audible as murders, and that ambiguity is a
+   * feature: at night, with roamers abroad, "something is fighting to the
+   * north" could be a wolf or could be your friend being killed.
+   */
+  private emitCombatNoise(areaId: string, at: Vec2, participants: number[]): void {
+    if (!this.roundRunning) return;
+    for (const other of this.connsByArea.get(areaId) ?? []) {
+      if (!other.character || other.entityId === null) continue;
+      if (participants.includes(other.entityId)) continue;
+      const listener = this.world.getEntity(other.entityId);
+      if (!listener || listener.ghost) continue; // the dead hear nothing (D-203)
+      const dx = at.x - listener.pos.x;
+      const dy = at.y - listener.pos.y;
+      const range = Math.max(Math.abs(dx), Math.abs(dy));
+      if (range > COMBAT_NOISE_TILES) continue;
+      const near = range <= COMBAT_NOISE_NEAR_TILES;
+      const bearing = bearingFrom(dx, dy);
+      const where = bearing === 'here' ? 'right beside you' : `to the ${COMPASS_WORDS[bearing]}`;
+      this.send(other, {
+        t: 'sound',
+        kind: 'combat',
+        bearing,
+        distance: near ? 'near' : 'far',
+        text: near
+          ? `Steel and shouting, ${where}.`
+          : `You hear fighting somewhere ${where}, carried thin on the air.`,
+      });
+    }
+  }
+
   /** A death the round cares about. No respawn, so this is terminal. */
   private noteRoundDeath(characterId: string): void {
     if (!this.roundRunning) return;
@@ -1053,7 +1119,15 @@ export class GameServer {
     }
     // Zone rules (D-206): NPCs are fair game; players are protected in
     // settled zones unless hostility was declared and the window has passed.
-    if (target.characterId !== null) {
+    //
+    // NOT IN A ROUND (D-531). A twenty-five minute scenario cannot afford a
+    // ten-second spoken warning: it does not make murder risky, it makes it
+    // impossible, and a settled town would leave the antagonist nothing to do
+    // at the one place everybody is. In a round violence is free — and loud.
+    // The restraint is informational rather than procedural: the swing is
+    // heard by everyone nearby, so distance from witnesses, not a zone rule,
+    // is what decides whether a killing goes unnoticed.
+    if (target.characterId !== null && !this.roundRunning) {
       const zone = this.world.getAreaDef(conn.areaId).zone;
       if (zone === 'settled') {
         const declaredAt = this.hostilities.get(`${conn.character.id}|${target.characterId}`);
@@ -1071,6 +1145,10 @@ export class GameServer {
     const variant = this.contestRng.int(0, ATTACK_VARIANTS - 1);
     this.enterCombat(self, conn.areaId);
     this.enterCombat(target, conn.areaId);
+    // The blow is heard, not the intent to strike (D-531). This belongs to
+    // the SWING, not to the hostility declaration — a declaration is speech
+    // and already travels through the speech pipeline.
+    this.emitCombatNoise(conn.areaId, self.pos, [self.id, target.id]);
     this.broadcastPlane(conn.areaId, false, {
       t: 'delta',
       tick: this.world.tick,

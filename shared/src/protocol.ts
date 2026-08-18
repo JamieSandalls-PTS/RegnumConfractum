@@ -431,6 +431,26 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     xpBanked: z.number().int().nonnegative(),
     survived: z.boolean(),
   }),
+  /**
+   * Something was heard (D-531). Audio cue plus a line of text, delivered to
+   * everyone in earshot who is not in the fight.
+   *
+   * It carries NO entity id and NO name, ever. A sound tells you that
+   * violence is happening and roughly where — it is a LEAD, not proof, and
+   * that is what keeps it compatible with D-217: reputation still requires a
+   * witness, and hearing a scuffle through a wall is not one. The moment this
+   * message names anybody, disguise, alibi and accusation all collapse.
+   */
+  z.object({
+    t: z.literal('sound'),
+    kind: z.enum(['combat']),
+    /** Bearing from the listener, or 'here' when it is on top of them. */
+    bearing: z.enum(['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'here']),
+    /** Coarse band, so the client can attenuate rather than being told a range. */
+    distance: z.enum(['near', 'far']),
+    /** The line to show. The client may render its own from kind + bearing. */
+    text: z.string(),
+  }),
   /** Your own vitals — sent on change. Others never see your numbers. */
   z.object({
     t: z.literal('status'),

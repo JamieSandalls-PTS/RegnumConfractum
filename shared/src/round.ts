@@ -170,6 +170,24 @@ export function roundPhaseOfDay(tickIntoRound: number): 'day' | 'night' {
   return isNight(tickIntoRound) ? 'night' : 'day';
 }
 
+// ---------------------------------------------------------------------------
+// Violence is free, and loud (D-531)
+// ---------------------------------------------------------------------------
+
+/**
+ * How far the sound of fighting carries, in tiles. NOT limited by line of
+ * sight — you hear a brawl through a tavern wall, and that is the point.
+ *
+ * At 100x100 areas this is roughly a third of the town, so killing anywhere
+ * near where people gather is heard; killing deep in a spoke is not. Distance
+ * from other players, rather than a zone rule, is what makes murder quiet.
+ * Unratified first pass.
+ */
+export const COMBAT_NOISE_TILES = 30;
+
+/** Inside this, the sound is close enough to place; beyond it, a direction. */
+export const COMBAT_NOISE_NEAR_TILES = 12;
+
 export const RoundPhaseSchema = z.enum(['lobby', 'running', 'resolved']);
 export type RoundPhase = z.infer<typeof RoundPhaseSchema>;
 

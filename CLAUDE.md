@@ -356,6 +356,18 @@ persistent world grants **25 xp + 5 deeds for killing a player**
 so it is gated on `!this.roundRunning`. **Do not remove that guard** —
 `sim/test/mr1-round.test.ts` asserts it.
 
+**Violence is free in a round, and LOUD (D-531).** D-206's declared
+hostility is disabled while a round runs (the persistent world keeps it):
+a 10s spoken warning does not make murder risky in a 25-minute scenario,
+it makes it impossible. Instead every blow emits a `sound` to everyone
+within `COMBAT_NOISE_TILES` (30) — audio cue plus text. It ignores line
+of sight (you hear through walls, or indoor killing would be silent),
+**names nobody** (bearing + near/far only — a lead, not evidence, so
+D-217 holds), and **never crosses the plane** (ghosts hear nothing, or
+the dead become scouts). NPC fights sound the same as murders, so night
+supplies the antagonist's deniability for free. `zone` still drives
+corpse looting, so town kills are possible but unprofitable.
+
 Round mode does not relax a single invariant. In particular: **ghosts
 still see only ghosts** (a dead player with vision is a perfect
 informant, and the antagonist's position is the whole game); **Insight

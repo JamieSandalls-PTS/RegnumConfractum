@@ -59,6 +59,8 @@ export class BotClient {
   roundRole: Extract<ServerMessage, { t: 'round_role' }> | null = null;
   /** Every round this client saw end, in order — including the reveal. */
   readonly roundsEnded: Extract<ServerMessage, { t: 'round_ended' }>[] = [];
+  /** Everything this client HEARD (D-531). Never carries an identity. */
+  readonly sounds: Extract<ServerMessage, { t: 'sound' }>[] = [];
   area: AreaMirror | null = null;
   you: number | null = null;
   inventory: WireItem[] = [];
@@ -322,6 +324,10 @@ export class BotClient {
       }
       case 'round_ended': {
         this.roundsEnded.push(msg);
+        break;
+      }
+      case 'sound': {
+        this.sounds.push(msg);
         break;
       }
       default:

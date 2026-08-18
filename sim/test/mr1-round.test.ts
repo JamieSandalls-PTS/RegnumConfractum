@@ -82,7 +82,9 @@ beforeAll(async () => {
     port: 0,
     tickIntervalMs: TICK,
     rngSeed: 41,
-    defaultAreaId: 'broken-yard',
+    // The TOWN — a settled zone. In the persistent world an attack here
+    // would need a declaration; in a round it must not (D-531).
+    defaultAreaId: 'round-town',
     ghostMinTicks: 50,
     attackCooldownTicks: 2,
     bleedIntervalTicks: 5000,
@@ -164,7 +166,7 @@ describe('death in a round (D-521, D-524)', () => {
     const killer = innocents()[1]!;
     const victimId = victim.you!;
 
-    // The yard is wilderness, so no hostility declaration is needed.
+    // No declaration, in a SETTLED zone: violence is free in a round.
     for (let i = 0; i < 80 && victim.status?.ghost !== true; i++) {
       killer.send({ t: 'attack', targetEntityId: victimId });
       await sleep(TICK * 6);
@@ -175,6 +177,38 @@ describe('death in a round (D-521, D-524)', () => {
     victim.send({ t: 'respawn' });
     const err = await victim.expectError('not_dead');
     expect(err.message).toMatch(/until the round ends/);
+  });
+
+  it('was heard — violence is free, but loud (D-531)', () => {
+    // Somebody who was not in the fight heard it happen. This is what
+    // replaces the hostility declaration: the restraint on murder is
+    // informational, not procedural.
+    const bystander = bots.find((b) => b.sounds.length > 0);
+    expect(bystander, 'nobody heard the killing').toBeDefined();
+    const heard = bystander!.sounds[0]!;
+    expect(heard.kind).toBe('combat');
+    expect(['near', 'far']).toContain(heard.distance);
+    expect(heard.text).toBeTruthy();
+  });
+
+  it('never says WHO — a sound is a lead, not evidence (D-217)', () => {
+    // The moment a sound names anyone, disguise, alibi and accusation all
+    // stop mattering. Assert against every character name in the round.
+    const names = ['Cast Member', 'Cast MemberX', 'Cast MemberXX'];
+    for (const b of bots) {
+      for (const sound of b.sounds) {
+        const payload = JSON.stringify(sound);
+        for (const name of names) expect(payload).not.toContain(name);
+        expect(payload).not.toMatch(/entityId|characterId/);
+      }
+    }
+  });
+
+  it('the fighters are not told they heard themselves', () => {
+    // The killer was in the fight; anything they "heard" would be their own
+    // sword, which is noise in both senses.
+    const killer = innocents()[1]!;
+    expect(killer.sounds.length).toBe(0);
   });
 
   it('carries no death debt — the cost of dying is the round, not a tax', () => {
@@ -193,6 +227,41 @@ describe('death in a round (D-521, D-524)', () => {
       expect(alive.entities.has(dead.you!)).toBe(false);
     }
   });
+
+  it('the dead do not HEAR the living either (invariant 4, D-531)', async () => {
+    const dead = bots.find((b) => b.status?.ghost)!;
+    const striker = bots.find((b) => !b.status?.ghost)!;
+    const heardBefore = dead.sounds.length;
+    const strikerHeardBefore = bots
+      .filter((b) => b !== striker && !b.status?.ghost)
+      .reduce((n, b) => n + b.sounds.length, 0);
+
+    // A living player hits a straw NPC in earshot of the ghost. Deliberately
+    // NOT a player-vs-player brawl: this test must not change who is alive,
+    // or it decides the round the later tests are trying to observe.
+    const me = striker.entities.get(striker.you!)!;
+    const straw = server.spawnNpc(striker.area!.id, {
+      x: me.x + 1, // ATTACK_RANGE is 1 — two tiles away is out of reach
+      y: me.y,
+      descriptor: 'a straw figure',
+      appearanceSeed: 12345,
+    });
+    for (let i = 0; i < 4; i++) {
+      striker.send({ t: 'attack', targetEntityId: straw });
+      await sleep(TICK * 6);
+    }
+
+    // A dead player who could hear where fighting was happening would be a
+    // live scout on a voice call — the same leak as seeing, by another route.
+    expect(dead.sounds.length).toBe(heardBefore);
+    // ...and the living DID hear it, so the silence above is the partition
+    // rather than the noise simply failing to fire.
+    const strikerHeardAfter = bots
+      .filter((b) => b !== striker && !b.status?.ghost)
+      .reduce((n, b) => n + b.sounds.length, 0);
+    expect(strikerHeardAfter).toBeGreaterThan(strikerHeardBefore);
+    server.despawnEntity(straw);
+  });
 });
 
 describe('resolving and resetting', () => {
@@ -202,7 +271,7 @@ describe('resolving and resetting', () => {
     // Put the keeper within reach of the antagonist. The scripted keeper
     // lives in the tavern; this test is about the win condition, not about
     // pathfinding across areas.
-    const keeperId = server.spawnNpc('broken-yard', {
+    const keeperId = server.spawnNpc(traitor.area!.id, {
       x: me.x + 1,
       y: me.y,
       descriptor: 'the keeper',

@@ -2589,3 +2589,84 @@ the far edge closer to thirty-five. Richer resources belong at the far end,
 so the choice of *how deep to go* is a second, finer version of the choice of
 whether to go out at all — and at night the deep end is where people
 disappear.
+
+### D-531: In a round, violence is free — and loud
+
+**Stakeholder, 2026-08-18:** "For this mode, I think we need to change the
+hostility declaration. Players can choose to attack at any time, with no RP
+necessary, but nearby sounds of fighting will be heard within range of the
+action." Clarified: "When I say heard, I mean audio, plus text announcements
+to those in range."
+
+**Decision: D-206's declared-hostility rule is disabled inside a round**, and
+replaced by combat noise. The persistent world keeps the declaration
+unchanged — this supersedes it **for round mode only**, and M5–M7 are
+untouched.
+
+**This fixes a real problem the cross map exposed (D-529).** With the town
+`settled`, the antagonist could not kill anyone at the one place everybody
+gathers without a spoken, logged warning and a ten-second wait — that is,
+without ending its own game. The declaration was designed for a persistent
+world where roleplay is the point and there is time for it. In a
+twenty-five-minute scenario a ten-second warning does not make murder
+*risky*, it makes it *impossible*.
+
+**The restraint moves from procedural to informational, and that is the whole
+idea.** Nothing stops you swinging. What stops you is that **everyone nearby
+hears it**. The question is no longer "have I earned permission to attack"
+but "who is close enough to hear", which is a question about **position**,
+and position is something players can reason about, exploit and lie about.
+
+**What this does to the map, without changing a tile:** distance from other
+people becomes the antagonist's real constraint. Killing in the town square
+is possible and reckless. Killing at the deep end of a spoke is quiet, and
+the deep end is exactly where D-530's risk gradient already sends people for
+the better resources. **The map's economic geography and its murder geography
+are now the same geography**, which is a much better property than the zone
+rule produced.
+
+**Three things the sound deliberately does NOT do:**
+
+- **It does not respect line of sight.** You hear a brawl through a tavern
+  wall. If sound were sight-limited, killing indoors would be silent and the
+  town would be free again — the mechanic would undo itself.
+- **It names nobody.** The wire carries a kind, an eight-point bearing and a
+  coarse near/far band. No entity id, no descriptor, no coordinates. **A
+  sound is a lead, not evidence**, which is what keeps D-217 intact:
+  reputation still requires a witness, and hearing a scuffle through a wall
+  is not one. The bearing is deliberately coarse so a listener cannot
+  triangulate.
+- **It does not cross the plane.** Ghosts hear nothing of the living. A dead
+  player who could hear *where* fighting was happening would be a live scout
+  on a voice call — invariant 4 by another route, and the version of the leak
+  nobody would have thought to test for.
+
+**NPC fights are just as audible as murders, and that ambiguity is the point.**
+At night, with roamers abroad (D-527), "something is fighting to the north"
+could be a wolf or could be your friend being killed. **The world supplies
+the antagonist's deniability for free**, and it does so precisely when the
+cast is most on edge.
+
+**`COMBAT_NOISE_TILES = 30`, near/far split at 12.** At 100×100 areas that is
+about a third of the town, so violence anywhere near where people gather is
+heard, and violence deep in a spoke is not. **Unratified first pass** — this
+is the number that decides how much of the map is safe to kill in, and it
+should be the first thing tuned once the mode is played.
+
+**Sound is area-local.** You do not hear fighting in the next area along.
+Areas are discrete (D-103) with no shared coordinate space, and making noise
+cross transitions would both be awkward and make the spokes audible from
+town, which would defeat the whole mechanic.
+
+**A new wire message rather than a narration**, because the stakeholder asked
+for audio as well as text: `sound` carries `kind`, `bearing`, `distance` and
+a ready-made line, so the client can play a cue, attenuate it by band, and
+show the text. `narrate` would have delivered prose with nothing for the
+client to hear.
+
+**⚠ `zone` still matters in a round, for a different reason.** It no longer
+gates attacks, but it still drives corpse rules (D-511/D-512): a settled
+corpse is cosmetic and unlootable, a wilderness corpse wears everything. So
+killing someone in town is now *possible but unprofitable*, and killing them
+in a spoke pays. That is a happy accident of the existing design and it
+points the same way as the noise rule.

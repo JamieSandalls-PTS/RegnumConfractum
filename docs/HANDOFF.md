@@ -118,6 +118,14 @@ Branch `mr-round-spine`. The round spine is **built and bot-verified**:
   `ROUND_DAWN_HOUR` offset; without it a 25-min round gets three nights
   starting in the dark.
 
+⚠ **Two test traps from this session:** (1) `enterCombat(self)/(target)`
+appears in BOTH `handleHostile` and `handleAttack` — a naive
+find-and-replace patches the wrong one, and combat noise silently fired
+on declarations instead of blows. (2) A bot test that attacks another
+PLAYER changes who is alive and therefore decides the round later tests
+are trying to observe; hit a spawned throwaway NPC instead. `ATTACK_RANGE`
+is 1, so spawn it at `x + 1`, not `x + 2`.
+
 **Test pacing:** the server runs **~60 ticks/s under test load**, not the
 nominal 200 — a `lengthTicks` budget sized as if 200 will blow the 30s
 vitest timeout. Prefer ending a test round by the DEED (spawn an NPC next
@@ -134,7 +142,13 @@ at 100 it measures ~30s and a deep one ~45s. Regenerate with
 asserts zones, outdoor flags, the transition graph and the travel band,
 so none of it can drift silently.
 
-**Not yet built in MR1:** the round HUD (client-side). **MR2:** night
+**D-531 landed:** in a round, hostility declaration is OFF and every blow
+emits a `sound` (wire v5) to everyone within 30 tiles — no LOS, no
+identity, never across the plane. Client work outstanding: **play the
+audio cue** on `sound` (server sends `kind`/`bearing`/`distance`/`text`).
+
+**Not yet built in MR1:** the round HUD (client-side), and the audio for
+`sound`. **MR2:** night
 roamers, hunger, gathering/crafting, facility potency (D-530), and the
 dungeon's contents — the areas exist but are empty.
 
