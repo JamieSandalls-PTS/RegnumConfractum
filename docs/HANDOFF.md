@@ -123,8 +123,20 @@ nominal 200 — a `lengthTicks` budget sized as if 200 will blow the 30s
 vitest timeout. Prefer ending a test round by the DEED (spawn an NPC next
 to the antagonist via `server.spawnNpc`) rather than waiting on the clock.
 
-**Not yet built in MR1:** the round HUD (client-side), night roamers
-(MR2, needs the `outdoor` area flag), and the dungeon.
+**The cross map is built** (D-529/D-530): `round-town` (settled, the
+well/tavern/workshop/storehouse/infirmary) with `round-farm` N,
+`round-mine` E, `round-wood` W, `round-south` S (all wilderness +
+outdoor), and `round-dungeon` beneath the south approach (wilderness,
+NOT outdoor, NOT endgame). **100×100 by measurement, not by feel** — at
+64×64 a mid-depth errand measured 20s against D-530's 30-45s ruling;
+at 100 it measures ~30s and a deep one ~45s. Regenerate with
+`python tools/src/build-round-map.py`; `server/test/round-map.test.ts`
+asserts zones, outdoor flags, the transition graph and the travel band,
+so none of it can drift silently.
+
+**Not yet built in MR1:** the round HUD (client-side). **MR2:** night
+roamers, hunger, gathering/crafting, facility potency (D-530), and the
+dungeon's contents — the areas exist but are empty.
 
 ## How to work in this repo (hard-won specifics)
 
