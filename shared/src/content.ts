@@ -40,6 +40,22 @@ export const AreaSchema = z
     /** Default spawn tile; must be walkable. */
     spawn: z.object({ x: z.number().int().min(0), y: z.number().int().min(0) }),
     lighting: LightingProfileSchema.default('overcast'),
+    /**
+     * Does the sky reach here? Drives the day-night cycle's danger and its
+     * reward (D-527, D-528): after dusk, outdoor areas darken, roamers walk
+     * them, and what is earned there pays more.
+     *
+     * Never inferred from `lighting` — that is a rendering profile, and
+     * tying how an area LOOKS to whether it is dangerous is the coupling
+     * D-527 warned against. A bright cavern and a gloomy field both break it.
+     *
+     * Defaults to FALSE, and the direction is the point: an area opts IN to
+     * night. Forgetting the flag on open ground means night never reaches it,
+     * which is wrong but visible in play. The opposite default would have
+     * every cellar quietly paying the night bonus for hiding — wrong and
+     * invisible. Set it explicitly on every authored area regardless.
+     */
+    outdoor: z.boolean().default(false),
     /** PvP tier (D-206): settled requires declared hostility with a spoken
      * warning window; wilderness is open; endgame adds permadeath (M4b). */
     zone: z.enum(['settled', 'wilderness', 'endgame']).default('settled'),

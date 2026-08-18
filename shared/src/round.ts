@@ -140,6 +140,31 @@ export function isNight(tickIntoRound: number): boolean {
   return h >= ROUND_DUSK_HOUR || h < ROUND_DAWN_HOUR;
 }
 
+/**
+ * What night pays over day (D-528, stakeholder: "night should return 50% more
+ * rewards"). It applies ONLY to what is earned OUTDOORS after dusk, because
+ * the bonus is compensation for the peril and there is no peril where the
+ * sky does not reach. Applied everywhere it would be worse than useless: it
+ * would make the safest possible choice — sitting indoors, or diving where
+ * roamers cannot follow — also the best-paid one, which inverts the whole
+ * point of night.
+ *
+ * It multiplies xp and materials only. It must never touch anything that
+ * wins a round (D-522), and it cannot leak into player kills because those
+ * pay nothing at all inside a round.
+ */
+export const NIGHT_REWARD_MULTIPLIER = 1.5;
+
+/**
+ * Scales a reward for where and when it was earned. Rounded rather than
+ * floored so small rewards are not quietly swallowed — at these numbers an
+ * odd value floored would cost more than the bonus gives.
+ */
+export function applyNightBonus(amount: number, opts: { outdoor: boolean; night: boolean }): number {
+  if (!opts.outdoor || !opts.night) return amount;
+  return Math.round(amount * NIGHT_REWARD_MULTIPLIER);
+}
+
 /** Which day-night phase a tick falls in, for lighting and spawn logic. */
 export function roundPhaseOfDay(tickIntoRound: number): 'day' | 'night' {
   return isNight(tickIntoRound) ? 'night' : 'day';

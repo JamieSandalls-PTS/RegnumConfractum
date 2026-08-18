@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  NIGHT_REWARD_MULTIPLIER,
   ObjectiveSchema,
   ROUND_DAY_TICKS,
   ROUND_TICKS_PER_GAME_HOUR,
   Rng,
+  applyNightBonus,
   isNight,
   roundHour,
   roundPhaseOfDay,
@@ -234,5 +236,40 @@ describe('outcome-to-winner mapping is defined once', () => {
     expect(winnerFor('cast_wiped')).toBe('antagonist');
     expect(winnerFor('objective_complete')).toBe('antagonist');
     expect(winnerFor('abandoned')).toBe('nobody');
+  });
+});
+
+describe('the night bonus (D-528)', () => {
+  it('pays half again for what is earned outdoors after dusk', () => {
+    expect(NIGHT_REWARD_MULTIPLIER).toBe(1.5);
+    expect(applyNightBonus(10, { outdoor: true, night: true })).toBe(15);
+    expect(applyNightBonus(25, { outdoor: true, night: true })).toBe(38); // rounded, not floored
+  });
+
+  it('pays nothing extra for hiding — indoors at night is flat', () => {
+    // This is the case the whole rule turns on. A blanket time-based bonus
+    // would make sitting in the tavern after dark the best-paid choice,
+    // which inverts the point of night entirely.
+    expect(applyNightBonus(10, { outdoor: false, night: true })).toBe(10);
+  });
+
+  it('pays nothing extra outdoors in daylight', () => {
+    expect(applyNightBonus(10, { outdoor: true, night: false })).toBe(10);
+    expect(applyNightBonus(10, { outdoor: false, night: false })).toBe(10);
+  });
+
+  it('cannot turn a zero reward into a reward', () => {
+    // Player kills pay nothing inside a round (D-522). The multiplier must
+    // never become a back door into paying for them.
+    expect(applyNightBonus(0, { outdoor: true, night: true })).toBe(0);
+  });
+
+  it('lines up with the round clock — the bonus is live for half the round', () => {
+    const paidAt = (t: number) => applyNightBonus(10, { outdoor: true, night: isNight(t) });
+    expect(paidAt(0)).toBe(10); // dawn
+    expect(paidAt(12 * ROUND_TICKS_PER_GAME_HOUR)).toBe(15); // dusk
+    let boosted = 0;
+    for (let t = 0; t < ROUND_DAY_TICKS; t++) if (paidAt(t) === 15) boosted++;
+    expect(boosted).toBe(ROUND_DAY_TICKS / 2);
   });
 });

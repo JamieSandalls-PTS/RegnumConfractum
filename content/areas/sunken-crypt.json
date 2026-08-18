@@ -41,5 +41,6 @@
       "toX": 2,
       "toY": 28
     }
-  ]
+  ],
+  "outdoor": false
 }

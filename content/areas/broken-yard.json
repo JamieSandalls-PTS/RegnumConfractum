@@ -71,5 +71,6 @@
       "toY": 1
     }
   ],
-  "zone": "wilderness"
+  "zone": "wilderness",
+  "outdoor": true
 }

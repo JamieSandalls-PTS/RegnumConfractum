@@ -2342,3 +2342,73 @@ profile and must not be overloaded to mean "safe from roamers".
 pays than day; the roamer's strength relative to a mid-round character; and
 whether night roamers may enter settled areas at all or only prowl outside
 them.
+
+### D-528: Night pays half again — outdoors only, and why that matters
+
+**Stakeholder, 2026-08-18:** "Night should return 50% more rewards."
+
+**Ruling:** `NIGHT_REWARD_MULTIPLIER = 1.5`, applied to xp and materials
+earned **outdoors, after dusk**. This is the first ratified number in the
+Round's economy and it settles the tuning question D-527 left open.
+
+**The scope is the whole decision, and the naive reading is a trap.** A
+blanket time-based bonus — *everything* pays 1.5× between dusk and dawn —
+would be actively harmful, because it pays best for the safest possible
+choices:
+
+- **Sitting indoors.** The cast barricaded in the tavern would earn half
+  again for doing the thing night exists to punish.
+- **Diving.** The dungeon is underground; roamers do not reach it. A night
+  bonus there would make dusk the optimal moment to go below, so nobody
+  would ever brave the open and the roamers would prowl an empty map.
+
+The bonus is **compensation for peril**, so it is paid only where the peril
+is. Where the sky does not reach, night is not dangerous and must not be
+lucrative. Both cases are asserted in `server/test/round.test.ts`; the
+indoor one is the test that matters.
+
+**This forced the `outdoor` flag on areas.** D-527 already said night must
+not be inferred from `lighting`, because that is a rendering profile and
+tying "how an area looks" to "whether it is dangerous" is a coupling that
+will be wrong the first time someone authors a bright cavern or a gloomy
+field.
+
+**It was first made REQUIRED, and that was wrong — recorded because the
+reasoning is worth keeping.** The argument was that any default is a silent
+gameplay decision. But the suite immediately failed in nine places, all
+fixtures building throwaway areas, and that surfaced the real objection:
+**`zone` is defaulted**, and `zone` decides whether you can be killed without
+warning and whether death is permanent. A field governing night danger has no
+claim to be stricter than the field governing permadeath. Requiring it would
+have been inconsistent with the schema's own convention for a smaller stake.
+
+**It defaults to `false`, and the direction is deliberate.** An area opts IN
+to night. Forgetting the flag on open ground means night never reaches it —
+wrong, but visible the first time nobody notices dusk. The opposite default
+fails silently and in the worse direction: every cellar paying the night
+bonus for hiding, which is the exact inversion this decision exists to
+prevent. All authored areas set it explicitly regardless.
+
+**Applied in `gainXp` rather than at each grant site**, so every reward path
+inherits it — including MR2's gathering, harvesting and crafting, which do
+not exist yet and would otherwise each need to remember.
+
+**Rounded, not floored.** At these magnitudes flooring an odd reward costs
+more than the bonus gives.
+
+**Two properties it cannot violate, both already load-bearing:**
+
+- **It cannot pay for a player kill.** Those grant zero inside a round
+  (D-522), and 1.5 × 0 is still 0. Asserted, because a multiplier is exactly
+  the kind of thing that later becomes a back door.
+- **It cannot win a round.** It scales xp and materials, never objectives,
+  and xp banks only if you survive (D-524) — so a night forager who is
+  murdered on the way home loses the enhanced haul along with everything
+  else. **Night raises both sides of that gamble at once**, which is the
+  behaviour we want: the richest time to be out is also the most dangerous
+  time to be carrying it.
+
+**Still unratified from D-527:** roamer strength relative to a mid-round
+character, and whether roamers may enter settled areas or only prowl outside
+them. The reward side is now settled; the danger side is not, and the two
+have to be tuned against each other before night is playable.

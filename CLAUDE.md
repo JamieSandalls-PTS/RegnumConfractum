@@ -334,9 +334,15 @@ dawn**, giving 25 minutes exactly **two nights** and closing in daylight.
 This completes the three forces — the dungeon pulls players *out*, hunger
 pushes them *out*, night drives them *in* — and no position beats all
 three, which is what defeats the barricade. Night also manufactures the
-antagonist's alibi on a timer. ⚠ Night roamers need an **`outdoor` flag on
-areas**; `lighting: 'interior'|'underground'` is a render profile and must
-not be overloaded to mean "safe".
+antagonist's alibi on a timer. **Night pays 1.5× (D-528) — OUTDOORS ONLY.** The bonus is compensation
+for peril, so it is paid only where the peril is. A blanket time-based
+bonus would pay best for hiding indoors and for diving underground, where
+roamers cannot reach — inverting the point of night. Areas carry an
+**`outdoor` flag**: never inferred from `lighting` (a render profile), and
+defaulting to `false` so an area opts IN to night — the failure that is
+visible in play rather than the one that silently pays cellars. Set it
+explicitly on every authored area. Applied in `gainXp` so every future
+reward path inherits it.
 
 **Ratified in D-524:** **recognition memory is round-scoped** — the cast
 meets as strangers every round, so false names and hoods never decay. This
@@ -360,9 +366,10 @@ execution, or it teaches the opposite of the north star.
 **M4b remaining:** richer injury/treatment types (D-205 matrix), Vessel's
 Plane Shift, class skills/balance beyond the scaffold. **Other gaps:**
 inventory/character-sheet UI, invisible DM observation, staging VPS not
-provisioned. ⚠ **Blocked on the stakeholder, MR-specific:** night tuning (how much more
-night pays than day, roamer strength, whether roamers may enter settled
-areas); hunger tuning (need events
+provisioned. ⚠ **Blocked on the stakeholder, MR-specific:** night DANGER tuning (roamer
+strength vs a mid-round character, whether roamers may enter settled areas —
+the reward side is settled at 1.5× by D-528, but the two must be tuned
+against each other); hunger tuning (need events
 per round, what the first stage costs, whether starvation can kill inside a
 round or only incapacitate); multiple antagonists above a cast size, and
 whether they know each other; minimum party size to enter the dungeon at low

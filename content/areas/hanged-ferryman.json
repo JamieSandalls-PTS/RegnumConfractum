@@ -113,5 +113,6 @@
   ],
   "scripts": [
     "ferryman-keeper"
-  ]
+  ],
+  "outdoor": false
 }

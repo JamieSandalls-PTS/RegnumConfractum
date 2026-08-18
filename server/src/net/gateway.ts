@@ -42,6 +42,7 @@ import {
   type Direction,
   type ErrorCode,
   type ServerMessage,
+  applyNightBonus,
   isNight,
   roundHour,
   type ObjectiveDef,
@@ -463,9 +464,10 @@ export class GameServer {
     this.roundLastNight = night;
     for (const areaId of this.world.areaIds()) {
       const def = this.world.getAreaDef(areaId);
-      // Interiors and the underground have their own light and do not follow
-      // the sun. Only open ground darkens.
-      if (def.lighting === 'interior' || def.lighting === 'underground') continue;
+      // Only what the sky reaches darkens. Keyed off `outdoor`, never off
+      // `lighting` — how an area looks must not decide whether night reaches
+      // it (D-527, D-528).
+      if (!def.outdoor) continue;
       this.broadcast(areaId, { t: 'area_lighting', lighting: night ? 'night' : def.lighting });
     }
     this.broadcastNarrate(
@@ -954,8 +956,25 @@ export class GameServer {
   }
 
   /** XP pays down death debt before it advances the character (D-203). */
-  private gainXp(conn: ConnState, amount: number): void {
+  /**
+   * Where and when this connection is earning — the two facts the night
+   * bonus turns on (D-528). Outside a round there is no bonus at all.
+   */
+  private rewardContext(conn: ConnState): { outdoor: boolean; night: boolean } {
+    if (!this.roundRunning || !conn.areaId || !this.world.hasArea(conn.areaId)) {
+      return { outdoor: false, night: false };
+    }
+    return {
+      outdoor: this.world.getAreaDef(conn.areaId).outdoor,
+      night: isNight(this.roundTickOffset()),
+    };
+  }
+
+  private gainXp(conn: ConnState, rawAmount: number): void {
     if (!conn.vitals) return;
+    // Applied here rather than at each grant site so every reward path picks
+    // it up — including MR2's gathering and crafting, which do not exist yet.
+    const amount = applyNightBonus(rawAmount, this.rewardContext(conn));
     // Inside a round, earnings go to a pot that is banked only if you live to
     // the end (D-524). There is no death debt to pay down in a round, so the
     // debt path is skipped entirely rather than being paid from the pot.
