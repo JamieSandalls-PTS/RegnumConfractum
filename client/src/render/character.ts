@@ -902,6 +902,100 @@ export class CharacterVisual {
   }
 
   // -------------------------------------------------------------------------
+  // Cloth workbench support (stakeholder, 2026-08-18)
+  //
+  // The viewer's cloth tab needs to re-pin a garment to any bone and choose
+  // its colliders by name. Exposing the skeleton read-only is far cleaner
+  // than the workbench reaching into privates, and keeps the naming in one
+  // place — these are the same names the model editor uses.
+  // -------------------------------------------------------------------------
+
+  /** Every bone a garment may be pinned to, by display name. */
+  bones(): Record<string, THREE.Object3D> {
+    return {
+      pelvis: this.pelvis,
+      spine: this.spine,
+      chest: this.chest,
+      'upper back (cape anchor)': this.capeAnchor ?? this.chest,
+      neck: this.neck,
+      head: this.head,
+      'shoulder left': this.arms.L.sh,
+      'shoulder right': this.arms.R.sh,
+      'elbow left': this.arms.L.el,
+      'elbow right': this.arms.R.el,
+      'hand left': this.arms.L.hand,
+      'hand right': this.arms.R.hand,
+      'hip left': this.legs.L.hip,
+      'hip right': this.legs.R.hip,
+      'knee left': this.legs.L.knee,
+      'knee right': this.legs.R.knee,
+    };
+  }
+
+  /** Body volumes a garment may be told to collide with, by display name. */
+  colliderCatalog(): Record<string, { matrix: THREE.Matrix4; radius: number; height?: number; axisCol?: number; off?: number }> {
+    const d = this.dims;
+    const out: Record<string, { matrix: THREE.Matrix4; radius: number; height?: number; axisCol?: number; off?: number }> = {
+      chest: {
+        matrix: this.chest.matrixWorld,
+        radius: d.bodyW * 0.45,
+        height: Math.max(0.02, d.torsoH * 0.55 - d.bodyW * 0.45),
+      },
+      pelvis: {
+        matrix: this.pelvis.matrixWorld,
+        radius: d.hipW * 0.5,
+        height: Math.max(0.02, d.torsoH * 0.35 - d.hipW * 0.5),
+      },
+      'shoulder left': { matrix: this.arms.L.sh.matrixWorld, radius: d.bodyW * 0.27 },
+      'shoulder right': { matrix: this.arms.R.sh.matrixWorld, radius: d.bodyW * 0.27 },
+      'hips (skirt)': {
+        matrix: this.pelvis.matrixWorld,
+        radius: d.hipW * 0.48,
+        height: d.torsoH * 0.18,
+      },
+    };
+    for (const s of ['L', 'R'] as const) {
+      const side = s === 'L' ? 'left' : 'right';
+      out[`thigh ${side}`] = {
+        matrix: this.legs[s].hip.matrixWorld,
+        radius: d.hipW * 0.26,
+        height: d.upperLeg / 2,
+        off: -d.upperLeg / 2,
+      };
+      out[`shin ${side}`] = {
+        matrix: this.legs[s].knee.matrixWorld,
+        radius: d.hipW * 0.17,
+        height: d.lowerLeg / 2,
+        off: -d.lowerLeg / 2,
+      };
+      out[`forearm ${side}`] = {
+        matrix: this.arms[s].el.matrixWorld,
+        radius: d.bodyW * 0.11,
+        height: d.lowerArm / 2,
+        off: -d.lowerArm / 2,
+      };
+      out[`hand ${side}`] = { matrix: this.arms[s].hand.matrixWorld, radius: d.bodyW * 0.1 };
+    }
+    return out;
+  }
+
+  /** Body measurements the workbench sizes garments against. */
+  get measurements(): { shoulderW: number; bodyW: number; hipW: number; torsoH: number; height: number } {
+    return {
+      shoulderW: this.dims.shoulderW,
+      bodyW: this.dims.bodyW,
+      hipW: this.dims.hipW,
+      torsoH: this.dims.torsoH,
+      height: this.appearance.height,
+    };
+  }
+
+  /** The scene object custom garments must be added to (world-space verts). */
+  get clothParent(): THREE.Object3D {
+    return this.parentOrRoot();
+  }
+
+  // -------------------------------------------------------------------------
   // Per-frame update
   // -------------------------------------------------------------------------
 

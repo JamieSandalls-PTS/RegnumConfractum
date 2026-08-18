@@ -39,6 +39,16 @@
     word-break: break-all; }
   .hidden { display: none !important; }
   #editor label { margin-top: 8px; }
+  /* Tabs: one live scene, four groups of controls over it. */
+  #tabs { display: flex; gap: 0; margin: 0 0 12px; border-bottom: 1px solid var(--line); }
+  #tabs .tab {
+    flex: 1; width: auto; margin: 0; padding: 7px 4px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; background: transparent;
+    border: none; border-bottom: 2px solid transparent; color: var(--dim);
+    cursor: pointer; border-radius: 0;
+  }
+  #tabs .tab:hover { color: var(--text); background: transparent; }
+  #tabs .tab.active { color: var(--warm); border-bottom-color: var(--warm); }
   #panel .sl { display: flex; align-items: center; gap: 8px; }
   #panel .sl input[type=range] { flex: 1; }
   #panel .sl b { width: 34px; text-align: right; font-weight: 400; font-size: 11px;
@@ -50,15 +60,23 @@
   #editor textarea { width: 100%; height: 90px; background: #0f0e12; color: var(--text);
     border: 1px solid var(--line); font-size: 10px; font-family: monospace; }
   #editor .row2 { display: flex; gap: 4px; margin-top: 4px; }
-  #editor .row2 button { flex: 1; }
+  #panel .row2 { display: flex; gap: 4px; margin-top: 4px; }
+  #panel .row2 button { flex: 1; }
+  #panel textarea { width: 100%; background: #0f0e12; color: var(--text);
+    border: 1px solid var(--line); border-radius: 2px; margin-top: 4px; }
 </style>
 </head>
 <body>
   <div id="stage"></div>
   <div id="panel">
     <h1>Character Viewer</h1>
-    <div class="sub">for the art-direction verdict (D-406)</div>
+    <div class="sub">one live scene — each tab configures a different part</div>
 
+    <div id="tabs">
+      <button class="tab active" data-tab="cast">Cast</button><button class="tab" data-tab="anim">Animation</button><button class="tab" data-tab="cloth">Cloth</button><button class="tab" data-tab="render">Render</button>
+    </div>
+
+    <section data-panel="anim" class="hidden">
     <label>animation</label>
     <select id="in-anim">
       <option value="cycle">cycle everything</option>
@@ -84,7 +102,10 @@
         <option value="death">death: collapse (loop)</option>
       </optgroup>
     </select>
+    <div class="check"><input id="in-slow" type="checkbox"> slow motion (½ speed)</div>
+    </section>
 
+    <section data-panel="cast">
     <label>bodies shown</label>
     <select id="in-filter">
       <option value="all">both sexes, all styles</option>
@@ -96,6 +117,39 @@
       <option value="hair:long">hair: long</option>
     </select>
 
+    <label>seed base</label>
+    <div class="row">
+      <input id="in-seed" type="number" value="1000">
+      <button id="btn-reroll" style="width:110px">Reroll</button>
+    </div>
+
+    <label>weapon</label>
+    <select id="in-weapon">
+      <option value="seed">from seed (sword)</option>
+      <option value="sword">sword (forced on everyone)</option>
+      <option value="staff">staff (planted idle)</option>
+      <option value="none">none</option>
+    </select>
+    <div class="check"><input id="in-hood" type="checkbox"> hoods up</div>
+    <div class="check"><input id="in-robe" type="checkbox"> robes on</div>
+    <div class="check"><input id="in-gear" type="checkbox" checked> seed equipment</div>
+
+    <label>model editor (solo a seed first)</label>
+    <button id="btn-edit">Open editor on seed below</button>
+    <input id="in-solo" type="number" placeholder="seed to solo/edit" value="1005">
+    <div id="editor" class="hidden" style="margin-top:8px"></div>
+    <div id="seeds"></div>
+    </section>
+
+    <section data-panel="cloth" class="hidden">
+      <label>all garments — fidelity (segments; rebuilds)</label>
+      <div class="sl"><input id="in-clothfid" type="range" min="0.5" max="2.5" step="0.1" value="1"><b id="v-clothfid">1.0×</b></div>
+      <label>all garments — floppiness (fewer passes = looser)</label>
+      <div class="sl"><input id="in-clothiter" type="range" min="1" max="10" step="1" value="6"><b id="v-clothiter">6</b></div>
+      <div id="cloth-panel"></div>
+    </section>
+
+    <section data-panel="render" class="hidden">
     <label>lighting</label>
     <select id="in-light">
       <option value="overcast">overcast (outdoor)</option>
@@ -103,12 +157,6 @@
       <option value="underground">underground</option>
       <option value="night">night</option>
     </select>
-
-    <label>seed base</label>
-    <div class="row">
-      <input id="in-seed" type="number" value="1000">
-      <button id="btn-reroll" style="width:110px">Reroll</button>
-    </div>
 
     <label>render style (stakeholder A/B)</label>
     <select id="in-style">
@@ -123,35 +171,12 @@
     <label>world pixelation (split mode; 1 = crisp)</label>
     <input id="in-envscale" type="range" min="1" max="6" step="1" value="1">
     <div class="check"><input id="in-envpal" type="checkbox"> palette colours on the world (split mode)</div>
-    <label>cloth fidelity — segments per garment (rebuilds)</label>
-    <div class="sl"><input id="in-clothfid" type="range" min="0.5" max="2.5" step="0.1" value="1"><b id="v-clothfid">1.0×</b></div>
-    <label>cloth floppiness — fewer solver passes = looser</label>
-    <div class="sl"><input id="in-clothiter" type="range" min="1" max="10" step="1" value="6"><b id="v-clothiter">6</b></div>
-
-    <label>weapon</label>
-    <select id="in-weapon">
-      <option value="seed">from seed (sword)</option>
-      <option value="sword">sword (forced on everyone)</option>
-      <option value="staff">staff (planted idle)</option>
-      <option value="none">none</option>
-    </select>
-    <div class="check"><input id="in-hood" type="checkbox"> hoods up</div>
-    <div class="check"><input id="in-robe" type="checkbox"> robes on</div>
-    <div class="check"><input id="in-gear" type="checkbox" checked> seed equipment</div>
-    <div class="check"><input id="in-slow" type="checkbox"> slow motion (½ speed)</div>
-
-    <label>model editor (solo a seed first)</label>
-    <button id="btn-edit">Open editor on seed below</button>
-    <input id="in-solo" type="number" placeholder="seed to solo/edit" value="1005">
-    <div id="editor" class="hidden" style="margin-top:8px"></div>
+    </section>
 
     <div class="hint">
-      Drag to orbit · wheel to zoom.<br>
-      Twelve characters per page; the seed of each is listed below in grid
-      order (left-to-right, front row first). Quote a seed when giving
-      feedback and it can be reproduced exactly.
+      Drag to orbit · wheel to zoom. Quote a seed when giving feedback and
+      it can be reproduced exactly.
     </div>
-    <div id="seeds"></div>
   </div>
   <script type="module" src="/src/viewer.ts"></script>
 </body>

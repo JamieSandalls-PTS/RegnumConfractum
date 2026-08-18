@@ -1601,3 +1601,42 @@ drapes to the floor.
 ⚠ **Unratified tuning:** the 10-second/20-tile combat window, the four-swing
 roster, and the carry capacity formula are all first-pass numbers chosen to
 be legible and centralised, not settled balance.
+
+### D-517: The viewer becomes a tabbed workbench, with live cloth tuning
+
+**Requested by the stakeholder 2026-08-18:** a way to tweak cloth attachment
+points, parameters and collisions by hand and export what works — and,
+after a first pass, to reorganise the viewer into tabs that "all work
+together, each tab just configures a different part of the game".
+
+**One scene, four control groups.** The viewer keeps a single live stage and
+splits its panel into **Cast**, **Animation**, **Cloth** and **Render**.
+Nothing is duplicated and nothing is modal: changing the animation while
+the cloth tab is open still drives the same body, which is the point — the
+drape has to be judged in motion.
+
+**Every solver constant became a parameter.** `ClothParams` now carries
+gravity, damping, wind response and strength, the body-hug and its hem
+falloff, soft-pin strength, per-pass stiffness, iteration count, floor
+height and floor friction. `defaultClothParams(layout)` returns exactly
+the values that were previously hardcoded in `step()`, so the change is
+inert until someone moves a slider.
+
+**Garments are tuned in body-relative units.** The workbench sizes a cape
+as a multiple of shoulder width and body width rather than in metres, so a
+setting that looks right on one build is not silently wrong on a brute or
+a slight rogue. The export carries those relative numbers.
+
+**The lab garment replaces the real one.** While the cloth tab is driving a
+cape, the character's built-in cape is suppressed; leaving the tab hands
+the body back its own clothes. Tuning a garment that sits next to a second
+copy of itself would be useless.
+
+**Rebuild versus live is an explicit distinction.** Grid, cut and bone
+changes construct a new solver; physics and collider choices are copied
+into the running one each frame. Getting this wrong either drops the drape
+state on every slider move or silently ignores geometry edits.
+
+The export is a `GarmentConfig` JSON block, meant to be pasted back and
+baked into `CharacterVisual`'s construction — the same loop the model
+editor already uses (D-514).

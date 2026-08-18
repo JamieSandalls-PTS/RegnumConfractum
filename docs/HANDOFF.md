@@ -1,5 +1,26 @@
 # Session handoff — updated 2026-08-18
 
+## Viewer is now tabbed, with a cloth workbench (D-517)
+
+`/viewer.html` drives ONE live scene through four control groups:
+**Cast** (seeds, filter, weapon, hood/robe, model editor), **Animation**
+(every clip incl. combat), **Cloth** (the workbench), **Render**
+(lighting, style, pixelation).
+
+- `client/src/cloth-lab.ts` — `LabGarment` builds a real `Cloth` pinned to
+  any bone via a dedicated anchor node, sized in BODY-RELATIVE units so a
+  setting that works holds for every build.
+- `client/src/cloth-ui.ts` — the controls. Geometry/cut/bone changes
+  rebuild the solver; everything else is live (`step()` copies params each
+  frame). Export button emits the whole `GarmentConfig` as JSON.
+- While the cloth tab drives a cape (or robe skirt), the character's OWN
+  one is suppressed so only the tuned garment is on the body; leaving the
+  tab restores it.
+- `ClothParams` (cloth.ts) now holds everything that used to be a constant
+  in `step()` — gravity, damping, wind, hug, soft-pin, stiffness, floor.
+  `defaultClothParams(layout)` reproduces the old behaviour exactly.
+
+
 ## Combat feel pass (D-516)
 
 - **Combat state is server-owned** (`WorldEntity.combat`, wire

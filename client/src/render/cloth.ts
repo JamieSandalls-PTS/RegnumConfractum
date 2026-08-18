@@ -50,7 +50,61 @@ function scaled(n: number, min: number): number {
   return Math.max(min, Math.round(n * clothTuning.fidelity));
 }
 
+/**
+ * Per-garment solver settings. Every value here was previously a constant
+ * inside step(); the defaults reproduce that behaviour exactly, and the
+ * cloth workbench (`/cloth.html`) drives them live so drape can be tuned
+ * by eye and exported rather than guessed at in code.
+ */
+export interface ClothParams {
+  /** Downward acceleration. More negative = heavier fabric. */
+  gravity: number;
+  /** Velocity retained per step. Lower = deader, less swishy. */
+  damping: number;
+  /** How much of the ambient wind this garment feels. */
+  windScale: number;
+  /** Global gust magnitude before windScale. */
+  windStrength: number;
+  /** Inward pull toward the wearer's axis, so cloth conforms (collar only). */
+  hug: number;
+  /** Hug multiplier below the hem threshold — lets the skirt swing free. */
+  hugHemFalloff: number;
+  /** Row fraction past which hugHemFalloff applies. */
+  hugHemStart: number;
+  /** How firmly soft-pinned ring nodes are drawn to their rest ring. */
+  softPin: number;
+  /** Distance-constraint correction per pass. 0.5 = split evenly. */
+  stiffness: number;
+  /** Solver passes for THIS garment (falls back to the global setting). */
+  iterations: number | null;
+  /** Height of the ground plane the fabric pools on. */
+  floor: number;
+  /** Friction applied to nodes resting on the floor. */
+  floorFriction: number;
+}
+
+export function defaultClothParams(layout: 'bar' | 'collar' | 'tube'): ClothParams {
+  return {
+    gravity: -9.0,
+    // Tubes are HEAVY garments: more damping and much less wind, or the
+    // skirt flaps like a flag and momentum flips it in a bow.
+    damping: layout === 'tube' ? 0.88 : 0.97,
+    windScale: layout === 'tube' ? 0.3 : 1,
+    windStrength: 5.0,
+    hug: layout === 'collar' ? 3.2 : 0,
+    hugHemFalloff: 0.3,
+    hugHemStart: 0.55,
+    softPin: 0.3,
+    stiffness: 0.5,
+    iterations: null,
+    floor: 0.012,
+    floorFriction: 0.4,
+  };
+}
+
 export class Cloth {
+  /** Live solver settings; the workbench mutates these in place. */
+  readonly params: ClothParams;
   /** Simulated grid, after the fidelity multiplier. */
   private cols = 0;
   private rows = 0;
@@ -188,6 +242,7 @@ export class Cloth {
         }
       }
     }
+    this.params = defaultClothParams(layout);
     this.geom = new THREE.PlaneGeometry(width, height, cols - 1, rows - 1);
     this.mesh = new THREE.Mesh(
       this.geom,
@@ -220,14 +275,15 @@ export class Cloth {
     backPlane?: { matrix: THREE.Matrix4; maxZ: number; exemptAboveY?: number },
   ): void {
     const cols = this.cols;
-    const gravity = new THREE.Vector3(0, -9.0, 0);
+    const P = this.params;
+    const gravity = new THREE.Vector3(0, P.gravity, 0);
     // Gusts oscillate around ~zero: a PERMANENT side bias made capes climb
     // around the body collider and hang off the front (review round 6).
     const w = new THREE.Vector3(
       Math.sin(t * 1.7) * 0.6 + 0.12,
       Math.sin(t * 2.3) * 0.2,
       Math.cos(t * 1.1) * 0.6 + 0.08,
-    ).multiplyScalar(wind * 5.0);
+    ).multiplyScalar(wind * P.windStrength);
 
     const pinCount = this.pinnedRows * cols;
     const isPinned = (i: number): boolean => i < pinCount && this.pinMask[i]!;
@@ -236,7 +292,7 @@ export class Cloth {
     // the body colliders stop them at the surface.
     // No hug for tubes: a closed ring holds its own shape, and pulling it
     // toward the axis collapsed the skirt into the legs (robe sheet r1).
-    const hugCentre = this.layout === 'collar' && colliders?.[0]
+    const hugCentre = P.hug > 0 && colliders?.[0]
       ? new THREE.Vector3().setFromMatrixPosition(colliders[0].matrix)
       : null;
     // The hug only makes sense on an UPRIGHT torso. When the chest pitches
@@ -246,12 +302,10 @@ export class Cloth {
     const uprightK = colliders?.[0]
       ? Math.max(0, new THREE.Vector3().setFromMatrixColumn(colliders[0].matrix, 1).normalize().y) ** 2
       : 1;
-    const HUG = 3.2 * uprightK;
-    // Tubes are HEAVY garments: extra velocity damping and much less wind,
-    // or the skirt flaps like a flag and momentum flips it in a bow.
-    const damp = this.layout === 'tube' ? 0.88 : 0.97;
-    const windK = this.layout === 'tube' ? 0.3 : 1;
-    const FLOOR = 0.012;
+    const HUG = P.hug * uprightK;
+    const damp = P.damping;
+    const windK = P.windScale;
+    const FLOOR = P.floor;
     const acc = new THREE.Vector3();
     for (let i = 0; i < this.pos.length; i++) {
       if (isPinned(i)) continue;
@@ -262,7 +316,9 @@ export class Cloth {
         // The hug fades toward the hem: full-strength it pressed the lower
         // fabric against the legs, which read as wrapping them (8-dir
         // sheet). The top conforms; the skirt of the cape swings free.
-        const hemK = Math.floor(i / cols) / (this.rows - 1) > 0.55 ? 0.3 : 1;
+        const hemK = Math.floor(i / cols) / (this.rows - 1) > P.hugHemStart
+          ? P.hugHemFalloff
+          : 1;
         const hx = hugCentre.x - p.x;
         const hz = hugCentre.z - p.z;
         const hl = Math.hypot(hx, hz) || 1e-6;
@@ -271,7 +327,7 @@ export class Cloth {
       }
       // Floor-contact nodes get heavy friction: pooled fabric RESTS.
       const onFloor = p.y < FLOOR + 0.005;
-      const fk = onFloor ? 0.4 : 1;
+      const fk = onFloor ? P.floorFriction : 1;
       const vx = (p.x - pr.x) * damp * fk;
       const vy = (p.y - pr.y) * damp;
       const vz = (p.z - pr.z) * damp * fk;
@@ -297,19 +353,20 @@ export class Cloth {
         // (hard-freeing them crumpled the fabric around the collar).
         // Strong enough to re-centre a cape shaken sideways by an emote,
         // weak enough never to hold a rigid point against the drape.
-        this.pos[i]!.lerp(local, 0.3);
+        this.pos[i]!.lerp(local, P.softPin);
       }
     }
 
     const d = new THREE.Vector3();
     const torso = new THREE.Vector3();
-    for (let iter = 0; iter < clothTuning.solverIterations; iter++) {
+    const passes = P.iterations ?? clothTuning.solverIterations;
+    for (let iter = 0; iter < passes; iter++) {
       for (const c of this.constraints) {
         const pa = this.pos[c.a]!;
         const pb = this.pos[c.b]!;
         d.subVectors(pb, pa);
         const dist = d.length() || 1e-6;
-        d.multiplyScalar(((dist - c.len) / dist) * 0.5);
+        d.multiplyScalar(((dist - c.len) / dist) * P.stiffness);
         if (!isPinned(c.a)) pa.add(d);
         if (!isPinned(c.b)) pb.sub(d);
       }

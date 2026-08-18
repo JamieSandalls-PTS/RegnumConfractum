@@ -3,6 +3,7 @@ import { generateAppearance, type Direction, type LightingProfile, type Transien
 import { GameScene } from './render/scene';
 import { CharacterVisual } from './render/character';
 import { clothTuning } from './render/cloth';
+import { ClothTab } from './cloth-ui';
 
 /**
  * The character/animation viewer (stakeholder request, 2026-08-17): a page of
@@ -92,11 +93,11 @@ function applyHoods(): void {
 function applyGear(): void {
   const gear = $<HTMLInputElement>('in-gear').checked;
   const weaponSel = $<HTMLSelectElement>('in-weapon').value;
-  const robe = $<HTMLInputElement>('in-robe').checked;
+  const robe = $<HTMLInputElement>('in-robe').checked && builtInRobe;
   for (const s of shown) {
     const a = s.visual.appearance;
     const base = gear
-      ? { helm: a.helm, pauldrons: a.pauldrons, weapon: a.weapon, cape: a.hasCape }
+      ? { helm: a.helm, pauldrons: a.pauldrons, weapon: a.weapon, cape: a.hasCape && builtInCape }
       : { helm: false, pauldrons: false, weapon: false, cape: false };
     // The weapon selector overrides the seed: staff forces one into every
     // hand for review; none empties them.
@@ -121,6 +122,46 @@ scene.scene.traverse((o) => {
   if ((o as THREE.Light).isLight) o.layers.enableAll();
 });
 scene.camera.layers.enableAll();
+
+// --- Tabs -------------------------------------------------------------------
+// One live scene; each tab is a different group of controls over it. The
+// cloth tab additionally suppresses the built-in garment it stands in for,
+// so what you tune is the only one on the body.
+
+/** The cloth tab hides the character's own cape/robe while it is driving one. */
+let builtInCape = true;
+let builtInRobe = true;
+
+const clothTab = new ClothTab($('cloth-panel'), (cape, robe) => {
+  if (builtInCape === cape && builtInRobe === robe) return;
+  builtInCape = cape;
+  builtInRobe = robe;
+  applyGear();
+});
+
+function showTab(name: string): void {
+  for (const btn of document.querySelectorAll<HTMLElement>('#tabs .tab')) {
+    btn.classList.toggle('active', btn.dataset.tab === name);
+  }
+  for (const sec of document.querySelectorAll<HTMLElement>('#panel section[data-panel]')) {
+    sec.classList.toggle('hidden', sec.dataset.panel !== name);
+  }
+  // Entering the cloth tab pins the lab garment to whoever is on stage;
+  // leaving it hands the body back to its own clothes.
+  if (name === 'cloth') clothTab.attach(shown[0]?.visual ?? null);
+  else {
+    clothTab.dispose();
+    if (!builtInCape || !builtInRobe) {
+      builtInCape = true;
+      builtInRobe = true;
+      applyGear();
+    }
+  }
+}
+
+for (const btn of document.querySelectorAll<HTMLElement>('#tabs .tab')) {
+  btn.addEventListener('click', () => showTab(btn.dataset.tab!));
+}
 
 // --- Controls ---------------------------------------------------------------
 
@@ -301,6 +342,8 @@ function stepViewer(dt: number): void {
   }
   const { moving } = drive(mode, t);
   for (const s of shown) s.visual.update(dt, t + s.phase, moving, wind);
+  // The lab garment steps AFTER the body, so it pins to this frame's pose.
+  clothTab.step(dt, wind, t);
   // Free-look camera (stakeholder request): full orbit including elevation,
   // pannable target, near-macro zoom. Lights/shadows still track the target.
   scene.follow(cam.target);
