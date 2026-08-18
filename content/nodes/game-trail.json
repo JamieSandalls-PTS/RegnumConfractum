@@ -1,0 +1,9 @@
+{
+  "id": "game-trail",
+  "descriptor": "a trampled run through the scrub",
+  "yields": "raw-hide",
+  "quantity": 1,
+  "effortTicks": 45,
+  "charges": 2,
+  "respawnTicks": 1100
+}

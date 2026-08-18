@@ -1,0 +1,19 @@
+{
+  "id": "iron-hatchet",
+  "name": "Forge a hatchet",
+  "output": "iron-hatchet",
+  "outputQuantity": 1,
+  "inputs": [
+    {
+      "item": "iron-ore",
+      "quantity": 2
+    },
+    {
+      "item": "rough-timber",
+      "quantity": 1
+    }
+  ],
+  "station": "workshop",
+  "effortTicks": 90,
+  "notes": "Needs the workshop, which means it needs the town, which means the miner and the woodcutter must both come home and both hand over what they carried. The map's whole argument in one recipe (D-529)."
+}

@@ -142,6 +142,93 @@
   "lighting": "overcast",
   "zone": "wilderness",
   "outdoor": true,
+  "nodes": [
+    {
+      "x": 6,
+      "y": 87,
+      "type": "grain-row"
+    },
+    {
+      "x": 56,
+      "y": 43,
+      "type": "grain-row"
+    },
+    {
+      "x": 56,
+      "y": 75,
+      "type": "herb-patch"
+    },
+    {
+      "x": 65,
+      "y": 30,
+      "type": "grain-row"
+    },
+    {
+      "x": 8,
+      "y": 96,
+      "type": "herb-patch"
+    },
+    {
+      "x": 96,
+      "y": 44,
+      "type": "grain-row"
+    },
+    {
+      "x": 79,
+      "y": 29,
+      "type": "herb-patch"
+    },
+    {
+      "x": 75,
+      "y": 65,
+      "type": "grain-row"
+    },
+    {
+      "x": 82,
+      "y": 40,
+      "type": "herb-patch"
+    },
+    {
+      "x": 11,
+      "y": 45,
+      "type": "grain-row"
+    },
+    {
+      "x": 65,
+      "y": 69,
+      "type": "herb-patch"
+    },
+    {
+      "x": 65,
+      "y": 10,
+      "type": "grain-row"
+    },
+    {
+      "x": 45,
+      "y": 6,
+      "type": "herb-patch"
+    },
+    {
+      "x": 89,
+      "y": 36,
+      "type": "grain-row"
+    },
+    {
+      "x": 12,
+      "y": 61,
+      "type": "herb-patch"
+    },
+    {
+      "x": 74,
+      "y": 18,
+      "type": "grain-row"
+    },
+    {
+      "x": 66,
+      "y": 16,
+      "type": "herb-patch"
+    }
+  ],
   "transitions": [
     {
       "x": 50,

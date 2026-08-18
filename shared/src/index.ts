@@ -5,3 +5,4 @@ export * from './content';
 export * from './protocol';
 export * from './appearance';
 export * from './round';
+export * from './gathering';

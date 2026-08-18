@@ -121,6 +121,16 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   /** Lift a body (D-224 groundwork): only if strong enough for its build. */
   z.object({ t: z.literal('carry_body'), targetEntityId: z.number().int() }),
   z.object({ t: z.literal('drop_body') }),
+  /**
+   * Work a resource node (MR2). Takes time, and the time is the danger: you
+   * stand still, occupied, for a known interval, which is exactly when
+   * someone would choose to be behind you (D-529).
+   */
+  z.object({ t: z.literal('harvest'), targetEntityId: z.number().int() }),
+  /** Work a recipe. Interruptible, and station-gated when the recipe says so. */
+  z.object({ t: z.literal('craft'), recipeId: ContentIdSchema }),
+  /** Abandon whatever is being worked on. */
+  z.object({ t: z.literal('cancel_work') }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -155,6 +165,11 @@ export const ErrorCodeSchema = z.enum([
   'on_cooldown',
   'dead',
   'not_dead',
+  'no_such_recipe',
+  'missing_materials',
+  'wrong_station',
+  'already_working',
+  'node_spent',
   'too_soon',
   'no_injury',
   /** Speak With Dead on a spirit that is offline or already respawned — a
@@ -178,7 +193,7 @@ export const WireEntitySchema = z.object({
    */
   descriptor: z.string().min(1).max(120),
   /** 'corpse' lies where a player fell; 'pile' is gear left after decay. */
-  kind: z.enum(['player', 'npc', 'corpse', 'pile']),
+  kind: z.enum(['player', 'npc', 'corpse', 'pile', 'node']),
   x: z.number().int(),
   y: z.number().int(),
   facing: DirectionSchema,
@@ -450,6 +465,37 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     distance: z.enum(['near', 'far']),
     /** The line to show. The client may render its own from kind + bearing. */
     text: z.string(),
+  }),
+  /**
+   * Progress on whatever this player is working at (MR2). Sent to the worker
+   * alone — bystanders see the ANIMATION and can draw their own conclusions,
+   * but nobody gets a progress bar for someone else's labour.
+   */
+  z.object({
+    t: z.literal('work'),
+    activity: z.enum(['harvest', 'craft']),
+    /** What is being worked: a node descriptor or a recipe name. */
+    what: z.string(),
+    /** 0..1. Reaching 1 is not a promise — being struck still cancels it. */
+    progress: z.number().min(0).max(1),
+    done: z.boolean(),
+    /** Set when the work ended without producing anything, and why. */
+    interrupted: z.string().nullable(),
+  }),
+  /** The catalogue this client may craft from, sent once on entering. */
+  z.object({
+    t: z.literal('recipes'),
+    recipes: z.array(
+      z.object({
+        id: ContentIdSchema,
+        name: z.string(),
+        output: ContentIdSchema,
+        outputQuantity: z.number().int(),
+        inputs: z.array(z.object({ item: ContentIdSchema, quantity: z.number().int() })),
+        station: z.string(),
+        effortTicks: z.number().int(),
+      }),
+    ),
   }),
   /** Your own vitals — sent on change. Others never see your numbers. */
   z.object({

@@ -56,6 +56,20 @@ export const AreaSchema = z
      * invisible. Set it explicitly on every authored area regardless.
      */
     outdoor: z.boolean().default(false),
+    /**
+     * Where the resource nodes stand (MR2). Placement is area content and the
+     * node's BEHAVIOUR is its own document, so the same vein definition can
+     * be dropped in twenty places without repeating its yield or its timing.
+     */
+    nodes: z
+      .array(
+        z.object({
+          x: z.number().int().min(0),
+          y: z.number().int().min(0),
+          type: ContentIdSchema,
+        }),
+      )
+      .default([]),
     /** PvP tier (D-206): settled requires declared hostility with a spoken
      * warning window; wilderness is open; endgame adds permadeath (M4b). */
     zone: z.enum(['settled', 'wilderness', 'endgame']).default('settled'),

@@ -1,0 +1,8 @@
+{
+  "id": "raw-hide",
+  "name": "Raw Hide",
+  "description": "Still warm at one end. It wants scraping before it wants sewing.",
+  "category": "base_material",
+  "stackable": true,
+  "value": 3
+}

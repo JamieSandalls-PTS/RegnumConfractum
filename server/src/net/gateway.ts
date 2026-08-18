@@ -49,6 +49,7 @@ import {
   isNight,
   roundHour,
   type ObjectiveDef,
+  type RecipeDef,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
@@ -189,6 +190,21 @@ interface ConnState {
   /** Endgame zones (D-206): fallen but revivable until the window closes.
    * Null everywhere else — ordinary deaths ghost immediately. */
   downed: { expiresAtTick: number } | null;
+  /**
+   * What this connection is working at (MR2). Being occupied is the price of
+   * gathering and crafting: you are stationary and busy for a known interval,
+   * which is exactly when someone would choose to be behind you (D-529).
+   */
+  work: {
+    activity: 'harvest' | 'craft';
+    what: string;
+    /** Node entity id, or the recipe id. */
+    targetId: number | string;
+    startedAtTick: number;
+    endsAtTick: number;
+    /** Where they stood when they began — moving cancels it. */
+    at: { x: number; y: number };
+  } | null;
   /** Serialises message handling per connection. */
   queue: Promise<void>;
 }
@@ -400,6 +416,8 @@ export class GameServer {
     this.combatTick();
     this.carryTick();
     await this.roundTick();
+    this.nodeTick();
+    await this.workTick();
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
       await this.flushDirty();
@@ -502,6 +520,10 @@ export class GameServer {
     });
     this.broadcastRoundState();
     this.roundDayNightTick(false); // set the light, announce nothing
+    // The world's resources are per-round, like everything else it holds
+    // (D-523): a fresh map every time, with nothing carried over.
+    this.despawnNodes();
+    this.spawnNodes();
     return true;
   }
 
@@ -623,6 +645,8 @@ export class GameServer {
     for (const conn of this.conns) {
       if (conn.character) stripped += await this.store.stripCharacterItems(conn.character.id);
     }
+    this.despawnNodes();
+    for (const conn of this.conns) this.interruptWork(conn, 'the round ended');
     this.round!.reset();
     this.roundResetAtTick = null;
     this.roundStartedAtTick = this.world.tick;
@@ -677,6 +701,280 @@ export class GameServer {
           : `You hear fighting somewhere ${where}, carried thin on the air.`,
       });
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Gathering and crafting (MR2)
+  //
+  // Both are TIMED and INTERRUPTIBLE, and that is the design rather than a
+  // detail: standing still for a known interval is what makes a spoke
+  // dangerous and what makes the buddy system worth something. Work is
+  // cancelled by moving, by being struck, and by dying.
+  // -------------------------------------------------------------------------
+
+  /** Puts every authored node into the world. Called at round start. */
+  private spawnNodes(): void {
+    for (const areaId of this.world.areaIds()) {
+      const def = this.world.getAreaDef(areaId);
+      for (const placed of def.nodes) {
+        const node = this.content.nodes.get(placed.type);
+        if (!node) continue; // the loader already refused unknown types
+        const { entity } = this.world.spawn(areaId, {
+          characterId: null,
+          name: node.descriptor,
+          npcDescriptor: node.descriptor,
+          objectKind: 'node',
+          nodeType: node.id,
+          nodeCharges: node.charges,
+          pos: { x: placed.x, y: placed.y },
+        });
+        // Anyone already standing here must be TOLD. Spawning into the world
+        // without broadcasting leaves the nodes invisible to every client
+        // that snapshotted before the round began — which is all of them,
+        // since the round is what spawns them.
+        this.broadcastPlane(areaId, false, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [{ type: 'entity_entered', entity: toWireEntity(entity, node.descriptor) }],
+        });
+      }
+    }
+  }
+
+  /** Removes every node. Called at round reset, before the next spawn. */
+  private despawnNodes(): void {
+    for (const areaId of this.world.areaIds()) {
+      for (const e of this.world.entitiesIn(areaId)) {
+        if (e.objectKind !== 'node') continue;
+        const event = this.world.despawn(e.id);
+        if (event) {
+          this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [event] });
+        }
+      }
+    }
+  }
+
+  /** Refills spent nodes whose timer has come round (within the round). */
+  private nodeTick(): void {
+    for (const areaId of this.world.areaIds()) {
+      for (const e of this.world.entitiesIn(areaId)) {
+        if (e.objectKind !== 'node' || e.nodeRefillsAt === null || e.nodeRefillsAt === undefined) {
+          continue;
+        }
+        if (this.world.tick < e.nodeRefillsAt) continue;
+        const def = this.content.nodes.get(e.nodeType!);
+        e.nodeCharges = def?.charges ?? 1;
+        e.nodeRefillsAt = null;
+      }
+    }
+  }
+
+  private async handleHarvest(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'harvest' }>,
+  ): Promise<void> {
+    if (!conn.character || conn.entityId === null || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId);
+    if (!self || self.ghost) return this.fail(conn, 'not_dead', 'the dead gather nothing');
+    if (conn.work) return this.fail(conn, 'already_working', 'you are busy');
+    const target = this.world.getEntity(msg.targetEntityId);
+    if (!target || target.objectKind !== 'node') {
+      return this.fail(conn, 'bad_target', 'there is nothing to work there');
+    }
+    if (chebyshev(self.pos, target.pos) > 1) {
+      return this.fail(conn, 'not_adjacent', 'too far to reach');
+    }
+    if ((target.nodeCharges ?? 0) <= 0) {
+      return this.fail(conn, 'node_spent', 'there is nothing left in it');
+    }
+    const def = this.content.nodes.get(target.nodeType!);
+    if (!def) return this.fail(conn, 'bad_target', 'there is nothing to work there');
+    conn.work = {
+      activity: 'harvest',
+      what: def.descriptor,
+      targetId: target.id,
+      startedAtTick: this.world.tick,
+      endsAtTick: this.world.tick + def.effortTicks,
+      at: { ...self.pos },
+    };
+    this.sendWork(conn, conn.work, 0, false, null);
+  }
+
+  private async handleCraft(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'craft' }>,
+  ): Promise<void> {
+    if (!conn.character || conn.entityId === null || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId);
+    if (!self || self.ghost) return this.fail(conn, 'not_dead', 'the dead make nothing');
+    if (conn.work) return this.fail(conn, 'already_working', 'you are busy');
+    const recipe = this.content.recipes.get(msg.recipeId);
+    if (!recipe) return this.fail(conn, 'no_such_recipe', 'you do not know that');
+    if (recipe.station !== 'anywhere' && !this.atStation(conn, recipe.station)) {
+      return this.fail(conn, 'wrong_station', `that needs the ${recipe.station}`);
+    }
+    // Materials are checked NOW and again on completion. Checking only at the
+    // start would let two crafts run off one pile of ore; checking only at the
+    // end would waste the worker's time silently.
+    if (!(await this.hasMaterials(conn, recipe))) {
+      return this.fail(conn, 'missing_materials', 'you do not have what that takes');
+    }
+    conn.work = {
+      activity: 'craft',
+      what: recipe.name,
+      targetId: recipe.id,
+      startedAtTick: this.world.tick,
+      endsAtTick: this.world.tick + recipe.effortTicks,
+      at: { ...self.pos },
+    };
+    this.sendWork(conn, conn.work, 0, false, null);
+  }
+
+  private async hasMaterials(conn: ConnState, recipe: RecipeDef): Promise<boolean> {
+    const held = await this.store.getItemsByCharacter(conn.character!.id);
+    for (const need of recipe.inputs) {
+      const have = held
+        .filter((i) => i.templateId === need.item)
+        .reduce((n, i) => n + i.qty, 0);
+      if (have < need.quantity) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Whether the player stands at a given station. For now a station is the
+   * town itself: the buildings are authored geometry with no identity of
+   * their own yet, so this is deliberately coarse and honest about it.
+   * ⚠ MR3 should make stations real placed objects — until then "the
+   * workshop" means "in Ashfold".
+   */
+  private atStation(conn: ConnState, _station: string): boolean {
+    return conn.areaId === 'round-town';
+  }
+
+  /**
+   * Reports on a job. The activity and subject are passed IN rather than read
+   * from `conn.work`, because completion clears the slot first — reading it
+   * there reported every finished craft as a harvest of nothing.
+   */
+  private sendWork(
+    conn: ConnState,
+    job: { activity: 'harvest' | 'craft'; what: string },
+    progress: number,
+    done: boolean,
+    interrupted: string | null,
+  ): void {
+    this.send(conn, {
+      t: 'work',
+      activity: job.activity,
+      what: job.what,
+      progress,
+      done,
+      interrupted,
+    });
+  }
+
+  /** Cancels work in progress, telling the worker why. */
+  private interruptWork(conn: ConnState, why: string): void {
+    if (!conn.work) return;
+    this.sendWork(conn, conn.work, 0, true, why);
+    conn.work = null;
+  }
+
+  /** Advances every occupied connection; call once per tick. */
+  private async workTick(): Promise<void> {
+    for (const conn of [...this.conns]) {
+      const work = conn.work;
+      if (!work || !conn.character || conn.entityId === null) continue;
+      const self = this.world.getEntity(conn.entityId);
+      if (!self || self.ghost) {
+        this.interruptWork(conn, 'you died');
+        continue;
+      }
+      // Moving abandons the work. Checked by POSITION rather than by intent so
+      // that any cause of movement — being carried, a transition — counts.
+      if (self.pos.x !== work.at.x || self.pos.y !== work.at.y) {
+        this.interruptWork(conn, 'you moved');
+        continue;
+      }
+      if (this.world.tick < work.endsAtTick) {
+        // A progress ping about twice a second; the client draws the bar.
+        if (this.world.tick % 5 === 0) {
+          const span = work.endsAtTick - work.startedAtTick;
+          this.sendWork(conn, work, Math.min(1, (this.world.tick - work.startedAtTick) / span), false, null);
+        }
+        continue;
+      }
+      conn.work = null;
+      if (work.activity === 'harvest') await this.finishHarvest(conn, work, work.targetId as number);
+      else await this.finishCraft(conn, work, work.targetId as string);
+    }
+  }
+
+  private async finishHarvest(
+    conn: ConnState,
+    job: { activity: 'harvest' | 'craft'; what: string },
+    nodeEntityId: number,
+  ): Promise<void> {
+    const node = this.world.getEntity(nodeEntityId);
+    if (!node || node.objectKind !== 'node' || (node.nodeCharges ?? 0) <= 0) {
+      this.sendWork(conn, job, 1, true, 'there was nothing left in it');
+      return;
+    }
+    const def = this.content.nodes.get(node.nodeType!);
+    if (!def) return;
+    node.nodeCharges = (node.nodeCharges ?? 1) - 1;
+    if (node.nodeCharges <= 0) node.nodeRefillsAt = this.world.tick + def.respawnTicks;
+    await this.store.grantItem(conn.character!.id, def.yields, def.quantity);
+    // Night pays half again for what is won outdoors (D-528) — gainXp applies
+    // the multiplier, so gathering inherits it without knowing about it.
+    this.gainXp(conn, 4);
+    this.countDeed(conn);
+    await this.store.appendEvent('harvest', {
+      characterId: conn.character!.id,
+      node: def.id,
+      yielded: def.yields,
+      areaId: conn.areaId,
+    });
+    this.sendWork(conn, job, 1, true, null);
+    await this.sendInventory(conn);
+    this.sendStatus(conn);
+  }
+
+  private async finishCraft(
+    conn: ConnState,
+    job: { activity: 'harvest' | 'craft'; what: string },
+    recipeId: string,
+  ): Promise<void> {
+    const recipe = this.content.recipes.get(recipeId);
+    if (!recipe) return;
+    // Re-checked on completion: the materials may have been given away, spent
+    // on another craft, or looted off a corpse while this one was working.
+    if (!(await this.hasMaterials(conn, recipe))) {
+      this.sendWork(conn, job, 1, true, 'the materials were gone when you reached for them');
+      return;
+    }
+    for (const need of recipe.inputs) {
+      for (let i = 0; i < need.quantity; i++) {
+        await this.store.consumeOneItem(conn.character!.id, need.item);
+      }
+    }
+    await this.store.grantItem(conn.character!.id, recipe.output, recipe.outputQuantity);
+    this.gainXp(conn, 6);
+    this.countDeed(conn, 2);
+    await this.store.appendEvent('craft', {
+      characterId: conn.character!.id,
+      recipe: recipe.id,
+      output: recipe.output,
+      areaId: conn.areaId,
+    });
+    this.sendWork(conn, job, 1, true, null);
+    await this.sendInventory(conn);
+    this.sendStatus(conn);
   }
 
   /** A death the round cares about. No respawn, so this is terminal. */
@@ -948,6 +1246,7 @@ export class GameServer {
       vitals: null,
       injuries: [],
       downed: null,
+      work: null,
       queue: Promise.resolve(),
     };
     this.conns.add(conn);
@@ -1016,6 +1315,13 @@ export class GameServer {
         return this.handleHostile(conn, msg);
       case 'attack':
         return this.handleAttack(conn, msg);
+      case 'harvest':
+        return this.handleHarvest(conn, msg);
+      case 'craft':
+        return this.handleCraft(conn, msg);
+      case 'cancel_work':
+        this.interruptWork(conn, 'you stopped');
+        return;
       case 'treat':
         return this.handleTreat(conn, msg);
       case 'respawn':
@@ -1191,6 +1497,12 @@ export class GameServer {
     const variant = this.contestRng.int(0, ATTACK_VARIANTS - 1);
     this.enterCombat(self, conn.areaId);
     this.enterCombat(target, conn.areaId);
+    // A blow ends whatever the victim was doing. This is what makes standing
+    // still to gather a real risk rather than a timer (MR2).
+    const struck = [...(this.connsByArea.get(conn.areaId) ?? [])].find(
+      (c) => c.entityId === target.id,
+    );
+    if (struck) this.interruptWork(struck, 'you were struck');
     // The blow is heard, not the intent to strike (D-531). This belongs to
     // the SWING, not to the hostility declaration — a declaration is speech
     // and already travels through the speech pipeline.
@@ -2518,6 +2830,18 @@ export class GameServer {
     await this.store.appendEvent('enter_world', { characterId: character.id, areaId });
     await this.sendSnapshot(conn);
     this.sendStatus(conn);
+    this.send(conn, {
+      t: 'recipes',
+      recipes: [...this.content.recipes.values()].map((r) => ({
+        id: r.id,
+        name: r.name,
+        output: r.output,
+        outputQuantity: r.outputQuantity,
+        inputs: r.inputs,
+        station: r.station,
+        effortTicks: r.effortTicks,
+      })),
+    });
     this.onAreaEnter?.(areaId, entity.id);
   }
 

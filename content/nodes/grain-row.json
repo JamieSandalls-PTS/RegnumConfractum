@@ -1,0 +1,9 @@
+{
+  "id": "grain-row",
+  "descriptor": "a row of thin, wind-bent grain",
+  "yields": "field-grain",
+  "quantity": 2,
+  "effortTicks": 30,
+  "charges": 3,
+  "respawnTicks": 800
+}

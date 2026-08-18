@@ -1,0 +1,9 @@
+{
+  "id": "timber-stand",
+  "descriptor": "a stand of close-grown timber",
+  "yields": "rough-timber",
+  "quantity": 1,
+  "effortTicks": 35,
+  "charges": 3,
+  "respawnTicks": 900
+}

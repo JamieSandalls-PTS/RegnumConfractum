@@ -1,0 +1,15 @@
+{
+  "id": "coarse-bread",
+  "name": "Bake coarse bread",
+  "output": "coarse-bread",
+  "outputQuantity": 3,
+  "inputs": [
+    {
+      "item": "field-grain",
+      "quantity": 2
+    }
+  ],
+  "station": "storehouse",
+  "effortTicks": 60,
+  "notes": "Bread is made where the stores are, so feeding the cast is a public act. Nothing rewards it (D-303) - the only return on baking for other people is that they saw you do it."
+}

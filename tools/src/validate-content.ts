@@ -7,12 +7,17 @@ import {
   ItemTemplateSchema,
   ObjectiveSchema,
   ROUND_MIN_CAST,
+  RecipeSchema,
+  ResourceNodeSchema,
+  findOrphans,
   SkillsFileSchema,
   SpellsFileSchema,
   type AreaDef,
   type ClassDef,
   type FeatDef,
   type ObjectiveDef,
+  type RecipeDef,
+  type ResourceNodeDef,
   type SpellDef,
 } from '@rc/shared';
 
@@ -114,6 +119,8 @@ export function validateContent(contentDir: string): ValidationResult {
   }
 
   const itemIds = new Set<string>();
+  /** Items with their categories, for the D-210 orphan graph. */
+  const itemsForGraph: { id: string; category: string }[] = [];
   for (const file of listJson(join(contentDir, 'items'))) {
     checked++;
     let data: unknown;
@@ -133,6 +140,7 @@ export function validateContent(contentDir: string): ValidationResult {
       continue;
     }
     itemIds.add(parsed.data.id);
+    itemsForGraph.push({ id: parsed.data.id, category: parsed.data.category });
   }
 
   // Objectives (D-521): the antagonist's possible orders. Validated for
@@ -185,6 +193,92 @@ export function validateContent(contentDir: string): ValidationResult {
         `no live objective is playable at the minimum cast of ${ROUND_MIN_CAST} — a round could never start`,
       );
     }
+  }
+
+  // --- Gathering and crafting (MR2) ---------------------------------------
+  const nodes: ResourceNodeDef[] = [];
+  const nodeIds = new Set<string>();
+  for (const file of listJson(join(contentDir, 'nodes'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = ResourceNodeSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    if (nodeIds.has(parsed.data.id)) {
+      errors.push(`${file}: duplicate node id '${parsed.data.id}'`);
+      continue;
+    }
+    nodeIds.add(parsed.data.id);
+    nodes.push(parsed.data);
+  }
+
+  const recipes: RecipeDef[] = [];
+  const recipeIds = new Set<string>();
+  for (const file of listJson(join(contentDir, 'recipes'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = RecipeSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    if (recipeIds.has(parsed.data.id)) {
+      errors.push(`${file}: duplicate recipe id '${parsed.data.id}'`);
+      continue;
+    }
+    recipeIds.add(parsed.data.id);
+    recipes.push(parsed.data);
+  }
+
+  for (const n of nodes) {
+    if (!itemIds.has(n.yields)) {
+      errors.push(`node '${n.id}' yields unknown item '${n.yields}'`);
+    }
+  }
+  for (const r of recipes) {
+    if (!itemIds.has(r.output)) {
+      errors.push(`recipe '${r.id}' outputs unknown item '${r.output}'`);
+    }
+    for (const i of r.inputs) {
+      if (!itemIds.has(i.item)) {
+        errors.push(`recipe '${r.id}' consumes unknown item '${i.item}'`);
+      }
+    }
+    if (r.inputs.some((i) => i.item === r.output)) {
+      // A recipe that eats its own output can be run for free or forever;
+      // either way it is a duplication bug wearing a content hat.
+      errors.push(`recipe '${r.id}' consumes its own output '${r.output}'`);
+    }
+  }
+
+  // INVARIANT 2 (D-210): every item has a consumer. This has been declared
+  // since Phase 2 and could not be checked until recipes existed. It can now.
+  if (recipes.length > 0 || nodes.length > 0) {
+    errors.push(
+      ...findOrphans({
+        items: itemsForGraph,
+        recipes: recipes.map((r) => ({ output: r.output, inputs: r.inputs })),
+        nodes: nodes.map((n) => ({ yields: n.yields })),
+        // Authored into the world by hand or by scenario rather than made:
+        // the signet is an objective target, the note and parchment are the
+        // writing system's own, and bread is also baked.
+        otherwiseUsed: ['tarnished-signet', 'written-note', 'parchment', 'rusted-shortsword'],
+      }),
+    );
   }
 
   const classIds = new Set<string>();

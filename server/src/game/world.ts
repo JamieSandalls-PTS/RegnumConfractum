@@ -33,7 +33,12 @@ export interface WorldEntity {
    * dropped gear, or a walking corpse. Null for everything else. Zombies go
    * out on the wire as 'npc'; corpse and pile have wire kinds of their own.
    */
-  objectKind?: 'corpse' | 'pile' | 'zombie' | null;
+  objectKind?: 'corpse' | 'pile' | 'zombie' | 'node' | null;
+  /** For nodes (MR2): which ResourceNodeDef this is, and what it has left. */
+  nodeType?: string;
+  nodeCharges?: number;
+  /** Tick a spent node refills. Null while it still has charges. */
+  nodeRefillsAt?: number | null;
   /** The dead character this corpse/pile/zombie belongs to — descriptors for
    * the dead resolve through the same per-observer knowledge as the living. */
   corpseOfCharacterId?: string | null;
@@ -78,7 +83,7 @@ interface AreaRuntime {
 /** Wire form for a specific observer — the descriptor is their knowledge. */
 export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
   const kind =
-    e.objectKind === 'corpse' || e.objectKind === 'pile'
+    e.objectKind === 'corpse' || e.objectKind === 'pile' || e.objectKind === 'node'
       ? e.objectKind
       : e.characterId === null
         ? 'npc'
@@ -155,7 +160,9 @@ export class World {
       characterId: string | null;
       name: string;
       npcDescriptor?: string;
-      objectKind?: 'corpse' | 'pile' | 'zombie';
+      objectKind?: 'corpse' | 'pile' | 'zombie' | 'node';
+      nodeType?: string;
+      nodeCharges?: number;
       corpseOfCharacterId?: string;
       appearanceSeed?: number;
       pos: Vec2;
@@ -173,6 +180,7 @@ export class World {
       ...(opts.npcDescriptor ? { npcDescriptor: opts.npcDescriptor } : {}),
       ...(opts.objectKind ? { objectKind: opts.objectKind } : {}),
       ...(opts.corpseOfCharacterId ? { corpseOfCharacterId: opts.corpseOfCharacterId } : {}),
+      ...(opts.nodeType ? { nodeType: opts.nodeType, nodeCharges: opts.nodeCharges ?? 1, nodeRefillsAt: null } : {}),
       appearanceSeed: opts.appearanceSeed ?? 0,
       pos: { ...at },
       facing: opts.facing ?? 's',

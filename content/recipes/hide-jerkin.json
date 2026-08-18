@@ -1,0 +1,14 @@
+{
+  "id": "hide-jerkin",
+  "name": "Cure a jerkin",
+  "output": "hide-jerkin",
+  "outputQuantity": 1,
+  "inputs": [
+    {
+      "item": "raw-hide",
+      "quantity": 2
+    }
+  ],
+  "station": "workshop",
+  "effortTicks": 80
+}

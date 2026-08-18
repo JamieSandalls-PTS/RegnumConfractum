@@ -1,0 +1,15 @@
+{
+  "id": "bandage",
+  "name": "Boil a bandage",
+  "output": "bandage",
+  "outputQuantity": 2,
+  "inputs": [
+    {
+      "item": "bitterleaf",
+      "quantity": 1
+    }
+  ],
+  "station": "anywhere",
+  "effortTicks": 40,
+  "notes": "Craftable in the field on purpose. The infirmary version is not better BANDAGE, it is better TREATMENT (D-530) - the potency lives in the act of healing, not in the cloth."
+}

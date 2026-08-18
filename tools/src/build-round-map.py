@@ -169,13 +169,16 @@ areas['round-town'] = {
 }
 
 # --- THE FOUR SPOKES -------------------------------------------------------
+# Each spoke yields something the others do not, so nobody can cover the map
+# alone and the cast must divide the work (D-529). The second node type on the
+# farm and the wood is what makes those two spokes worth a second trip.
 spokes = [
-    ('round-farm',  'The Ashfold Furrows', 'n', 'g', 'T', 100, 2200),
-    ('round-mine',  'The Redcut',          'e', ',', 'r', 220, 3300),
-    ('round-wood',  'Thornhallow',         'w', 'g', 'T', 370, 4400),
-    ('round-south', 'The Sunken Approach',  's', ',', 'r', 150, 5500),
+    ('round-farm',  'The Ashfold Furrows', 'n', 'g', 'T', 100, 2200, ['grain-row', 'herb-patch']),
+    ('round-mine',  'The Redcut',          'e', ',', 'r', 220, 3300, ['iron-vein']),
+    ('round-wood',  'Thornhallow',         'w', 'g', 'T', 370, 4400, ['timber-stand', 'game-trail']),
+    ('round-south', 'The Sunken Approach',  's', ',', 'r', 150, 5500, ['iron-vein']),
 ]
-for aid, name, side, floor, obstacle, density, seed in spokes:
+for aid, name, side, floor, obstacle, density, seed, node_types in spokes:
     g = blank(floor)
     border(g)
     # The gate facing town is on the OPPOSITE edge from the spoke's direction:
@@ -185,6 +188,22 @@ for aid, name, side, floor, obstacle, density, seed in spokes:
     scatter(g, obstacle, seed, density)
     gx, gy = {'n': (MID, H - 1), 's': (MID, 0), 'e': (0, MID), 'w': (W - 1, MID)}[side]
     seal_unreachable(g, (MID, MID), [(gx, gy), (gx - 1, gy) if gy in (0, H - 1) else (gx, gy - 1)])
+    # Nodes are spread by DEPTH, not scattered evenly: the far end of a spoke
+    # must be worth the walk, or "how deep do I go" is not a decision (D-530).
+    nodes = []
+    a = seed ^ 0x5f5f
+    entry_y = H - 1 if side == 'n' else 0 if side == 's' else None
+    for i in range(18):
+        a = (a * 1103515245 + 12345) & 0x7FFFFFFF
+        x = 3 + (a >> 6) % (W - 6)
+        a = (a * 1103515245 + 12345) & 0x7FFFFFFF
+        y = 3 + (a >> 6) % (H - 6)
+        if g[y][x] not in WALKABLE:
+            continue
+        if any(n['x'] == x and n['y'] == y for n in nodes):
+            continue
+        nodes.append({"x": x, "y": y, "type": node_types[i % len(node_types)]})
+
     areas[aid] = {
         "id": aid,
         "name": name,
@@ -197,6 +216,7 @@ for aid, name, side, floor, obstacle, density, seed in spokes:
         "zone": "wilderness",
         # Night reaches these, and pays 1.5x for the risk (D-528).
         "outdoor": True,
+        "nodes": nodes,
         "transitions": [],
     }
 

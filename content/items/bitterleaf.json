@@ -1,0 +1,8 @@
+{
+  "id": "bitterleaf",
+  "name": "Bitterleaf",
+  "description": "A grey-green sprig that smells of iron. Chewed by the desperate, boiled by the competent.",
+  "category": "base_material",
+  "stackable": true,
+  "value": 4
+}

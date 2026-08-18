@@ -1,0 +1,9 @@
+{
+  "id": "iron-vein",
+  "descriptor": "a seam of rust-veined rock",
+  "yields": "iron-ore",
+  "quantity": 1,
+  "effortTicks": 40,
+  "charges": 3,
+  "respawnTicks": 900
+}

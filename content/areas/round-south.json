@@ -142,6 +142,98 @@
   "lighting": "overcast",
   "zone": "wilderness",
   "outdoor": true,
+  "nodes": [
+    {
+      "x": 55,
+      "y": 12,
+      "type": "iron-vein"
+    },
+    {
+      "x": 71,
+      "y": 54,
+      "type": "iron-vein"
+    },
+    {
+      "x": 62,
+      "y": 7,
+      "type": "iron-vein"
+    },
+    {
+      "x": 25,
+      "y": 49,
+      "type": "iron-vein"
+    },
+    {
+      "x": 23,
+      "y": 17,
+      "type": "iron-vein"
+    },
+    {
+      "x": 92,
+      "y": 60,
+      "type": "iron-vein"
+    },
+    {
+      "x": 88,
+      "y": 94,
+      "type": "iron-vein"
+    },
+    {
+      "x": 71,
+      "y": 93,
+      "type": "iron-vein"
+    },
+    {
+      "x": 36,
+      "y": 56,
+      "type": "iron-vein"
+    },
+    {
+      "x": 38,
+      "y": 68,
+      "type": "iron-vein"
+    },
+    {
+      "x": 74,
+      "y": 79,
+      "type": "iron-vein"
+    },
+    {
+      "x": 18,
+      "y": 21,
+      "type": "iron-vein"
+    },
+    {
+      "x": 18,
+      "y": 31,
+      "type": "iron-vein"
+    },
+    {
+      "x": 53,
+      "y": 4,
+      "type": "iron-vein"
+    },
+    {
+      "x": 67,
+      "y": 83,
+      "type": "iron-vein"
+    },
+    {
+      "x": 65,
+      "y": 37,
+      "type": "iron-vein"
+    },
+    {
+      "x": 37,
+      "y": 31,
+      "type": "iron-vein"
+    },
+    {
+      "x": 26,
+      "y": 20,
+      "type": "iron-vein"
+    }
+  ],
   "transitions": [
     {
       "x": 50,

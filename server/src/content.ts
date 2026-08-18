@@ -9,6 +9,8 @@ import {
   ItemTemplateSchema,
   LanguagesFileSchema,
   ObjectiveSchema,
+  RecipeSchema,
+  ResourceNodeSchema,
   SkillsFileSchema,
   SpellsFileSchema,
   type AreaDef,
@@ -18,6 +20,8 @@ import {
   type ItemTemplate,
   type Language,
   type ObjectiveDef,
+  type RecipeDef,
+  type ResourceNodeDef,
   type SkillDef,
   type SpellDef,
 } from '@rc/shared';
@@ -42,6 +46,10 @@ export interface Content {
   /** The antagonist's possible orders (D-521). Empty means no round can
    * start — the lobby fills and waits rather than starting without one. */
   objectives: ObjectiveDef[];
+  /** Resource node behaviour, keyed by id; areas place them (MR2). */
+  nodes: Map<string, ResourceNodeDef>;
+  /** What may be made, keyed by id. */
+  recipes: Map<string, RecipeDef>;
   /** Lua sources by script id (content/scripts/<id>.lua), D-109. */
   scripts: Map<string, string>;
 }
@@ -164,6 +172,28 @@ export function loadContent(contentDir: string): Content {
     objectives.push(parsed.data);
   }
 
+  const nodes = new Map<string, ResourceNodeDef>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'nodes'))) {
+    const parsed = ResourceNodeSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (nodes.has(parsed.data.id)) throw new Error(`${file}: duplicate node id '${parsed.data.id}'`);
+    nodes.set(parsed.data.id, parsed.data);
+  }
+
+  const recipes = new Map<string, RecipeDef>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'recipes'))) {
+    const parsed = RecipeSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (recipes.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate recipe id '${parsed.data.id}'`);
+    }
+    recipes.set(parsed.data.id, parsed.data);
+  }
+
   const scripts = new Map<string, string>();
   try {
     for (const f of readdirSync(join(contentDir, 'scripts')).filter((f) => f.endsWith('.lua'))) {
@@ -183,6 +213,11 @@ export function loadContent(contentDir: string): Content {
         throw new Error(`area '${area.id}' transition targets unknown area '${tr.toArea}'`);
       }
     }
+    for (const placed of area.nodes) {
+      if (!nodes.has(placed.type)) {
+        throw new Error(`area '${area.id}' places unknown node type '${placed.type}'`);
+      }
+    }
   }
 
   if (areas.size === 0) throw new Error(`no areas found under ${contentDir}/areas`);
@@ -196,6 +231,8 @@ export function loadContent(contentDir: string): Content {
     feats,
     spells,
     objectives,
+    nodes,
+    recipes,
     scripts,
   };
 }

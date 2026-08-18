@@ -61,6 +61,10 @@ export class BotClient {
   readonly roundsEnded: Extract<ServerMessage, { t: 'round_ended' }>[] = [];
   /** Everything this client HEARD (D-531). Never carries an identity. */
   readonly sounds: Extract<ServerMessage, { t: 'sound' }>[] = [];
+  /** Every work report (MR2) — progress, completion, and interruptions. */
+  readonly work: Extract<ServerMessage, { t: 'work' }>[] = [];
+  /** The craft catalogue, sent on entering the world. */
+  recipes: Extract<ServerMessage, { t: 'recipes' }>['recipes'] = [];
   area: AreaMirror | null = null;
   you: number | null = null;
   inventory: WireItem[] = [];
@@ -328,6 +332,14 @@ export class BotClient {
       }
       case 'sound': {
         this.sounds.push(msg);
+        break;
+      }
+      case 'work': {
+        this.work.push(msg);
+        break;
+      }
+      case 'recipes': {
+        this.recipes = msg.recipes;
         break;
       }
       default:

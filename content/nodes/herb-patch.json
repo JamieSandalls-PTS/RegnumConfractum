@@ -1,0 +1,9 @@
+{
+  "id": "herb-patch",
+  "descriptor": "a low tangle of bitterleaf",
+  "yields": "bitterleaf",
+  "quantity": 1,
+  "effortTicks": 25,
+  "charges": 2,
+  "respawnTicks": 700
+}

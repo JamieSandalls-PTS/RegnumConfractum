@@ -142,6 +142,88 @@
   "lighting": "overcast",
   "zone": "wilderness",
   "outdoor": true,
+  "nodes": [
+    {
+      "x": 26,
+      "y": 49,
+      "type": "timber-stand"
+    },
+    {
+      "x": 96,
+      "y": 79,
+      "type": "game-trail"
+    },
+    {
+      "x": 40,
+      "y": 47,
+      "type": "timber-stand"
+    },
+    {
+      "x": 13,
+      "y": 58,
+      "type": "game-trail"
+    },
+    {
+      "x": 85,
+      "y": 41,
+      "type": "timber-stand"
+    },
+    {
+      "x": 85,
+      "y": 73,
+      "type": "game-trail"
+    },
+    {
+      "x": 73,
+      "y": 37,
+      "type": "timber-stand"
+    },
+    {
+      "x": 32,
+      "y": 16,
+      "type": "game-trail"
+    },
+    {
+      "x": 45,
+      "y": 48,
+      "type": "timber-stand"
+    },
+    {
+      "x": 41,
+      "y": 22,
+      "type": "game-trail"
+    },
+    {
+      "x": 23,
+      "y": 88,
+      "type": "timber-stand"
+    },
+    {
+      "x": 84,
+      "y": 58,
+      "type": "game-trail"
+    },
+    {
+      "x": 32,
+      "y": 52,
+      "type": "game-trail"
+    },
+    {
+      "x": 49,
+      "y": 16,
+      "type": "game-trail"
+    },
+    {
+      "x": 14,
+      "y": 18,
+      "type": "timber-stand"
+    },
+    {
+      "x": 21,
+      "y": 36,
+      "type": "game-trail"
+    }
+  ],
   "transitions": [
     {
       "x": 99,
