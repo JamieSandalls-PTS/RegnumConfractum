@@ -1685,3 +1685,51 @@ toppling in front of whoever just walked in.
 stays out of the floor, bones keep their length, a struck body travels
 with the blow and an unstruck one does not, direction is respected, and a
 settled body costs nothing and never drifts.
+
+### D-519: Garments are cut to the body, not to nominal height
+
+**Stakeholder, 2026-08-18:** "the cape is not positioned the same on larger
+models... whatever position the cape is in for the small body type, it
+should be anchored at the same relative Y for the larger body." They also
+set the review standard: **all four archetypes, from eight directions.**
+
+**Two independent scaling faults, both measured across 240 seeds:**
+
+1. **The anchor and the length did not track each other.** Leg length
+   carries a per-archetype `limb` multiplier, so the point the cape hangs
+   from ranges between ~0.76 and ~0.85 of nominal height — but the cape's
+   length was a fixed `height × 0.62`. The hem therefore landed in a
+   different place on every build: a **54%** spread. The cape is now cut
+   from `dims.capeAnchorY`, a rig-derived height, so the hem sits at the
+   same point on the leg for everyone (spread 5%).
+
+2. **The cut was driven by bulk.** `shoulderW × 1.6 + bodyW × 0.95` let
+   body width dominate, and bulk varies 0.2→0.75 against much smaller
+   shoulder variation. A brute's cape was 1.9× its own shoulder span
+   against an ascetic's 1.5× — the same garment read as a cloak on one
+   build and a blanket on another (**47%** spread). It is now
+   `shoulderW × 2.9 + bodyW × 0.25`: cut to the shoulders it hangs from,
+   with a modest allowance for girth (spread 6%).
+
+**The collar is a neck ring and is sized off the head.** The old
+`max(shoulderW × 0.8, bodyW × 0.42)` both doubled across builds and
+switched which term dominated — a discontinuity. On heavy bodies the
+pinned ring grew wide enough to carry fabric up around the head, which is
+what the stakeholder's screenshot showed. Now `headH × 0.62 +
+shoulderW × 0.16` (spread 12%, and continuous).
+
+**The contact sheet was decapitating tall builds.** `sheet()` framed the
+camera at a fixed height and zoom, so a 1.97m brute was cut off at the
+shoulders — the review tool was hiding the very thing under review. It now
+frames from the character's own height.
+
+**The lesson worth keeping:** `appearance.height` is NOT the rendered
+height of the rig. Anything that must sit at a consistent point on the
+body has to be measured against the SKELETON, and anything that hangs
+from the shoulders has to be cut from the shoulder span. Both are now
+exposed via `measurements` so the cloth workbench (D-517) uses the same
+basis.
+
+`client/test/garment-scale.test.ts` asserts the proportions across 240
+seeds spanning every archetype, including the brute-versus-ascetic
+extreme. It fails against the old formulas.

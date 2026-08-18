@@ -60,10 +60,11 @@ export function presetConfig(preset: GarmentConfig['preset']): GarmentConfig {
         layout: 'collar',
         cols: 11,
         rows: 10,
-        // Expressed in body units: width = 1.6·shoulder + 0.95·bodyW.
-        width: 1.6,
-        height: 0.62,
-        collarRadius: 0.42,
+        // Body-relative: width = 2.9·shoulder + 0.25·bodyW, length =
+        // 0.76·anchor height, collar = 0.62·headH + 0.16·shoulder.
+        width: 2.9,
+        height: 0.76,
+        collarRadius: 0.62,
         shoulderHalfWidth: 1.0,
         colliders: ['chest', 'pelvis', 'shoulder left', 'shoulder right'],
         backPlane: { enabled: true, maxZ: -0.12, exemptAboveY: 0.26 },
@@ -138,9 +139,14 @@ export class LabGarment {
     switch (c.preset) {
       case 'cape':
         return {
-          width: m.shoulderW * c.width + m.bodyW * 0.95,
-          height: m.height * c.height,
-          collar: Math.max(m.shoulderW * 0.8, m.bodyW * c.collarRadius),
+          width: m.shoulderW * c.width + m.bodyW * 0.25,
+          // Length is a fraction of the ANCHOR height, not of nominal
+          // body height: the anchor's own height varies with limb length,
+          // so sizing off it is what keeps the hem in the same place on
+          // every build (D-519).
+          height: m.capeAnchorY * c.height,
+          // A neck ring, sized off the head rather than off bulk.
+          collar: m.headH * c.collarRadius + m.shoulderW * 0.16,
           shoulder: m.shoulderW * c.shoulderHalfWidth + m.bodyW * 0.12,
         };
       case 'robe skirt':

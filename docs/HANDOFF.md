@@ -1,5 +1,28 @@
 # Session handoff — updated 2026-08-18
 
+## Garment scaling (D-519) — read before touching any hanging garment
+
+**`appearance.height` is NOT the rendered height of the rig.** Leg length
+carries a per-archetype `limb` multiplier, so the cape anchor sits between
+~0.76 and ~0.85 of nominal height. Size anything that must sit at a
+consistent point on the body against `dims.capeAnchorY` (exposed via
+`measurements`), never against `appearance.height`.
+
+**Cut hanging garments from the SHOULDER SPAN, not bulk.** Bulk varies
+0.2→0.75; shoulder width varies far less. A `bodyW`-dominated cut made a
+brute's cape 1.9× its own shoulder span against an ascetic's 1.5×.
+
+Current cape: `len = capeAnchorY × 0.76`, `width = shoulderW × 2.9 +
+bodyW × 0.25`, `collar = headH × 0.62 + shoulderW × 0.16`.
+Pinned by `client/test/garment-scale.test.ts` (240 seeds, all archetypes;
+fails against the old formulas).
+
+**Review standard set by the stakeholder:** all four archetypes, eight
+directions — `__viewer.sheet(name, 'raw')` after soloing each seed. The
+sheet now frames from the character's own height (it used to decapitate
+tall builds).
+
+
 ## Ragdoll death (D-518)
 
 `client/src/render/ragdoll.ts` — verlet particles at 15 joints, bones as

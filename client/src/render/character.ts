@@ -73,7 +73,7 @@ export class CharacterVisual {
   private arms!: { L: Limb; R: Limb };
   private legs!: { L: Leg; R: Leg };
   private dims!: {
-    hipY: number; torsoH: number; headH: number;
+    hipY: number; torsoH: number; headH: number; capeAnchorY: number;
     shoulderW: number; hipW: number; bodyW: number;
     /** Shoulder joints' rest height — the shrug raises them from here. */
     baseShY: number;
@@ -330,9 +330,17 @@ export class CharacterVisual {
     // Feet stand ON the ground: the ankle joint sits a foot's height above
     // it (stakeholder: the model sat below the floor to the ankles).
     const hipYAdj = hipY + hipW * 0.11;
+    // Where the cape hangs from, measured up the ACTUAL rig rather than
+    // guessed from nominal height (stakeholder, 2026-08-18: the cape sat
+    // differently on larger models). Leg length carries a per-archetype
+    // `limb` multiplier, so this height ranges from ~0.76 to ~0.85 of
+    // nominal height — a garment sized off `p.height` therefore hung from
+    // a different place on every build. Sizing off THIS makes the hem land
+    // at the same point on the body for everyone.
+    const capeAnchorY = hipYAdj + torsoH * (0.24 + 0.34 + 0.45);
     // Shoulder height and arm seating stakeholder-tuned via editor export 2.
     this.dims = {
-      hipY: hipYAdj, torsoH, headH, shoulderW, hipW, bodyW,
+      hipY: hipYAdj, torsoH, headH, shoulderW, hipW, bodyW, capeAnchorY,
       baseShY: torsoH * 0.32, upperLeg, lowerLeg, lowerArm,
     };
 
@@ -736,9 +744,24 @@ export class CharacterVisual {
       // The cut scales with BULK, not just shoulder span: sized off
       // shoulderW alone, a heavy build wore a taut apron that bunched the
       // moment it moved (stakeholder).
-      this.cape = new Cloth(11, 10, shoulderW * 1.6 + bodyW * 0.95, p.height * 0.62,
-        p.capeColor, 'collar',
-        Math.max(shoulderW * 0.8, bodyW * 0.42), shoulderW + bodyW * 0.12);
+      // Length is a fraction of the ANCHOR's own height, so the hem lands
+      // at the same point on the leg for a long-limbed ascetic and a
+      // squat brute alike (stakeholder: "anchored at the same relative Y").
+      const capeLen = this.dims.capeAnchorY * 0.76;
+      // The collar is a NECK ring, so it is sized off the head — not off
+      // bulk. The old max(shoulderW, bodyW) term nearly doubled across
+      // builds, and on heavy bodies the pinned ring grew wide enough to
+      // carry the fabric up around the head.
+      const collar = headH * 0.62 + shoulderW * 0.16;
+      // The cut follows the SHOULDER SPAN, which is what a cape hangs
+      // from, with only a modest allowance for girth. Driving it off bulk
+      // (the old 0.95·bodyW) made a heavy character's cape 1.9× its own
+      // shoulder span against a lean one's 1.5× — the same garment read as
+      // a cloak on one build and a blanket on another.
+      const capeWidth = shoulderW * 2.9 + bodyW * 0.25;
+      this.capeCut = { width: capeWidth, length: capeLen, collar, anchorY: this.dims.capeAnchorY };
+      this.cape = new Cloth(11, 10, capeWidth, capeLen,
+        p.capeColor, 'collar', collar, shoulderW + bodyW * 0.12);
       this.parentOrRoot().add(this.cape.mesh);
       // The tie at the throat, so the collar reads as fastened.
       this.nm('cape tie');
@@ -985,19 +1008,35 @@ export class CharacterVisual {
   }
 
   /** Body measurements the workbench sizes garments against. */
-  get measurements(): { shoulderW: number; bodyW: number; hipW: number; torsoH: number; height: number } {
+  get measurements(): {
+    shoulderW: number; bodyW: number; hipW: number; torsoH: number;
+    headH: number; height: number; capeAnchorY: number;
+  } {
     return {
       shoulderW: this.dims.shoulderW,
       bodyW: this.dims.bodyW,
       hipW: this.dims.hipW,
       torsoH: this.dims.torsoH,
+      headH: this.dims.headH,
       height: this.appearance.height,
+      // Rig-derived, and the right thing to size hanging garments against.
+      capeAnchorY: this.dims.capeAnchorY,
     };
   }
 
   /** The scene object custom garments must be added to (world-space verts). */
   get clothParent(): THREE.Object3D {
     return this.parentOrRoot();
+  }
+
+  /**
+   * The cape's actual cut, for proportion tests (D-114). A garment must sit
+   * the same way on every build; these are the numbers that prove it.
+   * Null when no cape is worn.
+   */
+  private capeCut: { width: number; length: number; collar: number; anchorY: number } | null = null;
+  capeMetrics(): { width: number; length: number; collar: number; anchorY: number } | null {
+    return this.equipment.cape ? this.capeCut : null;
   }
 
   // -------------------------------------------------------------------------

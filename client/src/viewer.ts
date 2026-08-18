@@ -790,8 +790,11 @@ window.__viewer = {
     const animSel = $<HTMLSelectElement>('in-anim');
     const prevAnim = animSel.value;
     // Muybridge-level camera: azimuth fixed at the model's front, low
-    // elevation, full body framed.
-    window.__viewer!.view(Math.PI / 2, 0.24, 1.6, 0.85);
+    // elevation, full body framed. The framing is derived from THIS
+    // character's height — a fixed frame decapitated tall builds, which
+    // is precisely the review the sheet exists to make possible.
+    const bodyH = visual.appearance.height;
+    window.__viewer!.view(Math.PI / 2, 0.148 * bodyH, 1.6, bodyH * 0.52);
     window.__viewer!.advance(3.5); // physics settle: cloth starts at rest-local coords
     const dirs: Direction[] = ['s', 'se', 'e', 'ne', 'n', 'nw', 'w', 'sw'];
     const CELL = 220;
