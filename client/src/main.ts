@@ -442,8 +442,15 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       // world mirror straight away (the server has already replaced it with
       // a corpse), but its visual lingers just long enough to collapse.
       if (e.visual instanceof CharacterVisual) {
-        e.visual.playDeath(t);
-        dyingVisuals.push({ visual: e.visual, until: t + 2.2 });
+        // A recent blow shoves the body over; anything else (bleeding out,
+        // sickness) simply drops it where it stands.
+        const blow = lastBlow.get(event.id as number);
+        const shove = blow && t - blow.at < 1.5
+          ? blow.dir.clone().multiplyScalar(1.6)
+          : undefined;
+        lastBlow.delete(event.id as number);
+        e.visual.playDeath(t, shove);
+        dyingVisuals.push({ visual: e.visual, until: t + 3.0 });
       } else {
         e.visual.dispose();
       }
@@ -463,6 +470,15 @@ function playAttack(attackerId: number, targetId: number, variant: number): void
   if (!attacker || !(attacker.visual instanceof CharacterVisual)) return;
   attacker.visual.playAttack(variant, t);
   const target = entities.get(targetId);
+  // Remember which way the blow came from: if this one kills, the body
+  // should go over away from the attacker rather than fold in place.
+  if (target) {
+    const push = new THREE.Vector3(
+      target.render.x - attacker.render.x, 0, target.render.y - attacker.render.y,
+    );
+    if (push.lengthSq() < 1e-6) push.set(0, 0, 1);
+    lastBlow.set(targetId, { dir: push.normalize(), at: t });
+  }
   if (!effects) return;
   const muzzle = attacker.visual.weaponMuzzle(new THREE.Vector3());
   if (attacker.visual.castsSpells) {
@@ -1424,6 +1440,8 @@ const pendingBolts: { at: number; from: THREE.Vector3; to: THREE.Vector3; visual
 const pendingImpacts: { at: number; at3: THREE.Vector3 }[] = [];
 /** Visuals kept alive past their entity so the collapse can finish. */
 const dyingVisuals: { visual: CharacterVisual; until: number }[] = [];
+/** The last blow each entity took, so a killing hit can shove the body. */
+const lastBlow = new Map<number, { dir: THREE.Vector3; at: number }>();
 
 function stepCombatVisuals(dt: number): void {
   for (let i = pendingBolts.length - 1; i >= 0; i--) {

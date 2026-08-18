@@ -1,5 +1,22 @@
 # Session handoff — updated 2026-08-18
 
+## Ragdoll death (D-518)
+
+`client/src/render/ragdoll.ts` — verlet particles at 15 joints, bones as
+hard constraints, cross-braced torso, floor with friction. The solver
+drives the RIG (each bone aims at its child particle), so cape/robe/hair
+follow. While falling or down, the pose/cross-fade path is bypassed.
+
+Four traps, all now covered by `client/test/ragdoll.test.ts`:
+1. Verlet velocity is per-STEP — seed an impulse without `dt` and the body
+   flies 14m in 0.2s. Applied on the first step instead.
+2. The settle check sees zero movement on frame one; needs an age guard.
+3. The floor must be the ground the character STOOD on, not its own root
+   height (which floors it at hip level and it never falls).
+4. `setDead(false)` must clear `deathStart` too, or the character is stuck
+   "dying" with no ragdoll and `playDeath`'s guard blocks every retry —
+   that was the "ragdoll only runs once" report.
+
 ## Viewer is now tabbed, with a cloth workbench (D-517)
 
 `/viewer.html` drives ONE live scene through four control groups:

@@ -1640,3 +1640,48 @@ state on every slider move or silently ignores geometry edits.
 The export is a `GarmentConfig` JSON block, meant to be pasted back and
 baked into `CharacterVisual`'s construction — the same loop the model
 editor already uses (D-514).
+
+### D-518: Death is a ragdoll, not an animation
+
+**Stakeholder, 2026-08-18:** "apply physics to the model and make them fall
+over, with a little force from the direction of the attack" — then, on
+seeing a physics-driven rigid fall, "I want them to ragdoll, not just fall
+physics based."
+
+**The body is simulated, not keyframed.** Fifteen particles sit at the
+joints; bones are hard distance constraints between them; the torso is
+cross-braced so it stays a torso rather than folding flat; the floor stops
+them with friction. It is the same verlet technique as the cloth (D-403)
+and chosen for the same reason — no physics engine, ~150 lines, and it
+composes with everything already hanging off the skeleton.
+
+**The simulation drives the rig, not the other way round.** Each frame the
+solver runs and then each bone is turned to point at its child particle,
+so the cape, robe and hair follow a body that is genuinely being
+simulated. While a character is falling or down, the pose/cross-fade
+system is bypassed entirely.
+
+**The blow is an impulse on the upper body.** A killing hit shoves chest,
+head and shoulders in the direction it travelled (the client derives that
+from attacker and target positions); the legs barely feel it, which is
+why a struck body turns as it goes down. A death with nobody behind it —
+bleeding out, sickness — passes no impulse at all and gravity folds the
+body where it stands.
+
+**Traps, each of which cost a cycle and is now covered by a test:**
+- Verlet velocity is a per-STEP displacement. Seeding the impulse without
+  multiplying by dt launched the body sixty times too fast — fourteen
+  metres in a fifth of a second. It is applied on the first step instead.
+- The settle check compares this step's movement, which is zero on frame
+  one, so the body "settled" before it fell. An age guard fixes it.
+- The floor must be the ground the character stood on. Passing the root's
+  own height floored the body at hip level and it never fell at all.
+
+**Corpses seen for the first time** build a ragdoll and fast-forward it to
+rest, so a body already on the ground is lying settled rather than
+toppling in front of whoever just walked in.
+
+`client/test/ragdoll.test.ts` pins the properties that matter: it falls, it
+stays out of the floor, bones keep their length, a struck body travels
+with the blow and an unstruck one does not, direction is respected, and a
+settled body costs nothing and never drifts.

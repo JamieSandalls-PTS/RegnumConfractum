@@ -17,27 +17,32 @@ const GEOMETRY_FIELDS = new Set([
 ]);
 
 export class ClothTab {
-  private garment: LabGarment | null = null;
+  /** One garment per character on stage, all sharing ONE config object so a
+   * slider moves every cape at once. The built-in garment is suppressed for
+   * everybody, so anything less would strip the rest of the cast naked
+   * (stakeholder, 2026-08-18). Judging drape across builds is also the
+   * point of body-relative sizing. */
+  private garments: LabGarment[] = [];
   private config: GarmentConfig = presetConfig('cape');
-  private visual: CharacterVisual | null = null;
+  private visuals: CharacterVisual[] = [];
 
   constructor(
     private root: HTMLElement,
-    /** Hides the character's OWN cape/robe so the lab garment stands alone. */
+    /** Hides the characters' OWN cape/robe so the lab garment stands alone. */
     private setBuiltInGarments: (cape: boolean, robe: boolean) => void,
   ) {}
 
-  /** Called whenever the viewer repopulates: re-attach to the new body. */
-  attach(visual: CharacterVisual | null): void {
-    this.garment?.dispose();
-    this.garment = null;
-    this.visual = visual;
-    if (visual) this.garment = new LabGarment(visual, this.config);
+  /** Called whenever the viewer repopulates: re-attach to the new bodies. */
+  attach(visuals: CharacterVisual[]): void {
+    for (const g of this.garments) g.dispose();
+    this.garments = [];
+    this.visuals = visuals;
+    for (const v of visuals) this.garments.push(new LabGarment(v, this.config));
     this.render();
   }
 
   step(dt: number, wind: number, t: number): void {
-    this.garment?.step(dt, wind, t);
+    for (const g of this.garments) g.step(dt, wind, t);
   }
 
   /** True while the tab wants the built-in garment suppressed. */
@@ -48,8 +53,10 @@ export class ClothTab {
   }
 
   private apply(kind: Rebuild): void {
-    if (kind === 'geometry') this.garment?.rebuild();
-    else if (kind === 'anchor') this.garment?.applyAnchor();
+    // Every garment shares the one config, so a change lands on the whole
+    // cast — the same edit, judged against every build at once.
+    if (kind === 'geometry') for (const g of this.garments) g.rebuild();
+    else if (kind === 'anchor') for (const g of this.garments) g.applyAnchor();
     // 'live' needs nothing: step() copies params every frame.
   }
 
@@ -129,20 +136,29 @@ export class ClothTab {
     this.root.innerHTML = '';
     this.syncBuiltIns();
     const c = this.config;
+    // Bone and collider NAMES are the same for every build, so the first
+    // body on stage is a fine source for the option lists.
+    const sample = this.visuals[0];
 
-    if (!this.visual) {
-      this.root.textContent = 'Solo a seed on the Cast tab first.';
+    if (!sample) {
+      this.root.textContent = 'No characters on stage — reroll on the Cast tab.';
       return;
     }
+
+    const count = document.createElement('div');
+    count.className = 'hint';
+    count.style.marginTop = '0';
+    count.textContent = `Tuning ${this.garments.length} garment(s) — one per character on stage.`;
+    this.root.appendChild(count);
 
     this.select('garment', ['cape', 'robe skirt', 'sleeve', 'hood flap'], c.preset, (v) => {
       // A different garment starts from its own sensible defaults.
       this.config = presetConfig(v as GarmentConfig['preset']);
-      if (this.garment) this.garment.config = this.config;
+      for (const g of this.garments) g.config = this.config;
     }, 'geometry');
 
     this.label('— attachment —');
-    this.select('pinned to bone', Object.keys(this.visual.bones()), c.bone,
+    this.select('pinned to bone', Object.keys(sample.bones()), c.bone,
       (v) => { c.bone = v; }, 'geometry');
     this.slider('offset x (body widths)', -1.5, 1.5, 0.02, c.offset.x,
       (v) => { c.offset.x = v; }, 'anchor');
@@ -169,7 +185,7 @@ export class ClothTab {
       (v) => { c.rigidRows = v; }, 'geometry', 0);
 
     this.label('— collisions —');
-    const catalogue = Object.keys(this.visual.colliderCatalog());
+    const catalogue = Object.keys(sample.colliderCatalog());
     for (const name of catalogue) {
       this.check(name, c.colliders.includes(name), (on) => {
         c.colliders = on
@@ -210,8 +226,10 @@ export class ClothTab {
     reset.textContent = 'Reset garment';
     reset.addEventListener('click', () => {
       this.config = presetConfig(c.preset);
-      if (this.garment) this.garment.config = this.config;
-      this.garment?.rebuild();
+      for (const g of this.garments) {
+        g.config = this.config;
+        g.rebuild();
+      }
       this.render();
     });
     const resetPhys = document.createElement('button');
@@ -245,7 +263,7 @@ export class ClothTab {
   }
 
   dispose(): void {
-    this.garment?.dispose();
-    this.garment = null;
+    for (const g of this.garments) g.dispose();
+    this.garments = [];
   }
 }

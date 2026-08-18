@@ -8,6 +8,7 @@ import {
   type TransientAnim,
 } from '@rc/shared';
 import { Cloth, SolidHair } from './cloth';
+import { Ragdoll } from './ragdoll';
 import { toonMaterial } from './toon';
 
 /**
@@ -135,6 +136,10 @@ export class CharacterVisual {
   private attackAnim: { variant: number; start: number; until: number } | null = null;
   /** When this character died, for the collapse; null while living. */
   private deathStart: number | null = null;
+  /** The simulated body, once this character is falling or down. */
+  private ragdoll: Ragdoll | null = null;
+  /** Ground height captured when the fall began. */
+  private deathGroundY = 0;
   /** True once the collapse has finished (or for a corpse spawned dead). */
   private dead = false;
   private static UP_AXIS = new THREE.Vector3(0, 1, 0);
@@ -1242,19 +1247,78 @@ export class CharacterVisual {
     return out.applyMatrix4(src.matrixWorld);
   }
 
-  /** Starts the collapse. The body stays down afterwards (setDead). */
-  playDeath(t: number): void {
+  /**
+   * Starts the fall. Rather than replaying a canned collapse, the body is
+   * integrated as an inverted pendulum pivoting on its own feet
+   * (stakeholder, 2026-08-18): a blow shoves it over in the direction the
+   * blow came from, and a death from bleeding or sickness simply buckles
+   * and drops where it stands.
+   *
+   * `impulse` is a WORLD-space push (its length is the strength). Omit it
+   * for a death with nobody behind it.
+   */
+  playDeath(t: number, impulse?: THREE.Vector3): void {
     if (this.deathStart !== null || this.dead) return;
     this.deathStart = t;
     this.attackAnim = null;
     this.transientQueue.length = 0;
     this.currentTransient = null;
+    this.ragdoll = this.makeRagdoll(impulse);
+  }
+
+  /** Samples the CURRENT pose into a ragdoll, so it falls from where it
+   * stood rather than snapping to a neutral stance first. */
+  private makeRagdoll(impulse?: THREE.Vector3): Ragdoll {
+    this.root.updateMatrixWorld(true);
+    const at = (o: THREE.Object3D): THREE.Vector3 =>
+      new THREE.Vector3().setFromMatrixPosition(o.matrixWorld);
+    const world = {
+      pelvis: at(this.pelvis),
+      chest: at(this.chest),
+      head: at(this.head),
+      shoulderL: at(this.arms.L.sh),
+      elbowL: at(this.arms.L.el),
+      handL: at(this.arms.L.hand),
+      shoulderR: at(this.arms.R.sh),
+      elbowR: at(this.arms.R.el),
+      handR: at(this.arms.R.hand),
+      hipL: at(this.legs.L.hip),
+      kneeL: at(this.legs.L.knee),
+      footL: at(this.legs.L.foot),
+      hipR: at(this.legs.R.hip),
+      kneeR: at(this.legs.R.knee),
+      footR: at(this.legs.R.foot),
+    };
+    // No blow behind it? Then nothing pushes: gravity alone folds the body
+    // where it stands, which is what bleeding out looks like.
+    const push = impulse ? impulse.clone().setY(impulse.y * 0.35 + 0.25) : new THREE.Vector3();
+    // The ground is where the character was standing — NOT its root height
+    // once the fall starts moving it, which would floor the body at hip
+    // level and leave it standing upright forever.
+    this.deathGroundY = this.root.position.y;
+    return new Ragdoll(world, this.dims.bodyW, push);
   }
 
   /** Holds the final prone pose — used for corpses that spawn already dead. */
   setDead(dead: boolean): void {
     this.dead = dead;
-    if (dead) this.deathStart = null;
+    if (dead) {
+      this.deathStart = null;
+      if (!this.ragdoll) {
+        // Already down when we first saw it (a corpse in a snapshot): let
+        // it fall now and fast-forward the simulation so it arrives
+        // already settled rather than toppling in front of the observer.
+        this.ragdoll = this.makeRagdoll();
+        for (let i = 0; i < 240 && !this.ragdoll.settled; i++) this.ragdoll.step(1 / 60);
+      }
+    } else {
+      // Standing back up must clear the whole fall, not just the flag:
+      // leaving deathStart set left the character permanently "dying" with
+      // no ragdoll, and playDeath's guard then refused to ever fire again
+      // (stakeholder: the ragdoll only ran once).
+      this.ragdoll = null;
+      this.deathStart = null;
+    }
   }
 
   private static ATTACK_SECONDS = 0.62;
@@ -1269,9 +1333,11 @@ export class CharacterVisual {
     this.currentAngle += diff * Math.min(1, dt * 12);
     this.root.rotation.y = this.currentAngle;
 
-    // Death outranks everything: a falling body takes no more orders.
+    // Death outranks everything: a falling body takes no more orders. It
+    // is "dead" once the simulation has stopped moving, not on a timer —
+    // a hard shove reaches the ground sooner than a slow crumple.
     const dying = this.deathStart !== null;
-    if (dying && t - this.deathStart! >= CharacterVisual.DEATH_SECONDS) {
+    if (dying && this.ragdoll?.settled) {
       this.deathStart = null;
       this.dead = true;
     }
@@ -1316,9 +1382,27 @@ export class CharacterVisual {
               ? 'combat-idle'
               : `posture:${this.posture}`;
     this.resetPose();
-    if (this.dead) this.animDeadPose();
-    else if (dying) this.animDeath((t - this.deathStart!) / CharacterVisual.DEATH_SECONDS);
-    else if (this.attackAnim) {
+    if ((this.dead || dying) && this.ragdoll) {
+      // The simulation owns the skeleton now — no keyframes, no blending.
+      // The floor sits at the character's own base, wherever it stands.
+      this.ragdoll.step(dt, this.deathGroundY);
+      this.ragdoll.applyTo({
+        root: this.root,
+        pelvis: this.pelvis,
+        spine: this.spine,
+        chest: this.chest,
+        neck: this.neck,
+        head: this.head,
+        arms: this.arms,
+        legs: this.legs,
+      });
+      this.lastAnimKey = animKey;
+      this.lastPose = this.capturePose(this.lastPose);
+      this.fadeFrom = null;
+      this.stepCloth(dt, t, wind);
+      return;
+    }
+    if (this.attackAnim) {
       this.animAttack(this.attackAnim.variant, (t - this.attackAnim.start) / CharacterVisual.ATTACK_SECONDS, t);
     } else if (moving) this.animWalk(t);
     else if (this.currentTransient) {
@@ -1377,6 +1461,15 @@ export class CharacterVisual {
       }
     }
 
+    this.stepCloth(dt, t, wind);
+  }
+
+  /**
+   * Steps every simulated garment and the hair against the CURRENT pose.
+   * Split out of update() because a ragdolling body still has to drag its
+   * cape down with it — the fall path returns early but calls this.
+   */
+  private stepCloth(dt: number, t: number, wind: number): void {
     this.stepBust(dt);
     if (this.cape) {
       // Colliders = torso core AND pelvis: the cloth rests on the back and
@@ -1751,53 +1844,6 @@ export class CharacterVisual {
     }
     // A little breath on the recovery so the pose does not freeze.
     c.head.rotation.x = 0.05 * hit + Math.sin(t * 3) * 0.01 * settle;
-  }
-
-  /**
-   * The collapse (`f` 0→1). Knees give first, the body folds, and it turns
-   * as it goes down — a person falling, not a plank tipping. The final
-   * frame matches animDeadPose exactly so the hold is seamless.
-   */
-  private animDeath(f: number): void {
-    const c = this;
-    const p = Math.min(1, Math.max(0, f));
-    // Two stages: buckle (0–0.45), then topple (0.45–1).
-    const buckle = Math.min(1, p / 0.45);
-    const fall = p < 0.45 ? 0 : (p - 0.45) / 0.55;
-    const eased = fall * fall * (3 - 2 * fall);
-    const b = buckle * (2 - buckle);
-
-    // The pelvis drops as the knees give, then RETURNS toward its normal
-    // offset as the body rotates flat: once the root is on its side that
-    // offset is a horizontal distance along the ground, not a height.
-    // Keeping the drop through the rotation buried the body in the floor.
-    c.pelvis.position.y = c.dims.hipY * (1 - 0.55 * b * (1 - eased));
-    c.legs.R.hip.rotation.x = -0.5 * b - 0.6 * eased;
-    c.legs.R.knee.rotation.x = 1.3 * b + 0.3 * eased;
-    c.legs.L.hip.rotation.x = -0.3 * b - 0.9 * eased;
-    c.legs.L.knee.rotation.x = 1.05 * b - 0.3 * eased;
-    // The torso pitches forward and rolls onto one side.
-    c.spine.rotation.x = 0.3 * b + 0.5 * eased;
-    c.chest.rotation.x = 0.2 * b + 0.4 * eased;
-    c.chest.rotation.z = 0.15 * eased;
-    c.head.rotation.x = 0.25 * b + 0.35 * eased;
-    c.head.rotation.z = 0.2 * eased;
-    // Arms give up: they swing loose and land wide.
-    c.arms.R.sh.rotation.x = 0.3 * b + 0.9 * eased;
-    c.arms.R.sh.rotation.z = -0.35 * eased;
-    c.arms.R.el.rotation.x = -0.5 * b + 0.2 * eased;
-    c.arms.L.sh.rotation.x = 0.2 * b + 0.7 * eased;
-    c.arms.L.sh.rotation.z = 0.4 * eased;
-    c.arms.L.el.rotation.x = -0.4 * b;
-    // The whole body rotates down to lie flat. A body has thickness, so it
-    // rests slightly ABOVE the floor plane rather than in it.
-    this.root.rotation.z = (Math.PI / 2) * eased;
-    this.root.position.y = this.dims.bodyW * 0.42 * eased;
-  }
-
-  /** The held prone pose: the last frame of the collapse, kept still. */
-  private animDeadPose(): void {
-    this.animDeath(1);
   }
 
   private animSit(t: number): void {

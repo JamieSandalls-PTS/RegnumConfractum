@@ -61,6 +61,7 @@ function populate(): void {
     shown.push({ visual, seed: soloSeed, phase: 0 });
     applyGear();
     applyHoods();
+    reattachCloth();
     $('seeds').textContent = `solo: ${soloSeed}`;
     return;
   }
@@ -82,7 +83,15 @@ function populate(): void {
   }
   applyGear();
   applyHoods();
+  reattachCloth();
   $('seeds').textContent = seedList.join(' · ');
+}
+
+/** Rebuilding the cast orphans the lab garments; re-pin them to the new
+ * bodies whenever the cloth tab is the one on screen. */
+function reattachCloth(): void {
+  const tab = document.querySelector<HTMLElement>('#tabs .tab.active');
+  if (tab?.dataset.tab === 'cloth') clothTab.attach(shown.map((s) => s.visual));
 }
 
 function applyHoods(): void {
@@ -148,7 +157,7 @@ function showTab(name: string): void {
   }
   // Entering the cloth tab pins the lab garment to whoever is on stage;
   // leaving it hands the body back to its own clothes.
-  if (name === 'cloth') clothTab.attach(shown[0]?.visual ?? null);
+  if (name === 'cloth') clothTab.attach(shown.map((s) => s.visual));
   else {
     clothTab.dispose();
     if (!builtInCape || !builtInRobe) {
@@ -265,10 +274,15 @@ stage.addEventListener('wheel', (e) => {
 const TRANSIENTS: TransientAnim[] = ['bow', 'wave', 'laugh', 'point', 'shrug'];
 const COMBAT_MODES = [
   'combat-idle', 'combat-walk', 'draw',
-  'attack0', 'attack1', 'attack2', 'attack3', 'attack-cycle', 'cast', 'death',
+  'attack0', 'attack1', 'attack2', 'attack3', 'attack-cycle', 'cast',
+  'death', 'death-collapse',
 ];
+// The auto-cycle deliberately EXCLUDES death: a review pass that keeps
+// dropping the whole cast on the floor is useless for judging anything
+// else. It stays selectable on its own.
 const CYCLE: string[] = [
-  'idle', 'walk', 'sitting', 'kneeling', ...TRANSIENTS, ...COMBAT_MODES,
+  'idle', 'walk', 'sitting', 'kneeling', ...TRANSIENTS,
+  ...COMBAT_MODES.filter((m) => m !== 'death'),
 ];
 let cycleIndex = 0;
 let cycleAt = 0;
@@ -277,10 +291,16 @@ let transientAt = 0;
 let attackAt = 0;
 let attackTurn = 0;
 let deathAt = 0;
+let lastDrivenMode = '';
 
 function drive(mode: string, t: number): { moving: boolean } {
   const isTransient = (TRANSIENTS as string[]).includes(mode);
   const isAttack = mode.startsWith('attack') || mode === 'cast';
+  // Picking a one-shot should play it NOW, not at the next loop boundary:
+  // selecting "death" and watching nothing happen for four seconds reads
+  // as a broken animation.
+  const entered = mode !== lastDrivenMode;
+  lastDrivenMode = mode;
   for (const s of shown) {
     if (mode === 'sitting' || mode === 'kneeling') s.visual.setPosture(mode);
     else s.visual.setPosture('standing');
@@ -300,7 +320,7 @@ function drive(mode: string, t: number): { moving: boolean } {
     const drawn = Math.floor(t / 2.6) % 2 === 0;
     for (const s of shown) s.visual.setCombat(drawn);
   }
-  if (isAttack && t - attackAt > 1.25) {
+  if (isAttack && (entered || t - attackAt > 1.25)) {
     attackAt = t;
     attackTurn++;
     const variant = mode === 'attack-cycle' || mode === 'cast'
@@ -308,14 +328,23 @@ function drive(mode: string, t: number): { moving: boolean } {
       : Number(mode.slice(-1));
     for (const s of shown) s.visual.playAttack(variant, t);
   }
-  if (mode === 'death') {
-    // Replay the collapse on a loop: fall, lie there, stand, fall again.
-    if (t - deathAt > 4.2) {
+  if (mode === 'death' || mode === 'death-collapse') {
+    // Replay the fall on a loop: go over, lie there, stand, fall again.
+    // 'death' is struck down — a blow shoves the body over from a
+    // direction; 'death-collapse' has nobody behind it and drops in place.
+    if (entered || t - deathAt > 4.2) {
       deathAt = t;
-      for (const s of shown) {
+      const struck = mode === 'death';
+      for (const [i, s] of shown.entries()) {
         s.visual.setDead(false);
         s.visual.setCombat(false);
-        s.visual.playDeath(t);
+        // Vary the blow direction across the cast so the whole row does
+        // not fall the same way — it reads as a volley, not a domino.
+        const a = (i / Math.max(1, shown.length)) * Math.PI * 2;
+        s.visual.playDeath(
+          t,
+          struck ? new THREE.Vector3(Math.sin(a), 0, Math.cos(a)).multiplyScalar(1.6) : undefined,
+        );
       }
     }
   } else if (deathAt !== 0) {
@@ -683,6 +712,8 @@ declare global {
       shoot: (name: string) => Promise<string>;
       sheet: (name: string, style?: string) => Promise<string>;
       equip: (partial: Record<string, unknown>) => string;
+      /** The live visuals, for state inspection during review. */
+      visuals: () => CharacterVisual[];
     };
   }
 }
@@ -739,6 +770,7 @@ window.__viewer = {
     await fetch(`http://127.0.0.1:8123/${name}`, { method: 'POST', body: url, mode: 'no-cors' });
     return `sent ${name} (${canvas.width}x${canvas.height})`;
   },
+  visuals: () => shown.map((s) => s.visual),
   /** Automation: equipment override on every shown character. */
   equip(partial) {
     for (const s of shown) s.visual.setEquipment(partial as Parameters<typeof s.visual.setEquipment>[0]);
