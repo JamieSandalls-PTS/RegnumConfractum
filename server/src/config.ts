@@ -10,6 +10,18 @@ export interface ServerConfig {
   contentDir: string;
   /** Where new characters begin. The first slice starts them at the tavern. */
   defaultAreaId: string;
+  /**
+   * The Round (D-521). Off by default, so an unconfigured server is the
+   * persistent world. Turning it on changes death, progression and memory
+   * together — see the round options on GameServer.
+   */
+  round: {
+    enabled: boolean;
+    lengthTicks: number | undefined;
+    /** Lower this to 1 to walk a round alone while testing. */
+    minCast: number | undefined;
+    seed: string | undefined;
+  };
 }
 
 /** Reads .env (if present) into process.env without overriding real env vars. */
@@ -37,5 +49,13 @@ export function loadConfig(): ServerConfig {
     adminToken: process.env.ADMIN_TOKEN,
     contentDir: process.env.CONTENT_DIR ?? resolve(process.cwd(), 'content'),
     defaultAreaId: process.env.DEFAULT_AREA_ID ?? 'hanged-ferryman',
+    round: {
+      enabled: process.env.ROUND_MODE === '1',
+      lengthTicks: process.env.ROUND_LENGTH_TICKS
+        ? Number(process.env.ROUND_LENGTH_TICKS)
+        : undefined,
+      minCast: process.env.ROUND_MIN_CAST ? Number(process.env.ROUND_MIN_CAST) : undefined,
+      seed: process.env.ROUND_SEED,
+    },
   };
 }

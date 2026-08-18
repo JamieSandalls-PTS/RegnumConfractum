@@ -17,6 +17,7 @@ import { Terrain } from './render/terrain';
 import { CharacterVisual } from './render/character';
 import { isMoving, stepToward, type InterpolatedPosition } from './game/interpolation';
 import { findPath } from './game/path';
+import { RoundHud } from './game/round-hud';
 
 /**
  * Client glue: UI flow (login → character → world), the entity mirror driven
@@ -123,6 +124,18 @@ let currentArea: Extract<ServerMessage, { t: 'snapshot' }>['area'] | null = null
 // Ambient sound (procedural, see audio.ts). Browsers gate audio behind a
 // user gesture, so the graph builds on the first input and not before.
 const ambience = new Ambience();
+const roundHud = new RoundHud({
+  root: $('round-hud'),
+  phase: $('round-phase'),
+  clock: $('round-clock'),
+  cast: $('round-cast'),
+  objective: $('round-objective'),
+  objectiveName: $('round-objective-name'),
+  objectiveBrief: $('round-objective-brief'),
+  ending: $('round-ending'),
+  endingTitle: $('round-ending-title'),
+  endingBody: $('round-ending-body'),
+});
 const enableAudio = (): void => ambience.enable();
 window.addEventListener('pointerdown', enableAudio, { once: true });
 window.addEventListener('keydown', enableAudio, { once: true });
@@ -300,6 +313,32 @@ conn.onMessage = (msg: ServerMessage) => {
           : 'You drift free of the body.',
       );
       return;
+    case 'round_state':
+      roundHud.onState(msg);
+      return;
+    case 'round_role':
+      roundHud.onRole(msg);
+      if (msg.objective) {
+        appendSystemLine(`A word was had with you before the doors opened: ${msg.objective.brief}`);
+      }
+      return;
+    case 'round_ended':
+      roundHud.onEnded(msg);
+      appendSystemLine(
+        `The round is over. ${msg.antagonistName} carried "${msg.objectiveName}".`,
+      );
+      return;
+    case 'sound': {
+      // The server already decided who is within earshot (D-531); the client
+      // only makes what it was sent audible. It cannot widen the range.
+      ambience.combat(msg.bearing, msg.distance);
+      const line = document.createElement('div');
+      line.className = 'line narration';
+      line.textContent = msg.text;
+      chatLog.appendChild(line);
+      trimAndScrollChat();
+      return;
+    }
     case 'pong':
       return;
   }

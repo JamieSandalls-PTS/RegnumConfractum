@@ -105,6 +105,36 @@
   }
   #hud b { color: var(--text); font-weight: 400; }
 
+  /* ---- The round (D-521): clock top-centre, objective card beneath it,
+     the reveal as a centred panel when it ends. ---- */
+  #round-hud {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    pointer-events: none; z-index: 5; font-size: 13px; color: var(--dim);
+  }
+  #round-bar {
+    display: flex; gap: 14px; align-items: baseline; padding: 5px 14px;
+    background: rgba(16, 15, 19, .82); border: 1px solid #34303c; border-radius: 4px;
+  }
+  #round-phase { color: var(--text); font-size: 16px; font-variant-numeric: tabular-nums; }
+  #round-hud.night #round-clock { color: #7f8fb0; }
+  /* The objective card. Muted rather than alarming - this sits on screen for
+     twenty-five minutes and must not shout at the person carrying it. */
+  #round-objective {
+    max-width: 340px; padding: 7px 11px; border-radius: 4px;
+    background: rgba(30, 16, 16, .88); border: 1px solid #5c3230; color: #d8c3bd;
+  }
+  #round-objective-name { color: #e2a89f; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+  #round-objective-brief { margin-top: 4px; font-size: 12px; line-height: 1.45; }
+  #round-ending {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    max-width: 460px; padding: 20px 24px; text-align: center; z-index: 6;
+    background: rgba(16, 15, 19, .94); border: 1px solid #34303c; border-radius: 5px;
+    pointer-events: none;
+  }
+  #round-ending-title { color: var(--text); font-size: 19px; line-height: 1.35; }
+  #round-ending-body { margin-top: 10px; color: var(--dim); font-size: 13px; line-height: 1.6; }
+
   /* ---- Speech bubbles: drawn only for speech the server delivered, so
      hearing range is decided server-side and cannot be widened here. ---- */
   #bubble-layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
@@ -273,6 +303,22 @@
     </div>
   </div>
   <div id="chat-hint" class="hidden">Enter to speak</div>
+  <div id="round-hud" class="hidden">
+    <div id="round-bar">
+      <span id="round-phase">–</span>
+      <span id="round-clock"></span>
+      <span id="round-cast"></span>
+    </div>
+    <div id="round-objective" class="hidden">
+      <div id="round-objective-name"></div>
+      <div id="round-objective-brief"></div>
+    </div>
+  </div>
+  <div id="round-ending" class="hidden">
+    <div id="round-ending-title"></div>
+    <div id="round-ending-body"></div>
+  </div>
+
   <div id="hud" class="hidden">
     <span id="hud-area"></span>
     <span>pos <b id="hud-pos">–</b></span>

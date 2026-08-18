@@ -19,8 +19,15 @@ const gameServer = new GameServer({
   content,
   port: config.port,
   defaultAreaId: config.defaultAreaId,
+  round: config.round.enabled ? config.round : undefined,
   log: (msg) => console.log(`[server] ${msg}`),
 });
+if (config.round.enabled) {
+  console.log(
+    `[server] ROUND MODE (D-521): min cast ${config.round.minCast ?? 3}. ` +
+    'No respawn, no death debt, recognition wipes each round.',
+  );
+}
 // DM event engine (D-216): interprets editor-authored event documents.
 const eventEngine = new EventEngine(gameServer, store, (msg) => console.log(`[events] ${msg}`));
 const adminServer = new AdminServer({

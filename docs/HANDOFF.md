@@ -147,8 +147,27 @@ emits a `sound` (wire v5) to everyone within 30 tiles — no LOS, no
 identity, never across the plane. Client work outstanding: **play the
 audio cue** on `sound` (server sends `kind`/`bearing`/`distance`/`text`).
 
-**Not yet built in MR1:** the round HUD (client-side), and the audio for
-`sound`. **MR2:** night
+**MR1 is complete.** The round HUD is built (`client/src/game/round-hud.ts`,
+markup + styles in `client/index.html`) — clock, countdown, cast size, the
+antagonist's objective card, and the end-of-round reveal. The `sound`
+message plays a procedural steel cue (`Ambience.combat`, panned by bearing,
+attenuated by near/far) and prints its line to the chat log.
+
+**Verified live, three browsers, round mode on:** lobby held at 2/3 and
+started at 3; exactly ONE client showed an objective card; the clock read
+☀ 06:00 at the start and advanced to 12:00; an attack in the SETTLED town
+needed no declaration; a third player 3 tiles away saw "Steel and shouting,
+to the east." while the attacker saw nothing. Screenshot flow in this
+session's history.
+
+**To run it yourself:**
+`DATABASE_URL=... ROUND_MODE=1 ROUND_MIN_CAST=3 DEFAULT_AREA_ID=round-town`
+(plus optional `ROUND_LENGTH_TICKS`, `ROUND_SEED`). Round mode is OFF by
+default — an unconfigured server is still the persistent world.
+
+⚠ **Audio not confirmed audible.** The graph is wired and throws no console
+errors, but browsers only unlock an AudioContext on a REAL user gesture;
+scripted clicks do not count. Someone has to click the page and listen. **MR2:** night
 roamers, hunger, gathering/crafting, facility potency (D-530), and the
 dungeon's contents — the areas exist but are empty.
 

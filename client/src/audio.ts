@@ -13,6 +13,15 @@
  * first pointer/key event; everything before that is a silent no-op.
  */
 
+/**
+ * Stereo placement per bearing. Coarse on purpose: the server only sends an
+ * eight-point direction, and a convincing stereo image would imply more
+ * precision than the message carries (D-531).
+ */
+const PAN_BY_BEARING: Record<string, number> = {
+  e: 0.9, ne: 0.65, se: 0.65, w: -0.9, nw: -0.65, sw: -0.65, n: 0, s: 0, here: 0,
+};
+
 export class Ambience {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -110,6 +119,69 @@ export class Ambience {
       this.crackleTarget = target;
       this.crackle.gain.setTargetAtTime(target, this.ctx.currentTime, 0.25);
     }
+  }
+
+  /**
+   * The sound of fighting somewhere nearby (D-531) — synthesized, like
+   * everything else here, so the repo stays asset-free.
+   *
+   * Steel: a bright inharmonic cluster with a fast decay, over a filtered
+   * noise burst for the scuffle under it. Panned by BEARING and attenuated
+   * by the server's near/far band, so the cue points you the same way the
+   * text does.
+   *
+   * The client cannot widen this: the server decides who receives a `sound`
+   * at all, so hearing range is not something a modified client can extend.
+   * All this does is make an already-delivered message audible.
+   */
+  combat(bearing: string, distance: 'near' | 'far'): void {
+    const ctx = this.ctx;
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    const near = distance === 'near';
+    const level = near ? 0.32 : 0.13;
+
+    const out = ctx.createGain();
+    out.gain.value = 1;
+    // Distance is dullness as well as quietness — far-off fighting loses its
+    // edge before it loses its volume.
+    const tone = ctx.createBiquadFilter();
+    tone.type = 'lowpass';
+    tone.frequency.value = near ? 7000 : 1700;
+    const pan = ctx.createStereoPanner();
+    pan.pan.value = PAN_BY_BEARING[bearing] ?? 0;
+    out.connect(tone).connect(pan).connect(this.master);
+
+    // --- the ring of steel: three inharmonic partials, fast decay --------
+    for (const [mult, amp, decay] of [[1, 1, 0.28], [2.76, 0.5, 0.2], [5.4, 0.22, 0.14]] as const) {
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = 620 * mult;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(level * amp, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+      osc.connect(g).connect(out);
+      osc.start(now);
+      osc.stop(now + decay + 0.02);
+    }
+
+    // --- the scuffle: a short bandpassed noise burst ---------------------
+    const len = Math.floor(ctx.sampleRate * 0.18);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() - 0.5) * Math.exp((-6 * i) / len);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1800;
+    bp.Q.value = 0.8;
+    const ng = ctx.createGain();
+    ng.gain.value = level * 0.8;
+    src.connect(bp).connect(ng).connect(out);
+    src.start(now);
   }
 
   dispose(): void {

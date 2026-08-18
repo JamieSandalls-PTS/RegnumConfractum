@@ -264,6 +264,8 @@ export class GameServer {
   private roundXp = new Map<ConnState, number>();
   /** Characters who have died this round — no respawn, so this only grows. */
   private roundDead = new Set<string>();
+  /** Cast size we last complained about being unable to start, if any. */
+  private lobbyStuckAt: number | null = null;
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -291,6 +293,19 @@ export class GameServer {
         log: this.log,
       });
       this.roundResolutionTicks = opts.round.resolutionTicks ?? ROUND_RESOLUTION_TICKS;
+      // A configured minimum below anything the content can actually run is a
+      // server that fills its lobby and never starts. That is a
+      // misconfiguration, and it belongs in the log at boot rather than being
+      // discovered by players waiting in an empty town.
+      const smallest = Math.min(
+        ...this.round.eligibleObjectivesAnySize().map((o) => o.minCast),
+      );
+      if (Number.isFinite(smallest) && this.round.minimumCast < smallest) {
+        this.log(
+          `round: WARNING — minimum cast is ${this.round.minimumCast} but the smallest ` +
+          `live objective needs ${smallest}. No round can start until enough players join.`,
+        );
+      }
     }
     for (const def of opts.content.areas.values()) this.world.addArea(def);
     const fallback = opts.content.areas.keys().next().value as string;
@@ -423,8 +438,12 @@ export class GameServer {
     if (!r) return;
     if (r.phase === 'lobby') {
       const cast = this.roundCast();
-      if (cast.length >= r.minimumCast) await this.startRound(cast);
-      else if (this.world.tick % 50 === 0) this.broadcastRoundState();
+      if (cast.length >= r.minimumCast && (await this.startRound(cast))) return;
+      // Broadcast REGARDLESS of whether a start was attempted. The first
+      // version only spoke when the cast was too small, so a lobby that was
+      // big enough but had no objective it could run went completely silent:
+      // no HUD, no clock, no explanation, forever. Found by running it.
+      if (this.world.tick % 50 === 0) this.broadcastRoundState();
       return;
     }
     if (r.phase === 'running') {
@@ -439,9 +458,21 @@ export class GameServer {
     }
   }
 
-  private async startRound(cast: { characterId: string; entityId: number }[]): Promise<void> {
+  private async startRound(cast: { characterId: string; entityId: number }[]): Promise<boolean> {
     const assignment = this.round!.start(cast, this.world.tick);
-    if (!assignment) return; // no objective fits this cast; wait for another player
+    if (!assignment) {
+      // Complain ONCE per change of circumstance, not once per tick. The
+      // first version logged this ten times a second.
+      if (this.lobbyStuckAt !== cast.length) {
+        this.lobbyStuckAt = cast.length;
+        this.log(
+          `round: waiting — no live objective is playable at a cast of ${cast.length}. ` +
+          'Check content/objectives minCast against the configured minimum.',
+        );
+      }
+      return false;
+    }
+    this.lobbyStuckAt = null;
     this.roundStartedAtTick = this.world.tick;
     this.roundLastNight = null;
     this.roundXp.clear();
@@ -470,7 +501,8 @@ export class GameServer {
       castSize: cast.length,
     });
     this.broadcastRoundState();
-    this.roundDayNightTick();
+    this.roundDayNightTick(false); // set the light, announce nothing
+    return true;
   }
 
   /**
@@ -479,10 +511,30 @@ export class GameServer {
    * it fires on the tick the hour turns rather than at the next state
    * broadcast.
    */
-  private roundDayNightTick(): void {
+  private roundDayNightTick(announce = true): void {
     const night = isNight(this.roundTickOffset());
     if (night === this.roundLastNight) return;
     this.roundLastNight = night;
+    // At round start there is no transition to announce — the sun did not
+    // just come up, the round merely began. Without this every round opened
+    // with "it is over, for a while", which reads as the end of a night
+    // nobody lived through.
+    if (!announce) {
+      this.applyDayNightLighting(night);
+      this.broadcastRoundState();
+      return;
+    }
+    this.applyDayNightLighting(night);
+    this.broadcastNarrate(
+      night
+        ? 'The light goes out of the sky. Whatever walks abroad is walking now.'
+        : 'Grey light returns. It is over, for a while.',
+    );
+    this.broadcastRoundState();
+  }
+
+  /** Darkens or restores every area the sky reaches. */
+  private applyDayNightLighting(night: boolean): void {
     for (const areaId of this.world.areaIds()) {
       const def = this.world.getAreaDef(areaId);
       // Only what the sky reaches darkens. Keyed off `outdoor`, never off
@@ -491,12 +543,6 @@ export class GameServer {
       if (!def.outdoor) continue;
       this.broadcast(areaId, { t: 'area_lighting', lighting: night ? 'night' : def.lighting });
     }
-    this.broadcastNarrate(
-      night
-        ? 'The light goes out of the sky. Whatever walks abroad is walking now.'
-        : 'Grey light returns. It is over, for a while.',
-    );
-    this.broadcastRoundState();
   }
 
   private broadcastNarrate(text: string): void {

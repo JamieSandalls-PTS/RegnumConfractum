@@ -140,6 +140,11 @@ export class RoundEngine {
     );
   }
 
+  /** Every live objective, whatever the cast — for boot-time sanity checks. */
+  eligibleObjectivesAnySize(): ObjectiveDef[] {
+    return this.objectives.filter((o) => o.status === 'live');
+  }
+
   /**
    * Starts a round. Returns null if the cast is short or no objective fits —
    * the caller stays in lobby and tries again when someone else joins.
@@ -148,10 +153,10 @@ export class RoundEngine {
     if (this._phase === 'running') return null;
     if (cast.length < this.minCast) return null;
     const eligible = this.eligibleObjectives(cast.length);
-    if (eligible.length === 0) {
-      this.log(`round: no live objective fits a cast of ${cast.length}`);
-      return null;
-    }
+    // Silent: start() is called every tick while the lobby waits, so logging
+    // here produced ten identical lines a second. The gateway reports this
+    // once per change of circumstance instead.
+    if (eligible.length === 0) return null;
 
     // Random, every round, with no memory of previous rounds (D-524).
     const objective = this.rng.pick(eligible);
