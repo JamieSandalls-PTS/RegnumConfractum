@@ -18,6 +18,13 @@ import { CharacterVisual } from './render/character';
 import { isMoving, stepToward, type InterpolatedPosition } from './game/interpolation';
 import { findPath } from './game/path';
 import { RoundHud } from './game/round-hud';
+import {
+  formatEffort,
+  packRows,
+  recipeStatus,
+  type CatalogueItem,
+  type CatalogueRecipe,
+} from './game/pack';
 
 /**
  * Client glue: UI flow (login → character → world), the entity mirror driven
@@ -94,10 +101,85 @@ class PileVisual {
   }
 }
 
+/**
+ * A resource node. Deliberately NOT a character: nodes arrived as entities so
+ * they could reuse line of sight, deltas and targeting (MR2), but rendering
+ * them through CharacterVisual would stand seventeen people in the mine.
+ *
+ * The shape is chosen from the descriptor the server already sends, so no
+ * extra wire field was needed to tell a seam from a thicket.
+ */
+class NodeVisual {
+  readonly root = new THREE.Group();
+  constructor(private parent: THREE.Scene, descriptor: string) {
+    const leafy = /leaf|grain|scrub|tangle|run\b/i.test(descriptor);
+    const woody = /timber|tree|stand/i.test(descriptor);
+    if (woody) {
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.13, 0.17, 1.15, 6),
+        // Albedo lesson (D-514): brighten the material, never the lights.
+        new THREE.MeshLambertMaterial({ color: 0x8a6f4e }),
+      );
+      trunk.position.y = 0.57;
+      const crown = new THREE.Mesh(
+        new THREE.ConeGeometry(0.52, 0.95, 7),
+        new THREE.MeshLambertMaterial({ color: 0x6d7f52 }),
+      );
+      crown.position.y = 1.35;
+      this.root.add(trunk, crown);
+    } else if (leafy) {
+      for (let i = 0; i < 3; i++) {
+        const tuft = new THREE.Mesh(
+          new THREE.BoxGeometry(0.26, 0.34, 0.24),
+          new THREE.MeshLambertMaterial({ color: i === 1 ? 0x93a06a : 0x7f8d5c }),
+        );
+        tuft.position.set((i - 1) * 0.22, 0.18 + (i === 1 ? 0.08 : 0), (i - 1) * 0.1);
+        tuft.rotation.y = i * 0.6;
+        this.root.add(tuft);
+      }
+    } else {
+      const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.42, 0),
+        new THREE.MeshLambertMaterial({ color: 0x9a8c80 }),
+      );
+      rock.position.y = 0.26;
+      rock.rotation.set(0.4, 0.8, 0.2);
+      const seam = new THREE.Mesh(
+        new THREE.BoxGeometry(0.46, 0.09, 0.12),
+        new THREE.MeshLambertMaterial({ color: 0xb2704a }),
+      );
+      seam.position.set(0, 0.36, 0.14);
+      this.root.add(rock, seam);
+    }
+    parent.add(this.root);
+  }
+  setPosition(x: number, z: number): void {
+    this.root.position.set(x, 0, z);
+  }
+  /** Spent nodes sink and grey off, so "worked out" reads at a glance. */
+  setSpent(spent: boolean): void {
+    this.root.scale.setScalar(spent ? 0.55 : 1);
+  }
+  setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
+  setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
+  playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
+  update(_dt: number, _t: number, _moving: boolean, _wind: number): void {}
+  dispose(): void {
+    this.parent.remove(this.root);
+    this.root.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        o.geometry.dispose();
+        (o.material as THREE.Material).dispose();
+      }
+    });
+  }
+}
+
 interface EntityState {
   wire: WireEntity;
   render: InterpolatedPosition;
-  visual: CharacterVisual | PileVisual;
+  visual: CharacterVisual | PileVisual | NodeVisual;
 }
 
 const conn = new Connection();
@@ -124,6 +206,70 @@ let currentArea: Extract<ServerMessage, { t: 'snapshot' }>['area'] | null = null
 // Ambient sound (procedural, see audio.ts). Browsers gate audio behind a
 // user gesture, so the graph builds on the first input and not before.
 const ambience = new Ambience();
+// The craft catalogue, sent once on entering the world (MR2).
+let itemCatalogue: CatalogueItem[] = [];
+let craftRecipes: CatalogueRecipe[] = [];
+
+/** Redraws the pack and the workbench. Cheap, and only when something moved. */
+function renderPackAndCraft(): void {
+  const rows = packRows(inventory, itemCatalogue);
+  const packList = $('pack-list');
+  packList.innerHTML = '';
+  if (rows.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'pack-empty';
+    empty.textContent = 'Nothing but lint.';
+    packList.appendChild(empty);
+  }
+  for (const row of rows) {
+    const el = document.createElement('div');
+    el.className = 'pack-row';
+    const name = document.createElement('span');
+    name.textContent = row.name;
+    const qty = document.createElement('span');
+    qty.className = 'qty';
+    qty.textContent = String(row.qty);
+    el.append(name, qty);
+    packList.appendChild(el);
+  }
+
+  const craftList = $('craft-list');
+  craftList.innerHTML = '';
+  const inTown = currentArea?.id === 'round-town';
+  for (const recipe of craftRecipes) {
+    const status = recipeStatus(recipe, inventory, itemCatalogue, inTown);
+    const el = document.createElement('div');
+    el.className = 'recipe';
+    const head = document.createElement('div');
+    head.className = 'recipe-head';
+    const name = document.createElement('span');
+    name.className = 'recipe-name';
+    name.textContent = recipe.name;
+    const make = document.createElement('button');
+    make.textContent = `Make · ${formatEffort(recipe.effortTicks)}`;
+    make.disabled = !status.canAttempt;
+    // The button is a convenience, never the authority: the server checks
+    // materials again on completion, so this only spares a wasted click.
+    make.addEventListener('click', () => conn.send({ t: 'craft', recipeId: recipe.id }));
+    head.append(name, make);
+    const cost = document.createElement('div');
+    cost.className = 'recipe-cost';
+    for (const c of status.costs) {
+      const span = document.createElement('span');
+      if (c.short) span.className = 'short';
+      span.textContent = `${c.name} ${c.have}/${c.need}  `;
+      cost.appendChild(span);
+    }
+    if (!status.atStation) {
+      const where = document.createElement('span');
+      where.className = 'short';
+      where.textContent = `· needs the ${recipe.station}`;
+      cost.appendChild(where);
+    }
+    el.append(head, cost);
+    craftList.appendChild(el);
+  }
+}
 const roundHud = new RoundHud({
   root: $('round-hud'),
   phase: $('round-phase'),
@@ -244,6 +390,7 @@ conn.onMessage = (msg: ServerMessage) => {
       for (const event of msg.events) applyEvent(event);
       return;
     case 'inventory':
+      queueMicrotask(renderPackAndCraft);
       coin = msg.coin;
       inventory = msg.items;
       return;
@@ -313,6 +460,24 @@ conn.onMessage = (msg: ServerMessage) => {
           : 'You drift free of the body.',
       );
       return;
+    case 'catalogue':
+      itemCatalogue = msg.items;
+      craftRecipes = msg.recipes;
+      renderPackAndCraft();
+      return;
+    case 'work': {
+      const bar = $('work-bar');
+      if (msg.done) {
+        bar.classList.add('hidden');
+        if (msg.interrupted) appendSystemLine(`You stop: ${msg.interrupted}.`);
+        return;
+      }
+      bar.classList.remove('hidden');
+      $('work-label').textContent =
+        msg.activity === 'harvest' ? `Working ${msg.what}` : msg.what;
+      ($('work-fill') as HTMLElement).style.width = `${Math.round(msg.progress * 100)}%`;
+      return;
+    }
     case 'round_state':
       roundHud.onState(msg);
       return;
@@ -369,6 +534,12 @@ function addEntity(wire: WireEntity): void {
     entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
     return;
   }
+  if (wire.kind === 'node') {
+    const visual = new NodeVisual(s.scene, wire.descriptor);
+    visual.setPosition(wire.x, wire.y);
+    entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
+    return;
+  }
   const visual = new CharacterVisual(wire.appearanceSeed, s.scene);
   // Layer 1 is the character/pixel layer the split pass quantises (D-404).
   visual.setRenderLayer(1);
@@ -386,6 +557,9 @@ function addEntity(wire: WireEntity): void {
 }
 
 function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
+  // Station availability depends on where you are, so the workbench has to
+  // be redrawn on every area change, not only when the pack changes.
+  queueMicrotask(renderPackAndCraft);
   const s = ensureScene();
   clearWorld();
   s.applyLighting(snap.area.lighting);
@@ -832,6 +1006,18 @@ function isTyping(): boolean {
 // ignored while typing.
 window.addEventListener('keydown', (e) => {
   if (!overlay.classList.contains('hidden')) return;
+  // Pack and workbench. Guarded on isTyping() so 'i' in a sentence does not
+  // open a panel mid-word — this is a game people are meant to talk in.
+  if (!isTyping() && (e.key === 'i' || e.key === 'I')) {
+    $('pack-panel').classList.toggle('hidden');
+    renderPackAndCraft();
+    return;
+  }
+  if (!isTyping() && (e.key === 'c' || e.key === 'C')) {
+    $('craft-panel').classList.toggle('hidden');
+    renderPackAndCraft();
+    return;
+  }
   if (e.key === 'Enter') {
     if (!chatOpen()) {
       chatBar.classList.add('open');
@@ -1160,6 +1346,13 @@ function menuFor(entityId: number | null, tile: { x: number; y: number } | null)
     if (kind === 'player') {
       entries.push({ label: 'Treat wounds', act: () => conn.send({ t: 'treat', targetEntityId: entityId }) });
       entries.push({ label: 'Revive', act: () => conn.send({ t: 'revive', targetEntityId: entityId }) });
+    }
+    if (kind === 'node') {
+      // The server checks reach and charges; this is only the intent (D-102).
+      entries.push({
+        label: 'Work it',
+        act: () => conn.send({ t: 'harvest', targetEntityId: entityId }),
+      });
     }
     if (kind === 'corpse' || kind === 'pile') {
       entries.push({ label: 'Loot', act: () => conn.send({ t: 'loot', targetEntityId: entityId }) });

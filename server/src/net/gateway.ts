@@ -2831,7 +2831,14 @@ export class GameServer {
     await this.sendSnapshot(conn);
     this.sendStatus(conn);
     this.send(conn, {
-      t: 'recipes',
+      t: 'catalogue',
+      items: [...this.content.itemTemplates.values()].map((i) => ({
+        id: i.id,
+        name: i.name,
+        description: i.description,
+        category: i.category,
+        stackable: i.stackable,
+      })),
       recipes: [...this.content.recipes.values()].map((r) => ({
         id: r.id,
         name: r.name,

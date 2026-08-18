@@ -105,6 +105,42 @@
   }
   #hud b { color: var(--text); font-weight: 400; }
 
+  /* ---- Work, pack and workbench (MR2) ---- */
+  #work-bar {
+    position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%);
+    width: 260px; padding: 6px 10px; z-index: 5; pointer-events: none;
+    background: rgba(16, 15, 19, .88); border: 1px solid #34303c; border-radius: 4px;
+  }
+  #work-label { font-size: 12px; color: var(--dim); margin-bottom: 5px; }
+  #work-track { height: 5px; background: #241f2b; border-radius: 3px; overflow: hidden; }
+  #work-fill { height: 100%; width: 0%; background: #9a8352; transition: width .12s linear; }
+
+  .panel {
+    position: absolute; top: 64px; right: 12px; width: 300px; z-index: 6;
+    max-height: 62vh; overflow-y: auto; padding: 12px 14px;
+    background: rgba(16, 15, 19, .95); border: 1px solid #34303c; border-radius: 5px;
+    font-size: 13px; color: var(--dim);
+  }
+  .panel h3 {
+    margin: 0 0 9px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text); font-weight: 400;
+  }
+  #craft-panel { right: 322px; }
+  .pack-row { display: flex; justify-content: space-between; padding: 3px 0; }
+  .pack-row .qty { color: var(--text); }
+  .pack-empty { color: #5d5867; font-style: italic; }
+  .recipe { padding: 7px 0; border-top: 1px solid #2a2732; }
+  .recipe:first-of-type { border-top: none; }
+  .recipe-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .recipe-name { color: var(--text); }
+  .recipe button {
+    margin: 0; padding: 3px 9px; font-size: 12px; cursor: pointer;
+    background: #2c2933; color: #e0d8c8; border: 1px solid #423d4d; border-radius: 3px;
+  }
+  .recipe button:disabled { opacity: .4; cursor: default; }
+  .recipe-cost { font-size: 12px; color: #7b7488; margin-top: 3px; }
+  .recipe-cost .short { color: #b4675f; }
+
   /* ---- The round (D-521): clock top-centre, objective card beneath it,
      the reveal as a centred panel when it ends. ---- */
   #round-hud {
@@ -319,6 +355,19 @@
     <div id="round-ending-body"></div>
   </div>
 
+  <div id="work-bar" class="hidden">
+    <div id="work-label"></div>
+    <div id="work-track"><div id="work-fill"></div></div>
+  </div>
+  <div id="pack-panel" class="panel hidden">
+    <h3>Pack</h3>
+    <div id="pack-list"></div>
+  </div>
+  <div id="craft-panel" class="panel hidden">
+    <h3>Workbench</h3>
+    <div id="craft-list"></div>
+  </div>
+
   <div id="hud" class="hidden">
     <span id="hud-area"></span>
     <span>pos <b id="hud-pos">–</b></span>
@@ -326,7 +375,7 @@
     <span>coin <b id="hud-coin">0</b></span>
     <span id="hud-ghost" style="color:#8b95a5"></span>
     <span id="hud-conn"></span>
-    <span style="margin-left:auto">move: WASD or left-click · drag: rotate · wheel: zoom · right-click: act</span>
+    <span style="margin-left:auto">move: WASD or left-click · drag: rotate · wheel: zoom · right-click: act · I: pack · C: craft</span>
   </div>
 
   <button id="btn-settings" class="hidden">⚙ Settings</button>

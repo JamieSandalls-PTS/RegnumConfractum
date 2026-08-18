@@ -201,10 +201,26 @@ itself on the first outcrop — `mr2-gathering.test.ts` reuses the CLIENT's A*
 (`client/src/game/path.ts`). And ONE blow interrupts work: do not loop
 attacks in a test, it kills the subject and breaks every later test.
 
-**Still to build in MR2:** client UI for inventory / harvest / craft
-(the server is complete and bot-verified, but nothing is clickable yet),
-hunger and thirst (D-526), facility potency (D-530), night roamers
-(D-527/D-529), and the dungeon's contents.
+**The client side is built too.** `NodeVisual` in `main.ts` draws nodes as
+rock / timber / scrub chosen from the server's descriptor (rendering them
+through `CharacterVisual` would stand seventeen people in the mine).
+Right-click a node → **Work it**. **I** opens the pack, **C** the
+workbench; a work bar shows progress and reports interruptions. The wire
+message is now `catalogue` (items + recipes together) so the client can
+show "Iron Ore" rather than `iron-ore`. Craft arithmetic is pure and
+tested: `client/src/game/pack.ts`, `client/test/pack.test.ts`.
+
+**Verified live in the mine:** node rendered as a pale boulder among the
+terrain rock; harvest ran the bar and yielded; pack showed "Iron Ore 1";
+workbench listed all four recipes correctly disabled, with per-input
+shortfalls in red and "needs the workshop / storehouse" where the station
+was wrong.
+
+⚠ `DEFAULT_AREA_ID` only applies to NEW characters — existing ones load at
+their saved position, so a dev character stays wherever it last stood.
+
+**Still to build in MR2:** hunger and thirst (D-526), facility potency
+(D-530), night roamers (D-527/D-529), and the dungeon's contents.
 
 ## How to work in this repo (hard-won specifics)
 

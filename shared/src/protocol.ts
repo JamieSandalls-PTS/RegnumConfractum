@@ -482,9 +482,23 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     /** Set when the work ended without producing anything, and why. */
     interrupted: z.string().nullable(),
   }),
-  /** The catalogue this client may craft from, sent once on entering. */
+  /**
+   * What the client needs to NAME and MAKE things, sent once on entering.
+   * Item templates travel with the recipes because both the inventory and
+   * the craft panel need them: the wire carries template ids, and without
+   * this the player reads "iron-ore" instead of "Iron Ore".
+   */
   z.object({
-    t: z.literal('recipes'),
+    t: z.literal('catalogue'),
+    items: z.array(
+      z.object({
+        id: ContentIdSchema,
+        name: z.string(),
+        description: z.string(),
+        category: z.string(),
+        stackable: z.boolean(),
+      }),
+    ),
     recipes: z.array(
       z.object({
         id: ContentIdSchema,

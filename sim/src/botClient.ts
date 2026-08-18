@@ -64,7 +64,9 @@ export class BotClient {
   /** Every work report (MR2) — progress, completion, and interruptions. */
   readonly work: Extract<ServerMessage, { t: 'work' }>[] = [];
   /** The craft catalogue, sent on entering the world. */
-  recipes: Extract<ServerMessage, { t: 'recipes' }>['recipes'] = [];
+  recipes: Extract<ServerMessage, { t: 'catalogue' }>['recipes'] = [];
+  /** Item templates, so a test can read a name rather than an id. */
+  itemCatalogue: Extract<ServerMessage, { t: 'catalogue' }>['items'] = [];
   area: AreaMirror | null = null;
   you: number | null = null;
   inventory: WireItem[] = [];
@@ -338,8 +340,9 @@ export class BotClient {
         this.work.push(msg);
         break;
       }
-      case 'recipes': {
+      case 'catalogue': {
         this.recipes = msg.recipes;
+        this.itemCatalogue = msg.items;
         break;
       }
       default:
