@@ -8,6 +8,7 @@ import {
   FeatsFileSchema,
   ItemTemplateSchema,
   LanguagesFileSchema,
+  ObjectiveSchema,
   SkillsFileSchema,
   SpellsFileSchema,
   type AreaDef,
@@ -16,6 +17,7 @@ import {
   type FeatDef,
   type ItemTemplate,
   type Language,
+  type ObjectiveDef,
   type SkillDef,
   type SpellDef,
 } from '@rc/shared';
@@ -37,6 +39,9 @@ export interface Content {
   skills: SkillDef[];
   feats: FeatDef[];
   spells: SpellDef[];
+  /** The antagonist's possible orders (D-521). Empty means no round can
+   * start — the lobby fills and waits rather than starting without one. */
+  objectives: ObjectiveDef[];
   /** Lua sources by script id (content/scripts/<id>.lua), D-109. */
   scripts: Map<string, string>;
 }
@@ -145,6 +150,20 @@ export function loadContent(contentDir: string): Content {
   const feats = readArrayFile<FeatDef>('feats', FeatsFileSchema);
   const spells = readArrayFile<SpellDef>('spells', SpellsFileSchema);
 
+  const objectives: ObjectiveDef[] = [];
+  const objectiveIds = new Set<string>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'objectives'))) {
+    const parsed = ObjectiveSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (objectiveIds.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate objective id '${parsed.data.id}'`);
+    }
+    objectiveIds.add(parsed.data.id);
+    objectives.push(parsed.data);
+  }
+
   const scripts = new Map<string, string>();
   try {
     for (const f of readdirSync(join(contentDir, 'scripts')).filter((f) => f.endsWith('.lua'))) {
@@ -167,5 +186,16 @@ export function loadContent(contentDir: string): Content {
   }
 
   if (areas.size === 0) throw new Error(`no areas found under ${contentDir}/areas`);
-  return { areas, itemTemplates, emoteLexicon, languages, classes, skills, feats, spells, scripts };
+  return {
+    areas,
+    itemTemplates,
+    emoteLexicon,
+    languages,
+    classes,
+    skills,
+    feats,
+    spells,
+    objectives,
+    scripts,
+  };
 }

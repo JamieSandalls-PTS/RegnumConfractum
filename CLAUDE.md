@@ -326,6 +326,18 @@ than a duellist. A cast of three is carried by objectives that never
 require the antagonist to win a fight — kill-a-named-NPC (the tavern
 keeper already exists), starve-out, steal, escape, survive.
 
+**The day-night cycle (D-527):** a full cycle is **ten real minutes** —
+five day, five night — on the round's own clock (a game hour every 25s, so
+authored `on_hour`/`at_hour` triggers still work). A round **opens at
+dawn**, giving 25 minutes exactly **two nights** and closing in daylight.
+**At night NPCs roam outdoors**, so open ground is perilous and paid for.
+This completes the three forces — the dungeon pulls players *out*, hunger
+pushes them *out*, night drives them *in* — and no position beats all
+three, which is what defeats the barricade. Night also manufactures the
+antagonist's alibi on a timer. ⚠ Night roamers need an **`outdoor` flag on
+areas**; `lighting: 'interior'|'underground'` is a render profile and must
+not be overloaded to mean "safe".
+
 **Ratified in D-524:** **recognition memory is round-scoped** — the cast
 meets as strangers every round, so false names and hoods never decay. This
 holds *only while antagonist assignment stays random*; random assignment is
@@ -342,7 +354,9 @@ execution, or it teaches the opposite of the north star.
 **M4b remaining:** richer injury/treatment types (D-205 matrix), Vessel's
 Plane Shift, class skills/balance beyond the scaffold. **Other gaps:**
 inventory/character-sheet UI, invisible DM observation, staging VPS not
-provisioned. ⚠ **Blocked on the stakeholder, MR-specific:** hunger tuning (need events
+provisioned. ⚠ **Blocked on the stakeholder, MR-specific:** night tuning (how much more
+night pays than day, roamer strength, whether roamers may enter settled
+areas); hunger tuning (need events
 per round, what the first stage costs, whether starvation can kill inside a
 round or only incapacitate); multiple antagonists above a cast size, and
 whether they know each other; minimum party size to enter the dungeon at low

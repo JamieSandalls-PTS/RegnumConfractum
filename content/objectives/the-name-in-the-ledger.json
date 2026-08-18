@@ -1,0 +1,10 @@
+{
+  "id": "the-name-in-the-ledger",
+  "name": "The Name in the Ledger",
+  "brief": "One name was given to you, and one only. They are here tonight, drinking with the rest, and they have no idea. Before the round is out, they must be dead — by your hand or by circumstance, it makes no difference to those who sent you.",
+  "kind": { "type": "kill_player" },
+  "minCast": 5,
+  "maxCast": null,
+  "status": "live",
+  "notes": "Assassination is reserved for larger casts (D-522): at three players it reduces to a duel and the deduction layer collapses. Any death of the target counts, whatever the cause — genre convention, and it stops a wandering monster robbing the antagonist. Unratified."
+}

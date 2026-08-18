@@ -2267,3 +2267,78 @@ round:
 **Unratified and needed before build:** the number of need events per round,
 what the first stage actually costs, and whether starvation can kill inside a
 round or only incapacitate.
+
+### D-527: The day-night cycle — ten minutes, and night belongs to the wild
+
+**Stakeholder, 2026-08-18:** "I want a day to be around 10 mins, 5 mins day,
+5 mins night. At night I want NPCs to roam outdoors, making outside perilous,
+but rewarding to the brave/strong."
+
+**Decision:** a full cycle is **6,000 ticks — ten real minutes**, split evenly:
+day from 06:00, night from 18:00. A game hour is 25 real seconds
+(`ROUND_TICKS_PER_GAME_HOUR = 250`), which keeps every authored `on_hour` and
+`at_hour` trigger working (D-507, D-508) — just very much faster. The
+persistent world's two-real-minutes-per-game-hour is untouched; the round runs
+on its own clock.
+
+**A 25-minute round is therefore two and a half cycles — three day phases and
+exactly TWO nights**, opening and closing in daylight. This is a better shape
+than it looks:
+
+- Two nights give the round **two distinct danger beats** rather than one
+  undifferentiated stretch. A single night would make the round a
+  before-and-after; three would make night routine.
+- Ending in daylight means the round does not resolve in the dark, when
+  visibility is worst and a resolution would feel arbitrary.
+- **A body discovered at dawn** is the oldest setup in the genre, and this
+  cycle produces it twice a round without anyone authoring it.
+
+**Night NPCs roaming outdoors is the third movement force, and it completes
+the set.** The Round now has three pressures that no single position defeats:
+
+| Force | Direction | Decision |
+|---|---|---|
+| The dungeon | pulls players **out** — reward | D-523 |
+| Hunger and thirst | pushes players **out** — need | D-526 |
+| **Night** | drives players **in** — danger | **D-527** |
+
+That is why the barricade strategy fails. Camping one room was already
+answered by hunger; night answers the opposite degenerate case, the cast that
+spends the whole round spread across open ground where nobody can be
+ambushed. **No spot is safe against all three at once**, and the cast must
+keep making decisions about where to be. This was the structural gap left
+after D-526 and it is now closed.
+
+**What night does for the antagonist is the real prize.** At night the cast
+is driven indoors, together, tense, and unwilling to go out alone — which is
+exactly the condition under which a murder is both possible and deniable.
+"He went out at dusk and something took him" is a complete alibi that the
+world itself makes plausible. **The game manufactures the antagonist's cover
+on a timer**, without a single scripted event.
+
+**"Rewarding to the brave/strong" is the part to be careful with.** Night
+must pay better than day — otherwise nobody goes out and it is simply a
+five-minute intermission. But the reward must obey D-522: **it pays in xp and
+materials, never in anything that wins the round.** A night forager comes
+back richer and more experienced; they do not come back holding the round.
+Two further constraints follow:
+
+- **Night must be survivable by the strong, not only by the lucky.** If night
+  roamers kill anyone who steps out, night is a wall rather than a decision,
+  and the round loses five minutes in every ten.
+- **The antagonist must not be the obvious beneficiary.** If night is so
+  lethal that the cast never separates, the antagonist cannot act either.
+  Night should isolate people, not freeze them.
+
+**Implementation shape (MR1 for the clock, MR2 for the roamers):**
+`roundHour()`, `isNight()` and `roundPhaseOfDay()` in `shared/src/round.ts`
+derive everything from the tick, so the cycle is deterministic and headlessly
+testable. Area lighting follows the phase. Night spawning is per-area and
+applies only to areas that are actually outdoors — which means **areas need
+an `outdoor` flag**; `lighting: 'interior' | 'underground'` is a rendering
+profile and must not be overloaded to mean "safe from roamers".
+
+**Unratified, and needed before the roamers are tuned:** how much more night
+pays than day; the roamer's strength relative to a mid-round character; and
+whether night roamers may enter settled areas at all or only prowl outside
+them.

@@ -1,0 +1,10 @@
+{
+  "id": "see-the-night-through",
+  "name": "See the Night Through",
+  "brief": "You are not here to kill anyone. You are here because someone must still be standing when the sun comes up, and it has been decided that it will be you. Live to the end. Let the others do what they will to each other.",
+  "kind": { "type": "survive" },
+  "minCast": 3,
+  "maxCast": null,
+  "status": "live",
+  "notes": "Requires no fight at all, so it works at a cast of three (D-522/D-526). Inverts the clock: reaching the deadline alive IS the deed, which the round engine handles as a special case in evaluate()."
+}

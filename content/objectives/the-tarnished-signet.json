@@ -1,0 +1,10 @@
+{
+  "id": "the-tarnished-signet",
+  "name": "The Tarnished Signet",
+  "brief": "There is a signet in this place, tarnished and unremarkable, and it is worth more than every life in the room. Take it. Carry it out. What happens behind you is not your concern.",
+  "kind": { "type": "steal", "itemTemplate": "tarnished-signet" },
+  "minCast": 3,
+  "maxCast": null,
+  "status": "planned",
+  "notes": "PLANNED, not selectable: needs MR2's item verbs before the server can observe completion. Authored now because it is one of the objectives that works at a cast of three without the antagonist winning a fight (D-526)."
+}

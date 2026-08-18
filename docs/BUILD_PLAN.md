@@ -164,11 +164,19 @@ nothing about what they are this round, because the antagonist is assigned
 at random. Creation happens at the roster screen, outside the round, so the
 lobby is a join queue.
 
-**The dungeon (D-523).** A per-round dungeon farmable for xp, loot and
-materials is what pulls the cast apart voluntarily — without it, everyone
-sits in the tavern, nobody can be killed unwitnessed, and the antagonist
-cannot act. Attention is the scarce resource: dive and earn, or stay and
-watch. It is structural, not side content.
+**Three forces keep the cast moving, and no position defeats all three.**
+The **dungeon** (D-523) pulls players *out* with reward — attention is the
+scarce resource, so dive and earn or stay and watch. **Hunger and thirst**
+(D-526) push them *out* by need. **Night** (D-527) drives them *in* with
+danger. Without the first, everyone sits in the tavern and nobody can be
+killed unwitnessed. Without the second, a barricaded room is the correct
+play. Without the third, the cast spreads across open ground where nobody
+can be ambushed. All three are structural, not side content.
+
+**Night is also the antagonist's cover.** After dusk the cast is indoors,
+together and unwilling to go out alone — and "he went out at dusk and
+something took him" is an alibi the world itself makes plausible, twice a
+round, with nothing scripted.
 
 ### MR1 — The round spine
 
@@ -182,8 +190,12 @@ watch. It is structural, not side content.
 - Victory evaluation and round resolution, with the reveal at the end
 - Round death rules: D-513's downed state and the `revive` window become the
   default; no respawn timer, no death debt
-- Round-scoped clock — `TICKS_PER_GAME_HOUR` becomes a round parameter so one
-  round is one day — and **area lighting driven by the hour**
+- **The day-night cycle (D-527)** — a full cycle is **ten real minutes**,
+  five of day and five of night, on the round's own clock
+  (`ROUND_TICKS_PER_GAME_HOUR`, a game hour every 25 seconds) so authored
+  `on_hour`/`at_hour` triggers keep working. A round **opens at dawn**, which
+  gives 25 minutes exactly **two nights**, closing in daylight. Area lighting
+  follows the phase.
 - Character roster outside the round: create, select, and carry a persistent
   character in; **gear stripped on entry and on exit** (D-522)
 - **Recognition is round-scoped state (D-524, D-525):** per-observer name
@@ -232,6 +244,13 @@ its gear **not at all**, and the event log is unbroken across the reset
 - **The antagonist's non-violent attack surface:** poison the well, spoil the
   stores, burn the crop. Unwitnessed, deniable, no combat required — at a
   cast of three a poisoner is a better antagonist than a duellist (D-526).
+- **Night roamers (D-527)** — NPCs abroad outdoors after dusk, so open ground
+  is perilous and the brave are paid for crossing it. Requires an **`outdoor`
+  flag on areas**: `lighting: 'interior' | 'underground'` is a rendering
+  profile and must not be overloaded to mean "safe from roamers". Night must
+  pay **better than day, in xp and materials only** — never in anything that
+  wins the round (D-522) — and must be survivable by the strong rather than
+  lethal to everyone, or the round loses five minutes in every ten.
 - **Persistent progression (D-522):** xp banked to the character and kept
   between rounds, earned from crafting, farming, healing, surviving and
   winning — and from **NPC** combat only. **No xp for killing another
@@ -251,8 +270,10 @@ its gear **not at all**, and the event log is unbroken across the reset
 fight — the orphan validator is green across the round kit, and two
 assertions hold: a bot that dies banks **no** xp for that round, and a bot
 that survives banks its dungeon xp and **loses its gear** at the reset. Plus:
-a cast that never leaves one room **starves**, and a bot that learned another
-character's name in round one **does not know it** in round two (D-525).
+a cast that never leaves one room **starves**, a bot that learned another
+character's name in round one **does not know it** in round two (D-525), and
+the round's clock shows **two nights** between an opening and closing
+daylight (D-527).
 
 ### MR3 — The scenario library and the map
 

@@ -1,0 +1,10 @@
+{
+  "id": "the-long-hunger",
+  "name": "The Long Hunger",
+  "brief": "You will not need a blade. Spoil what they have stored, foul what they draw from the well, and burn what they have not yet cut. Hunger will do the rest, and hunger leaves no wound to point at.",
+  "kind": { "type": "starve" },
+  "minCast": 3,
+  "maxCast": null,
+  "status": "planned",
+  "notes": "PLANNED, not selectable: needs MR2's food and water needs (D-526). The strongest argument for survival needs — at a cast of three a poisoner is a far more interesting antagonist than a duellist, because denial requires no fight and leaves no witness."
+}

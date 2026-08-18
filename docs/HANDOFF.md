@@ -68,6 +68,11 @@ farming's consumer — coarse events on the day-night cycle, never a
 draining bar, no death spiral. Cast of three is carried by objectives that
 never need the antagonist to win a fight.
 
+**D-527:** day-night cycle is **10 real minutes** (5 day / 5 night), on the
+round's own clock; a round **opens at dawn** so 25 min = exactly two
+nights. **Night NPCs roam outdoors** — the third movement force. Needs an
+`outdoor` flag on areas (do NOT overload `lighting`).
+
 ## Next work (rough priority — pre-D-521, retained for context)
 
 1. **Combat-feel iteration with the stakeholder** — they now have the full

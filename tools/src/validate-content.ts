@@ -5,11 +5,14 @@ import {
   ClassSchema,
   FeatsFileSchema,
   ItemTemplateSchema,
+  ObjectiveSchema,
+  ROUND_MIN_CAST,
   SkillsFileSchema,
   SpellsFileSchema,
   type AreaDef,
   type ClassDef,
   type FeatDef,
+  type ObjectiveDef,
   type SpellDef,
 } from '@rc/shared';
 
@@ -130,6 +133,58 @@ export function validateContent(contentDir: string): ValidationResult {
       continue;
     }
     itemIds.add(parsed.data.id);
+  }
+
+  // Objectives (D-521): the antagonist's possible orders. Validated for
+  // shape here; the round engine additionally refuses to SELECT any whose
+  // status is 'planned', so an objective authored ahead of the system that
+  // would resolve it is content, not a broken round.
+  const objectiveIds = new Set<string>();
+  const objectives: ObjectiveDef[] = [];
+  for (const file of listJson(join(contentDir, 'objectives'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = ObjectiveSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    if (objectiveIds.has(parsed.data.id)) {
+      errors.push(`${file}: duplicate objective id '${parsed.data.id}'`);
+      continue;
+    }
+    objectiveIds.add(parsed.data.id);
+    objectives.push(parsed.data);
+  }
+  for (const o of objectives) {
+    if (o.maxCast !== null && o.maxCast < o.minCast) {
+      errors.push(`objective '${o.id}': maxCast ${o.maxCast} is below minCast ${o.minCast}`);
+    }
+    if (o.kind.type === 'steal' && !itemIds.has(o.kind.itemTemplate)) {
+      errors.push(`objective '${o.id}': steals unknown item '${o.kind.itemTemplate}'`);
+    }
+  }
+  // A round cannot start without something to give the antagonist. If any
+  // objective exists at all, at least one must be live and playable at the
+  // minimum cast — otherwise the lobby would fill and never start.
+  if (objectives.length > 0) {
+    const playable = objectives.filter(
+      (o) =>
+        o.status === 'live' &&
+        o.minCast <= ROUND_MIN_CAST &&
+        (o.maxCast === null || o.maxCast >= ROUND_MIN_CAST),
+    );
+    if (playable.length === 0) {
+      errors.push(
+        `no live objective is playable at the minimum cast of ${ROUND_MIN_CAST} — a round could never start`,
+      );
+    }
   }
 
   const classIds = new Set<string>();
