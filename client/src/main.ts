@@ -8,7 +8,10 @@ import {
   type WireEntity,
 } from '@rc/shared';
 import { Connection } from './net/connection';
+import { Ambience } from './audio';
+import { CreationWizard } from './creation';
 import { GameScene } from './render/scene';
+import type { PixelPost } from './render/palette';
 import { Terrain } from './render/terrain';
 import { CharacterVisual } from './render/character';
 import { isMoving, stepToward, type InterpolatedPosition } from './game/interpolation';
@@ -112,7 +115,16 @@ let hoveredEntityId: number | null = null;
 let hoveredTile: { x: number; y: number } | null = null;
 /** Click-to-move destination; the executor re-plans each step (drift-safe). */
 let moveDest: { x: number; y: number } | null = null;
+/** Chair the player asked to sit on: emits the sit emote on arrival. */
+let pendingSit: { x: number; y: number } | null = null;
 let currentArea: Extract<ServerMessage, { t: 'snapshot' }>['area'] | null = null;
+
+// Ambient sound (procedural, see audio.ts). Browsers gate audio behind a
+// user gesture, so the graph builds on the first input and not before.
+const ambience = new Ambience();
+const enableAudio = (): void => ambience.enable();
+window.addEventListener('pointerdown', enableAudio, { once: true });
+window.addEventListener('keydown', enableAudio, { once: true });
 
 // ---------------------------------------------------------------------------
 // UI flow
@@ -138,14 +150,30 @@ $<HTMLInputElement>('in-pass').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') beginAuth('login');
 });
 
+// Character creation (D-208) lives in its own module; it submits a finished
+// build and the SERVER decides whether it is legal.
+const creation = new CreationWizard({
+  onSubmit: (name, classId, build) => {
+    conn.send({
+      t: 'create_character',
+      name,
+      appearanceSeed: creation.seed,
+      classId,
+      build,
+    });
+  },
+  onCancel: () => setStatus(''),
+});
+
 $('btn-create').onclick = () => {
-  const name = $<HTMLInputElement>('in-charname').value.trim();
-  if (!name) return setStatus('a character needs a name');
-  conn.send({ t: 'create_character', name, appearanceSeed: Math.floor(Math.random() * 2 ** 31) });
+  if (!creation.ready) return setStatus('still loading the catalogue — try again in a moment');
+  setStatus('');
+  creation.open();
 };
 
 function showCharacters(characters: CharacterSummary[]): void {
   loginForm.classList.add('hidden');
+  creation.close();
   charForm.classList.remove('hidden');
   charList.innerHTML = '';
   for (const c of characters) {
@@ -163,6 +191,7 @@ function showCharacters(characters: CharacterSummary[]): void {
 conn.onClose = (reason) => {
   overlay.classList.remove('hidden');
   loginForm.classList.remove('hidden');
+  creation.close();
   charForm.classList.add('hidden');
   hud.classList.add('hidden');
   chat.classList.add('hidden');
@@ -175,13 +204,21 @@ conn.onProtocolError = (detail) => setStatus(`protocol error: ${detail}`);
 conn.onMessage = (msg: ServerMessage) => {
   switch (msg.t) {
     case 'error':
-      if (msg.code === 'auth_failed' || msg.code === 'username_taken') setStatus(msg.message);
+      // While the creation wizard is open its own error line is the one the
+      // player is looking at — a rejected build must land there, not in the
+      // login status behind the panel.
+      if (!$('create-form').classList.contains('hidden')) creation.showError(msg.message);
+      else if (msg.code === 'auth_failed' || msg.code === 'username_taken') setStatus(msg.message);
       else if (msg.code === 'character_name_taken') setStatus(msg.message);
       else setStatus(`${msg.code}: ${msg.message}`);
       return;
     case 'auth_ok':
       localStorage.setItem('rc.token', msg.token);
       showCharacters(msg.characters);
+      conn.send({ t: 'get_creation_content' }); // catalogue for the wizard
+      return;
+    case 'creation_content':
+      creation.setContent(msg);
       return;
     case 'character_created':
       conn.send({ t: 'enter_world', characterId: msg.character.id });
@@ -198,6 +235,7 @@ conn.onMessage = (msg: ServerMessage) => {
       return;
     case 'speech':
       appendSpeech(msg);
+      addSpeechBubble(msg);
       return;
     case 'item_text':
       appendDocument(msg.title, msg.text);
@@ -292,6 +330,8 @@ function addEntity(wire: WireEntity): void {
     return;
   }
   const visual = new CharacterVisual(wire.appearanceSeed, s.scene);
+  // Layer 1 is the character/pixel layer the split pass quantises (D-404).
+  visual.setRenderLayer(1);
   visual.setPosition(wire.x, wire.y);
   visual.setFacing(wire.facing);
   visual.setPosture(wire.posture);
@@ -309,11 +349,27 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   clearWorld();
   s.applyLighting(snap.area.lighting);
   terrain = new Terrain(snap.area, s.scene);
+  // Lights (including the hearth's, added by Terrain just now) and the
+  // camera must reach both layers or the split pass renders black.
+  s.enableAllLayers();
+  applyGraphics();
+  $('btn-settings').classList.remove('hidden');
   for (const e of snap.entities) addEntity(e);
   youId = snap.you;
   areaName = snap.area.name;
   currentArea = snap.area;
   moveDest = null;
+  pendingSit = null;
+  // Ambience derives from the area data: hearth tiles crackle, interior
+  // and underground profiles carry a room tone.
+  const hearths: { x: number; y: number }[] = [];
+  for (let ty = 0; ty < snap.area.height; ty++) {
+    for (let tx = 0; tx < snap.area.width; tx++) {
+      const ch = snap.area.tiles[ty]![tx]!;
+      if (snap.area.legend[ch]?.kind === 'hearth') hearths.push({ x: tx, y: ty });
+    }
+  }
+  ambience.setScene(hearths, snap.area.lighting === 'interior' || snap.area.lighting === 'underground');
   selectedId = null;
   updateTargetFrame();
   coin = snap.coin;
@@ -746,6 +802,11 @@ function tileWalkable(x: number, y: number): boolean {
   return ch !== undefined && (a.legend[ch]?.walkable ?? false);
 }
 
+function tileKind(x: number, y: number): string | null {
+  const ch = currentArea?.tiles[y]?.[x];
+  return ch !== undefined ? currentArea!.legend[ch]?.kind ?? null : null;
+}
+
 window.addEventListener('keydown', (e) => {
   if (youId === null || isTyping()) return;
   if (e.key >= '1' && e.key <= '9') {
@@ -923,7 +984,10 @@ window.addEventListener('pointerup', (e) => {
     return;
   }
   const tile = tileAtScreen(e.clientX, e.clientY);
-  if (tile && tileWalkable(tile.x, tile.y)) moveDest = tile;
+  if (tile && tileWalkable(tile.x, tile.y)) {
+    moveDest = tile;
+    pendingSit = null;
+  }
 });
 
 stageEl.addEventListener('wheel', (e) => {
@@ -997,7 +1061,12 @@ function menuFor(entityId: number | null, tile: { x: number; y: number } | null)
       entries.push({ label: 'Animate dead', act: () => conn.send({ t: 'animate_dead', targetEntityId: entityId }) });
     }
   } else if (tile && tileWalkable(tile.x, tile.y)) {
-    entries.push({ label: `Walk here (${tile.x}, ${tile.y})`, act: () => { moveDest = tile; } });
+    if (tileKind(tile.x, tile.y) === 'chair') {
+      // Walk to the chair, then sit through the normal emote pipeline —
+      // everyone nearby sees the same "*sits down*" they would if typed.
+      entries.push({ label: 'Sit here', act: () => { moveDest = tile; pendingSit = tile; } });
+    }
+    entries.push({ label: `Walk here (${tile.x}, ${tile.y})`, act: () => { moveDest = tile; pendingSit = null; } });
   }
   return entries;
 }
@@ -1187,6 +1256,151 @@ renderHotbar();
 renderDrawer();
 
 // ---------------------------------------------------------------------------
+// Graphics settings (stakeholder request, 2026-08-18)
+//
+// The ratified art direction is SPLIT: characters are palette-pixelated, the
+// environment is not (D-404 as reinstated). Both scales are tunable here and
+// persist per browser.
+// ---------------------------------------------------------------------------
+
+interface GraphicsSettings {
+  mode: 'split' | 'uniform' | 'raw';
+  charPixel: number;
+  envPixel: number;
+  envPalette: boolean;
+}
+
+const GRAPHICS_DEFAULTS: GraphicsSettings = {
+  mode: 'split',
+  charPixel: 4,
+  envPixel: 1,
+  envPalette: false,
+};
+
+function loadGraphics(): GraphicsSettings {
+  try {
+    const raw = localStorage.getItem('rc.graphics');
+    if (!raw) return { ...GRAPHICS_DEFAULTS };
+    const saved = JSON.parse(raw) as Partial<GraphicsSettings>;
+    return { ...GRAPHICS_DEFAULTS, ...saved };
+  } catch {
+    return { ...GRAPHICS_DEFAULTS };
+  }
+}
+
+const graphics = loadGraphics();
+
+function applyGraphics(): void {
+  if (!scene) return;
+  scene.post.pixelScale = graphics.charPixel;
+  scene.post.envPixelScale = graphics.envPixel;
+  scene.resize();
+  localStorage.setItem('rc.graphics', JSON.stringify(graphics));
+}
+
+function syncSettingsUi(): void {
+  $<HTMLSelectElement>('set-mode').value = graphics.mode;
+  $<HTMLInputElement>('set-charpx').value = String(graphics.charPixel);
+  $<HTMLInputElement>('set-envpx').value = String(graphics.envPixel);
+  $<HTMLInputElement>('set-envpal').checked = graphics.envPalette;
+  $('v-charpx').textContent = String(graphics.charPixel);
+  $('v-envpx').textContent = String(graphics.envPixel);
+  // Character pixelation is meaningless without a quantiser pass.
+  $<HTMLInputElement>('set-charpx').disabled = graphics.mode === 'raw';
+  $<HTMLInputElement>('set-envpx').disabled = graphics.mode !== 'split';
+  $<HTMLInputElement>('set-envpal').disabled = graphics.mode !== 'split';
+}
+
+$('btn-settings').addEventListener('click', () => {
+  $('settings').classList.toggle('hidden');
+  syncSettingsUi();
+});
+$('set-mode').addEventListener('change', () => {
+  graphics.mode = $<HTMLSelectElement>('set-mode').value as GraphicsSettings['mode'];
+  applyGraphics();
+  syncSettingsUi();
+});
+$('set-charpx').addEventListener('input', () => {
+  graphics.charPixel = Number($<HTMLInputElement>('set-charpx').value);
+  applyGraphics();
+  syncSettingsUi();
+});
+$('set-envpx').addEventListener('input', () => {
+  graphics.envPixel = Number($<HTMLInputElement>('set-envpx').value);
+  applyGraphics();
+  syncSettingsUi();
+});
+$('set-envpal').addEventListener('change', () => {
+  graphics.envPalette = $<HTMLInputElement>('set-envpal').checked;
+  applyGraphics();
+});
+syncSettingsUi();
+
+// ---------------------------------------------------------------------------
+// Speech bubbles (stakeholder request, 2026-08-18)
+//
+// Range is NOT decided here: the server already delivers speech only to
+// listeners who can hear it — proximity per channel plus line of sight
+// (D-102, M2). Receiving the message IS the permission to draw it, so a
+// whisper across the room can never appear, and no client-side radius can
+// be edited to eavesdrop.
+// ---------------------------------------------------------------------------
+
+interface Bubble {
+  el: HTMLDivElement;
+  entityId: number;
+  remaining: number;
+}
+
+const bubbleLayer = document.createElement('div');
+bubbleLayer.id = 'bubble-layer';
+document.body.appendChild(bubbleLayer);
+const bubbles: Bubble[] = [];
+
+function addSpeechBubble(msg: Extract<ServerMessage, { t: 'speech' }>): void {
+  // No bubble for a speaker we cannot see (heard through a wall, or a
+  // séance voice): the chat log still carries those.
+  if (!entities.has(msg.speakerId)) return;
+  const existing = bubbles.findIndex((b) => b.entityId === msg.speakerId);
+  if (existing >= 0) {
+    bubbles[existing]!.el.remove();
+    bubbles.splice(existing, 1);
+  }
+  const el = document.createElement('div');
+  el.className = `bubble ${msg.channel}`;
+  el.textContent = msg.text;
+  bubbleLayer.appendChild(el);
+  // Long lines linger; the floor keeps a one-word shout readable.
+  const seconds = Math.min(11, 2.6 + msg.text.length * 0.055);
+  bubbles.push({ el, entityId: msg.speakerId, remaining: seconds });
+}
+
+const bubbleProject = new THREE.Vector3();
+
+function updateSpeechBubbles(dt: number): void {
+  if (!scene) return;
+  const rect = stageEl.getBoundingClientRect();
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    const b = bubbles[i]!;
+    const entity = entities.get(b.entityId);
+    b.remaining -= dt;
+    if (!entity || b.remaining <= 0) {
+      b.el.remove();
+      bubbles.splice(i, 1);
+      continue;
+    }
+    // Anchor just above the head, in world space, then project to screen.
+    bubbleProject.set(entity.render.x, 1.95, entity.render.y).project(scene.camera);
+    const sx = rect.left + ((bubbleProject.x + 1) / 2) * rect.width;
+    const sy = rect.top + ((1 - bubbleProject.y) / 2) * rect.height;
+    b.el.style.left = `${sx}px`;
+    b.el.style.top = `${sy}px`;
+    // Fade the last second rather than blinking out.
+    b.el.style.opacity = String(Math.min(1, b.remaining));
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Render loop
 // ---------------------------------------------------------------------------
 
@@ -1209,16 +1423,28 @@ function stepFrame(dt: number): void {
   }
   updateHighlights();
 
+  terrain?.update(t);
+  updateSpeechBubbles(dt);
   const you = youId !== null ? entities.get(youId) : undefined;
   if (you) {
     followPoint.set(you.render.x, 0, you.render.y);
     scene.follow(followPoint);
+    ambience.update(you.render.x, you.render.y);
     $('hud-pos').textContent = `${you.wire.x},${you.wire.y}`;
     $('hud-coin').textContent = String(coin);
     $('hud-conn').textContent = conn.open ? '' : 'connection lost';
+    // Arrived on the chosen chair: sit through the emote pipeline, once.
+    if (pendingSit && you.wire.x === pendingSit.x && you.wire.y === pendingSit.y
+      && !isMoving(you.render, { x: you.wire.x, y: you.wire.y })) {
+      pendingSit = null;
+      conn.send({ t: 'say', channel: 'say', text: '*sits down*' });
+    }
   }
 
-  scene.render();
+  // Split mode (D-404): characters through the quantiser, world crisp.
+  if (graphics.mode === 'split') scene.renderSplit(graphics.envPalette);
+  else if (graphics.mode === 'raw') scene.renderer.render(scene.scene, scene.camera);
+  else scene.render();
 }
 
 function frame(): void {
@@ -1243,6 +1469,13 @@ declare global {
        * input timers, so automated checks inject intents directly. The
        * server validates everything regardless (D-102). */
       send: (msg: Parameters<Connection['send']>[0]) => void;
+      /** World→screen projection, so a check can assert what should be in
+       * front of what (used to verify split-render occlusion). */
+      project: (x: number, y: number, height?: number) => { sx: number; sy: number; depth: number };
+      /** Grabs the canvas as a data URL for visual diffing. */
+      shot: () => string;
+      /** The post pass, so a check can A/B its split-mode depth test. */
+      post: () => PixelPost;
     };
   }
 }
@@ -1258,4 +1491,16 @@ window.__rc = {
     })),
   you: () => youId,
   send: (msg) => conn.send(msg),
+  project: (x, y, height = 0) => {
+    const v = new THREE.Vector3(x, height, y);
+    v.project(scene!.camera);
+    const rect = stageEl.getBoundingClientRect();
+    return {
+      sx: ((v.x + 1) / 2) * rect.width,
+      sy: ((1 - v.y) / 2) * rect.height,
+      depth: v.z,
+    };
+  },
+  shot: () => scene!.renderer.domElement.toDataURL('image/png'),
+  post: () => scene!.post,
 };

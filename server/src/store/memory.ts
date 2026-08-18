@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import { startingBuild } from './types';
 import type {
   Account,
+  CharacterCreate,
   CharacterRecord,
   CorpseRecord,
   EventRecord,
@@ -62,19 +64,16 @@ export class MemoryStore implements Store {
     this.sessions.delete(token);
   }
 
-  async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired' | 'necromancy'>,
-  ): Promise<CharacterRecord | 'character_name_taken'> {
+  async createCharacter(c: CharacterCreate): Promise<CharacterRecord | 'character_name_taken'> {
     const nameKey = c.name.toLowerCase();
     for (const existing of this.characters.values()) {
       if (existing.name.toLowerCase() === nameKey) return 'character_name_taken';
     }
     const record: CharacterRecord = {
       ...c,
+      ...startingBuild(c),
       id: randomUUID(),
       coin: 0,
-      bluff: 10,
-      insight: 10,
       languages: ['common'],
       hp: 20,
       maxHp: 20,
@@ -82,7 +81,6 @@ export class MemoryStore implements Store {
       deathDebt: 0,
       deeds: 0,
       retired: false,
-      necromancy: 0,
     };
     this.characters.set(record.id, record);
     return { ...record };

@@ -19,11 +19,17 @@ import {
   SESSION_TTL_MS,
   TICK_MS,
   ZOMBIE_DURATION_TICKS,
+  CREATION_FEAT_PICKS,
+  CREATION_SKILL_MAX,
+  CREATION_SKILL_POINTS,
+  CREATION_SKILL_STEP,
+  CREATION_SPELL_PICKS,
   chebyshev,
   describeAppearance,
   describeHooded,
   generateAppearance,
   parseClientMessage,
+  validateBuild,
   type AreaDef,
   type Channel,
   type CharacterSummary,
@@ -489,6 +495,8 @@ export class GameServer {
         return this.handleResume(conn, msg);
       case 'create_character':
         return this.handleCreateCharacter(conn, msg);
+      case 'get_creation_content':
+        return this.handleGetCreationContent(conn);
       case 'enter_world':
         return this.handleEnterWorld(conn, msg);
       case 'move':
@@ -1723,6 +1731,26 @@ export class GameServer {
   // Characters and world entry
   // -------------------------------------------------------------------------
 
+  /** The creation catalogue, straight from content (D-110). */
+  private async handleGetCreationContent(conn: ConnState): Promise<void> {
+    if (!conn.accountId) return this.fail(conn, 'not_authenticated', 'log in first');
+    this.send(conn, {
+      t: 'creation_content',
+      classes: [...this.content.classes.values()],
+      skills: this.content.skills,
+      feats: this.content.feats,
+      spells: this.content.spells,
+      budget: {
+        skillPoints: CREATION_SKILL_POINTS,
+        skillStep: CREATION_SKILL_STEP,
+        skillMax: CREATION_SKILL_MAX,
+        feats: CREATION_FEAT_PICKS,
+        spells: CREATION_SPELL_PICKS,
+      },
+      legacyPoints: await this.store.getLegacyPoints(conn.accountId),
+    });
+  }
+
   private async handleCreateCharacter(
     conn: ConnState,
     msg: Extract<ClientMessage, { t: 'create_character' }>,
@@ -1743,6 +1771,27 @@ export class GameServer {
         }
       }
     }
+    // The build is validated HERE, against content, before anything is
+    // written (D-102): the client's own check is convenience only.
+    const build = msg.build ?? { skills: {}, feats: [], spells: [] };
+    if (msg.build) {
+      if (msg.classId === undefined) {
+        return this.fail(conn, 'invalid_message', 'a build requires a class');
+      }
+      const problems = validateBuild(
+        {
+          classes: [...this.content.classes.values()],
+          skills: this.content.skills,
+          feats: this.content.feats,
+          spells: this.content.spells,
+        },
+        msg.classId,
+        build,
+      );
+      if (problems.length > 0) {
+        return this.fail(conn, 'invalid_message', `illegal build: ${problems.join('; ')}`);
+      }
+    }
     const character = await this.store.createCharacter({
       accountId: conn.accountId,
       name: msg.name,
@@ -1751,6 +1800,9 @@ export class GameServer {
       x: area.spawn.x,
       y: area.spawn.y,
       classId: msg.classId ?? null,
+      skills: build.skills,
+      feats: build.feats,
+      spells: build.spells,
     });
     if (character === 'character_name_taken') {
       return this.fail(conn, 'character_name_taken', 'that name is taken');

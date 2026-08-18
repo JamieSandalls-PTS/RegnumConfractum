@@ -255,6 +255,20 @@ export class CharacterVisual {
     return j;
   }
 
+  /**
+   * Bust geometry from the appearance (female builds): radius and lateral
+   * offset. Volume tracks body width only up to a cap — unclamped, the
+   * brute preset's chest came out ~50% oversized (stakeholder ruling,
+   * 2026-08-17). At bust 0.5 on a mid build this reproduces the tuned
+   * fixed size exactly (model editor, seed 1005).
+   */
+  private bustDims(): { r: number; x: number } {
+    const bust = this.appearance.bust ?? 0.5;
+    const bodyW = this.dims.bodyW;
+    const w = Math.min(bodyW, 0.38) + Math.max(0, bodyW - 0.38) * 0.15;
+    return { r: w * (0.13 + 0.16 * bust), x: bodyW * (0.12 + 0.08 * bust) };
+  }
+
   private build(): void {
     const p = this.appearance;
     const fem = p.sex === 'female';
@@ -372,14 +386,11 @@ export class CharacterVisual {
       this.bustBase.set(0, torsoH * 0.26, this.frontZ() * 0.52);
       this.bustGroup.position.copy(this.bustBase);
       this.chest.add(this.bustGroup);
-      // Volume from the appearance's bust parameter (0..1): 0.5 reproduces
-      // the stakeholder-tuned fixed size exactly (model editor, seed 1005).
-      const bust = p.bust ?? 0.5;
-      const bustR = bodyW * (0.13 + 0.16 * bust);
+      const { r: bustR, x: bustX } = this.bustDims();
       for (const s of [1, -1]) {
         this.nm(s === 1 ? 'breast left' : 'breast right');
         const b = this.addMesh(this.bustGroup, new THREE.SphereGeometry(bustR, 10, 8), p.cloth,
-          [s * bodyW * (0.12 + 0.08 * bust), -bodyW * 0.065, bodyW * 0.075]);
+          [s * bustX, -bodyW * 0.065, bodyW * 0.075]);
         b.scale.set(1.2, 1.3, 1.3);
       }
     } else {
@@ -774,12 +785,12 @@ export class CharacterVisual {
       // The tunic covers the bust: capeColor overlays riding the same
       // sprung group, slightly larger than the forms beneath (stakeholder).
       if (this.bustGroup) {
-        const bust = p.bust ?? 0.5;
+        const { r: bustR, x: bustX } = this.bustDims();
         for (const sb of [1, -1]) {
           this.nm('robe bodice');
           const cover = this.addMesh(this.bustGroup,
-            new THREE.SphereGeometry(bodyW * (0.13 + 0.16 * bust) * 1.1, 10, 8), p.capeColor,
-            [sb * bodyW * (0.12 + 0.08 * bust), -bodyW * 0.065, bodyW * 0.075]);
+            new THREE.SphereGeometry(bustR * 1.1, 10, 8), p.capeColor,
+            [sb * bustX, -bodyW * 0.065, bodyW * 0.075]);
           cover.scale.set(1.2, 1.3, 1.3);
           this.robeParts.push(cover);
         }
@@ -1209,10 +1220,7 @@ export class CharacterVisual {
         // The bust is proud of the chest capsule — without its own collider
         // front-falling strands vanished into it (stakeholder screenshot).
         ...(this.bustGroup
-          ? [{
-            matrix: this.bustGroup.matrixWorld,
-            radius: this.dims.bodyW * (0.19 + 0.22 * (this.appearance.bust ?? 0.5)),
-          }]
+          ? [{ matrix: this.bustGroup.matrixWorld, radius: this.bustDims().r * 1.43 }]
           : []),
       ]);
     }

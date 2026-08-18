@@ -3,6 +3,14 @@
   "name": "Vessel",
   "description": "A living door between the planes. Vessels perceive what the dead perceive, and carry messages nobody else can hear.",
   "role": "support",
-  "abilities": ["plane-shift"],
-  "legacyLocked": true
+  "abilities": [
+    "plane-shift"
+  ],
+  "legacyLocked": true,
+  "affinities": [
+    "insight",
+    "necromancy",
+    "medicine"
+  ],
+  "spellcasting": true
 }

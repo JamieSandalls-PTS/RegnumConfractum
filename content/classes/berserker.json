@@ -4,5 +4,11 @@
   "description": "A fighter who has stopped negotiating with fear. Berserkers trade caution for violence and tend to die the way they lived — loudly.",
   "role": "melee",
   "abilities": [],
-  "legacyLocked": false
+  "legacyLocked": false,
+  "affinities": [
+    "athletics",
+    "arms",
+    "intimidation"
+  ],
+  "spellcasting": false
 }

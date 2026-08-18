@@ -1,4 +1,41 @@
-# Session handoff — written 2026-08-17 (evening session)
+# Session handoff — updated 2026-08-18
+
+## Most recent work (D-515): creation screen, split pixelation, bubbles
+
+- **Character creation wizard** (`client/src/creation.ts`, markup in
+  `client/index.html`): calling → skills → feats → spells → name. Rendered
+  entirely from the server's `creation_content` message; the catalogues
+  live in `content/skills|feats|spells/` and on the class files
+  (`affinities`, `spellcasting`). `validateBuild()` in `shared/src/content.ts`
+  is the ONE rule set — client for feedback, server for authority.
+  Tests: `sim/test/m5a-creation.test.ts` (15).
+  ⚠ Budget numbers (120 points / 40 cap / 2 feats / 3 spells) are
+  placeholder balance awaiting stakeholder ratification.
+- **Split pixelation is the default again**: characters on layer 1 through
+  the quantiser, world crisp. Settings panel (⚙ top-right) tunes both
+  scales independently and persists to localStorage. Two gotchas, each
+  worth a cycle:
+  1. `scene.enableAllLayers()` must run AFTER `new Terrain(...)` — the
+     hearth adds its own point lights; miss it and the split pass is black.
+  2. Two passes = two depth buffers. The composite MUST depth-test
+     (`tCharDepth` vs `tEnvDepth` in palette.ts) or characters float over
+     every chair and wall. `post.depthOcclusion = false` reproduces the
+     old broken overlay for A/B verification.
+- **Speech bubbles**: DOM elements above the speaker's head. Hearing range
+  is NOT a client concern — the server already filters by channel and line
+  of sight, so an arriving message is itself the permission to draw.
+- **Brute bust fix**: bust volume tracks body width only to a cap
+  (`bustDims()` in character.ts).
+
+**Verification note for the next session:** the browser pane throttles
+timers when hidden, so `busy()` spin-waits BLOCK the websocket callback —
+send in one tool call, read in the next. Speech bubbles expire on a timer,
+so a bubble sent in one call is usually gone by the third; send and
+screenshot in adjacent calls.
+
+---
+
+# Previous handoff — written 2026-08-17 (evening session)
 
 **For the next Claude Code session.** Read `CLAUDE.md` first as always; this
 file is the working context that doesn't belong in the ADR: where things

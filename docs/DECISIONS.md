@@ -1458,3 +1458,83 @@ work") — the detail tier, plus the cape bug:**
   to stay proud of the rippled surface beneath it.
 Next candidates when this returns: focus-height control in the viewer for
 true head close-ups, fold shading at quantised distance, finger separation.
+
+### D-515: Character creation, split pixelation, and speech bubbles
+
+**Requested by the stakeholder 2026-08-18**, after ratifying the round-17
+model work ("the preset body types look good") with one correction: the
+brute preset's bust was ~50% oversized. Bust volume now tracks body width
+only up to a cap, so heavy builds no longer scale the chest linearly.
+
+**Character creation is a five-step wizard (D-208's first real form):**
+calling → skill allocation → feats → spells (casters only) → name. It is
+the first system where the player composes a character rather than
+receiving one.
+
+**All four catalogues are CONTENT, not code** (D-110): `content/skills/`,
+`content/feats/`, `content/spells/`, plus new fields on the nine authored
+classes (`affinities`, `spellcasting`). The client renders whatever the
+server's `creation_content` message contains, so adding a feat is a data
+change and a client deploy is never required. The content validator
+cross-checks every reference — a feat naming an unknown skill, a spell on a
+non-casting class, or a casting class with an empty spell list all fail CI.
+
+**Legality is decided once, on the server** (D-102). `validateBuild()` lives
+in `shared/` and is called by BOTH sides: the client for live feedback
+(sliders clamp to the remaining budget, feats grey out with their unmet
+prerequisite named), the server as the authority before anything is
+written. Nine bot tests submit builds a hostile client could hand-craft —
+overspent points, off-grid allocations, a feat without its prerequisite, a
+feat or spell belonging to another class, magic on a mundane class,
+duplicates, unknown ids — and every one is refused.
+
+**Skills reuse the existing 0–100 scale.** bluff, insight and necromancy
+keep their own columns because live mechanics read them (D-218 contests,
+D-511's zombie cap); creation MIRRORS those three out of the skills map
+(baseline + allocation), so each mechanic keeps exactly one source of truth
+and no existing reader changed. Migration `0008_character_build.sql`.
+
+⚠ **The creation budget is UNRATIFIED placeholder balance** — 120 points, 40
+per skill, steps of 5, two feats, three spells. The numbers are deliberately
+legible and centralised in `shared/src/content.ts` for the stakeholder to
+overrule. The spell list is small, mundane and low-fantasy by design; there
+are no fireballs, and none of the picks make being good cheaper (D-303).
+
+**Split pixelation reinstated as the default render** (supersedes the
+uniform-quantiser default in D-404's implementation, not its reasoning).
+Characters render on layer 1 through the low-res palette quantiser; the
+environment renders crisp. A Graphics settings panel exposes render mode
+(split / uniform / raw) and independent pixel scales for characters and
+environment, persisted per browser. The lesson worth keeping: lights AND
+camera must have `layers.enableAll()` or the split pass renders black —
+and the hearth adds its own lights after the scene is built, so the call
+happens after terrain construction.
+
+**Speech bubbles draw only what the server delivered.** Range is never
+decided client-side: the gateway already filters speech by channel
+(whisper / say / shout) and line of sight, so receiving the message *is*
+the permission to draw it. A client cannot widen its own hearing by editing
+a radius, and a whisper across the room can never appear. Bubbles are DOM
+elements projected above the speaker's head, styled per channel, with a
+lifetime scaled to text length. Speech from a speaker not in view (heard
+through a wall, or a séance voice) stays in the chat log only.
+
+**Split rendering needs a DEPTH pass, not just an alpha composite**
+(stakeholder: "the character is always on top of environment objects").
+Two render passes mean two depth buffers, so blending the character layer
+over the environment made characters float in front of every chair and
+wall regardless of where they stood. Both passes now carry a
+`THREE.DepthTexture`, and the composite shader discards character
+fragments whose depth is behind the environment's at that pixel. Both
+passes share one camera and projection, so the raw depth values compare
+directly — no linearisation needed. Consequences worth keeping:
+- The environment can no longer render straight to the screen (it has no
+  depth texture that way); it always goes to a target and is blitted. A
+  `uPassthrough` mode makes the crisp-and-unquantised blit byte-identical
+  to the old direct render, so turning the palette off changes nothing.
+- The character pass is lower-resolution than the environment, so the
+  occlusion boundary is quantised to character pixels. That reads as
+  correct for the art direction rather than as an artefact.
+- `PixelPost.depthOcclusion` exists as a verification switch (D-114): off
+  reproduces the pre-fix flat overlay so an automated check can A/B the
+  two and prove the depth test is doing work.

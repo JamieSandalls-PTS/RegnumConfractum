@@ -1,0 +1,65 @@
+[
+  {
+    "id": "mend-flesh",
+    "name": "Mend Flesh",
+    "description": "Closes what is open. Slow, ugly work that leaves a seam — and it will not set a bone or draw out rot.",
+    "classes": ["cantor", "vessel"],
+    "school": "the quiet arts"
+  },
+  {
+    "id": "guttering-light",
+    "name": "Guttering Light",
+    "description": "A cold flame that sits in the palm and casts about as far as a candle. It goes out when you are frightened.",
+    "classes": [],
+    "school": "the quiet arts"
+  },
+  {
+    "id": "hush",
+    "name": "Hush",
+    "description": "Sound leaves a small space around you. Useful for a door, a lock, or a conversation that must not carry.",
+    "classes": ["magus", "shade", "cantor"],
+    "school": "veils"
+  },
+  {
+    "id": "false-face",
+    "name": "False Face",
+    "description": "Your features slide a half-inch out of true. It does not make you someone else — only harder to swear to.",
+    "classes": ["magus", "shade"],
+    "school": "veils"
+  },
+  {
+    "id": "read-echoes",
+    "name": "Read Echoes",
+    "description": "The last strong feeling in a room repeats itself faintly. It tells you nothing about who, and it is frequently the wrong feeling.",
+    "classes": ["magus", "bonespeaker", "vessel"],
+    "school": "the long memory"
+  },
+  {
+    "id": "chill-touch",
+    "name": "Chill Touch",
+    "description": "Draws the warmth out of what you are holding. It hurts more than it harms, which is often the point.",
+    "classes": ["bonespeaker", "magus"],
+    "school": "the long memory"
+  },
+  {
+    "id": "chains-of-earth",
+    "name": "Chains of Earth",
+    "description": "The ground takes an interest in someone's feet. Brief, and it will not hold anyone determined.",
+    "classes": ["magus", "cantor"],
+    "school": "burdens"
+  },
+  {
+    "id": "borrowed-breath",
+    "name": "Borrowed Breath",
+    "description": "You breathe for someone who has stopped. It buys minutes, not a life, and those minutes are taken from you.",
+    "classes": ["vessel", "cantor"],
+    "school": "burdens"
+  },
+  {
+    "id": "gravesong",
+    "name": "Gravesong",
+    "description": "A tune the dead attend to. They do not obey it; they merely stop pretending not to hear.",
+    "classes": ["bonespeaker", "cantor", "vessel"],
+    "school": "the long memory"
+  }
+]

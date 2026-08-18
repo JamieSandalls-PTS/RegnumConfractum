@@ -1,6 +1,17 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { AreaSchema, ClassSchema, ItemTemplateSchema, type AreaDef } from '@rc/shared';
+import {
+  AreaSchema,
+  ClassSchema,
+  FeatsFileSchema,
+  ItemTemplateSchema,
+  SkillsFileSchema,
+  SpellsFileSchema,
+  type AreaDef,
+  type ClassDef,
+  type FeatDef,
+  type SpellDef,
+} from '@rc/shared';
 
 /**
  * Content validator (D-110, D-114). Run in CI on every build; exits non-zero
@@ -122,6 +133,7 @@ export function validateContent(contentDir: string): ValidationResult {
   }
 
   const classIds = new Set<string>();
+  const classes: ClassDef[] = [];
   for (const file of listJson(join(contentDir, 'classes'))) {
     checked++;
     let data: unknown;
@@ -141,6 +153,75 @@ export function validateContent(contentDir: string): ValidationResult {
       continue;
     }
     classIds.add(parsed.data.id);
+    classes.push(parsed.data);
+  }
+
+  // Skills, feats and spells (D-208): array files, cross-checked against each
+  // other and against the class roster so the creation screen can never offer
+  // a pick that references content which does not exist.
+  const readArray = <T>(
+    dir: string,
+    schema: { safeParse: (v: unknown) => { success: boolean; data?: T[]; error?: { issues: { message: string }[] } } },
+  ): T[] => {
+    const out: T[] = [];
+    for (const file of listJson(join(contentDir, dir))) {
+      checked++;
+      let data: unknown;
+      try {
+        data = JSON.parse(readFileSync(file, 'utf8'));
+      } catch (err) {
+        errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+        continue;
+      }
+      const parsed = schema.safeParse(data);
+      if (!parsed.success) {
+        errors.push(`${file}: ${parsed.error!.issues.map((i) => i.message).join('; ')}`);
+        continue;
+      }
+      out.push(...parsed.data!);
+    }
+    return out;
+  };
+  const skills = readArray<{ id: string }>('skills', SkillsFileSchema);
+  const feats = readArray<FeatDef>('feats', FeatsFileSchema);
+  const spells = readArray<SpellDef>('spells', SpellsFileSchema);
+  const dupes = (ids: string[], what: string): void => {
+    const seen = new Set<string>();
+    for (const id of ids) {
+      if (seen.has(id)) errors.push(`duplicate ${what} id '${id}'`);
+      seen.add(id);
+    }
+  };
+  const skillIds = new Set(skills.map((s) => s.id));
+  dupes(skills.map((s) => s.id), 'skill');
+  dupes(feats.map((f) => f.id), 'feat');
+  dupes(spells.map((s) => s.id), 'spell');
+  for (const cls of classes) {
+    for (const id of cls.affinities) {
+      if (!skillIds.has(id)) errors.push(`class '${cls.id}': unknown affinity skill '${id}'`);
+    }
+  }
+  for (const feat of feats) {
+    for (const id of feat.classes) {
+      if (!classIds.has(id)) errors.push(`feat '${feat.id}': unknown class '${id}'`);
+    }
+    for (const id of Object.keys(feat.requiresSkills)) {
+      if (!skillIds.has(id)) errors.push(`feat '${feat.id}': unknown required skill '${id}'`);
+    }
+  }
+  for (const spell of spells) {
+    for (const id of spell.classes) {
+      if (!classIds.has(id)) errors.push(`spell '${spell.id}': unknown class '${id}'`);
+      else if (!classes.find((c) => c.id === id)!.spellcasting) {
+        errors.push(`spell '${spell.id}': class '${id}' does not cast spells`);
+      }
+    }
+  }
+  // Every casting class must have something to learn, or its creation step
+  // would present an empty list.
+  for (const cls of classes.filter((c) => c.spellcasting)) {
+    const available = spells.filter((s) => s.classes.length === 0 || s.classes.includes(cls.id));
+    if (available.length === 0) errors.push(`class '${cls.id}' casts but has no available spells`);
   }
 
   // Cross-area checks: transitions must land on walkable tiles in areas that

@@ -4,5 +4,11 @@
   "description": "A cutpurse, a listener at doors, a face you cannot quite recall. Shades work in the gap between what is seen and what is proven.",
   "role": "stealth",
   "abilities": [],
-  "legacyLocked": false
+  "legacyLocked": false,
+  "affinities": [
+    "stealth",
+    "bluff",
+    "perception"
+  ],
+  "spellcasting": true
 }

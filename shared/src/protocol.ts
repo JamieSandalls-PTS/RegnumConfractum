@@ -1,6 +1,16 @@
 import { z } from 'zod';
 import { DIRECTIONS } from './types';
-import { ContentIdSchema, PostureSchema, PresentationSchema, TransientAnimSchema } from './content';
+import {
+  CharacterBuildSchema,
+  ClassSchema,
+  ContentIdSchema,
+  FeatSchema,
+  PostureSchema,
+  PresentationSchema,
+  SkillSchema,
+  SpellSchema,
+  TransientAnimSchema,
+} from './content';
 
 /**
  * The wire protocol, defined once and consumed by both server and client
@@ -64,9 +74,15 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
     t: z.literal('create_character'),
     name: CharacterNameSchema,
     appearanceSeed: z.number().int().nonnegative().optional(),
-    /** Playable class (D-208/D-511). Optional while class selection UI lands. */
+    /** Playable class (D-208/D-511). Optional: bots and pre-class clients
+     * still create without one. */
     classId: ContentIdSchema.optional(),
+    /** Skills, feats and spells chosen at creation. The server re-validates
+     * against content and rejects anything illegal (D-102). */
+    build: CharacterBuildSchema.optional(),
   }),
+  /** Asks for the creation catalogue (classes, skills, feats, spells). */
+  z.object({ t: z.literal('get_creation_content') }),
   z.object({ t: z.literal('enter_world'), characterId: UuidSchema }),
   z.object({ t: z.literal('move'), dir: DirectionSchema }),
   z.object({ t: z.literal('give'), itemId: UuidSchema, toEntityId: z.number().int() }),
@@ -243,6 +259,27 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     legacyPoints: z.number().int().nonnegative(),
   }),
   z.object({ t: z.literal('character_created'), character: CharacterSummarySchema }),
+  /**
+   * The creation catalogue (D-208/D-110). Sent on request so the creation
+   * screen is rendered from CONTENT rather than hardcoded in the client —
+   * adding a feat is a data change, not a client deploy.
+   */
+  z.object({
+    t: z.literal('creation_content'),
+    classes: z.array(ClassSchema),
+    skills: z.array(SkillSchema),
+    feats: z.array(FeatSchema),
+    spells: z.array(SpellSchema),
+    budget: z.object({
+      skillPoints: z.number().int().nonnegative(),
+      skillStep: z.number().int().positive(),
+      skillMax: z.number().int().nonnegative(),
+      feats: z.number().int().nonnegative(),
+      spells: z.number().int().nonnegative(),
+    }),
+    /** Spendable Legacy Points — gates legacy-locked classes (D-207). */
+    legacyPoints: z.number().int().nonnegative(),
+  }),
   z.object({
     t: z.literal('snapshot'),
     tick: z.number().int(),

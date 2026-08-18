@@ -4,5 +4,11 @@
   "description": "A professional soldier of the broken realm: drilled, armoured, and unsentimental. Where others improvise, the man-at-arms holds a line.",
   "role": "melee",
   "abilities": [],
-  "legacyLocked": false
+  "legacyLocked": false,
+  "affinities": [
+    "arms",
+    "athletics",
+    "intimidation"
+  ],
+  "spellcasting": false
 }

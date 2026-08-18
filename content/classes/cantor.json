@@ -4,5 +4,11 @@
   "description": "A keeper of the old liturgies. The pantheon is quieter than it was, but a cantor's rites still close wounds and lift curses — for those judged worth the singing.",
   "role": "support",
   "abilities": [],
-  "legacyLocked": false
+  "legacyLocked": false,
+  "affinities": [
+    "lore",
+    "medicine",
+    "insight"
+  ],
+  "spellcasting": true
 }

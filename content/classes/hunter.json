@@ -4,5 +4,11 @@
   "description": "Tracker, trapper, and bowman of the wild margins. The empire's roads decayed; the hunter's paths did not.",
   "role": "ranged",
   "abilities": [],
-  "legacyLocked": false
+  "legacyLocked": false,
+  "affinities": [
+    "perception",
+    "stealth",
+    "athletics"
+  ],
+  "spellcasting": false
 }

@@ -32,6 +32,9 @@ export class PixelPost {
   pixelScale = 4;
   /** Split mode: the WORLD's own pixel scale (1 = crisp). */
   envPixelScale = 1;
+  /** Verification switch (D-114): off reproduces the pre-fix flat overlay,
+   * so an automated check can A/B the split pass's occlusion. */
+  depthOcclusion = true;
   readonly renderTarget: THREE.WebGLRenderTarget;
   private envTarget: THREE.WebGLRenderTarget;
   private material: THREE.ShaderMaterial;
@@ -43,13 +46,27 @@ export class PixelPost {
   private lastH = 200;
 
   constructor() {
+    // Both split passes carry a DEPTH texture. Without them the character
+    // layer composited as a flat overlay and floated in front of every
+    // chair and wall regardless of where it stood (stakeholder, 2026-08-18):
+    // separate passes mean separate depth buffers, so occlusion has to be
+    // resolved in the composite shader instead.
+    const depthTex = (w: number, h: number): THREE.DepthTexture => {
+      const d = new THREE.DepthTexture(w, h);
+      d.type = THREE.UnsignedIntType;
+      d.minFilter = THREE.NearestFilter;
+      d.magFilter = THREE.NearestFilter;
+      return d;
+    };
     this.renderTarget = new THREE.WebGLRenderTarget(320, 200, {
       minFilter: THREE.NearestFilter,
       magFilter: THREE.NearestFilter,
+      depthTexture: depthTex(320, 200),
     });
     this.envTarget = new THREE.WebGLRenderTarget(320, 200, {
       minFilter: THREE.NearestFilter,
       magFilter: THREE.NearestFilter,
+      depthTexture: depthTex(320, 200),
     });
 
     const palArray = new Float32Array(PALETTE.length * 3);
@@ -69,6 +86,14 @@ export class PixelPost {
         uComposite: { value: 0 },
         /** 0 = keep true colours (no palette snap, no dither). */
         uQuantize: { value: 1 },
+        /** Depth of each split pass, for occlusion in the composite. */
+        tCharDepth: { value: null },
+        tEnvDepth: { value: null },
+        /** 1 = discard character pixels that lie behind the environment. */
+        uDepthTest: { value: 0 },
+        /** 1 = blit the source untouched (the crisp-environment pass, which
+         * must look exactly as it did when drawn straight to the screen). */
+        uPassthrough: { value: 0 },
       },
       vertexShader: /* glsl */ `
         varying vec2 vUv;
@@ -96,10 +121,24 @@ export class PixelPost {
 
         uniform int uComposite;
         uniform int uQuantize;
+        uniform sampler2D tCharDepth;
+        uniform sampler2D tEnvDepth;
+        uniform int uDepthTest;
+        uniform int uPassthrough;
 
         void main() {
           vec4 t = texture2D(tDiffuse, vUv);
+          if (uPassthrough == 1) { gl_FragColor = vec4(t.rgb, 1.0); return; }
           if (uComposite == 1 && t.a < 0.4) discard;
+          // Occlusion between the two split passes. Both were drawn with the
+          // same camera and projection, so their depth values are directly
+          // comparable: a character fragment further away than whatever the
+          // environment drew at that pixel is BEHIND it and must not show.
+          if (uComposite == 1 && uDepthTest == 1) {
+            float charZ = texture2D(tCharDepth, vUv).x;
+            float envZ = texture2D(tEnvDepth, vUv).x;
+            if (charZ >= envZ) discard;
+          }
           vec3 c = t.rgb;
           vec2 px = vUv * uRes;
 
@@ -169,27 +208,31 @@ export class PixelPost {
     envPalette = false,
   ): void {
     const cam = camera as THREE.OrthographicCamera;
-    // Pass 1: environment, at its OWN pixel scale and palette choice.
+    const u = this.material.uniforms;
+    // Pass 1: environment, at its OWN pixel scale and palette choice. It
+    // ALWAYS goes to a render target, even when crisp and unquantised —
+    // the composite needs its depth buffer to occlude characters, and a
+    // direct-to-screen pass has no depth texture to sample.
     cam.layers.set(0);
-    if (this.envPixelScale <= 1 && !envPalette) {
-      renderer.setRenderTarget(null);
-      renderer.render(scene, cam);
-    } else {
-      renderer.setRenderTarget(this.envTarget);
-      renderer.render(scene, cam);
-      this.material.uniforms.tDiffuse!.value = this.envTarget.texture;
-      (this.material.uniforms.uRes!.value as THREE.Vector2).set(
-        Math.max(80, Math.floor(this.lastW / this.envPixelScale)),
-        Math.max(60, Math.floor(this.lastH / this.envPixelScale)),
-      );
-      this.material.uniforms.uComposite!.value = 0;
-      this.material.uniforms.uQuantize!.value = envPalette ? 1 : 0;
-      renderer.setRenderTarget(null);
-      renderer.render(this.postScene, this.postCamera);
-      this.material.uniforms.tDiffuse!.value = this.renderTarget.texture;
-      (this.material.uniforms.uRes!.value as THREE.Vector2).set(this.internalWidth, this.internalHeight);
-      this.material.uniforms.uQuantize!.value = 1;
-    }
+    renderer.setRenderTarget(this.envTarget);
+    renderer.render(scene, cam);
+    u.tDiffuse!.value = this.envTarget.texture;
+    (u.uRes!.value as THREE.Vector2).set(
+      Math.max(80, Math.floor(this.lastW / this.envPixelScale)),
+      Math.max(60, Math.floor(this.lastH / this.envPixelScale)),
+    );
+    u.uComposite!.value = 0;
+    u.uQuantize!.value = envPalette ? 1 : 0;
+    // Crisp-and-unquantised blits straight through, so turning the palette
+    // off leaves the world exactly as a direct render looked.
+    u.uPassthrough!.value = envPalette ? 0 : 1;
+    renderer.setRenderTarget(null);
+    renderer.render(this.postScene, this.postCamera);
+    u.uPassthrough!.value = 0;
+    u.tDiffuse!.value = this.renderTarget.texture;
+    (u.uRes!.value as THREE.Vector2).set(this.internalWidth, this.internalHeight);
+    u.uQuantize!.value = 1;
+
     // Pass 2: characters to the low-res target with a transparent clear.
     cam.layers.set(1);
     const bg = scene.background;
@@ -199,8 +242,13 @@ export class PixelPost {
     renderer.clear();
     renderer.render(scene, cam);
     scene.background = bg;
-    // Composite the quantised characters over the crisp environment.
-    this.material.uniforms.uComposite!.value = 1;
+
+    // Composite: quantised characters over the crisp environment, with the
+    // depth test that keeps them BEHIND the furniture they stand behind.
+    u.uComposite!.value = 1;
+    u.uDepthTest!.value = this.depthOcclusion ? 1 : 0;
+    u.tCharDepth!.value = this.renderTarget.depthTexture;
+    u.tEnvDepth!.value = this.envTarget.depthTexture;
     this.material.transparent = true;
     renderer.setRenderTarget(null);
     const auto = renderer.autoClear;
@@ -209,6 +257,7 @@ export class PixelPost {
     renderer.render(this.postScene, this.postCamera);
     renderer.autoClear = auto;
     this.material.transparent = false;
+    u.uDepthTest!.value = 0;
     cam.layers.enableAll();
   }
 }

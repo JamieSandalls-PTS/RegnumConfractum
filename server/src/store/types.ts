@@ -38,6 +38,62 @@ export interface CharacterRecord {
   classId: string | null;
   /** Scales the concurrent-zombie cap (D-511). 0–100 like bluff/insight. */
   necromancy: number;
+  /**
+   * Skills allocated at creation, by content id (D-208). bluff, insight and
+   * necromancy also live in their own columns — creation mirrors them out of
+   * this map, so each mechanic keeps a single source of truth and no existing
+   * reader had to change.
+   */
+  skills: Record<string, number>;
+  feats: string[];
+  spells: string[];
+}
+
+/** Baseline for the three skills that predate the creation screen. */
+export const BASE_BLUFF = 10;
+export const BASE_INSIGHT = 10;
+export const BASE_NECROMANCY = 0;
+
+/**
+ * Turns a submitted build into starting record fields, shared by both stores.
+ * Allocated points ADD to the baseline, so an unallocated character is
+ * exactly the character the pre-creation code produced.
+ */
+export function startingBuild(c: {
+  skills?: Record<string, number>;
+  feats?: string[];
+  spells?: string[];
+}): {
+  skills: Record<string, number>;
+  feats: string[];
+  spells: string[];
+  bluff: number;
+  insight: number;
+  necromancy: number;
+} {
+  const skills = { ...(c.skills ?? {}) };
+  return {
+    skills,
+    feats: [...(c.feats ?? [])],
+    spells: [...(c.spells ?? [])],
+    bluff: BASE_BLUFF + (skills.bluff ?? 0),
+    insight: BASE_INSIGHT + (skills.insight ?? 0),
+    necromancy: BASE_NECROMANCY + (skills.necromancy ?? 0),
+  };
+}
+
+/** What createCharacter needs; everything else gets its starting value. */
+export interface CharacterCreate {
+  accountId: string;
+  name: string;
+  appearanceSeed: number;
+  areaId: string;
+  x: number;
+  y: number;
+  classId: string | null;
+  skills?: Record<string, number>;
+  feats?: string[];
+  spells?: string[];
 }
 
 export interface InjuryRecord {
@@ -119,9 +175,7 @@ export interface Store {
   deleteSession(token: string): Promise<void>;
 
   // Characters
-  createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired' | 'necromancy'>,
-  ): Promise<CharacterRecord | 'character_name_taken'>;
+  createCharacter(c: CharacterCreate): Promise<CharacterRecord | 'character_name_taken'>;
   setCharacterLanguages(id: string, languages: string[]): Promise<void>;
   getCharacter(id: string): Promise<CharacterRecord | null>;
   getCharactersByAccount(accountId: string): Promise<CharacterRecord[]>;

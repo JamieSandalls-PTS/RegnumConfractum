@@ -1,7 +1,9 @@
 import pg from 'pg';
 import { migrate } from '../db/migrate';
+import { startingBuild } from './types';
 import type {
   Account,
+  CharacterCreate,
   CharacterRecord,
   CorpseRecord,
   EventRecord,
@@ -72,18 +74,23 @@ export class PgStore implements Store {
     await this.pool.query('delete from sessions where token = $1', [token]);
   }
 
-  async createCharacter(
-    c: Omit<CharacterRecord, 'id' | 'coin' | 'bluff' | 'insight' | 'languages' | 'hp' | 'maxHp' | 'xp' | 'deathDebt' | 'deeds' | 'retired' | 'necromancy'>,
-  ): Promise<CharacterRecord | 'character_name_taken'> {
+  async createCharacter(c: CharacterCreate): Promise<CharacterRecord | 'character_name_taken'> {
+    const build = startingBuild(c);
     try {
       const { rows } = await this.pool.query<{ id: string }>(
-        `insert into characters (account_id, name, appearance_seed, area_id, x, y, class_id)
-         values ($1, $2, $3, $4, $5, $6, $7) returning id`,
-        [c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y, c.classId],
+        `insert into characters
+           (account_id, name, appearance_seed, area_id, x, y, class_id,
+            skills, feats, spells, bluff, insight, necromancy)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`,
+        [
+          c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y, c.classId,
+          JSON.stringify(build.skills), JSON.stringify(build.feats), JSON.stringify(build.spells),
+          build.bluff, build.insight, build.necromancy,
+        ],
       );
       return {
-        ...c, id: rows[0]!.id, coin: 0, bluff: 10, insight: 10, languages: ['common'],
-        hp: 20, maxHp: 20, xp: 0, deathDebt: 0, deeds: 0, retired: false, necromancy: 0,
+        ...c, ...build, id: rows[0]!.id, coin: 0, languages: ['common'],
+        hp: 20, maxHp: 20, xp: 0, deathDebt: 0, deeds: 0, retired: false,
       };
     } catch (err) {
       if ((err as { code?: string }).code === '23505') return 'character_name_taken';
@@ -586,5 +593,8 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     retired: r.retired_at != null,
     classId: (r.class_id as string | null) ?? null,
     necromancy: Number(r.necromancy ?? 0),
+    skills: (r.skills as Record<string, number> | null) ?? {},
+    feats: (r.feats as string[] | null) ?? [],
+    spells: (r.spells as string[] | null) ?? [],
   };
 }

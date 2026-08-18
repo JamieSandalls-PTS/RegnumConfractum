@@ -60,6 +60,43 @@
   .charlist .where { color: var(--dim); font-size: 11px; }
   .hidden { display: none !important; }
 
+  /* ---- Character creation (D-208): class, skills, feats, spells, name ---- */
+  .panel.wide { width: 720px; max-width: 94vw; max-height: 92vh; overflow-y: auto; }
+  #create-steps { display: flex; gap: 6px; margin: 4px 0 14px; flex-wrap: wrap; }
+  #create-steps .step {
+    font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--dim); border-bottom: 2px solid var(--line); padding: 0 6px 5px;
+  }
+  #create-steps .step.active { color: var(--warm); border-bottom-color: var(--warm); }
+  #create-steps .step.done { color: var(--text); border-bottom-color: #4a4550; }
+  .create-hint { color: var(--dim); font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+  .budget { color: var(--text); font-size: 12px; margin-bottom: 8px; }
+  .budget b { color: var(--warm); font-weight: 600; }
+  .budget.over b { color: var(--bad); }
+  .cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+  .card {
+    border: 1px solid var(--line); border-radius: 2px; padding: 9px 11px; cursor: pointer;
+    background: #0f0e12;
+  }
+  .card:hover { border-color: #6a6270; }
+  .card.selected { border-color: var(--warm); background: #1b1620; }
+  .card.locked { opacity: .45; cursor: not-allowed; }
+  .card .cname { color: #e0d8c8; font-size: 13px; margin-bottom: 3px; }
+  .card .crole { color: var(--warm); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; margin-bottom: 4px; }
+  .card .cdesc { color: var(--dim); font-size: 11.5px; line-height: 1.45; }
+  .card .creq { color: #9a7f5c; font-size: 11px; margin-top: 5px; font-style: italic; }
+  .skillrow { display: flex; align-items: center; gap: 10px; padding: 5px 0;
+    border-bottom: 1px solid #1e1c23; }
+  .skillrow .sname { width: 118px; font-size: 12.5px; color: #e0d8c8; }
+  .skillrow .sname .aff { color: var(--warm); }
+  .skillrow input[type=range] { flex: 1; }
+  .skillrow .sval { width: 30px; text-align: right; font-family: monospace; font-size: 12px; }
+  .skillrow .sdesc { color: var(--dim); font-size: 11px; flex-basis: 100%; margin: 0 0 4px 128px; }
+  .create-nav { display: flex; gap: 8px; margin-top: 18px; }
+  .create-nav button { flex: 1; margin-top: 0; }
+  #create-error { color: var(--bad); font-size: 12px; min-height: 15px; margin-top: 8px; }
+
   #hud {
     position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 12px;
     font-size: 12px; color: var(--dim); display: flex; gap: 18px;
@@ -67,6 +104,56 @@
     pointer-events: none;
   }
   #hud b { color: var(--text); font-weight: 400; }
+
+  /* ---- Speech bubbles: drawn only for speech the server delivered, so
+     hearing range is decided server-side and cannot be widened here. ---- */
+  #bubble-layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+  .bubble {
+    position: absolute; transform: translate(-50%, -100%);
+    max-width: 260px; padding: 5px 9px; border-radius: 4px;
+    background: rgba(16, 15, 19, 0.9); border: 1px solid #34303c;
+    color: #ddd4c4; font-size: 13px; line-height: 1.4; text-align: center;
+    white-space: pre-wrap; overflow-wrap: break-word;
+    box-shadow: 0 2px 10px rgba(0,0,0,.5);
+  }
+  /* The tail: a small notch pointing down at the speaker. */
+  .bubble::after {
+    content: ''; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px;
+    margin-left: -4px; background: rgba(16, 15, 19, 0.9);
+    border-right: 1px solid #34303c; border-bottom: 1px solid #34303c;
+    transform: rotate(45deg);
+  }
+  .bubble.whisper { font-style: italic; font-size: 12px; color: #9a93a4;
+    border-color: #2b2833; }
+  .bubble.shout { color: #f0c489; border-color: #6a4a26; font-weight: 600;
+    font-size: 14.5px; letter-spacing: .01em; }
+
+  /* ---- Settings (graphics) ---- */
+  #btn-settings {
+    position: absolute; top: 10px; right: 12px; z-index: 5;
+    background: rgba(22,21,26,.85); color: var(--text); border: 1px solid var(--line);
+    border-radius: 2px; padding: 5px 10px; font: inherit; font-size: 12px; cursor: pointer;
+  }
+  #btn-settings:hover { border-color: var(--warm); color: #e0d8c8; }
+  #settings {
+    position: absolute; top: 42px; right: 12px; width: 268px; z-index: 5;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+    padding: 14px; font-size: 12.5px;
+  }
+  #settings h2 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--warm); margin: 0 0 10px; font-weight: 600; }
+  #settings label { display: block; color: var(--dim); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: .1em; margin: 12px 0 3px; }
+  #settings .sl { display: flex; align-items: center; gap: 8px; }
+  #settings .sl input[type=range] { flex: 1; }
+  #settings .sl b { width: 26px; text-align: right; font-family: monospace;
+    font-weight: 400; font-size: 11.5px; color: var(--text); }
+  #settings .check { display: flex; align-items: center; gap: 8px; margin-top: 10px;
+    color: var(--text); }
+  #settings .note { color: var(--dim); font-size: 11px; line-height: 1.5; margin-top: 12px; }
+  #settings select { width: 100%; background: #0f0e12; color: var(--text);
+    border: 1px solid var(--line); padding: 5px 7px; font: inherit; font-size: 12px;
+    border-radius: 2px; outline: none; }
 
   /* Chat: the most-used surface in the game — legibility beats atmosphere
      here (D-306). */
@@ -196,6 +283,31 @@
     <span style="margin-left:auto">move: WASD or left-click · drag: rotate · wheel: zoom · right-click: act</span>
   </div>
 
+  <button id="btn-settings" class="hidden">⚙ Settings</button>
+  <div id="settings" class="hidden">
+    <h2>Graphics</h2>
+
+    <label>render mode</label>
+    <select id="set-mode">
+      <option value="split">split — pixel characters, crisp world</option>
+      <option value="uniform">uniform — everything pixelated</option>
+      <option value="raw">raw — no pixelation</option>
+    </select>
+
+    <label>character pixelation</label>
+    <div class="sl"><input type="range" id="set-charpx" min="1" max="8" step="1" value="4"><b id="v-charpx">4</b></div>
+
+    <label>environment pixelation</label>
+    <div class="sl"><input type="range" id="set-envpx" min="1" max="8" step="1" value="1"><b id="v-envpx">1</b></div>
+
+    <div class="check"><input type="checkbox" id="set-envpal"><span>palette-quantise the world</span></div>
+
+    <div class="note">
+      1 = crisp, 8 = very chunky. Split mode is the ratified direction:
+      characters carry the pixel look, the world stays readable.
+    </div>
+  </div>
+
   <div id="overlay">
     <div class="panel">
       <h1>Regnum Confractum</h1>
@@ -218,8 +330,17 @@
         <label>your characters</label>
         <ul id="char-list" class="charlist"></ul>
         <label>or begin someone new</label>
-        <input id="in-charname" placeholder="a name they will answer to" spellcheck="false">
-        <button id="btn-create" class="primary">Create &amp; enter</button>
+        <button id="btn-create" class="primary">Begin someone new</button>
+      </div>
+
+      <div id="create-form" class="hidden">
+        <div id="create-steps"></div>
+        <div id="create-body"></div>
+        <div id="create-error"></div>
+        <div class="create-nav">
+          <button id="btn-create-back">Back</button>
+          <button id="btn-create-next" class="primary">Continue</button>
+        </div>
       </div>
 
       <div id="status-msg"></div>

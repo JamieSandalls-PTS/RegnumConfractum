@@ -206,4 +206,23 @@ export class GameScene {
   render(): void {
     this.post.render(this.renderer, this.scene, this.camera);
   }
+
+  /**
+   * Split render (D-404, stakeholder ruling reinstated 2026-08-18):
+   * characters go through the low-res palette quantiser while the world
+   * stays crisp. Requires characters on layer 1 (CharacterVisual
+   * .setRenderLayer) and lights/camera on all layers — see enableAllLayers.
+   */
+  renderSplit(envPalette: boolean): void {
+    this.post.renderSplit(this.renderer, this.scene, this.camera, envPalette);
+  }
+
+  /** Lights and camera must reach BOTH layers or the split pass goes dark.
+   * Call again after adding lights (the hearth adds its own). */
+  enableAllLayers(): void {
+    this.scene.traverse((o) => {
+      if ((o as THREE.Light).isLight) o.layers.enableAll();
+    });
+    this.camera.layers.enableAll();
+  }
 }

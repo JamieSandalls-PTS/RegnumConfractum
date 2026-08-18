@@ -1,0 +1,72 @@
+[
+  {
+    "id": "steady-hands",
+    "name": "Steady Hands",
+    "description": "You do not shake when it matters. Binding a wound under pressure comes as easily as at rest.",
+    "classes": [],
+    "requiresSkills": { "medicine": 20 }
+  },
+  {
+    "id": "practised-liar",
+    "name": "Practised Liar",
+    "description": "The lie arrives already worn in. You have told this one before, in other towns, under other names.",
+    "classes": [],
+    "requiresSkills": { "bluff": 20 }
+  },
+  {
+    "id": "hard-to-read",
+    "name": "Hard to Read",
+    "description": "Your face gives nothing. Those reading you get less than they think they do.",
+    "classes": [],
+    "requiresSkills": {}
+  },
+  {
+    "id": "quiet-footed",
+    "name": "Quiet Footed",
+    "description": "Floorboards forgive you. You have left rooms nobody knew you entered.",
+    "classes": [],
+    "requiresSkills": { "stealth": 20 }
+  },
+  {
+    "id": "night-eyes",
+    "name": "Night Eyes",
+    "description": "You see in the dark better than you should, and have stopped mentioning it.",
+    "classes": [],
+    "requiresSkills": {}
+  },
+  {
+    "id": "strong-back",
+    "name": "Strong Back",
+    "description": "You carry what two others would split, and are asked to, constantly.",
+    "classes": [],
+    "requiresSkills": { "athletics": 20 }
+  },
+  {
+    "id": "duellist",
+    "name": "Duellist",
+    "description": "Trained for the single opponent who has agreed to it — a narrower education than it sounds, and a deadly one.",
+    "classes": ["man-at-arms", "berserker", "shade", "hunter"],
+    "requiresSkills": { "arms": 20 }
+  },
+  {
+    "id": "field-surgeon",
+    "name": "Field Surgeon",
+    "description": "You have worked on people who were still being shot at. Speed, and a tolerance for screaming.",
+    "classes": ["physician", "cantor"],
+    "requiresSkills": { "medicine": 30 }
+  },
+  {
+    "id": "grave-touched",
+    "name": "Grave-Touched",
+    "description": "The dead find you legible. They answer a little more readily, and are no more honest for it.",
+    "classes": ["bonespeaker", "vessel"],
+    "requiresSkills": { "necromancy": 20 }
+  },
+  {
+    "id": "old-tongue",
+    "name": "The Old Tongue",
+    "description": "You were taught the imperial speech by someone who remembered it being spoken in anger.",
+    "classes": [],
+    "requiresSkills": { "lore": 20 }
+  }
+]

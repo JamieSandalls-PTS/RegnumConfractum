@@ -4,5 +4,11 @@
   "description": "Sutures, cautery, herb-lore and steady hands. In a world where wounds fester and no god answers quickly, the physician is the difference between a scar and a grave.",
   "role": "support",
   "abilities": [],
-  "legacyLocked": false
+  "legacyLocked": false,
+  "affinities": [
+    "medicine",
+    "insight",
+    "lore"
+  ],
+  "spellcasting": false
 }

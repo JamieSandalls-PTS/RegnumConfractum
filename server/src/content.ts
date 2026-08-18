@@ -5,13 +5,19 @@ import {
   ClassSchema,
   EMPTY_LEXICON,
   EmoteLexiconSchema,
+  FeatsFileSchema,
   ItemTemplateSchema,
   LanguagesFileSchema,
+  SkillsFileSchema,
+  SpellsFileSchema,
   type AreaDef,
   type ClassDef,
   type EmoteLexicon,
+  type FeatDef,
   type ItemTemplate,
   type Language,
+  type SkillDef,
+  type SpellDef,
 } from '@rc/shared';
 
 /**
@@ -27,6 +33,10 @@ export interface Content {
   languages: Map<string, Language>;
   /** Playable classes (D-208/D-511); empty means class selection is closed. */
   classes: Map<string, ClassDef>;
+  /** Creation content (D-208): what a build may allocate and pick. */
+  skills: SkillDef[];
+  feats: FeatDef[];
+  spells: SpellDef[];
   /** Lua sources by script id (content/scripts/<id>.lua), D-109. */
   scripts: Map<string, string>;
 }
@@ -115,6 +125,26 @@ export function loadContent(contentDir: string): Content {
     classes.set(parsed.data.id, parsed.data);
   }
 
+  // Creation content: array files, each validated whole. Missing directories
+  // simply mean that creation step has nothing to offer yet.
+  const readArrayFile = <T>(
+    dir: string,
+    schema: { safeParse: (v: unknown) => { success: boolean; data?: T[]; error?: { issues: { message: string }[] } } },
+  ): T[] => {
+    const out: T[] = [];
+    for (const { file, data } of readJsonFiles(join(contentDir, dir))) {
+      const parsed = schema.safeParse(data);
+      if (!parsed.success) {
+        throw new Error(`${file}: ${parsed.error!.issues.map((i) => i.message).join('; ')}`);
+      }
+      out.push(...parsed.data!);
+    }
+    return out;
+  };
+  const skills = readArrayFile<SkillDef>('skills', SkillsFileSchema);
+  const feats = readArrayFile<FeatDef>('feats', FeatsFileSchema);
+  const spells = readArrayFile<SpellDef>('spells', SpellsFileSchema);
+
   const scripts = new Map<string, string>();
   try {
     for (const f of readdirSync(join(contentDir, 'scripts')).filter((f) => f.endsWith('.lua'))) {
@@ -137,5 +167,5 @@ export function loadContent(contentDir: string): Content {
   }
 
   if (areas.size === 0) throw new Error(`no areas found under ${contentDir}/areas`);
-  return { areas, itemTemplates, emoteLexicon, languages, classes, scripts };
+  return { areas, itemTemplates, emoteLexicon, languages, classes, skills, feats, spells, scripts };
 }

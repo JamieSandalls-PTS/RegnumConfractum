@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bluff",
+    "name": "Bluff",
+    "description": "Saying a false thing as though it were true. Contested by another's Insight whenever you declare a name that is not yours (D-218).",
+    "group": "social"
+  },
+  {
+    "id": "insight",
+    "name": "Insight",
+    "description": "Reading the person, not the words. Tells you that something is off — never what the truth is, and it is wrong often enough to hurt.",
+    "group": "social"
+  },
+  {
+    "id": "intimidation",
+    "name": "Intimidation",
+    "description": "Making it plain what happens if you are refused. Cheaper than violence, and remembered longer.",
+    "group": "social"
+  },
+  {
+    "id": "medicine",
+    "name": "Medicine",
+    "description": "Packing, binding and stitching. Major wounds cannot be treated by the wounded, so this skill is a debt other people owe you (D-205).",
+    "group": "practical"
+  },
+  {
+    "id": "stealth",
+    "name": "Stealth",
+    "description": "Not being where attention is. Half of what keeps a crime from acquiring a witness (D-217).",
+    "group": "practical"
+  },
+  {
+    "id": "perception",
+    "name": "Perception",
+    "description": "Noticing the thing at the edge — a shape at a window, a hand near a purse, a door that was shut before.",
+    "group": "practical"
+  },
+  {
+    "id": "athletics",
+    "name": "Athletics",
+    "description": "Carrying, climbing, holding a door shut against someone who wants it open.",
+    "group": "martial"
+  },
+  {
+    "id": "arms",
+    "name": "Arms",
+    "description": "The disciplined use of a weapon: distance, timing, and knowing when the fight is already lost.",
+    "group": "martial"
+  },
+  {
+    "id": "lore",
+    "name": "Lore",
+    "description": "What the empire was, whose family held which seal, and which of the old names are still dangerous to say aloud.",
+    "group": "lore"
+  },
+  {
+    "id": "necromancy",
+    "name": "Necromancy",
+    "description": "The traffic between a body and what has left it. Scales how many dead you can hold upright at once (D-511).",
+    "group": "lore"
+  }
+]
