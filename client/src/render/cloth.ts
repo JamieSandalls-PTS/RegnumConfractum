@@ -26,7 +26,34 @@ function closestOnBoneSegment(
   return out.set(centre.x + axis.x * t, centre.y + axis.y * t, centre.z + axis.z * t);
 }
 
+/**
+ * Global cloth tuning (stakeholder, 2026-08-18: "a slider to adjust the
+ * number of faces/fidelity of all cloth physics clothing — I want to test
+ * the effect of making them more floppy").
+ *
+ * `fidelity` scales the simulated grid of EVERY garment: more segments mean
+ * more places to fold, which is what reads as floppier. `solverIterations`
+ * is the other half — fewer passes leave the distance constraints slacker,
+ * so the same grid hangs looser. Both are read at CONSTRUCTION for the
+ * grid and per-step for the solver, so changing fidelity needs a rebuild
+ * (the viewer repopulates) while slack takes effect immediately.
+ */
+export const clothTuning = {
+  /** Multiplies each garment's authored column/row counts. */
+  fidelity: 1,
+  /** Constraint relaxation passes per step. Lower = floppier. */
+  solverIterations: 6,
+};
+
+/** Applies the fidelity multiplier to an authored grid dimension. */
+function scaled(n: number, min: number): number {
+  return Math.max(min, Math.round(n * clothTuning.fidelity));
+}
+
 export class Cloth {
+  /** Simulated grid, after the fidelity multiplier. */
+  private cols = 0;
+  private rows = 0;
   private pos: THREE.Vector3[] = [];
   private prev: THREE.Vector3[] = [];
   private constraints: { a: number; b: number; len: number }[] = [];
@@ -44,8 +71,8 @@ export class Cloth {
   private pinMask: boolean[] = [];
 
   constructor(
-    private cols: number,
-    private rows: number,
+    cols: number,
+    rows: number,
     private width: number,
     private height: number,
     color: number,
@@ -67,6 +94,13 @@ export class Cloth {
      * physics and never misbehave. */
     rigidRows = 1,
   ) {
+    // The authored counts are the DESIGN; fidelity scales them for review.
+    // A tube's seam welds column 0 to the last, so it needs at least 6
+    // columns to stay a ring rather than a fan.
+    this.cols = scaled(cols, layout === 'tube' ? 6 : 3);
+    this.rows = scaled(rows, Math.max(2, rigidRows + 1));
+    cols = this.cols;
+    rows = this.rows;
     this.pinnedRows = layout === 'collar' ? 2 : layout === 'tube' ? Math.max(1, rigidRows) : 1;
     const rowDrop = height / (rows - 1);
     for (let row = 0; row < this.pinnedRows; row++) {
@@ -269,7 +303,7 @@ export class Cloth {
 
     const d = new THREE.Vector3();
     const torso = new THREE.Vector3();
-    for (let iter = 0; iter < 6; iter++) {
+    for (let iter = 0; iter < clothTuning.solverIterations; iter++) {
       for (const c of this.constraints) {
         const pa = this.pos[c.a]!;
         const pb = this.pos[c.b]!;

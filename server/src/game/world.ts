@@ -52,6 +52,17 @@ export interface WorldEntity {
   ghost: boolean;
   /** Tick at which the next attack may be made. */
   attackReadyAt: number;
+  /**
+   * Combat state (stakeholder, 2026-08-18): weapon drawn and held ready.
+   * Entered on an attack or a hostility declaration either way; left only
+   * when `combatHotUntil` has passed AND no hostile stands within
+   * COMBAT_PROXIMITY_TILES. Server-owned so every observer agrees.
+   */
+  combat: boolean;
+  /** Tick before which combat cannot be left, whatever the proximity. */
+  combatHotUntil: number;
+  /** For corpses: the entity carrying this body, if any. */
+  carriedBy: number | null;
   diedAtTick: number | null;
   /** Tick at which the next tile step may be taken. */
   readyAtTick: number;
@@ -82,6 +93,8 @@ export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
     posture: e.posture,
     presentation: e.presentation,
     appearanceSeed: e.appearanceSeed,
+    combat: e.combat,
+    carriedBy: e.carriedBy,
   };
 }
 
@@ -168,6 +181,9 @@ export class World {
       hp: opts.hp ?? 10,
       ghost: opts.ghost ?? false,
       attackReadyAt: this.tick,
+      combat: false,
+      combatHotUntil: 0,
+      carriedBy: null,
       diedAtTick: null,
       readyAtTick: this.tick,
       intent: null,

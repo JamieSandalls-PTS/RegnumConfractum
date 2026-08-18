@@ -117,6 +117,9 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   /** D-206 endgame zones: pull a downed companion back from the brink before
    * the window closes and the death becomes permanent. */
   z.object({ t: z.literal('revive'), targetEntityId: z.number().int() }),
+  /** Lift a body (D-224 groundwork): only if strong enough for its build. */
+  z.object({ t: z.literal('carry_body'), targetEntityId: z.number().int() }),
+  z.object({ t: z.literal('drop_body') }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -182,6 +185,11 @@ export const WireEntitySchema = z.object({
   presentation: PresentationSchema,
   /** Drives client-side procedural appearance (D-402). */
   appearanceSeed: z.number().int().nonnegative(),
+  /** In combat: weapon drawn and held ready. Server-owned so every
+   * observer sees the same stance (D-102). */
+  combat: z.boolean().default(false),
+  /** For corpses: the entity carrying this body, if any. */
+  carriedBy: z.number().int().nullable().default(null),
 });
 export type WireEntity = z.infer<typeof WireEntitySchema>;
 
@@ -237,6 +245,22 @@ export const SimEventSchema = z.discriminatedUnion('type', [
     attackerId: z.number().int(),
     targetId: z.number().int(),
     damage: z.number().int().min(0),
+    /** Which swing/stab/cast to play. Chosen SERVER-side so every observer
+     * sees the same blow — the animation is cosmetic, but disagreeing
+     * clients would be a desync in the one place players are watching. */
+    variant: z.number().int().min(0).default(0),
+  }),
+  /** Weapon drawn / sheathed, per D-206's combat state. */
+  z.object({
+    type: z.literal('entity_combat'),
+    id: z.number().int(),
+    inCombat: z.boolean(),
+  }),
+  /** A body picked up or set down; null carrier means it lies where it is. */
+  z.object({
+    type: z.literal('entity_carried'),
+    id: z.number().int(),
+    carrierId: z.number().int().nullable(),
   }),
   /** The visible death. Observers drop the entity; the ghost lives on in a
    * world only other ghosts can see (D-203). */

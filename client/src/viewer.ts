@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { generateAppearance, type Direction, type LightingProfile, type TransientAnim } from '@rc/shared';
 import { GameScene } from './render/scene';
 import { CharacterVisual } from './render/character';
+import { clothTuning } from './render/cloth';
 
 /**
  * The character/animation viewer (stakeholder request, 2026-08-17): a page of
@@ -99,11 +100,16 @@ function applyGear(): void {
       : { helm: false, pauldrons: false, weapon: false, cape: false };
     // The weapon selector overrides the seed: staff forces one into every
     // hand for review; none empties them.
-    if (weaponSel === 'staff') base.weapon = true;
+    if (weaponSel === 'staff' || weaponSel === 'sword') base.weapon = true;
     if (weaponSel === 'none') base.weapon = false;
+    // The cast animation is meaningless without something to cast with.
+    if ($<HTMLSelectElement>('in-anim').value === 'cast') base.weapon = true;
     s.visual.setEquipment({
       ...base,
-      weaponKind: weaponSel === 'staff' ? 'staff' : 'sword',
+      // Casting needs a stave in hand whatever the weapon selector says.
+      weaponKind: weaponSel === 'staff' || $<HTMLSelectElement>('in-anim').value === 'cast'
+        ? 'staff'
+        : 'sword',
       robe,
     });
     s.visual.setRenderLayer(1); // characters live on the pixel layer (split mode)
@@ -127,6 +133,8 @@ $('in-filter').addEventListener('change', populate);
 $('in-hood').addEventListener('change', applyHoods);
 $('in-gear').addEventListener('change', applyGear);
 $('in-weapon').addEventListener('change', applyGear);
+// Picking the cast animation has to put a staff in hand (see applyGear).
+$('in-anim').addEventListener('change', applyGear);
 $('in-robe').addEventListener('change', applyGear);
 $('in-light').addEventListener('change', () => {
   scene.applyLighting($<HTMLSelectElement>('in-light').value as LightingProfile);
@@ -214,23 +222,67 @@ stage.addEventListener('wheel', (e) => {
 // --- Animation driving ------------------------------------------------------
 
 const TRANSIENTS: TransientAnim[] = ['bow', 'wave', 'laugh', 'point', 'shrug'];
-const CYCLE: string[] = ['idle', 'walk', 'sitting', 'kneeling', ...TRANSIENTS];
+const COMBAT_MODES = [
+  'combat-idle', 'combat-walk', 'draw',
+  'attack0', 'attack1', 'attack2', 'attack3', 'attack-cycle', 'cast', 'death',
+];
+const CYCLE: string[] = [
+  'idle', 'walk', 'sitting', 'kneeling', ...TRANSIENTS, ...COMBAT_MODES,
+];
 let cycleIndex = 0;
 let cycleAt = 0;
 let transientAt = 0;
+/** Re-trigger clocks for the looping combat one-shots. */
+let attackAt = 0;
+let attackTurn = 0;
+let deathAt = 0;
 
 function drive(mode: string, t: number): { moving: boolean } {
   const isTransient = (TRANSIENTS as string[]).includes(mode);
+  const isAttack = mode.startsWith('attack') || mode === 'cast';
   for (const s of shown) {
     if (mode === 'sitting' || mode === 'kneeling') s.visual.setPosture(mode);
     else s.visual.setPosture('standing');
+    // Combat state drives the whole draw/stance/sheathe cycle, so every
+    // combat mode asserts it — except the draw loop, which toggles it.
+    if (mode !== 'draw' && mode !== 'death') {
+      s.visual.setCombat(COMBAT_MODES.includes(mode));
+    }
   }
   if (isTransient && t - transientAt > 1.7) {
     // Re-queue the one-shot so it repeats while selected.
     transientAt = t;
     for (const s of shown) s.visual.playTransients([mode as TransientAnim]);
   }
-  return { moving: mode === 'walk' };
+  if (mode === 'draw') {
+    // Alternate in and out of combat so the reach-and-stow reads in full.
+    const drawn = Math.floor(t / 2.6) % 2 === 0;
+    for (const s of shown) s.visual.setCombat(drawn);
+  }
+  if (isAttack && t - attackAt > 1.25) {
+    attackAt = t;
+    attackTurn++;
+    const variant = mode === 'attack-cycle' || mode === 'cast'
+      ? attackTurn % 4
+      : Number(mode.slice(-1));
+    for (const s of shown) s.visual.playAttack(variant, t);
+  }
+  if (mode === 'death') {
+    // Replay the collapse on a loop: fall, lie there, stand, fall again.
+    if (t - deathAt > 4.2) {
+      deathAt = t;
+      for (const s of shown) {
+        s.visual.setDead(false);
+        s.visual.setCombat(false);
+        s.visual.playDeath(t);
+      }
+    }
+  } else if (deathAt !== 0) {
+    // Leaving the death mode must put everyone back on their feet.
+    deathAt = 0;
+    for (const s of shown) s.visual.setDead(false);
+  }
+  return { moving: mode === 'walk' || mode === 'combat-walk' };
 }
 
 const clock = new THREE.Clock();
@@ -268,6 +320,21 @@ function stepViewer(dt: number): void {
     scene.render(); // uniform and palette-full (full-res via pixelScale 1)
   }
 }
+
+// Cloth tuning (stakeholder: test "floppier" clothing). Fidelity changes the
+// simulated grid, so the characters must be rebuilt; floppiness is a solver
+// setting and takes hold on the very next step.
+$('in-clothfid').addEventListener('input', () => {
+  const v = Number($<HTMLInputElement>('in-clothfid').value);
+  clothTuning.fidelity = v;
+  $('v-clothfid').textContent = `${v.toFixed(1)}×`;
+  populate(); // garments are built in the constructor
+});
+$('in-clothiter').addEventListener('input', () => {
+  const v = Number($<HTMLInputElement>('in-clothiter').value);
+  clothTuning.solverIterations = v;
+  $('v-clothiter').textContent = String(v);
+});
 
 $('in-envscale').addEventListener('input', () => {
   scene.post.envPixelScale = Number($<HTMLInputElement>('in-envscale').value);

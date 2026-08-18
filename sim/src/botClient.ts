@@ -3,6 +3,7 @@ import {
   parseServerMessage,
   type ClientMessage,
   type ServerMessage,
+  type SimEvent,
   type WireEntity,
   type WireItem,
 } from '@rc/shared';
@@ -42,6 +43,8 @@ export class BotClient {
   readonly speeches: Extract<ServerMessage, { t: 'speech' }>[] = [];
   /** Every narration line, in order (DM/scripts/spirit notices). */
   readonly narrations: string[] = [];
+  /** Every blow this client witnessed, with the server's chosen variant. */
+  readonly attacks: Extract<SimEvent, { type: 'entity_attacked' }>[] = [];
   /** Latest séance state (D-204), if any ever arrived. */
   seance: Extract<ServerMessage, { t: 'seance' }> | null = null;
   /** Whether this client is riding its corpse (D-224). */
@@ -258,6 +261,16 @@ export class BotClient {
             const e = this.entities.get(event.id);
             if (!e) this.violations.push(`entity_presentation for unknown entity ${event.id}`);
             else e.presentation = event.state;
+          } else if (event.type === 'entity_combat') {
+            const e = this.entities.get(event.id);
+            if (!e) this.violations.push(`entity_combat for unknown entity ${event.id}`);
+            else e.combat = event.inCombat;
+          } else if (event.type === 'entity_carried') {
+            const e = this.entities.get(event.id);
+            if (!e) this.violations.push(`entity_carried for unknown entity ${event.id}`);
+            else e.carriedBy = event.carrierId;
+          } else if (event.type === 'entity_attacked') {
+            this.attacks.push(event);
           } else if (event.type === 'entity_died') {
             if (!this.entities.delete(event.id)) {
               this.violations.push(`entity_died for unknown entity ${event.id}`);

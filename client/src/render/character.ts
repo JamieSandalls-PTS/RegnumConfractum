@@ -110,6 +110,33 @@ export class CharacterVisual {
 
   /** Grip-to-ground length of the held staff (0 = no staff). */
   private staffBelow = 0;
+
+  /**
+   * Weapon carry (stakeholder, 2026-08-18). Out of combat a weapon rides on
+   * the back (sword/staff) or hip (short blades); entering combat draws it.
+   * The weapon hangs off the ROOT and its transform is interpolated between
+   * two anchors each frame, so the draw is one continuous motion rather
+   * than a reparenting pop.
+   */
+  private handAnchor: THREE.Group | null = null;
+  private backAnchor: THREE.Group | null = null;
+  /** 0 = stowed, 1 = in the hand. Eased toward the combat state. */
+  private drawT = 0;
+  private inCombat = false;
+  private mRootInv = new THREE.Matrix4();
+  private mA = new THREE.Matrix4();
+  private mB = new THREE.Matrix4();
+  private pA = new THREE.Vector3();
+  private pB = new THREE.Vector3();
+  private qA = new THREE.Quaternion();
+  private qB = new THREE.Quaternion();
+  private sTmp = new THREE.Vector3();
+  /** In-flight attack swing, if any. */
+  private attackAnim: { variant: number; start: number; until: number } | null = null;
+  /** When this character died, for the collapse; null while living. */
+  private deathStart: number | null = null;
+  /** True once the collapse has finished (or for a corpse spawned dead). */
+  private dead = false;
   private static UP_AXIS = new THREE.Vector3(0, 1, 0);
   private tmpQ = new THREE.Quaternion();
   private tmpQ2 = new THREE.Quaternion();
@@ -628,7 +655,13 @@ export class CharacterVisual {
       }
     }
 
-    if (this.weaponGroup) { this.arms.R.hand.remove(this.weaponGroup); this.weaponGroup = null; }
+    if (this.weaponGroup) {
+      this.weaponGroup.parent?.remove(this.weaponGroup);
+      this.weaponGroup = null;
+    }
+    for (const a of [this.handAnchor, this.backAnchor]) a?.parent?.remove(a);
+    this.handAnchor = null;
+    this.backAnchor = null;
     if (this.equipment.weapon && this.equipment.weaponKind === 'staff') {
       // A walking staff: built VERTICAL with the grip at the group origin.
       // update() keeps the group world-upright every frame and, when the
@@ -636,10 +669,16 @@ export class CharacterVisual {
       // sits exactly on the ground — a planted staff, not a carried stick.
       this.nm('staff');
       this.weaponGroup = new THREE.Group();
-      this.arms.R.hand.add(this.weaponGroup);
+      this.root.add(this.weaponGroup); // placed each frame between anchors
       const above = p.height * 0.34; // shaft above the grip
       const below = p.height * 0.58; // grip down to the ground shoe
       this.staffBelow = below;
+      // Held: upright in the fist. Stowed: slung diagonally across the back.
+      this.handAnchor = this.joint(this.arms.R.hand, [0, 0, 0]);
+      this.backAnchor = this.joint(this.chest, [
+        -bodyW * 0.34, torsoH * 0.1, -this.frontZ() * 0.9,
+      ]);
+      this.backAnchor.rotation.set(0.25, 0, -0.42);
       const wood = 0x4a3a28;
       this.addMesh(this.weaponGroup,
         new THREE.CylinderGeometry(0.021, 0.027, above + below, 8),
@@ -657,9 +696,16 @@ export class CharacterVisual {
       // X so "down" becomes "out in front", angled slightly toward the ground.
       this.nm('sword');
       this.weaponGroup = new THREE.Group();
-      this.arms.R.hand.add(this.weaponGroup);
-      this.weaponGroup.position.set(0, -bodyW * 0.05, 0);
-      this.weaponGroup.rotation.x = -Math.PI / 2 + 0.35;
+      this.root.add(this.weaponGroup); // placed each frame between anchors
+      // Held: gripped in the fist, blade forward and angled down.
+      this.handAnchor = this.joint(this.arms.R.hand, [0, -bodyW * 0.05, 0]);
+      this.handAnchor.rotation.x = -Math.PI / 2 + 0.35;
+      // Stowed: hung down the back, hilt at the right shoulder — the
+      // over-the-shoulder draw the sheathe animation reaches for.
+      this.backAnchor = this.joint(this.chest, [
+        -bodyW * 0.26, torsoH * 0.34, -this.frontZ() * 0.95,
+      ]);
+      this.backAnchor.rotation.set(0.22, 0, -0.34);
       this.box(this.weaponGroup, 0.045, 0.14, 0.045, 0x2a231d, [0, 0.02, 0]);
       this.box(this.weaponGroup, 0.2, 0.035, 0.05, p.metal, [0, -0.06, 0]);
       this.box(this.weaponGroup, 0.055, 0.72, 0.022, 0x74808c, [0, -0.06 - 0.37, 0]);
@@ -864,7 +910,10 @@ export class CharacterVisual {
   }
 
   setPosition(x: number, z: number): void {
-    this.root.position.set(x, 0, z);
+    // Y is owned by the death animation (a fallen body sinks to the floor),
+    // so only the horizontal placement is written here.
+    this.root.position.x = x;
+    this.root.position.z = z;
   }
 
   setPosture(posture: Posture): void {
@@ -1060,6 +1109,64 @@ export class CharacterVisual {
     }
   }
 
+  /**
+   * Combat state, straight from the server. Turning it on draws the weapon
+   * and holds a ready stance; turning it off sheathes and returns to the
+   * true idle. The transition is animated, not snapped.
+   */
+  setCombat(inCombat: boolean): void {
+    this.inCombat = inCombat;
+  }
+
+  get combat(): boolean {
+    return this.inCombat;
+  }
+
+  /** True once the weapon is fully in hand — the ready stance waits for it. */
+  private get weaponReady(): boolean {
+    return !this.equipment.weapon || this.drawT > 0.92;
+  }
+
+  /** Plays one attack; `variant` is chosen server-side so observers agree. */
+  playAttack(variant: number, t: number): void {
+    // A swing implies the weapon is out — no waiting for the draw to finish.
+    this.inCombat = true;
+    this.attackAnim = { variant, start: t, until: t + CharacterVisual.ATTACK_SECONDS };
+  }
+
+  /** Whether this character casts rather than swings, from what it holds. */
+  get castsSpells(): boolean {
+    return this.equipment.weapon && this.equipment.weaponKind === 'staff';
+  }
+
+  /** World position of the weapon's business end — where a bolt is born. */
+  weaponMuzzle(out: THREE.Vector3): THREE.Vector3 {
+    const src = this.weaponGroup ?? this.arms.R.hand;
+    src.updateMatrixWorld();
+    // The staff's knot sits at the top of the shaft; a fist is its own tip.
+    out.set(0, this.castsSpells ? this.appearance.height * 0.34 : 0, 0);
+    return out.applyMatrix4(src.matrixWorld);
+  }
+
+  /** Starts the collapse. The body stays down afterwards (setDead). */
+  playDeath(t: number): void {
+    if (this.deathStart !== null || this.dead) return;
+    this.deathStart = t;
+    this.attackAnim = null;
+    this.transientQueue.length = 0;
+    this.currentTransient = null;
+  }
+
+  /** Holds the final prone pose — used for corpses that spawn already dead. */
+  setDead(dead: boolean): void {
+    this.dead = dead;
+    if (dead) this.deathStart = null;
+  }
+
+  private static ATTACK_SECONDS = 0.62;
+  private static DEATH_SECONDS = 1.15;
+  private static DRAW_SECONDS = 0.42;
+
   update(dt: number, t: number, moving: boolean, wind: number): void {
     // shortest-path turn toward facing
     let diff = this.targetAngle - this.currentAngle;
@@ -1067,6 +1174,14 @@ export class CharacterVisual {
     while (diff < -Math.PI) diff += Math.PI * 2;
     this.currentAngle += diff * Math.min(1, dt * 12);
     this.root.rotation.y = this.currentAngle;
+
+    // Death outranks everything: a falling body takes no more orders.
+    const dying = this.deathStart !== null;
+    if (dying && t - this.deathStart! >= CharacterVisual.DEATH_SECONDS) {
+      this.deathStart = null;
+      this.dead = true;
+    }
+    if (this.attackAnim && t >= this.attackAnim.until) this.attackAnim = null;
 
     // Transients pre-empt everything except walking; movement cancels them.
     if (moving && (this.currentTransient || this.transientQueue.length > 0)) {
@@ -1082,21 +1197,45 @@ export class CharacterVisual {
       };
     }
 
+    // The weapon slides between back and hand. Drawing takes priority over
+    // an attack's own timing so a surprised character swings as it clears.
+    const drawTarget = this.inCombat || this.attackAnim ? 1 : 0;
+    const drawSpeed = dt / CharacterVisual.DRAW_SECONDS;
+    this.drawT = drawTarget > this.drawT
+      ? Math.min(1, this.drawT + drawSpeed)
+      : Math.max(0, this.drawT - drawSpeed);
+    // Mid-transition the free hand reaches over the shoulder: that reach IS
+    // the sheathe/draw animation, blended over whatever else is playing.
+    const swapping = this.equipment.weapon && this.drawT > 0.02 && this.drawT < 0.98
+      && !this.attackAnim && !dying && !this.dead;
+
     // 1) Write the active animation's pose directly to the bones…
-    const animKey = moving
-      ? 'walk'
-      : this.currentTransient
-        ? `transient:${this.currentTransient.name}`
-        : `posture:${this.posture}`;
+    const animKey = this.dead || dying
+      ? 'death'
+      : this.attackAnim
+        ? `attack:${this.attackAnim.variant}`
+        : moving
+          ? `walk${this.inCombat ? ':combat' : ''}`
+          : this.currentTransient
+            ? `transient:${this.currentTransient.name}`
+            : this.posture === 'standing' && this.inCombat && this.weaponReady
+              ? 'combat-idle'
+              : `posture:${this.posture}`;
     this.resetPose();
-    if (moving) this.animWalk(t);
+    if (this.dead) this.animDeadPose();
+    else if (dying) this.animDeath((t - this.deathStart!) / CharacterVisual.DEATH_SECONDS);
+    else if (this.attackAnim) {
+      this.animAttack(this.attackAnim.variant, (t - this.attackAnim.start) / CharacterVisual.ATTACK_SECONDS, t);
+    } else if (moving) this.animWalk(t);
     else if (this.currentTransient) {
       // One-shots play from their OWN start, not from wherever the global
       // clock happens to be mid-wave.
       this.animTransient(this.currentTransient.name, t - this.currentTransient.start);
     } else if (this.posture === 'sitting') this.animSit(t);
     else if (this.posture === 'kneeling') this.animKneel(t);
+    else if (this.inCombat && this.weaponReady) this.animCombatIdle(t);
     else this.animIdle(t);
+    if (swapping) this.animWeaponSwap(this.drawT);
 
     // 2) …then cross-fade from the previous animation's last output.
     if (animKey !== this.lastAnimKey && this.lastPose) {
@@ -1118,21 +1257,29 @@ export class CharacterVisual {
 
     this.root.updateMatrixWorld(true);
 
-    // The staff's own idle behaviour: held world-vertical (turning with the
-    // body), and PLANTED — when stationary, it slides in the grip so the
-    // ferrule rests exactly on the ground however the arm bobs.
-    if (this.weaponGroup && this.equipment.weapon && this.equipment.weaponKind === 'staff') {
-      const hand = this.arms.R.hand;
-      hand.getWorldQuaternion(this.tmpQ);
-      this.tmpQ2.setFromAxisAngle(CharacterVisual.UP_AXIS, this.currentAngle);
-      this.weaponGroup.quaternion.copy(this.tmpQ).invert().multiply(this.tmpQ2);
-      this.weaponGroup.position.set(0, -this.dims.bodyW * 0.06, this.dims.bodyW * 0.06);
-      if (!moving) {
-        this.tmpV.copy(this.weaponGroup.position).applyMatrix4(hand.matrixWorld);
-        const dy = this.staffBelow - this.tmpV.y; // world lift to touch ground
-        this.tmpQ2.copy(this.tmpQ).invert();
-        this.tmpV2.set(0, dy, 0).applyQuaternion(this.tmpQ2);
-        this.weaponGroup.position.add(this.tmpV2);
+    // The weapon rides between its two anchors. Both are resolved into ROOT
+    // space and blended, so a half-drawn sword is genuinely halfway out of
+    // its harness rather than snapping between parents.
+    if (this.weaponGroup && this.handAnchor && this.backAnchor) {
+      this.handAnchor.updateMatrixWorld(true);
+      this.backAnchor.updateMatrixWorld(true);
+      this.mRootInv.copy(this.root.matrixWorld).invert();
+      this.mA.multiplyMatrices(this.mRootInv, this.backAnchor.matrixWorld);
+      this.mB.multiplyMatrices(this.mRootInv, this.handAnchor.matrixWorld);
+      this.mA.decompose(this.pA, this.qA, this.sTmp);
+      this.mB.decompose(this.pB, this.qB, this.sTmp);
+      // Ease the middle so the blade leaves the scabbard fast and settles.
+      const raw = this.drawT;
+      const e = raw * raw * (3 - 2 * raw);
+      this.weaponGroup.position.copy(this.pA).lerp(this.pB, e);
+      this.weaponGroup.quaternion.copy(this.qA).slerp(this.qB, e);
+      // A drawn staff still plants itself when its bearer stands still —
+      // the walking-staff idle, kept for the out-of-combat drawn case.
+      if (this.equipment.weaponKind === 'staff' && this.drawT > 0.98 && !moving
+        && !this.inCombat && !this.attackAnim) {
+        this.tmpV.copy(this.weaponGroup.position).applyMatrix4(this.root.matrixWorld);
+        const dy = this.staffBelow - this.tmpV.y;
+        this.weaponGroup.position.y += dy;
       }
     }
 
@@ -1298,6 +1445,10 @@ export class CharacterVisual {
   }
 
   private resetPose(): void {
+    // The fall writes root roll and height; everything else must clear them
+    // or a revived character would stay lying down.
+    this.root.rotation.z = 0;
+    this.root.position.y = 0;
     for (const o of [this.pelvis, this.spine, this.chest, this.neck, this.head]) {
       o.rotation.set(0, 0, 0);
     }
@@ -1348,6 +1499,212 @@ export class CharacterVisual {
    * So: thighs forward = hip.x NEGATIVE; knees bend (shin back) = knee.x
    * POSITIVE; elbows bend (forearm forward) = elbow.x NEGATIVE.
    */
+
+  /**
+   * The ready stance: weight back on a braced rear leg, knees soft, weapon
+   * up and the off hand raised to guard. Everything breathes faster than
+   * the idle — this is a body expecting to be hit.
+   */
+  private animCombatIdle(t: number): void {
+    const c = this;
+    const breath = Math.sin(t * 2.6 + this.walkPhase);
+    const shift = Math.sin(t * 1.1 + this.walkPhase);
+    // Bladed stance: the body turns side-on to present less of itself.
+    c.pelvis.rotation.y = -0.22;
+    c.chest.rotation.y = 0.3;
+    c.chest.rotation.x = 0.12 + breath * 0.015; // crouched forward
+    c.spine.rotation.x = 0.06;
+    c.head.rotation.y = -0.26 + Math.sin(t * 0.9) * 0.04; // eyes on the front
+    c.pelvis.position.y = c.dims.hipY - 0.055 + Math.abs(breath) * 0.006;
+    // Feet split fore-and-aft, both knees loaded.
+    c.legs.R.hip.rotation.x = 0.3;
+    c.legs.R.knee.rotation.x = 0.34;
+    c.legs.R.hip.rotation.z = -0.12;
+    c.legs.L.hip.rotation.x = -0.26;
+    c.legs.L.knee.rotation.x = 0.3;
+    c.legs.L.hip.rotation.z = 0.14;
+    c.legs.L.foot.rotation.x = -0.12;
+
+    if (this.castsSpells) {
+      // The caster holds the stave upright and across, free hand open.
+      c.arms.R.sh.rotation.x = -0.72 + breath * 0.03;
+      c.arms.R.sh.rotation.z = -0.24;
+      c.arms.R.el.rotation.x = -1.02;
+      c.arms.L.sh.rotation.x = -0.34;
+      c.arms.L.sh.rotation.z = 0.42;
+      c.arms.L.el.rotation.x = -0.86;
+    } else {
+      // Sword up and across the body, point high and forward — a guard,
+      // not an outstretched arm. The wrist cocks the blade up: without it
+      // the abducted shoulder swings the point out sideways.
+      c.arms.R.sh.rotation.x = -0.62 + breath * 0.035;
+      c.arms.R.sh.rotation.z = -0.1;
+      c.arms.R.el.rotation.x = -1.5;
+      c.arms.R.hand.rotation.x = -0.75;
+      c.arms.L.sh.rotation.x = -0.5;
+      c.arms.L.sh.rotation.z = 0.32;
+      c.arms.L.el.rotation.x = -1.15;
+    }
+    c.chest.rotation.z = shift * 0.02;
+  }
+
+  /**
+   * Reaching over the shoulder to draw or stow. `d` is the draw fraction, so
+   * the same curve runs backwards when sheathing — the hand meets the hilt
+   * at the back at d=0 and finishes low and forward at d=1.
+   */
+  private animWeaponSwap(d: number): void {
+    const c = this;
+    // Peaks mid-motion: the arm is highest when the hand is at the scabbard.
+    const reach = Math.sin(Math.PI * Math.min(1, Math.max(0, d)));
+    c.arms.R.sh.rotation.x = -0.2 - reach * 1.5; // up and back over the shoulder
+    c.arms.R.sh.rotation.z = -0.1 - reach * 0.55;
+    c.arms.R.el.rotation.x = -0.3 - reach * 1.35;
+    c.arms.R.hand.rotation.z = reach * 0.5;
+    c.chest.rotation.y = reach * 0.22; // the torso twists into the reach
+    c.head.rotation.y = reach * 0.1;
+    c.arms.L.sh.rotation.x = -reach * 0.18;
+  }
+
+  /**
+   * Attack variants (stakeholder: "a variety of different swing/stab
+   * animations"). The server picks the index, so every observer sees the
+   * same blow. Casters get their own wind-up-and-release instead.
+   *
+   * `f` runs 0→1 across the swing: wind up, strike, recover.
+   */
+  private animAttack(variant: number, f: number, t: number): void {
+    const c = this;
+    const clamp = Math.min(1, Math.max(0, f));
+    // Wind-up occupies the first 35%, the strike snaps, then it recovers.
+    const wind = Math.min(1, clamp / 0.35);
+    const strike = clamp < 0.35 ? 0 : Math.min(1, (clamp - 0.35) / 0.25);
+    const recover = clamp < 0.6 ? 0 : (clamp - 0.6) / 0.4;
+    // Ease: slow load, fast release.
+    const load = wind * wind;
+    const hit = strike * (2 - strike);
+    const settle = 1 - recover * recover;
+
+    if (this.castsSpells) {
+      // Cast: staff raised, then thrust forward as the bolt leaves it.
+      c.chest.rotation.y = 0.24 * load - 0.34 * hit;
+      c.chest.rotation.x = -0.1 * load + 0.18 * hit;
+      c.arms.R.sh.rotation.x = -0.9 - 0.85 * load + 1.05 * hit;
+      c.arms.R.sh.rotation.z = -0.22;
+      c.arms.R.el.rotation.x = -1.1 + 0.75 * hit;
+      c.arms.L.sh.rotation.x = -0.4 - 0.5 * hit;
+      c.arms.L.sh.rotation.z = 0.5;
+      c.arms.L.el.rotation.x = -0.9;
+      c.pelvis.position.y = c.dims.hipY - 0.03 * settle;
+      c.legs.L.hip.rotation.x = -0.18 * hit;
+      c.legs.R.hip.rotation.x = 0.16 * hit;
+      c.head.rotation.y = -0.12;
+      return;
+    }
+
+    switch (variant % 4) {
+      case 0: {
+        // Overhead chop: both feet planted, the whole body falls into it.
+        c.arms.R.sh.rotation.x = -0.5 - 2.0 * load + 2.6 * hit;
+        c.arms.R.sh.rotation.z = -0.2;
+        c.arms.R.el.rotation.x = -1.5 + 1.25 * hit;
+        c.chest.rotation.x = -0.2 * load + 0.4 * hit;
+        c.chest.rotation.y = 0.1 * load;
+        c.pelvis.position.y = c.dims.hipY - 0.02 - 0.05 * hit;
+        c.legs.R.knee.rotation.x = 0.2 + 0.3 * hit;
+        c.legs.L.knee.rotation.x = 0.18 + 0.24 * hit;
+        break;
+      }
+      case 1: {
+        // Horizontal slash: torso winds right, unwinds through the target.
+        c.chest.rotation.y = 0.62 * load - 1.0 * hit;
+        c.pelvis.rotation.y = 0.24 * load - 0.4 * hit;
+        c.arms.R.sh.rotation.x = -0.7 - 0.3 * load + 0.15 * hit;
+        c.arms.R.sh.rotation.z = -0.5 - 0.4 * load + 0.9 * hit;
+        c.arms.R.el.rotation.x = -1.15 + 0.85 * hit;
+        c.arms.L.sh.rotation.z = 0.3 + 0.35 * hit;
+        c.legs.R.hip.rotation.z = -0.12;
+        c.legs.L.knee.rotation.x = 0.2;
+        break;
+      }
+      case 2: {
+        // Thrust: the point goes first, weight driving off the back foot.
+        c.chest.rotation.y = 0.34 * load - 0.5 * hit;
+        c.arms.R.sh.rotation.x = -0.5 - 0.45 * load - 0.5 * hit;
+        c.arms.R.sh.rotation.z = -0.24;
+        c.arms.R.el.rotation.x = -1.45 + 1.4 * hit;
+        c.arms.R.hand.rotation.x = 0.3;
+        c.arms.L.sh.rotation.x = -0.3 - 0.3 * hit;
+        c.arms.L.sh.rotation.z = 0.4;
+        // The lunge: front leg reaches, rear leg extends behind.
+        c.legs.L.hip.rotation.x = -0.2 - 0.5 * hit;
+        c.legs.L.knee.rotation.x = 0.24 + 0.3 * hit;
+        c.legs.R.hip.rotation.x = 0.18 + 0.4 * hit;
+        c.pelvis.position.y = c.dims.hipY - 0.03 - 0.07 * hit;
+        break;
+      }
+      default: {
+        // Backhand: a return cut from the off side, shorter and meaner.
+        c.chest.rotation.y = -0.5 * load + 0.85 * hit;
+        c.pelvis.rotation.y = -0.16 * load + 0.28 * hit;
+        c.arms.R.sh.rotation.x = -0.85 - 0.2 * load;
+        c.arms.R.sh.rotation.z = 0.35 * load - 0.95 * hit;
+        c.arms.R.el.rotation.x = -1.35 + 0.95 * hit;
+        c.arms.L.sh.rotation.z = 0.28;
+        c.legs.R.knee.rotation.x = 0.2;
+        break;
+      }
+    }
+    // A little breath on the recovery so the pose does not freeze.
+    c.head.rotation.x = 0.05 * hit + Math.sin(t * 3) * 0.01 * settle;
+  }
+
+  /**
+   * The collapse (`f` 0→1). Knees give first, the body folds, and it turns
+   * as it goes down — a person falling, not a plank tipping. The final
+   * frame matches animDeadPose exactly so the hold is seamless.
+   */
+  private animDeath(f: number): void {
+    const c = this;
+    const p = Math.min(1, Math.max(0, f));
+    // Two stages: buckle (0–0.45), then topple (0.45–1).
+    const buckle = Math.min(1, p / 0.45);
+    const fall = p < 0.45 ? 0 : (p - 0.45) / 0.55;
+    const eased = fall * fall * (3 - 2 * fall);
+    const b = buckle * (2 - buckle);
+
+    // The pelvis drops as the knees give, then RETURNS toward its normal
+    // offset as the body rotates flat: once the root is on its side that
+    // offset is a horizontal distance along the ground, not a height.
+    // Keeping the drop through the rotation buried the body in the floor.
+    c.pelvis.position.y = c.dims.hipY * (1 - 0.55 * b * (1 - eased));
+    c.legs.R.hip.rotation.x = -0.5 * b - 0.6 * eased;
+    c.legs.R.knee.rotation.x = 1.3 * b + 0.3 * eased;
+    c.legs.L.hip.rotation.x = -0.3 * b - 0.9 * eased;
+    c.legs.L.knee.rotation.x = 1.05 * b - 0.3 * eased;
+    // The torso pitches forward and rolls onto one side.
+    c.spine.rotation.x = 0.3 * b + 0.5 * eased;
+    c.chest.rotation.x = 0.2 * b + 0.4 * eased;
+    c.chest.rotation.z = 0.15 * eased;
+    c.head.rotation.x = 0.25 * b + 0.35 * eased;
+    c.head.rotation.z = 0.2 * eased;
+    // Arms give up: they swing loose and land wide.
+    c.arms.R.sh.rotation.x = 0.3 * b + 0.9 * eased;
+    c.arms.R.sh.rotation.z = -0.35 * eased;
+    c.arms.R.el.rotation.x = -0.5 * b + 0.2 * eased;
+    c.arms.L.sh.rotation.x = 0.2 * b + 0.7 * eased;
+    c.arms.L.sh.rotation.z = 0.4 * eased;
+    c.arms.L.el.rotation.x = -0.4 * b;
+    // The whole body rotates down to lie flat. A body has thickness, so it
+    // rests slightly ABOVE the floor plane rather than in it.
+    this.root.rotation.z = (Math.PI / 2) * eased;
+    this.root.position.y = this.dims.bodyW * 0.42 * eased;
+  }
+
+  /** The held prone pose: the last frame of the collapse, kept still. */
+  private animDeadPose(): void {
+    this.animDeath(1);
+  }
 
   private animSit(t: number): void {
     const c = this;

@@ -1538,3 +1538,66 @@ directly — no linearisation needed. Consequences worth keeping:
 - `PixelPost.depthOcclusion` exists as a verification switch (D-114): off
   reproduces the pre-fix flat overlay so an automated check can A/B the
   two and prove the depth test is doing work.
+
+### D-516: Combat state, weapon carry, attack animations, and the fall
+
+**Requested by the stakeholder 2026-08-18** to make combat testable by feel.
+
+**Combat is a STATE, and the server owns it.** An entity enters combat when
+attacked or when hostility is declared either way (both parties — the
+threatened one has every reason to draw), and leaves only when BOTH
+conditions hold: nothing violent for `COMBAT_LEAVE_TICKS` (10s) *and* no
+hostile within `COMBAT_PROXIMITY_TILES` (20). Two clauses, deliberately: a
+timer alone would have players sheathing mid-standoff. The flag rides on
+`WireEntity` and changes broadcast as `entity_combat`, so every observer
+sees the same stance — "my sword is out and yours isn't" is exactly the
+kind of disagreement players notice.
+
+**The state is what makes weapons go away.** Out of combat a sword or staff
+rides slung across the back; entering combat draws it. The weapon hangs
+off the character ROOT and its transform is interpolated between a hand
+anchor and a back anchor each frame, so a half-drawn blade is genuinely
+halfway out rather than snapping between parents. The reach over the
+shoulder is a pose blended on top of whatever else is playing, and it runs
+backwards to sheathe.
+
+**Attack variants are chosen server-side.** Four melee swings (overhead
+chop, horizontal slash, thrust with a lunge, backhand cut) plus a caster's
+wind-up-and-release. The variant is cosmetic, but a cosmetic disagreement
+is still a disagreement about the thing players are watching, so the
+server rolls it and ships it in `entity_attacked`. Whether it renders as a
+cut or a cast is read from what the attacker HOLDS, which every client
+derives identically from the appearance seed — no new server concept of
+weapons was needed.
+
+**Projectiles and particles are client-side and decide nothing.** A magical
+bolt gathers motes at the stave head, flies a shallow arc with its own
+travelling light and a mote trail, and bursts on arrival. A bolt that
+visually misses still did exactly the damage the server said (D-102).
+
+**Death is watched, not skipped.** `entity_died` now plays a collapse — the
+knees buckle, the torso folds, the body rolls onto its side — and the
+visual outlives its entity just long enough to finish falling. Corpses
+seen for the first time hold the final frame instead. Lesson worth
+keeping: the root rotation that lays the body flat turns every local
+Y-offset into a horizontal distance, so continuing to "drop" the pelvis
+through the fall buried the body in the floor.
+
+**Bodies can be carried, gated on build.** `carry_body` / `drop_body` are
+authoritative: a corpse's burden comes from the dead character's own
+generated bulk and height, and a carrier manages
+`CARRY_BASE_CAPACITY + athletics`. A carried body follows its bearer each
+tick and is set down where they stand; if the bearer logs out or dies it
+stays where it is rather than following them into nothing. Inventory
+integration is deliberately deferred.
+
+**Cloth fidelity is now tunable for review** (`clothTuning` in cloth.ts):
+`fidelity` scales every garment's simulated grid at construction, and
+`solverIterations` relaxes the distance constraints per step. The viewer
+exposes both, so "make it floppier" is a slider rather than a code change.
+At 0.6× a robe is coarse and jagged; at 2.4× with two solver passes it
+drapes to the floor.
+
+⚠ **Unratified tuning:** the 10-second/20-tile combat window, the four-swing
+roster, and the carry capacity formula are all first-pass numbers chosen to
+be legible and centralised, not settled balance.

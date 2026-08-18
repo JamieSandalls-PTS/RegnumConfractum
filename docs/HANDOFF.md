@@ -1,5 +1,30 @@
 # Session handoff — updated 2026-08-18
 
+## Combat feel pass (D-516)
+
+- **Combat state is server-owned** (`WorldEntity.combat`, wire
+  `entity_combat`). Enter on attack/hostility either way; leave only when
+  quiet for 10s AND no hostile within 20 tiles. Tests shrink both via
+  `combatLeaveTicks` / `combatProximityTiles` server options.
+- **Weapons sheathe out of combat**: the weapon is parented to the ROOT and
+  lerped between `handAnchor` and `backAnchor` each frame (character.ts).
+  Do NOT reparent it — that pops.
+- **Attack variants come from the server** (`entity_attacked.variant`);
+  melee vs cast is decided client-side from what is held.
+- **Effects** (`client/src/render/effects.ts`): bolts, motes, impact
+  flashes. Layer 1 so the split pass quantises them with the characters.
+- **Death**: `playDeath()` collapse, visual outlives its entity ~2.2s via
+  `dyingVisuals`. Trap already hit: once the root rotates flat, local
+  Y-offsets become horizontal — do not keep dropping the pelvis or the
+  body sinks through the floor.
+- **Carry**: `carry_body`/`drop_body`, gated on `corpseBurden(seed)` vs
+  `CARRY_BASE_CAPACITY + athletics`.
+- **Viewer**: every new animation is in the anim dropdown (combat stance,
+  draw/sheathe loop, four attacks, cast, death loop), plus cloth
+  **fidelity** and **floppiness** sliders driving `clothTuning`.
+- Tests: `sim/test/m5b-combat-state.test.ts` (8).
+
+
 ## Most recent work (D-515): creation screen, split pixelation, bubbles
 
 - **Character creation wizard** (`client/src/creation.ts`, markup in

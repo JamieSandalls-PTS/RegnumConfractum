@@ -10,7 +10,7 @@ export const MOVE_COOLDOWN_TICKS = 3;
 export const FLUSH_INTERVAL_TICKS = 300;
 
 /** Bumped on any breaking wire change; both sides assert it (D-105). */
-export const PROTOCOL_VERSION = 2; // v2: corpse/pile entity kinds, spirit actions (D-511)
+export const PROTOCOL_VERSION = 3; // v3: combat state, attack variants, carried bodies
 
 /** Session tokens live this long without activity. */
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -27,6 +27,26 @@ export const HOSTILITY_WINDOW_TICKS = 100; // 10s (D-206)
 /** A declaration goes stale after this long unused. */
 export const HOSTILITY_EXPIRY_TICKS = 3000; // 5 min
 export const DEFAULT_MAX_HP = 20;
+
+/**
+ * Combat state (stakeholder, 2026-08-18). A character enters combat when
+ * attacked or when hostility is declared either way, and leaves only once
+ * BOTH are true for the full cooldown: no attack involving them, and no
+ * hostile within COMBAT_PROXIMITY_TILES. Weapons are sheathed out of
+ * combat, so this state drives the whole draw/stance/sheathe cycle.
+ */
+export const COMBAT_LEAVE_TICKS = 100; // 10s at 10Hz
+export const COMBAT_PROXIMITY_TILES = 20;
+
+/** How many distinct swing animations the client may be told to play. */
+export const ATTACK_VARIANTS = 4;
+
+/**
+ * Carrying the dead (D-224 groundwork). A body's burden is its build; a
+ * carrier manages `CARRY_BASE_CAPACITY + athletics`. An average character
+ * can shift a slight corpse and not a brute's.
+ */
+export const CARRY_BASE_CAPACITY = 35;
 export const GHOST_MIN_TICKS = 3000; // 5 min before self-respawn (D-203)
 export const DEATH_DEBT_PER_DEATH = 100; // paid down by future XP (D-203)
 /** Untreated major wounds bleed: 1 hp per wound per interval (D-205). */

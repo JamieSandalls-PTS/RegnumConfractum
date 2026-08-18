@@ -19,6 +19,10 @@ import {
   SESSION_TTL_MS,
   TICK_MS,
   ZOMBIE_DURATION_TICKS,
+  ATTACK_VARIANTS,
+  CARRY_BASE_CAPACITY,
+  COMBAT_LEAVE_TICKS,
+  COMBAT_PROXIMITY_TILES,
   CREATION_FEAT_PICKS,
   CREATION_SKILL_MAX,
   CREATION_SKILL_POINTS,
@@ -81,7 +85,21 @@ export interface GameServerOptions {
   zombieDurationTicks?: number;
   /** D-206 endgame zones: how long a downed player may still be revived. */
   reviveWindowTicks?: number;
+  /** Combat-state pacing — tests shrink these; the rule is tick-based. */
+  combatLeaveTicks?: number;
+  combatProximityTiles?: number;
   log?: (msg: string) => void;
+}
+
+/**
+ * What a body weighs, on the same 0–100 scale as skills. Derived from the
+ * dead character's own generated build (D-402), so a heavy figure is
+ * genuinely harder to shift than a slight one and the number is stable
+ * for a given corpse.
+ */
+export function corpseBurden(appearanceSeed: number): number {
+  const a = generateAppearance(appearanceSeed);
+  return Math.round(a.bulk * 90 + (a.height - 1.6) * 30);
 }
 
 /** A live corpse or gear-pile world object, mirrored from the corpses table. */
@@ -177,6 +195,8 @@ export class GameServer {
   /** Endgame way-marker warnings pending confirmation (D-206). */
   private endgameConfirms = new Map<ConnState, { areaId: string; x: number; y: number; expiresAtTick: number }>();
   private reviveWindowTicks = REVIVE_WINDOW_TICKS;
+  private combatLeaveTicks = COMBAT_LEAVE_TICKS;
+  private combatProximityTiles = COMBAT_PROXIMITY_TILES;
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -193,6 +213,8 @@ export class GameServer {
     this.groundLootTicks = opts.groundLootTicks ?? GROUND_LOOT_TICKS;
     this.zombieDurationTicks = opts.zombieDurationTicks ?? ZOMBIE_DURATION_TICKS;
     this.reviveWindowTicks = opts.reviveWindowTicks ?? REVIVE_WINDOW_TICKS;
+    this.combatLeaveTicks = opts.combatLeaveTicks ?? COMBAT_LEAVE_TICKS;
+    this.combatProximityTiles = opts.combatProximityTiles ?? COMBAT_PROXIMITY_TILES;
     for (const def of opts.content.areas.values()) this.world.addArea(def);
     const fallback = opts.content.areas.keys().next().value as string;
     this.defaultAreaId = opts.defaultAreaId ?? fallback;
@@ -283,10 +305,114 @@ export class GameServer {
     this.zombieAiTick();
     await this.spiritTick();
     await this.downedTick();
+    this.combatTick();
+    this.carryTick();
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
       await this.flushDirty();
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Combat state (stakeholder, 2026-08-18)
+  //
+  // Entered on violence — an attack either way, or a declaration of hostility
+  // either way — and left only when nothing threatening has happened for
+  // COMBAT_LEAVE_TICKS *and* no hostile stands within COMBAT_PROXIMITY_TILES.
+  // The state is what makes weapons go away: out of combat a character
+  // sheathes and returns to a true idle.
+  // -------------------------------------------------------------------------
+
+  /** Marks an entity as fighting and refreshes its cooldown. */
+  private enterCombat(entity: WorldEntity | undefined, areaId: string | null): void {
+    if (!entity || !areaId || entity.ghost) return;
+    entity.combatHotUntil = this.world.tick + this.combatLeaveTicks;
+    if (entity.combat) return;
+    entity.combat = true;
+    this.broadcastPlane(areaId, entity.ghost, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_combat', id: entity.id, inCombat: true }],
+    });
+  }
+
+  /** Is this entity someone `self` is currently at odds with? */
+  private isHostileTo(self: WorldEntity, other: WorldEntity): boolean {
+    if (other.id === self.id || other.ghost) return false;
+    if (other.objectKind === 'corpse' || other.objectKind === 'pile') return false;
+    // A walking corpse is always a threat; so is anything mid-fight with us.
+    if (other.objectKind === 'zombie') return true;
+    if (self.characterId === null || other.characterId === null) {
+      // NPC involvement: treat any other combatant as the reason to stay up.
+      return other.combat;
+    }
+    const a = this.hostilities.get(`${self.characterId}|${other.characterId}`);
+    const b = this.hostilities.get(`${other.characterId}|${self.characterId}`);
+    const fresh = (t: number | undefined): boolean =>
+      t !== undefined && this.world.tick - t <= HOSTILITY_EXPIRY_TICKS;
+    return fresh(a) || fresh(b);
+  }
+
+  /** Drops combat for anyone who has been left alone long enough. */
+  private combatTick(): void {
+    for (const areaId of this.world.areaIds()) {
+      const entities = this.world.entitiesIn(areaId);
+      for (const entity of entities) {
+        if (!entity.combat) continue;
+        if (this.world.tick < entity.combatHotUntil) continue;
+        const threatened = entities.some(
+          (other) =>
+            this.isHostileTo(entity, other) &&
+            chebyshev(entity.pos, other.pos) <= this.combatProximityTiles,
+        );
+        if (threatened) continue;
+        entity.combat = false;
+        this.broadcastPlane(areaId, entity.ghost, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [{ type: 'entity_combat', id: entity.id, inCombat: false }],
+        });
+      }
+    }
+  }
+
+  /** Carried bodies travel with whoever shoulders them. */
+  private carryTick(): void {
+    for (const areaId of this.world.areaIds()) {
+      for (const entity of this.world.entitiesIn(areaId)) {
+        if (entity.carriedBy === null) continue;
+        const carrier = this.world.getEntity(entity.carriedBy);
+        if (!carrier || this.world.getEntityAreaId(carrier.id) !== areaId || carrier.ghost) {
+          // The carrier vanished (logged out, died, changed area): the body
+          // stays where it is rather than following into nothing.
+          this.setCarried(entity, null, areaId);
+          continue;
+        }
+        if (entity.pos.x === carrier.pos.x && entity.pos.y === carrier.pos.y) continue;
+        entity.pos = { ...carrier.pos };
+        entity.facing = carrier.facing;
+        this.broadcastPlane(areaId, false, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [{
+            type: 'entity_moved',
+            id: entity.id,
+            x: entity.pos.x,
+            y: entity.pos.y,
+            facing: entity.facing,
+          }],
+        });
+      }
+    }
+  }
+
+  private setCarried(body: WorldEntity, carrierId: number | null, areaId: string): void {
+    body.carriedBy = carrierId;
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_carried', id: body.id, carrierId }],
+    });
   }
 
   /**
@@ -533,6 +659,10 @@ export class GameServer {
         return this.handleObserveBody(conn, msg);
       case 'revive':
         return this.handleRevive(conn, msg);
+      case 'carry_body':
+        return this.handleCarryBody(conn, msg);
+      case 'drop_body':
+        return this.handleDropBody(conn);
       case 'resync':
         return this.handleResync(conn);
       case 'ping':
@@ -592,6 +722,10 @@ export class GameServer {
       return this.fail(conn, 'bad_target', 'no such quarry');
     }
     this.hostilities.set(`${conn.character.id}|${target.characterId}`, this.world.tick);
+    // Declaring puts BOTH parties on their guard — the threatened one has
+    // every reason to draw (D-206's warning window is for exactly this).
+    this.enterCombat(self, conn.areaId);
+    this.enterCombat(target, conn.areaId);
     await this.deliverSpeech({
       speaker: self,
       areaId: conn.areaId,
@@ -647,10 +781,21 @@ export class GameServer {
 
     self.attackReadyAt = this.world.tick + this.attackCooldownTicks;
     const damage = this.contestRng.int(2, 6);
+    // The swing is chosen here, not on each client: a cosmetic disagreement
+    // would still be a disagreement about the thing players are watching.
+    const variant = this.contestRng.int(0, ATTACK_VARIANTS - 1);
+    this.enterCombat(self, conn.areaId);
+    this.enterCombat(target, conn.areaId);
     this.broadcastPlane(conn.areaId, false, {
       t: 'delta',
       tick: this.world.tick,
-      events: [{ type: 'entity_attacked', attackerId: self.id, targetId: target.id, damage }],
+      events: [{
+        type: 'entity_attacked',
+        attackerId: self.id,
+        targetId: target.id,
+        damage,
+        variant,
+      }],
     });
 
     if (target.characterId === null) {
@@ -1730,6 +1875,71 @@ export class GameServer {
   // -------------------------------------------------------------------------
   // Characters and world entry
   // -------------------------------------------------------------------------
+
+  /**
+   * Lifting a body (stakeholder, 2026-08-18). Whether you CAN is a question
+   * of build against build: a corpse's burden comes from the dead
+   * character's own bulk, and your capacity from Athletics. Carrying a
+   * brute takes a trained back.
+   */
+  private async handleCarryBody(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'carry_body' }>,
+  ): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    if (self.ghost) return this.fail(conn, 'dead', 'the dead lift nothing');
+    const body = this.world.getEntity(msg.targetEntityId);
+    if (!body || body.objectKind !== 'corpse' ||
+        this.world.getEntityAreaId(body.id) !== conn.areaId) {
+      return this.fail(conn, 'bad_target', 'there is no body there');
+    }
+    if (body.carriedBy !== null) {
+      return this.fail(conn, 'bad_target', 'someone already has it');
+    }
+    if (chebyshev(self.pos, body.pos) > INTERACT_RANGE) {
+      return this.fail(conn, 'not_adjacent', 'too far to reach');
+    }
+    // Already carrying something? A body takes both arms.
+    for (const other of this.world.entitiesIn(conn.areaId)) {
+      if (other.carriedBy === self.id) {
+        return this.fail(conn, 'bad_target', 'your arms are already full');
+      }
+    }
+    const burden = corpseBurden(body.appearanceSeed);
+    const capacity = CARRY_BASE_CAPACITY + (conn.character.skills.athletics ?? 0);
+    if (burden > capacity) {
+      return this.fail(conn, 'lacks_ability', 'too heavy — you cannot get it off the ground');
+    }
+    this.setCarried(body, self.id, conn.areaId);
+    await this.store.appendEvent('body_carried', {
+      characterId: conn.character.id,
+      entityId: body.id,
+      areaId: conn.areaId,
+      burden,
+      capacity,
+    });
+  }
+
+  private async handleDropBody(conn: ConnState): Promise<void> {
+    if (conn.entityId === null || !conn.character || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const carried = this.world
+      .entitiesIn(conn.areaId)
+      .find((e) => e.carriedBy === conn.entityId);
+    if (!carried) return this.fail(conn, 'bad_target', 'you are carrying nothing');
+    this.setCarried(carried, null, conn.areaId);
+    await this.store.appendEvent('body_dropped', {
+      characterId: conn.character.id,
+      entityId: carried.id,
+      areaId: conn.areaId,
+      x: carried.pos.x,
+      y: carried.pos.y,
+    });
+  }
 
   /** The creation catalogue, straight from content (D-110). */
   private async handleGetCreationContent(conn: ConnState): Promise<void> {

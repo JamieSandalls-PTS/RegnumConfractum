@@ -12,6 +12,7 @@ import { Ambience } from './audio';
 import { CreationWizard } from './creation';
 import { GameScene } from './render/scene';
 import type { PixelPost } from './render/palette';
+import { CombatEffects } from './render/effects';
 import { Terrain } from './render/terrain';
 import { CharacterVisual } from './render/character';
 import { isMoving, stepToward, type InterpolatedPosition } from './game/interpolation';
@@ -336,10 +337,11 @@ function addEntity(wire: WireEntity): void {
   visual.setFacing(wire.facing);
   visual.setPosture(wire.posture);
   visual.setPresentation(wire.presentation);
+  visual.setCombat(wire.combat);
   if (wire.kind === 'corpse') {
-    // The body lies where it fell. update() is skipped for corpses, so this
-    // rotation (and stillness) holds; a proper death pose is art-pass work.
-    visual.root.rotation.z = Math.PI / 2;
+    // A body we are only now seeing is already down: hold the final frame
+    // of the collapse rather than replaying a death nobody witnessed.
+    visual.setDead(true);
   }
   entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
 }
@@ -349,6 +351,8 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   clearWorld();
   s.applyLighting(snap.area.lighting);
   terrain = new Terrain(snap.area, s.scene);
+  effects?.dispose();
+  effects = new CombatEffects(s.scene);
   // Lights (including the hearth's, added by Terrain just now) and the
   // camera must reach both layers or the split pass renders black.
   s.enableAllLayers();
@@ -419,13 +423,62 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       e.wire.presentation = state;
       e.visual.setPresentation(state);
     }
+  } else if (event.type === 'entity_combat') {
+    const e = entities.get(event.id as number);
+    if (e && e.visual instanceof CharacterVisual) {
+      e.wire.combat = event.inCombat as boolean;
+      e.visual.setCombat(e.wire.combat);
+    }
+  } else if (event.type === 'entity_attacked') {
+    playAttack(event.attackerId as number, event.targetId as number, event.variant as number);
+  } else if (event.type === 'entity_carried') {
+    const e = entities.get(event.id as number);
+    if (e) e.wire.carriedBy = event.carrierId as number | null;
   } else if (event.type === 'entity_died') {
     const e = entities.get(event.id as number);
     if (e) {
       appendSystemLine(`${e.wire.descriptor} falls.`);
-      e.visual.dispose();
+      // The fall is watched, not skipped. The entity is removed from the
+      // world mirror straight away (the server has already replaced it with
+      // a corpse), but its visual lingers just long enough to collapse.
+      if (e.visual instanceof CharacterVisual) {
+        e.visual.playDeath(t);
+        dyingVisuals.push({ visual: e.visual, until: t + 2.2 });
+      } else {
+        e.visual.dispose();
+      }
       entities.delete(event.id as number);
     }
+  }
+}
+
+/**
+ * Plays one blow. The variant comes from the server so every observer sees
+ * the same swing; whether it is a cast or a cut is read from what the
+ * attacker is actually holding, which every client derives identically
+ * from the appearance seed.
+ */
+function playAttack(attackerId: number, targetId: number, variant: number): void {
+  const attacker = entities.get(attackerId);
+  if (!attacker || !(attacker.visual instanceof CharacterVisual)) return;
+  attacker.visual.playAttack(variant, t);
+  const target = entities.get(targetId);
+  if (!effects) return;
+  const muzzle = attacker.visual.weaponMuzzle(new THREE.Vector3());
+  if (attacker.visual.castsSpells) {
+    // The wind-up gathers light at the stave head, then the bolt flies.
+    effects.gather(muzzle);
+    const aim = new THREE.Vector3(
+      target ? target.render.x : attacker.render.x,
+      1.0,
+      target ? target.render.y : attacker.render.y,
+    );
+    // Fired at the release point of the cast animation, not on impact.
+    pendingBolts.push({ at: t + 0.3, from: muzzle.clone(), to: aim, visual: attacker.visual });
+  } else if (target) {
+    // Steel landing on a body: a small spray where the blow arrives.
+    const hit = new THREE.Vector3(target.render.x, 1.05, target.render.y);
+    pendingImpacts.push({ at: t + 0.28, at3: hit });
   }
 }
 
@@ -1059,6 +1112,13 @@ function menuFor(entityId: number | null, tile: { x: number; y: number } | null)
     if (kind === 'corpse') {
       entries.push({ label: 'Speak with dead', act: () => conn.send({ t: 'speak_dead', targetEntityId: entityId }) });
       entries.push({ label: 'Animate dead', act: () => conn.send({ t: 'animate_dead', targetEntityId: entityId }) });
+      // Whether it lifts is the server's call — it weighs the body against
+      // the carrier's Athletics and refuses if it is too heavy.
+      entries.push(
+        e.wire.carriedBy === youId
+          ? { label: 'Set the body down', act: () => conn.send({ t: 'drop_body' }) }
+          : { label: 'Carry the body', act: () => conn.send({ t: 'carry_body', targetEntityId: entityId }) },
+      );
     }
   } else if (tile && tileWalkable(tile.x, tile.y)) {
     if (tileKind(tile.x, tile.y) === 'chair') {
@@ -1352,6 +1412,44 @@ interface Bubble {
   remaining: number;
 }
 
+// ---------------------------------------------------------------------------
+// Combat visuals: bolts in flight, impacts, and bodies still falling.
+// All are cosmetic and scheduled off authoritative events.
+// ---------------------------------------------------------------------------
+
+let effects: CombatEffects | null = null;
+/** Bolts released partway through a cast, not at the moment of the message. */
+const pendingBolts: { at: number; from: THREE.Vector3; to: THREE.Vector3; visual: CharacterVisual }[] = [];
+/** Melee impact sprays, timed to when the blade actually arrives. */
+const pendingImpacts: { at: number; at3: THREE.Vector3 }[] = [];
+/** Visuals kept alive past their entity so the collapse can finish. */
+const dyingVisuals: { visual: CharacterVisual; until: number }[] = [];
+
+function stepCombatVisuals(dt: number): void {
+  for (let i = pendingBolts.length - 1; i >= 0; i--) {
+    const b = pendingBolts[i]!;
+    if (t < b.at) continue;
+    // Re-read the muzzle at release: the staff has moved during the cast.
+    effects?.castBolt(b.visual.weaponMuzzle(new THREE.Vector3()), b.to);
+    pendingBolts.splice(i, 1);
+  }
+  for (let i = pendingImpacts.length - 1; i >= 0; i--) {
+    const p = pendingImpacts[i]!;
+    if (t < p.at) continue;
+    effects?.burst(p.at3, 'physical');
+    pendingImpacts.splice(i, 1);
+  }
+  for (let i = dyingVisuals.length - 1; i >= 0; i--) {
+    const d = dyingVisuals[i]!;
+    d.visual.update(dt, t, false, 0);
+    if (t >= d.until) {
+      d.visual.dispose();
+      dyingVisuals.splice(i, 1);
+    }
+  }
+  effects?.update(dt);
+}
+
 const bubbleLayer = document.createElement('div');
 bubbleLayer.id = 'bubble-layer';
 document.body.appendChild(bubbleLayer);
@@ -1419,11 +1517,18 @@ function stepFrame(dt: number): void {
     const moving = isMoving(e.render, target);
     stepToward(e.render, target, dt);
     e.visual.setPosition(e.render.x, e.render.y);
-    if (e.wire.kind !== 'corpse') e.visual.update(dt, t, moving, wind); // the dead lie still
+    // Corpses animate too — their "animation" is the held prone pose, which
+    // still has to be written to the bones every frame.
+    e.visual.update(dt, t, moving, wind);
+    if (e.visual instanceof CharacterVisual && e.wire.carriedBy !== null) {
+      // Slung: lifted off the ground and riding at the carrier's shoulder.
+      e.visual.root.position.y += 0.95;
+    }
   }
   updateHighlights();
 
   terrain?.update(t);
+  stepCombatVisuals(dt);
   updateSpeechBubbles(dt);
   const you = youId !== null ? entities.get(youId) : undefined;
   if (you) {

@@ -39,6 +39,10 @@
     word-break: break-all; }
   .hidden { display: none !important; }
   #editor label { margin-top: 8px; }
+  #panel .sl { display: flex; align-items: center; gap: 8px; }
+  #panel .sl input[type=range] { flex: 1; }
+  #panel .sl b { width: 34px; text-align: right; font-weight: 400; font-size: 11px;
+    font-family: monospace; color: var(--text); }
   #editor .sl { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
   #editor .sl span { width: 14px; color: var(--dim); font-size: 10px; }
   #editor .sl input[type=range] { flex: 1; padding: 0; }
@@ -67,6 +71,18 @@
       <option value="laugh">laugh</option>
       <option value="point">point</option>
       <option value="shrug">shrug</option>
+      <optgroup label="combat">
+        <option value="combat-idle">combat: ready stance</option>
+        <option value="combat-walk">combat: advance</option>
+        <option value="draw">combat: draw &amp; sheathe (loop)</option>
+        <option value="attack0">attack: overhead chop</option>
+        <option value="attack1">attack: horizontal slash</option>
+        <option value="attack2">attack: thrust</option>
+        <option value="attack3">attack: backhand cut</option>
+        <option value="attack-cycle">attack: all four in turn</option>
+        <option value="cast">attack: cast (needs staff)</option>
+        <option value="death">death: collapse (loop)</option>
+      </optgroup>
     </select>
 
     <label>bodies shown</label>
@@ -107,9 +123,15 @@
     <label>world pixelation (split mode; 1 = crisp)</label>
     <input id="in-envscale" type="range" min="1" max="6" step="1" value="1">
     <div class="check"><input id="in-envpal" type="checkbox"> palette colours on the world (split mode)</div>
+    <label>cloth fidelity — segments per garment (rebuilds)</label>
+    <div class="sl"><input id="in-clothfid" type="range" min="0.5" max="2.5" step="0.1" value="1"><b id="v-clothfid">1.0×</b></div>
+    <label>cloth floppiness — fewer solver passes = looser</label>
+    <div class="sl"><input id="in-clothiter" type="range" min="1" max="10" step="1" value="6"><b id="v-clothiter">6</b></div>
+
     <label>weapon</label>
     <select id="in-weapon">
       <option value="seed">from seed (sword)</option>
+      <option value="sword">sword (forced on everyone)</option>
       <option value="staff">staff (planted idle)</option>
       <option value="none">none</option>
     </select>
