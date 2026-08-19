@@ -142,6 +142,28 @@
   "lighting": "overcast",
   "zone": "settled",
   "outdoor": true,
+  "stations": [
+    {
+      "x": 78,
+      "y": 18,
+      "type": "workshop"
+    },
+    {
+      "x": 20,
+      "y": 81,
+      "type": "storehouse"
+    },
+    {
+      "x": 78,
+      "y": 81,
+      "type": "infirmary"
+    },
+    {
+      "x": 50,
+      "y": 52,
+      "type": "well"
+    }
+  ],
   "transitions": [
     {
       "x": 50,

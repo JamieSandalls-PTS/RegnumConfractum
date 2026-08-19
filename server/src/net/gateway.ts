@@ -60,6 +60,7 @@ import {
   needNotice,
   relieve,
   stepHoursFor,
+  STARVATION_DAMAGE_PER_HOUR,
   type NeedStage,
   isTileWalkable,
 } from '@rc/shared';
@@ -86,6 +87,17 @@ function bearingFrom(dx: number, dy: number): 'n' | 'ne' | 'e' | 'se' | 's' | 's
   const ew = Math.abs(dx) * 2 >= Math.abs(dy) ? (dx > 0 ? 'e' : 'w') : '';
   return ((ns + ew) || 'here') as 'n';
 }
+
+/** How close you must stand to use a facility (D-530). */
+const STATION_REACH_TILES = 2;
+
+/** What each facility looks like to an observer. */
+const STATION_DESCRIPTORS: Record<string, string> = {
+  workshop: 'a scarred anvil and a bench of tools',
+  storehouse: 'a rack of barrels and sacks, part-full',
+  infirmary: 'a scrubbed table and a shelf of stoppered jars',
+  well: 'a stone well, its rope worn smooth',
+};
 
 /** How long a resolved round holds the reveal before resetting to lobby. */
 const ROUND_RESOLUTION_TICKS = 150; // 15s
@@ -223,7 +235,14 @@ interface ConnState {
    * Survival needs (D-526). Round-scoped, like everything else the round
    * holds: a character does not walk into the next round still starving.
    */
-  needs: { hunger: NeedStage; thirst: NeedStage; hungerAtHour: number; thirstAtHour: number };
+  needs: {
+    hunger: NeedStage;
+    thirst: NeedStage;
+    hungerAtHour: number;
+    thirstAtHour: number;
+    /** Last hour starvation took its bite, so it lands once an hour. */
+    starvedAtHour: number;
+  };
   /** Serialises message handling per connection. */
   queue: Promise<void>;
 }
@@ -554,7 +573,9 @@ export class GameServer {
     // The world's resources are per-round, like everything else it holds
     // (D-523): a fresh map every time, with nothing carried over.
     this.despawnNodes();
+    this.despawnStations();
     this.spawnNodes();
+    this.spawnStations();
     this.despawnRoamers(); // a new round opens at dawn, whatever the last one left
     return true;
   }
@@ -682,6 +703,7 @@ export class GameServer {
       if (conn.character) stripped += await this.store.stripCharacterItems(conn.character.id);
     }
     this.despawnNodes();
+    this.despawnStations();
     this.despawnRoamers();
     for (const conn of this.conns) this.interruptWork(conn, 'the round ended');
     this.round!.reset();
@@ -691,7 +713,13 @@ export class GameServer {
     this.roundXp.clear();
     this.roundDead.clear();
     for (const conn of this.conns) {
-      conn.needs = { hunger: 'sated', thirst: 'sated', hungerAtHour: 0, thirstAtHour: 0 };
+      conn.needs = {
+        hunger: 'sated',
+        thirst: 'sated',
+        hungerAtHour: 0,
+        thirstAtHour: 0,
+        starvedAtHour: 0,
+      };
       this.applyThirstToVitals(conn);
     }
     await this.store.appendEvent('round_reset', { forgotten, stripped });
@@ -771,13 +799,25 @@ export class GameServer {
     for (const conn of this.conns) {
       if (!conn.character || conn.entityId === null || !conn.vitals) continue;
       if (this.world.getEntity(conn.entityId)?.ghost) continue; // the dead do not hunger
+      // Starving costs health every game hour (D-534). Applied before the
+      // stage steps so the hour a player reaches 'starving' is a warning
+      // rather than a wound — the damage begins the hour AFTER.
+      if (conn.needs.hunger === 'starving' && hours > conn.needs.starvedAtHour) {
+        conn.needs.starvedAtHour = hours;
+        conn.vitals.hp -= STARVATION_DAMAGE_PER_HOUR;
+        this.sendStatus(conn);
+        if (conn.vitals.hp <= 0) {
+          await this.die(conn, 'starvation');
+          continue;
+        }
+      }
       for (const need of ['hunger', 'thirst'] as const) {
         const key = need === 'hunger' ? 'hungerAtHour' : 'thirstAtHour';
         const due = conn.needs[key] + stepHoursFor(need, false);
         if (hours < due) continue;
         conn.needs[key] = hours;
         const before = conn.needs[need];
-        const after = deepen(before);
+        const after = deepen(before, need);
         if (after === before) continue; // already at the plateau
         conn.needs[need] = after;
         const notice = needNotice(need, after);
@@ -868,18 +908,9 @@ export class GameServer {
     await this.store.appendEvent('drank', { characterId: conn.character.id, areaId: conn.areaId });
   }
 
-  /**
-   * Whether the player stands at the well. Like `atStation`, this is coarse
-   * for now — the well is unwalkable water at the town's centre, so standing
-   * beside it is what counts. ⚠ MR3 should make it a real placed object.
-   */
+  /** Whether the player stands at the well — a placed object like any other. */
   private atWell(conn: ConnState): boolean {
-    if (conn.areaId !== 'round-town' || conn.entityId === null) return false;
-    const self = this.world.getEntity(conn.entityId);
-    if (!self) return false;
-    const def = this.world.getAreaDef(conn.areaId);
-    const mid = { x: Math.floor(def.width / 2), y: Math.floor(def.height / 2) };
-    return chebyshev(self.pos, mid) <= 2;
+    return this.stationWithinReach(conn, 'well');
   }
 
   // -------------------------------------------------------------------------
@@ -1105,6 +1136,42 @@ export class GameServer {
     }
   }
 
+  /** Puts the town's facilities into the world as real objects (D-530). */
+  private spawnStations(): void {
+    for (const areaId of this.world.areaIds()) {
+      for (const placed of this.world.getAreaDef(areaId).stations) {
+        const descriptor = STATION_DESCRIPTORS[placed.type] ?? placed.type;
+        const { entity } = this.world.spawn(areaId, {
+          characterId: null,
+          name: descriptor,
+          npcDescriptor: descriptor,
+          objectKind: 'station',
+          stationType: placed.type,
+          pos: { x: placed.x, y: placed.y },
+        });
+        this.broadcastPlane(areaId, false, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [
+            { type: 'entity_entered', entity: toWireEntity(entity, descriptor) },
+          ],
+        });
+      }
+    }
+  }
+
+  private despawnStations(): void {
+    for (const areaId of this.world.areaIds()) {
+      for (const e of this.world.entitiesIn(areaId)) {
+        if (e.objectKind !== 'station') continue;
+        const event = this.world.despawn(e.id);
+        if (event) {
+          this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [event] });
+        }
+      }
+    }
+  }
+
   /** Removes every node. Called at round reset, before the next spawn. */
   private despawnNodes(): void {
     for (const areaId of this.world.areaIds()) {
@@ -1216,8 +1283,28 @@ export class GameServer {
    * ⚠ MR3 should make stations real placed objects — until then "the
    * workshop" means "in Ashfold".
    */
-  private atStation(conn: ConnState, _station: string): boolean {
-    return conn.areaId === 'round-town';
+  private atStation(conn: ConnState, station: string): boolean {
+    return this.stationWithinReach(conn, station);
+  }
+
+  /**
+   * Whether the player stands beside a facility of this type. Stations are
+   * real placed objects now, so "needs the workshop" means a specific anvil
+   * in a specific building rather than "you are somewhere in the town" —
+   * which is what lets the antagonist stand next to one, or spoil it.
+   */
+  private stationWithinReach(conn: ConnState, station: string): boolean {
+    if (conn.entityId === null || !conn.areaId) return false;
+    const self = this.world.getEntity(conn.entityId);
+    if (!self) return false;
+    return this.world
+      .entitiesIn(conn.areaId)
+      .some(
+        (e) =>
+          e.objectKind === 'station' &&
+          e.stationType === station &&
+          chebyshev(e.pos, self.pos) <= STATION_REACH_TILES,
+      );
   }
 
   /**
@@ -1611,7 +1698,13 @@ export class GameServer {
       injuries: [],
       downed: null,
       work: null,
-      needs: { hunger: 'sated', thirst: 'sated', hungerAtHour: 0, thirstAtHour: 0 },
+      needs: {
+        hunger: 'sated',
+        thirst: 'sated',
+        hungerAtHour: 0,
+        thirstAtHour: 0,
+        starvedAtHour: 0,
+      },
       queue: Promise.resolve(),
     };
     this.conns.add(conn);

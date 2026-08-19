@@ -204,7 +204,7 @@ export const WireEntitySchema = z.object({
    */
   descriptor: z.string().min(1).max(120),
   /** 'corpse' lies where a player fell; 'pile' is gear left after decay. */
-  kind: z.enum(['player', 'npc', 'corpse', 'pile', 'node']),
+  kind: z.enum(['player', 'npc', 'corpse', 'pile', 'node', 'station']),
   x: z.number().int(),
   y: z.number().int(),
   facing: DirectionSchema,

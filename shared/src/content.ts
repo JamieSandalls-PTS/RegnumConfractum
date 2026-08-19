@@ -70,6 +70,21 @@ export const AreaSchema = z
         }),
       )
       .default([]),
+    /**
+     * Crafting and facility stations (D-530). Real placed objects rather
+     * than "you are in the town", so a recipe can require the workshop and
+     * mean it — and so the antagonist has something specific to stand next
+     * to, or to poison.
+     */
+    stations: z
+      .array(
+        z.object({
+          x: z.number().int().min(0),
+          y: z.number().int().min(0),
+          type: z.enum(['workshop', 'storehouse', 'infirmary', 'well']),
+        }),
+      )
+      .default([]),
     /** PvP tier (D-206): settled requires declared hostility with a spoken
      * warning window; wilderness is open; endgame adds permadeath (M4b). */
     zone: z.enum(['settled', 'wilderness', 'endgame']).default('settled'),

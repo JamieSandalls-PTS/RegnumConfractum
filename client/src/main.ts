@@ -114,7 +114,21 @@ class NodeVisual {
   constructor(private parent: THREE.Scene, descriptor: string) {
     const leafy = /leaf|grain|scrub|tangle|run\b/i.test(descriptor);
     const woody = /timber|tree|stand/i.test(descriptor);
-    if (woody) {
+    if (descriptor === 'station') {
+      // Facilities must be findable across a room without a label: a squat,
+      // pale, obviously-built shape among the terrain (D-530).
+      const block = new THREE.Mesh(
+        new THREE.BoxGeometry(0.72, 0.5, 0.6),
+        new THREE.MeshLambertMaterial({ color: 0xc2b39a }),
+      );
+      block.position.y = 0.25;
+      const top = new THREE.Mesh(
+        new THREE.BoxGeometry(0.82, 0.1, 0.7),
+        new THREE.MeshLambertMaterial({ color: 0x8f7d63 }),
+      );
+      top.position.y = 0.55;
+      this.root.add(block, top);
+    } else if (woody) {
       const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.13, 0.17, 1.15, 6),
         // Albedo lesson (D-514): brighten the material, never the lights.

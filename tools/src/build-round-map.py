@@ -155,6 +155,20 @@ for y in range(MID - 1, MID + 1):
 seal_unreachable(t, (MID, MID + 3),
                  [(MID, 0), (MID - 1, 0), (MID, H - 1), (MID - 1, H - 1),
                   (0, MID), (0, MID - 1), (W - 1, MID), (W - 1, MID - 1)])
+# Facilities are REAL PLACED OBJECTS (D-530), one inside each building and
+# the well at the crossing. A recipe that "needs the workshop" now means a
+# specific anvil in a specific room — which is also what gives the antagonist
+# something particular to stand beside, or to spoil.
+town_stations = [
+    {"x": 20, "y": 18, "type": "workshop"},    # inside the smithy? no - tavern block
+    {"x": 78, "y": 18, "type": "workshop"},
+    {"x": 20, "y": 81, "type": "storehouse"},
+    {"x": 78, "y": 81, "type": "infirmary"},
+    {"x": MID, "y": MID + 2, "type": "well"},  # beside the water, reachable
+]
+# The first entry above is a duplicate workshop; keep only the smithy's.
+town_stations = town_stations[1:]
+
 areas['round-town'] = {
     "id": "round-town",
     "name": "Ashfold",
@@ -165,6 +179,7 @@ areas['round-town'] = {
     "lighting": "overcast",
     "zone": "settled",
     "outdoor": True,
+    "stations": town_stations,
     "transitions": [],
 }
 

@@ -2796,3 +2796,53 @@ need, and failed a plateau assertion for reasons having nothing to do with
 needs. D-532's roamers were doing precisely what they were built to do, in a
 test that was not about them. The fix was to stop putting a lone bot in the
 wilderness overnight — which is also the advice the game gives its players.
+
+### D-534: Starvation kills; a full day empties the belly; stations are objects
+
+**Stakeholder, 2026-08-19:** "It should take approximately one full day for a
+full hunger bar to deplete. And starvation should kill." Plus: "proceed with
+creating objects for the stations."
+
+**Hunger runs to the end and kills.** This **amends D-526's "consequences
+plateau, nothing may kill"** — for hunger only. Three stages at eight game
+hours each: sated at dawn, gnawing by mid-afternoon, severe in the small
+hours, **starving at the following dawn**. Then two health per game hour
+until dead, roughly ten more hours from a full frame.
+
+**The spirit of D-526's rule is kept by making it slow and loud.** A full
+day of neglect before any damage, hours more before it is fatal, and a
+notice at every step — the last one says so in as many words. Nobody is
+surprised by starvation, anybody can be fed by anybody, and a 25-minute
+round is two and a half days, so it is reachable **only through sustained
+neglect and never by accident**. The rule D-526 was protecting — that a
+round should be decided by a person and not by an unattended bar — survives,
+because dying of hunger now takes longer than most rounds last.
+
+**Thirst still does not kill, and that asymmetry is deliberate.** It stops at
+`severe`: your maximum health drops to 60% and stays there. **Thirst does not
+kill you — it makes something else kill you.** If both needs were fatal the
+second would be a slower copy of the first; keeping one economic-and-fatal
+and the other martial-and-survivable is what makes neglecting them feel
+different. Thirst is also trivially fixed by walking to the well, so a fatal
+version would punish nothing but forgetfulness.
+
+**Stations are real placed objects now.** `atStation()` was "you are somewhere
+in round-town", which was honest but wrong: a recipe that needs the workshop
+should mean **a specific anvil in a specific room**. Areas carry a `stations`
+array; the town holds a workshop, a storehouse, an infirmary and the well,
+each spawned as an entity with its own descriptor, each usable from two tiles
+away. This is what D-530's facility potency was waiting on, and it gives the
+antagonist something particular to stand beside — or to spoil.
+
+**Two test traps recorded, both of which cost real time:**
+
+1. **A starving bot ends the round.** Death resets every need, so any
+   assertion sharing a round with a starving bot measures the reset rather
+   than the need. Starvation lives in `sim/test/mr2-starvation.test.ts` with
+   a server of its own, and the needs suite runs a clock slow enough that
+   nobody reaches `starving` before it finishes.
+2. **An unwalkable spawn is silently relocated to the area spawn.** A test
+   bot placed on the tavern's wall corner was moved to the town centre — two
+   tiles from the well — and spent the suite quietly drinking its fill while
+   an assertion waited for "there is no water here". The lesson generalises:
+   **a position that lands in a wall does not error, it teleports.**

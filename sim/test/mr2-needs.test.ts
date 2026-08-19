@@ -73,9 +73,12 @@ beforeAll(async () => {
       lengthTicks: 200_000,
       minCast: 2,
       seed: 'needs-test',
-      // A game hour every 10 ticks, so the needs clock is reachable. The
-      // rules are hour-based, so only the pacing moves (D-114).
-      dayTicks: 240,
+      // A game hour every 60 ticks. Fast enough that thirst and hunger both
+      // bite inside the suite, SLOW enough that nobody reaches 'starving'
+      // (24 game hours) before it finishes — a starvation death would end the
+      // round and reset every need mid-file, which is measured in
+      // mr2-starvation.test.ts on a server of its own.
+      dayTicks: 1440,
       objectives: [SURVIVE],
       resolutionTicks: 10,
     },
@@ -92,7 +95,11 @@ beforeAll(async () => {
   // that had nothing to do with needs. The thirst leash is about standing AT
   // THE WELL, not about being outside the town, so a far corner tests it just
   // as well and nothing else can decide the round.
-  await join(other, 'needs_two', 'Kesia Ward', 922, 'round-town', 12, 12);
+  // (20,40) is open floor. NOTE (12,12) is the tavern's wall CORNER, and an
+  // unwalkable spawn is silently relocated to the area spawn — which sits two
+  // tiles from the well, so this bot was quietly drinking its fill and the
+  // "no water here" assertion could never fire.
+  await join(other, 'needs_two', 'Kesia Ward', 922, 'round-town', 20, 40);
   await waitUntil(() => townie.roundState?.phase === 'running', 'the round begins');
 });
 
@@ -121,18 +128,6 @@ describe('needs arrive on the round clock (D-526)', () => {
     expect(townie.status!.hp).toBeGreaterThan(0);
   });
 
-  it('PLATEAUS instead of spiralling, and never kills', async () => {
-    // This is the assertion that matters most. A need that keeps deepening
-    // eventually decides rounds on its own, and a round decided by a bar
-    // rather than by a person is a failed round.
-    await waitUntil(() => townie.status?.thirst === 'severe', 'thirst bottoms out');
-    const floorHp = townie.status!.maxHp;
-    await sleep(3000); // several more need steps at this pacing
-    expect(townie.status!.thirst).toBe('severe'); // no fourth stage
-    expect(townie.status!.maxHp).toBe(floorHp); // no further erosion
-    expect(townie.status!.ghost).toBe(false); // and nobody starved to death
-    expect(townie.status!.hp).toBeGreaterThan(0);
-  });
 });
 
 describe('relief', () => {
@@ -178,5 +173,17 @@ describe('relief', () => {
       .filter((i) => i.templateId === 'coarse-bread')
       .reduce((n, i) => n + i.qty, 0);
     expect(after).toBe(before - 1);
+  });
+});
+
+describe('thirst has a floor', () => {
+  it('THIRST plateaus — it does not kill you, it makes something else kill you', async () => {
+    // The two needs must fail differently or the second is a slower copy of
+    // the first. Thirst stops at 'severe': frail, not dying (D-534).
+    await waitUntil(() => townie.status?.thirst === 'severe', 'thirst bottoms out');
+    const floorHp = townie.status!.maxHp;
+    await sleep(2500); // several more need steps at this pacing
+    expect(townie.status!.thirst).toBe('severe'); // no stage beyond it
+    expect(townie.status!.maxHp).toBe(floorHp); // no further erosion
   });
 });

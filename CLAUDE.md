@@ -386,8 +386,11 @@ numbers are unratified. **Hunger and thirst are built (D-533)** and pull
 OPPOSITE ways — hunger pushes you out (bread comes from the farm), thirst
 pulls you in (water is the well, never carried), so nobody can settle
 anywhere and the well becomes the thing worth poisoning. They fail
-differently (hunger slows work, thirst thins your health) and neither can
-kill. ⚠ **Still unmet: the storehouse must RUN OUT**, or hiding in town
+differently (hunger slows work, thirst thins your health). **Starvation
+KILLS (D-534)** — a full day of neglect to empty, then hours more before
+it is fatal, announced at every step; **thirst never kills**, it just
+makes something else kill you. **Stations are real placed objects**
+(workshop/storehouse/infirmary/well), usable from two tiles. ⚠ **Still unmet: the storehouse must RUN OUT**, or hiding in town
 beats the clock (D-529). Still to build: that, facility potency beyond
 meals (D-530), and the dungeon's contents.
 

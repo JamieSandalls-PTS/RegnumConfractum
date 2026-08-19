@@ -33,7 +33,9 @@ export interface WorldEntity {
    * dropped gear, or a walking corpse. Null for everything else. Zombies go
    * out on the wire as 'npc'; corpse and pile have wire kinds of their own.
    */
-  objectKind?: 'corpse' | 'pile' | 'zombie' | 'node' | null;
+  objectKind?: 'corpse' | 'pile' | 'zombie' | 'node' | 'station' | null;
+  /** For stations (D-530): which facility this is. */
+  stationType?: string;
   /** For nodes (MR2): which ResourceNodeDef this is, and what it has left. */
   nodeType?: string;
   nodeCharges?: number;
@@ -83,7 +85,10 @@ interface AreaRuntime {
 /** Wire form for a specific observer — the descriptor is their knowledge. */
 export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
   const kind =
-    e.objectKind === 'corpse' || e.objectKind === 'pile' || e.objectKind === 'node'
+    e.objectKind === 'corpse' ||
+    e.objectKind === 'pile' ||
+    e.objectKind === 'node' ||
+    e.objectKind === 'station'
       ? e.objectKind
       : e.characterId === null
         ? 'npc'
@@ -160,9 +165,10 @@ export class World {
       characterId: string | null;
       name: string;
       npcDescriptor?: string;
-      objectKind?: 'corpse' | 'pile' | 'zombie' | 'node';
+      objectKind?: 'corpse' | 'pile' | 'zombie' | 'node' | 'station';
       nodeType?: string;
       nodeCharges?: number;
+      stationType?: string;
       corpseOfCharacterId?: string;
       appearanceSeed?: number;
       pos: Vec2;
@@ -181,6 +187,7 @@ export class World {
       ...(opts.objectKind ? { objectKind: opts.objectKind } : {}),
       ...(opts.corpseOfCharacterId ? { corpseOfCharacterId: opts.corpseOfCharacterId } : {}),
       ...(opts.nodeType ? { nodeType: opts.nodeType, nodeCharges: opts.nodeCharges ?? 1, nodeRefillsAt: null } : {}),
+      ...(opts.stationType ? { stationType: opts.stationType } : {}),
       appearanceSeed: opts.appearanceSeed ?? 0,
       pos: { ...at },
       facing: opts.facing ?? 's',
