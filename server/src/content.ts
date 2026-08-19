@@ -11,6 +11,7 @@ import {
   ObjectiveSchema,
   RecipeSchema,
   ResourceNodeSchema,
+  RoamerSchema,
   SkillsFileSchema,
   SpellsFileSchema,
   type AreaDef,
@@ -22,6 +23,7 @@ import {
   type ObjectiveDef,
   type RecipeDef,
   type ResourceNodeDef,
+  type RoamerDef,
   type SkillDef,
   type SpellDef,
 } from '@rc/shared';
@@ -50,6 +52,8 @@ export interface Content {
   nodes: Map<string, ResourceNodeDef>;
   /** What may be made, keyed by id. */
   recipes: Map<string, RecipeDef>;
+  /** What walks the open ground after dusk (D-527/D-529). */
+  roamers: RoamerDef[];
   /** Lua sources by script id (content/scripts/<id>.lua), D-109. */
   scripts: Map<string, string>;
 }
@@ -194,6 +198,20 @@ export function loadContent(contentDir: string): Content {
     recipes.set(parsed.data.id, parsed.data);
   }
 
+  const roamers: RoamerDef[] = [];
+  const roamerIds = new Set<string>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'roamers'))) {
+    const parsed = RoamerSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (roamerIds.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate roamer id '${parsed.data.id}'`);
+    }
+    roamerIds.add(parsed.data.id);
+    roamers.push(parsed.data);
+  }
+
   const scripts = new Map<string, string>();
   try {
     for (const f of readdirSync(join(contentDir, 'scripts')).filter((f) => f.endsWith('.lua'))) {
@@ -233,6 +251,7 @@ export function loadContent(contentDir: string): Content {
     objectives,
     nodes,
     recipes,
+    roamers,
     scripts,
   };
 }

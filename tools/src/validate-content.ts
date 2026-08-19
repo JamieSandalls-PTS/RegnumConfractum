@@ -9,6 +9,7 @@ import {
   ROUND_MIN_CAST,
   RecipeSchema,
   ResourceNodeSchema,
+  RoamerSchema,
   findOrphans,
   SkillsFileSchema,
   SpellsFileSchema,
@@ -279,6 +280,28 @@ export function validateContent(contentDir: string): ValidationResult {
         otherwiseUsed: ['tarnished-signet', 'written-note', 'parchment', 'rusted-shortsword'],
       }),
     );
+  }
+
+  const roamerIds = new Set<string>();
+  for (const file of listJson(join(contentDir, 'roamers'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = RoamerSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    if (roamerIds.has(parsed.data.id)) {
+      errors.push(`${file}: duplicate roamer id '${parsed.data.id}'`);
+      continue;
+    }
+    roamerIds.add(parsed.data.id);
   }
 
   const classIds = new Set<string>();

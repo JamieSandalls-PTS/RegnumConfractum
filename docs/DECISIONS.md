@@ -2670,3 +2670,62 @@ corpse is cosmetic and unlootable, a wilderness corpse wears everything. So
 killing someone in town is now *possible but unprofitable*, and killing them
 in a spoke pays. That is a happy accident of the existing design and it
 points the same way as the noise rule.
+
+### D-532: Night roamers implemented — and two things measurement changed
+
+MR2's implementation of D-527's night and D-529's roamer ruling. Content in
+`content/roamers/`, behaviour in the gateway, verified by
+`sim/test/mr2-roamers.test.ts`.
+
+**Roamers spawn at dusk in outdoor WILDERNESS areas, and are taken back at
+dawn.** Not the settled town, not the dungeon. Survivors do not linger, so
+night is a phase rather than an infestation that accumulates across a round.
+
+**Ruling taken, and flagged: roamers do NOT enter the settled town.** D-529
+left this open. Keeping them out is what preserves the three forces — the
+town has to remain the refuge night drives people *into*. If roamers walked
+Ashfold, night would be uniformly lethal, there would be nowhere worth
+running to, and the choice "out or in" would collapse into "hide or die
+wherever you are". **One line to flip if the stakeholder rules otherwise**
+(`roamerAreas()`, `def.zone !== 'settled'`).
+
+**Two things the tests changed, both of which reasoning alone had wrong:**
+
+1. **Roamers did not roam.** They spawned deliberately outside their own
+   aggro radius — so nobody is ambushed at the instant night falls — and
+   then stood still until someone walked into them. A player could hold one
+   spot all night and never be touched, which makes "night is dangerous"
+   simply false. They now drift along a heading held for a stretch, so they
+   cross ground rather than shiver on the spot, and a distant watcher can
+   read which way a thing is going.
+
+2. **The density was nowhere near enough, and neither was their reach.**
+   Seven roamers across a 100×100 area is seven things in ten thousand tiles,
+   with a nine-tile notice radius. The first honest test — stand a lone
+   unarmed player in the open all night — was passed by the player. Aggro is
+   now 20 and 26 tiles, and counts 8 and 3 per area.
+
+   **The aggro radius deliberately exceeds the spawn clearance now.** They
+   notice you from further than they are allowed to appear, which means they
+   *cross open ground towards you*: visible, avoidable, and frightening in
+   the right way. Being hunted is the intended feel; being stepped on is not.
+   The clearance still stops one materialising on top of somebody, which is
+   the failure that would be unfair rather than dangerous.
+
+**They inherit the rest of the design for free.** A roamer's blow interrupts
+gathering exactly as a player's does — otherwise working a vein through a
+pack of dogs would be free. And a roamer fight emits the same `sound` as a
+murder (D-531), naming nothing: **at night, "something is fighting to the
+north" could be a wolf or could be your friend**, which is the antagonist's
+alibi arriving on a timer with nothing scripted.
+
+**⚠ Every number here is unratified**, and the two that matter most are
+`perArea` and `aggroTiles`, because together they decide whether night is a
+decision or a wall. The shape is what the tests assert — dusk/dawn, wilderness
+only, a lone walker actually being hurt — so the numbers can be retuned
+without the assertions going stale.
+
+**The day-night cycle length became a server option** (`round.dayTicks`) so
+tests can reach dusk without waiting fifty real seconds for it, the same
+reason combat and corpse pacing are options (D-114). The rule stays
+tick-based; only the pacing moves.

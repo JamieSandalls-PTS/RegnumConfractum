@@ -107,7 +107,12 @@ export const ROUND_LENGTH_TICKS = 15_000;
 /** One full day-night cycle: 10 real minutes at 10Hz. */
 export const ROUND_DAY_TICKS = 6_000;
 
-/** 24 game hours to a cycle, so a game hour is 25 real seconds. */
+/**
+ * 24 game hours to a cycle, so a game hour is 25 real seconds. The cycle
+ * LENGTH is a parameter everywhere below rather than a constant, because
+ * tests have to reach dusk without waiting fifty real seconds for it — the
+ * same reason combat and corpse pacing are options (D-114).
+ */
 export const ROUND_TICKS_PER_GAME_HOUR = ROUND_DAY_TICKS / 24; // 250
 
 /** Night falls at 18:00 and lifts at 06:00 — an even split. */
@@ -123,8 +128,9 @@ export const ROUND_DAWN_HOUR = 6;
  * sensible way to begin a round the cast is meant to walk into. The offset
  * is what makes the cycle land as designed: day, night, day, night, day.
  */
-export function roundHour(tickIntoRound: number): number {
-  return (ROUND_DAWN_HOUR + Math.floor(tickIntoRound / ROUND_TICKS_PER_GAME_HOUR)) % 24;
+export function roundHour(tickIntoRound: number, dayTicks = ROUND_DAY_TICKS): number {
+  const ticksPerHour = Math.max(1, dayTicks / 24);
+  return (ROUND_DAWN_HOUR + Math.floor(tickIntoRound / ticksPerHour)) % 24;
 }
 
 /**
@@ -135,8 +141,8 @@ export function roundHour(tickIntoRound: number): number {
  * single spot is safe against all three, which is what stops the cast from
  * simply barricading together for the whole round.
  */
-export function isNight(tickIntoRound: number): boolean {
-  const h = roundHour(tickIntoRound);
+export function isNight(tickIntoRound: number, dayTicks = ROUND_DAY_TICKS): boolean {
+  const h = roundHour(tickIntoRound, dayTicks);
   return h >= ROUND_DUSK_HOUR || h < ROUND_DAWN_HOUR;
 }
 
@@ -166,8 +172,11 @@ export function applyNightBonus(amount: number, opts: { outdoor: boolean; night:
 }
 
 /** Which day-night phase a tick falls in, for lighting and spawn logic. */
-export function roundPhaseOfDay(tickIntoRound: number): 'day' | 'night' {
-  return isNight(tickIntoRound) ? 'night' : 'day';
+export function roundPhaseOfDay(
+  tickIntoRound: number,
+  dayTicks = ROUND_DAY_TICKS,
+): 'day' | 'night' {
+  return isNight(tickIntoRound, dayTicks) ? 'night' : 'day';
 }
 
 // ---------------------------------------------------------------------------

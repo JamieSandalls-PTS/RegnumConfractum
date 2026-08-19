@@ -133,3 +133,47 @@ export function findOrphans(input: OrphanInput): string[] {
   }
   return problems;
 }
+
+// ---------------------------------------------------------------------------
+// Night roamers (D-527, D-529)
+// ---------------------------------------------------------------------------
+
+/**
+ * What walks the open ground after dusk. Tuned for ATTRITION, per D-529's
+ * ruling: individually modest and numerous, so a strong solo player wins the
+ * fights and still loses the night — worn down, out of light, unable to carry
+ * a haul home. The alternative (a wall that scales with the player) would let
+ * veterans out-level the dark, and the buddy system would evaporate for
+ * exactly the players who have been here longest.
+ *
+ * The design consequence this protects is the whole reason roamers exist: if
+ * going out alone at night is death, a night errand needs a PARTNER — and
+ * your partner may be the antagonist.
+ */
+export const RoamerSchema = z
+  .object({
+    id: ContentIdSchema,
+    descriptor: z.string().min(1),
+    hp: z.number().int().min(1),
+    damageMin: z.number().int().min(0),
+    damageMax: z.number().int().min(1),
+    /** How far it notices a living player, in tiles. */
+    aggroTiles: z.number().int().min(1).default(9),
+    attackCooldownTicks: z.number().int().min(1).default(12),
+    moveCooldownTicks: z.number().int().min(1).default(4),
+    /** How many of this kind per qualifying area, each night. */
+    perArea: z.number().int().min(0).default(4),
+    notes: z.string().optional(),
+  })
+  .strict()
+  .refine((r) => r.damageMax >= r.damageMin, {
+    message: 'damageMax must be at least damageMin',
+  });
+export type RoamerDef = z.infer<typeof RoamerSchema>;
+
+/**
+ * How far from any player a roamer may be placed when night falls. Spawning
+ * one on top of somebody would be an ambush nobody could have avoided, which
+ * is not danger — it is a coin toss.
+ */
+export const ROAMER_SPAWN_CLEARANCE = 12;

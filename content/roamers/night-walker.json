@@ -1,0 +1,12 @@
+{
+  "id": "night-walker",
+  "descriptor": "something man-shaped that does not walk like a man",
+  "hp": 14,
+  "damageMin": 3,
+  "damageMax": 6,
+  "aggroTiles": 26,
+  "attackCooldownTicks": 16,
+  "moveCooldownTicks": 5,
+  "perArea": 3,
+  "notes": "The heavier night thing. Two or three of these plus the dogs is what makes an unarmed solo walk fatal without making a pair's walk hopeless (D-529). UNRATIFIED tuning."
+}

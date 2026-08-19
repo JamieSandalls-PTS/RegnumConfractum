@@ -1,0 +1,12 @@
+{
+  "id": "scavenger-dog",
+  "descriptor": "a lean thing on four legs, keeping low",
+  "hp": 7,
+  "damageMin": 2,
+  "damageMax": 4,
+  "aggroTiles": 20,
+  "attackCooldownTicks": 12,
+  "moveCooldownTicks": 4,
+  "perArea": 8,
+  "notes": "The common roamer. Alone it is an inconvenience; the point is that they are never alone. Aggro is deliberately longer than the spawn clearance: they cross open ground towards you, which is visible and avoidable, rather than lurking until stepped on."
+}

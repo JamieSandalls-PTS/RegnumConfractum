@@ -375,6 +375,16 @@ stays fallible** (no detect-traitor); and **D-303 still forbids
 rewarding virtue** — the round must never score correct accusation or
 execution, or it teaches the opposite of the north star.
 
+**MR2 in progress.** Gathering and crafting are built and bot-verified
+(nodes as entities, timed interruptible work, `harvest`/`craft`, a pack
+and workbench UI) and **invariant 2 is now ENFORCED** — D-210's orphan
+check runs in CI over the recipe graph. **Night roamers are built
+(D-532):** they walk outdoor wilderness at dusk, never the settled town
+(the refuge — unratified, one line to flip) and never the dungeon; their
+blows interrupt work and sound exactly like a murder. ⚠ All roamer
+numbers are unratified. Still to build: hunger/thirst (D-526), facility
+potency (D-530), and the dungeon's contents.
+
 **M4b remaining:** richer injury/treatment types (D-205 matrix), Vessel's
 Plane Shift, class skills/balance beyond the scaffold. **Other gaps:**
 inventory/character-sheet UI, invisible DM observation, staging VPS not

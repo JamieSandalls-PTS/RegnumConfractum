@@ -50,6 +50,11 @@ import {
   roundHour,
   type ObjectiveDef,
   type RecipeDef,
+  type RoamerDef,
+  ROAMER_SPAWN_CLEARANCE,
+  ROUND_DAY_TICKS,
+  DIRECTIONS,
+  isTileWalkable,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
@@ -136,6 +141,8 @@ export interface GameServerOptions {
     objectives?: ObjectiveDef[];
     /** Ticks to hold the resolution before resetting to lobby. */
     resolutionTicks?: number;
+    /** Length of one day-night cycle. Tests shrink it; the rule is tick-based. */
+    dayTicks?: number;
   };
   log?: (msg: string) => void;
 }
@@ -271,6 +278,8 @@ export class GameServer {
   private roundStartedAtTick = 0;
   /** Last broadcast day-night phase, so lighting changes fire once. */
   private roundLastNight: boolean | null = null;
+  /** One full day-night cycle for this server (D-527); tests shrink it. */
+  private roundDayTicks = ROUND_DAY_TICKS;
   /**
    * XP earned this round, per connection, banked to the character only if
    * they are alive at the end (D-524). Dying forfeits the round's earnings —
@@ -282,6 +291,12 @@ export class GameServer {
   private roundDead = new Set<string>();
   /** Cast size we last complained about being unable to start, if any. */
   private lobbyStuckAt: number | null = null;
+  /** Night roamers abroad right now (D-527/D-529), by entity id. */
+  private roamers = new Map<number, RoamerDef>();
+  /** Seeded so a round's nights are reproducible in the harness (D-114). */
+  private roamerRng = new Rng(1);
+  /** Each roamer's current drift, held for a stretch so they cross ground. */
+  private roamerHeadings = new Map<number, Direction>();
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -309,6 +324,8 @@ export class GameServer {
         log: this.log,
       });
       this.roundResolutionTicks = opts.round.resolutionTicks ?? ROUND_RESOLUTION_TICKS;
+      this.roamerRng = new Rng(opts.round.seed ?? 'roamers');
+      this.roundDayTicks = opts.round.dayTicks ?? ROUND_DAY_TICKS;
       // A configured minimum below anything the content can actually run is a
       // server that fills its lobby and never starts. That is a
       // misconfiguration, and it belongs in the log at boot rather than being
@@ -417,6 +434,7 @@ export class GameServer {
     this.carryTick();
     await this.roundTick();
     this.nodeTick();
+    if (this.roundRunning) await this.roamerTick();
     await this.workTick();
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
@@ -524,6 +542,7 @@ export class GameServer {
     // (D-523): a fresh map every time, with nothing carried over.
     this.despawnNodes();
     this.spawnNodes();
+    this.despawnRoamers(); // a new round opens at dawn, whatever the last one left
     return true;
   }
 
@@ -534,9 +553,13 @@ export class GameServer {
    * broadcast.
    */
   private roundDayNightTick(announce = true): void {
-    const night = isNight(this.roundTickOffset());
+    const night = isNight(this.roundTickOffset(), this.roundDayTicks);
     if (night === this.roundLastNight) return;
     this.roundLastNight = night;
+    // Dusk puts them out; dawn takes them back. Survivors do not linger —
+    // night is a phase, not a growing infestation.
+    if (night) this.spawnRoamers();
+    else this.despawnRoamers();
     // At round start there is no transition to announce — the sun did not
     // just come up, the round merely began. Without this every round opened
     // with "it is over, for a while", which reads as the end of a night
@@ -585,8 +608,8 @@ export class GameServer {
       minCast: r.minimumCast,
       remainingTicks: r.remainingTicks(this.world.tick),
       // Outside a running round the clock has no meaning; show first light.
-      hour: running ? roundHour(offset) : 6,
-      night: running ? isNight(offset) : false,
+      hour: running ? roundHour(offset, this.roundDayTicks) : 6,
+      night: running ? isNight(offset, this.roundDayTicks) : false,
     };
     for (const conn of this.conns) {
       if (conn.character) this.send(conn, msg);
@@ -646,6 +669,7 @@ export class GameServer {
       if (conn.character) stripped += await this.store.stripCharacterItems(conn.character.id);
     }
     this.despawnNodes();
+    this.despawnRoamers();
     for (const conn of this.conns) this.interruptWork(conn, 'the round ended');
     this.round!.reset();
     this.roundResetAtTick = null;
@@ -701,6 +725,191 @@ export class GameServer {
           : `You hear fighting somewhere ${where}, carried thin on the air.`,
       });
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Night roamers (D-527, D-529)
+  //
+  // They come out at dusk, walk the open ground, and go at dawn. Tuned for
+  // ATTRITION rather than lethality: individually beatable, collectively a
+  // reason not to be out alone. That is the whole point — if a night errand
+  // needs a partner, then your partner may be the antagonist, and the line
+  // "I'll come with you, it's dangerous alone" is generated by the monsters
+  // rather than by a script.
+  //
+  // ⚠ They spawn in outdoor WILDERNESS areas only, never the settled town.
+  // D-529 left "may roamers enter settled areas" unratified; keeping them out
+  // is the choice that preserves the three forces — the town has to remain
+  // the refuge night drives people INTO, or night is uniformly lethal and
+  // stops being a decision. Flip this if the stakeholder rules otherwise.
+  // -------------------------------------------------------------------------
+
+  /** Areas roamers walk: under the sky, and outside the law. */
+  private roamerAreas(): string[] {
+    return this.world.areaIds().filter((id) => {
+      const def = this.world.getAreaDef(id);
+      return def.outdoor && def.zone !== 'settled';
+    });
+  }
+
+  private spawnRoamers(): void {
+    if (this.content.roamers.length === 0) return;
+    for (const areaId of this.roamerAreas()) {
+      const def = this.world.getAreaDef(areaId);
+      const players = this.world
+        .entitiesIn(areaId)
+        .filter((e) => e.characterId !== null && !e.ghost)
+        .map((e) => e.pos);
+      for (const kind of this.content.roamers) {
+        for (let i = 0; i < kind.perArea; i++) {
+          const at = this.findRoamerTile(def, players);
+          if (!at) continue;
+          const { entity } = this.world.spawn(areaId, {
+            characterId: null,
+            name: kind.descriptor,
+            npcDescriptor: kind.descriptor,
+            appearanceSeed: this.roamerRng.int(1, 1_000_000),
+            pos: at,
+            hp: kind.hp,
+          });
+          this.roamers.set(entity.id, kind);
+          this.broadcastPlane(areaId, false, {
+            t: 'delta',
+            tick: this.world.tick,
+            events: [{ type: 'entity_entered', entity: toWireEntity(entity, kind.descriptor) }],
+          });
+        }
+      }
+    }
+  }
+
+  /** A walkable tile far enough from every player to be fair. */
+  private findRoamerTile(
+    def: AreaDef,
+    players: { x: number; y: number }[],
+  ): { x: number; y: number } | null {
+    for (let attempt = 0; attempt < 60; attempt++) {
+      const at = {
+        x: this.roamerRng.int(1, def.width - 2),
+        y: this.roamerRng.int(1, def.height - 2),
+      };
+      if (!isTileWalkable(def, at)) continue;
+      // Never materialise on top of somebody: an ambush nobody could have
+      // avoided is not danger, it is a coin toss.
+      if (players.some((p) => chebyshev(p, at) < ROAMER_SPAWN_CLEARANCE)) continue;
+      return at;
+    }
+    return null;
+  }
+
+  private despawnRoamers(): void {
+    for (const entityId of [...this.roamers.keys()]) {
+      const areaId = this.world.getEntityAreaId(entityId);
+      const event = this.world.despawn(entityId);
+      if (event && areaId) {
+        this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [event] });
+      }
+    }
+    this.roamers.clear();
+    this.roamerHeadings.clear();
+  }
+
+  /** Moves and strikes. Called every tick while a round runs. */
+  private async roamerTick(): Promise<void> {
+    for (const [entityId, kind] of [...this.roamers]) {
+      const roamer = this.world.getEntity(entityId);
+      const areaId = this.world.getEntityAreaId(entityId);
+      if (!roamer || !areaId) {
+        this.roamers.delete(entityId);
+        continue;
+      }
+      // Nearest LIVING player. Ghosts are not prey — the dead are not here.
+      let quarry: ConnState | null = null;
+      let best = Infinity;
+      for (const conn of this.connsByArea.get(areaId) ?? []) {
+        if (!conn.character || conn.entityId === null || !conn.vitals) continue;
+        const target = this.world.getEntity(conn.entityId);
+        if (!target || target.ghost || conn.downed) continue;
+        const d = chebyshev(roamer.pos, target.pos);
+        if (d < best) {
+          best = d;
+          quarry = conn;
+        }
+      }
+      if (!quarry || best > kind.aggroTiles) {
+        // NOTHING IN REACH: wander. Without this they are not roamers at all
+        // — they spawn beyond their own aggro radius (deliberately, so nobody
+        // is ambushed at the moment night falls) and then stand still until
+        // someone walks into them. A player could hold one spot all night
+        // untouched, and "night is dangerous" would simply be false.
+        this.roamerWander(entityId, kind);
+        continue;
+      }
+      const target = this.world.getEntity(quarry.entityId!)!;
+      if (best > 1) {
+        if (this.world.tick % kind.moveCooldownTicks !== 0) continue;
+        this.world.setMoveIntent(
+          entityId,
+          directionFrom(Math.sign(target.pos.x - roamer.pos.x), Math.sign(target.pos.y - roamer.pos.y)),
+        );
+        continue;
+      }
+      if (this.world.tick < roamer.attackReadyAt) continue;
+      roamer.attackReadyAt = this.world.tick + kind.attackCooldownTicks;
+      await this.roamerStrike(roamer, kind, quarry, areaId);
+    }
+  }
+
+  /**
+   * Drifts along a heading, changing it now and then. Held for a stretch
+   * rather than re-rolled every step, so they cross ground instead of
+   * shivering on the spot — and so a player watching from a distance can read
+   * which way a thing is going.
+   */
+  private roamerWander(entityId: number, kind: RoamerDef): void {
+    const roamer = this.world.getEntity(entityId);
+    if (!roamer) return;
+    if (this.world.tick % (kind.moveCooldownTicks * 2) !== 0) return;
+    let heading = this.roamerHeadings.get(entityId);
+    if (heading === undefined || this.roamerRng.int(0, 7) === 0) {
+      heading = this.roamerRng.pick([...DIRECTIONS]);
+      this.roamerHeadings.set(entityId, heading);
+    }
+    this.world.setMoveIntent(entityId, heading);
+  }
+
+  private async roamerStrike(
+    roamer: WorldEntity,
+    kind: RoamerDef,
+    victim: ConnState,
+    areaId: string,
+  ): Promise<void> {
+    if (!victim.vitals || victim.entityId === null) return;
+    const damage = this.roamerRng.int(kind.damageMin, kind.damageMax);
+    this.enterCombat(roamer, areaId);
+    this.enterCombat(this.world.getEntity(victim.entityId), areaId);
+    // Being mauled ends whatever you were doing, exactly as a player's blow
+    // does — otherwise gathering through a pack of dogs would be free.
+    this.interruptWork(victim, 'something was on you');
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [
+        {
+          type: 'entity_attacked',
+          attackerId: roamer.id,
+          targetId: victim.entityId,
+          variant: 0,
+          damage,
+        },
+      ],
+    });
+    // A roamer fight sounds exactly like a murder (D-531), which is what
+    // gives the antagonist its deniability at night.
+    this.emitCombatNoise(areaId, roamer.pos, [roamer.id, victim.entityId]);
+    victim.vitals.hp -= damage;
+    this.sendStatus(victim);
+    if (victim.vitals.hp <= 0) await this.die(victim, kind.descriptor);
   }
 
   // -------------------------------------------------------------------------
@@ -1384,7 +1593,7 @@ export class GameServer {
     }
     return {
       outdoor: this.world.getAreaDef(conn.areaId).outdoor,
-      night: isNight(this.roundTickOffset()),
+      night: isNight(this.roundTickOffset(), this.roundDayTicks),
     };
   }
 
