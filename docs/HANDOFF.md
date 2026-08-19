@@ -9,10 +9,10 @@ have to step in them again. Rewrite it at the end of your session.
 
 ## Where the project stands
 
-**Branch `mr-round-spine`, 17 commits ahead of `main`. Main is untouched.**
+**Branch `mr-round-spine`, 14 commits ahead of `main`. Main is untouched.**
 The stakeholder has not asked for a merge; ask before fast-forwarding.
 
-**317 tests green**, content validator green over 52 files.
+**315 tests green**, content validator green over 52 files.
 `npm run typecheck && npm run validate:content && npx vitest run`.
 
 The project pivoted this session-series to **MR — the Round** (D-521): a
