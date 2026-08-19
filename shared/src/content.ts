@@ -156,6 +156,12 @@ export const ItemTemplateSchema = z.object({
   stackable: z.boolean().default(false),
   /** Reference value in coin for telemetry/vendor floors (D-221). Not a price. */
   value: z.number().int().min(0),
+  /**
+   * What eating or drinking this relieves (D-526). Absent for everything that
+   * is not a meal — the orphan check treats consumables as terminal, so this
+   * is what distinguishes "a thing you use" from "a thing you eat".
+   */
+  nourishes: z.enum(['hunger', 'thirst']).optional(),
 });
 
 export type ItemTemplate = z.infer<typeof ItemTemplateSchema>;

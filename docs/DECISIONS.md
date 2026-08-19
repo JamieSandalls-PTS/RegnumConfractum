@@ -2729,3 +2729,70 @@ without the assertions going stale.
 tests can reach dusk without waiting fifty real seconds for it, the same
 reason combat and corpse pacing are options (D-114). The rule stays
 tick-based; only the pacing moves.
+
+### D-533: Hunger and thirst implemented — and they pull opposite ways
+
+D-526's survival needs, built. `shared/src/needs.ts`, gateway, and
+`sim/test/mr2-needs.test.ts`.
+
+**The decision worth recording is that the two needs pull in OPPOSITE
+directions**, which D-526 did not specify and which turns out to matter more
+than either need on its own:
+
+- **Hunger pushes you OUT.** Bread is baked from grain, grain grows on the
+  farm. A cast that never leaves town eventually has nothing to eat.
+- **Thirst pulls you IN.** Water is **not carried**: you drink at the well at
+  the town's centre, or you do not drink.
+
+Two needs that both pushed outward would be one need with two bars. Pulling
+against each other means **nobody can settle anywhere** — the field starves
+you of water, the town starves you of food — and the cast is kept in motion
+between two known places without a single scripted event.
+
+It also does something D-529 asked for and could not previously deliver:
+**it makes the well the most valuable object on the map.** A poisoner needs
+something worth poisoning, and "the one place everybody must come, repeatedly,
+on a timer" is exactly that. The well was already at the town's centre for
+this reason; now it earns it.
+
+**They fail DIFFERENTLY, or one of them is decoration** (D-526's own words):
+
+| | Penalty | Felt as |
+|---|---|---|
+| Hunger | work takes up to 1.9× longer | economic — fewer hauls per trip |
+| Thirst | maximum health drops to 60% | martial — you lose fights you would win |
+
+**Nothing here can kill.** Both plateau at the second stage, and thirst
+clamps current health to the new maximum but never below one. A round decided
+by an unattended bar rather than by a person is a failed round, and the
+antagonist is meant to be the threat. ⚠ D-526 left "may starvation kill
+inside a round" open; this implements **no**, and it is one constant to change.
+
+**Coarse, on the round clock.** Steps are counted in game HOURS, not ticks, so
+they inherit the compressed day (D-527) automatically and shrink with it in
+tests. Eight hours to a stage of hunger, six to a stage of thirst.
+
+**D-530's facility trade, applied to meals.** Eating from the common stores
+or drinking at the well holds you **half again as long** as eating standing
+up in a field. The bonus is TIME rather than quantity, so there is no
+part-eaten bookkeeping — and it keeps the same shape as everything else in
+D-530: the better version is only redeemable where you are not alone.
+
+**Needs are round-scoped**, cleared at reset with everything else the round
+holds. A character does not walk into the next round still starving.
+
+**⚠ The constraint D-529 identified is still unmet.** Hiding in town beats
+the clock unless **the storehouse runs out**. Bread is craftable from grain
+and grain is on the farm, so the pressure exists in principle — but nothing
+yet stocks the town with a starting supply that then depletes. Until that
+lands, a cast that begins with full bellies and never leaves is only pressured
+after the first hunger step. **This is the next thing MR2 needs, and it is a
+content/tuning problem rather than a systems one.**
+
+**A note on the test that failed first, because it is a good sign rather than
+a bad one.** The needs suite put its second bot alone in the mine. The
+roamers found it at dusk and killed it, which ended the round, reset every
+need, and failed a plateau assertion for reasons having nothing to do with
+needs. D-532's roamers were doing precisely what they were built to do, in a
+test that was not about them. The fix was to stop putting a lone bot in the
+wilderness overnight — which is also the advice the game gives its players.

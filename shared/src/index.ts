@@ -6,3 +6,4 @@ export * from './protocol';
 export * from './appearance';
 export * from './round';
 export * from './gathering';
+export * from './needs';

@@ -4,5 +4,6 @@
   "description": "Dense, grey, and honest. It will keep you walking another day.",
   "category": "consumable",
   "stackable": true,
-  "value": 2
+  "value": 2,
+  "nourishes": "hunger"
 }

@@ -12,6 +12,7 @@ import {
   TransientAnimSchema,
 } from './content';
 import { RoundOutcomeSchema, RoundPhaseSchema } from './round';
+import { NeedStageSchema } from './needs';
 
 /**
  * The wire protocol, defined once and consumed by both server and client
@@ -131,6 +132,13 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('craft'), recipeId: ContentIdSchema }),
   /** Abandon whatever is being worked on. */
   z.object({ t: z.literal('cancel_work') }),
+  /** Eat something from the pack (D-526). */
+  z.object({ t: z.literal('eat'), templateId: ContentIdSchema }),
+  /**
+   * Drink. Water is NOT carried: you come to the well, which is what makes
+   * thirst the leash back to town and the well worth poisoning (D-529).
+   */
+  z.object({ t: z.literal('drink') }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -170,6 +178,9 @@ export const ErrorCodeSchema = z.enum([
   'wrong_station',
   'already_working',
   'node_spent',
+  'not_hungry',
+  'no_water_here',
+  'not_food',
   'too_soon',
   'no_injury',
   /** Speak With Dead on a spirit that is offline or already respawned — a
@@ -520,6 +531,12 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     deathDebt: z.number().int().nonnegative(),
     ghost: z.boolean(),
     injuries: z.array(InjurySchema),
+    /**
+     * Survival needs (D-526). Coarse stages, never a bar — a number that
+     * ticks down invites the player to watch it instead of the room.
+     */
+    hunger: NeedStageSchema.default('sated'),
+    thirst: NeedStageSchema.default('sated'),
   }),
 ]);
 

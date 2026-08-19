@@ -54,6 +54,13 @@ import {
   ROAMER_SPAWN_CLEARANCE,
   ROUND_DAY_TICKS,
   DIRECTIONS,
+  HUNGER_WORK_MULTIPLIER,
+  THIRST_MAX_HP_FRACTION,
+  deepen,
+  needNotice,
+  relieve,
+  stepHoursFor,
+  type NeedStage,
   isTileWalkable,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
@@ -212,6 +219,11 @@ interface ConnState {
     /** Where they stood when they began — moving cancels it. */
     at: { x: number; y: number };
   } | null;
+  /**
+   * Survival needs (D-526). Round-scoped, like everything else the round
+   * holds: a character does not walk into the next round still starving.
+   */
+  needs: { hunger: NeedStage; thirst: NeedStage; hungerAtHour: number; thirstAtHour: number };
   /** Serialises message handling per connection. */
   queue: Promise<void>;
 }
@@ -435,6 +447,7 @@ export class GameServer {
     await this.roundTick();
     this.nodeTick();
     if (this.roundRunning) await this.roamerTick();
+    await this.needsTick();
     await this.workTick();
     this.onTickHook?.(this.world.tick);
     if (this.world.tick % FLUSH_INTERVAL_TICKS === 0) {
@@ -677,6 +690,10 @@ export class GameServer {
     this.roundLastNight = null;
     this.roundXp.clear();
     this.roundDead.clear();
+    for (const conn of this.conns) {
+      conn.needs = { hunger: 'sated', thirst: 'sated', hungerAtHour: 0, thirstAtHour: 0 };
+      this.applyThirstToVitals(conn);
+    }
     await this.store.appendEvent('round_reset', { forgotten, stripped });
     this.log(`round: reset - ${forgotten} memories wiped, ${stripped} items stripped`);
     this.broadcastRoundState();
@@ -725,6 +742,144 @@ export class GameServer {
           : `You hear fighting somewhere ${where}, carried thin on the air.`,
       });
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Hunger and thirst (D-526)
+  //
+  // They pull in OPPOSITE directions, which is the design: hunger pushes you
+  // OUT (food grows on the farm) and thirst pulls you IN (water is the well
+  // at the town's centre). Between them nobody can settle anywhere — and the
+  // well becomes the most valuable object on the map, which is what a
+  // poisoner needs in order to have anything worth poisoning (D-529).
+  //
+  // Coarse, never a bar. Stages step on the round's own clock, the first one
+  // costs a decision rather than health, and the worst one PLATEAUS. Nothing
+  // here can kill: a round decided by an unattended need instead of by a
+  // person is a failed round. ⚠ Whether starvation may kill is unratified.
+  // -------------------------------------------------------------------------
+
+  /** Total game hours elapsed in this round — needs step on this, not ticks. */
+  private roundElapsedHours(): number {
+    const ticksPerHour = Math.max(1, this.roundDayTicks / 24);
+    return Math.floor(this.roundTickOffset() / ticksPerHour);
+  }
+
+  private async needsTick(): Promise<void> {
+    if (!this.roundRunning) return;
+    const hours = this.roundElapsedHours();
+    for (const conn of this.conns) {
+      if (!conn.character || conn.entityId === null || !conn.vitals) continue;
+      if (this.world.getEntity(conn.entityId)?.ghost) continue; // the dead do not hunger
+      for (const need of ['hunger', 'thirst'] as const) {
+        const key = need === 'hunger' ? 'hungerAtHour' : 'thirstAtHour';
+        const due = conn.needs[key] + stepHoursFor(need, false);
+        if (hours < due) continue;
+        conn.needs[key] = hours;
+        const before = conn.needs[need];
+        const after = deepen(before);
+        if (after === before) continue; // already at the plateau
+        conn.needs[need] = after;
+        const notice = needNotice(need, after);
+        if (notice) this.send(conn, { t: 'narrate', text: notice });
+        this.applyThirstToVitals(conn);
+        this.sendStatus(conn);
+        await this.store.appendEvent('need_deepened', {
+          characterId: conn.character.id,
+          need,
+          stage: after,
+        });
+      }
+    }
+  }
+
+  /**
+   * Thirst makes you FRAIL rather than dying: maximum health drops, so you
+   * lose fights you would otherwise win. Current health is clamped to it, but
+   * never below one — the need itself must not be the thing that kills.
+   */
+  private applyThirstToVitals(conn: ConnState): void {
+    if (!conn.vitals || !conn.character) return;
+    const full = conn.character.maxHp;
+    conn.vitals.maxHp = Math.max(1, Math.round(full * THIRST_MAX_HP_FRACTION[conn.needs.thirst]));
+    conn.vitals.hp = Math.max(1, Math.min(conn.vitals.hp, conn.vitals.maxHp));
+  }
+
+  /** Hunger makes work slower — the economic half of the pressure. */
+  private hungerWorkMultiplier(conn: ConnState): number {
+    return HUNGER_WORK_MULTIPLIER[conn.needs.hunger];
+  }
+
+  private async handleEat(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'eat' }>,
+  ): Promise<void> {
+    if (!conn.character || !conn.vitals) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const template = this.content.itemTemplates.get(msg.templateId);
+    if (!template?.nourishes) return this.fail(conn, 'not_food', 'that is not food');
+    if (conn.needs[template.nourishes] === 'sated') {
+      return this.fail(conn, 'not_hungry', 'you have no appetite for it');
+    }
+    if (!(await this.store.consumeOneItem(conn.character.id, msg.templateId))) {
+      return this.fail(conn, 'missing_materials', 'you have none');
+    }
+    // A meal taken at the stores holds you longer than one taken in a ditch
+    // (D-530) — the bonus is TIME, not quantity, so there is no bookkeeping.
+    const atFacility = this.atStation(conn, 'storehouse');
+    conn.needs[template.nourishes] = relieve();
+    const key = template.nourishes === 'hunger' ? 'hungerAtHour' : 'thirstAtHour';
+    conn.needs[key] =
+      this.roundElapsedHours() +
+      (atFacility ? stepHoursFor(template.nourishes, true) - stepHoursFor(template.nourishes, false) : 0);
+    this.applyThirstToVitals(conn);
+    this.send(conn, {
+      t: 'narrate',
+      text: atFacility
+        ? 'You eat properly, sitting down, out of the common stores. It will hold you a while.'
+        : 'You eat standing up, quickly, watching the treeline.',
+    });
+    await this.sendInventory(conn);
+    this.sendStatus(conn);
+    await this.store.appendEvent('ate', {
+      characterId: conn.character.id,
+      item: msg.templateId,
+      atFacility,
+    });
+  }
+
+  private async handleDrink(conn: ConnState): Promise<void> {
+    if (!conn.character || !conn.vitals || conn.entityId === null) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    // Water is not carried. You come to the well — which is what makes thirst
+    // a leash back to town, and the well worth poisoning (D-529).
+    if (!this.atWell(conn)) {
+      return this.fail(conn, 'no_water_here', 'there is no water within reach');
+    }
+    if (conn.needs.thirst === 'sated') return this.fail(conn, 'not_hungry', 'you are not thirsty');
+    conn.needs.thirst = relieve();
+    conn.needs.thirstAtHour =
+      this.roundElapsedHours() + (stepHoursFor('thirst', true) - stepHoursFor('thirst', false));
+    this.applyThirstToVitals(conn);
+    this.send(conn, { t: 'narrate', text: 'You drink deep. The water is cold and tastes of stone.' });
+    this.sendStatus(conn);
+    await this.store.appendEvent('drank', { characterId: conn.character.id, areaId: conn.areaId });
+  }
+
+  /**
+   * Whether the player stands at the well. Like `atStation`, this is coarse
+   * for now — the well is unwalkable water at the town's centre, so standing
+   * beside it is what counts. ⚠ MR3 should make it a real placed object.
+   */
+  private atWell(conn: ConnState): boolean {
+    if (conn.areaId !== 'round-town' || conn.entityId === null) return false;
+    const self = this.world.getEntity(conn.entityId);
+    if (!self) return false;
+    const def = this.world.getAreaDef(conn.areaId);
+    const mid = { x: Math.floor(def.width / 2), y: Math.floor(def.height / 2) };
+    return chebyshev(self.pos, mid) <= 2;
   }
 
   // -------------------------------------------------------------------------
@@ -1005,7 +1160,7 @@ export class GameServer {
       what: def.descriptor,
       targetId: target.id,
       startedAtTick: this.world.tick,
-      endsAtTick: this.world.tick + def.effortTicks,
+      endsAtTick: this.world.tick + Math.round(def.effortTicks * this.hungerWorkMultiplier(conn)),
       at: { ...self.pos },
     };
     this.sendWork(conn, conn.work, 0, false, null);
@@ -1037,7 +1192,7 @@ export class GameServer {
       what: recipe.name,
       targetId: recipe.id,
       startedAtTick: this.world.tick,
-      endsAtTick: this.world.tick + recipe.effortTicks,
+      endsAtTick: this.world.tick + Math.round(recipe.effortTicks * this.hungerWorkMultiplier(conn)),
       at: { ...self.pos },
     };
     this.sendWork(conn, conn.work, 0, false, null);
@@ -1456,6 +1611,7 @@ export class GameServer {
       injuries: [],
       downed: null,
       work: null,
+      needs: { hunger: 'sated', thirst: 'sated', hungerAtHour: 0, thirstAtHour: 0 },
       queue: Promise.resolve(),
     };
     this.conns.add(conn);
@@ -1528,6 +1684,10 @@ export class GameServer {
         return this.handleHarvest(conn, msg);
       case 'craft':
         return this.handleCraft(conn, msg);
+      case 'eat':
+        return this.handleEat(conn, msg);
+      case 'drink':
+        return this.handleDrink(conn);
       case 'cancel_work':
         this.interruptWork(conn, 'you stopped');
         return;
@@ -1573,6 +1733,8 @@ export class GameServer {
       xp: conn.vitals.xp,
       deathDebt: conn.vitals.deathDebt,
       ghost: entity?.ghost ?? false,
+      hunger: conn.needs.hunger,
+      thirst: conn.needs.thirst,
       injuries: conn.injuries.map((i) => ({
         id: i.id,
         location: i.location,

@@ -382,8 +382,14 @@ check runs in CI over the recipe graph. **Night roamers are built
 (D-532):** they walk outdoor wilderness at dusk, never the settled town
 (the refuge — unratified, one line to flip) and never the dungeon; their
 blows interrupt work and sound exactly like a murder. ⚠ All roamer
-numbers are unratified. Still to build: hunger/thirst (D-526), facility
-potency (D-530), and the dungeon's contents.
+numbers are unratified. **Hunger and thirst are built (D-533)** and pull
+OPPOSITE ways — hunger pushes you out (bread comes from the farm), thirst
+pulls you in (water is the well, never carried), so nobody can settle
+anywhere and the well becomes the thing worth poisoning. They fail
+differently (hunger slows work, thirst thins your health) and neither can
+kill. ⚠ **Still unmet: the storehouse must RUN OUT**, or hiding in town
+beats the clock (D-529). Still to build: that, facility potency beyond
+meals (D-530), and the dungeon's contents.
 
 **M4b remaining:** richer injury/treatment types (D-205 matrix), Vessel's
 Plane Shift, class skills/balance beyond the scaffold. **Other gaps:**

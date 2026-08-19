@@ -10,7 +10,7 @@ export const MOVE_COOLDOWN_TICKS = 3;
 export const FLUSH_INTERVAL_TICKS = 300;
 
 /** Bumped on any breaking wire change; both sides assert it (D-105). */
-export const PROTOCOL_VERSION = 6; // v6: gathering and crafting (MR2)
+export const PROTOCOL_VERSION = 7; // v7: hunger and thirst (D-526)
 
 /** Session tokens live this long without activity. */
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
