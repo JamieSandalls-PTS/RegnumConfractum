@@ -1,0 +1,27 @@
+{
+  "id": "gallery-drowned",
+  "descriptor": "a bloated shape that walks as though still underwater",
+  "hp": 18,
+  "damageMin": 4,
+  "damageMax": 7,
+  "aggroTiles": 18,
+  "attackCooldownTicks": 14,
+  "moveCooldownTicks": 5,
+  "perArea": 6,
+  "habitat": "dungeon",
+  "floor": 2,
+  "xp": 26,
+  "loot": [
+    {
+      "item": "gravebright",
+      "quantity": 1,
+      "chance": 0.45
+    },
+    {
+      "item": "raw-hide",
+      "quantity": 1,
+      "chance": 0.3
+    }
+  ],
+  "notes": "Floor two, opening on the second dawn: wants a partner, and is the first thing that carries gravebright. UNRATIFIED tuning."
+}

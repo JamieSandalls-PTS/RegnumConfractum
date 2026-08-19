@@ -1,0 +1,22 @@
+{
+  "id": "undercroft-warden",
+  "descriptor": "something tall and patient that has been waiting a long time",
+  "hp": 34,
+  "damageMin": 6,
+  "damageMax": 10,
+  "aggroTiles": 22,
+  "attackCooldownTicks": 16,
+  "moveCooldownTicks": 6,
+  "perArea": 4,
+  "habitat": "dungeon",
+  "floor": 3,
+  "xp": 55,
+  "loot": [
+    {
+      "item": "gravebright",
+      "quantity": 2,
+      "chance": 0.8
+    }
+  ],
+  "notes": "Floor three, open only for the round's closing daylight (D-535). Wants the cast. UNRATIFIED tuning - this is the number most likely to be wrong."
+}

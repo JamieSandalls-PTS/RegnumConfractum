@@ -1,0 +1,22 @@
+{
+  "id": "crypt-crawler",
+  "descriptor": "a low, many-legged thing the colour of wet stone",
+  "hp": 9,
+  "damageMin": 2,
+  "damageMax": 4,
+  "aggroTiles": 9,
+  "attackCooldownTicks": 12,
+  "moveCooldownTicks": 4,
+  "perArea": 4,
+  "habitat": "dungeon",
+  "floor": 1,
+  "xp": 12,
+  "loot": [
+    {
+      "item": "iron-ore",
+      "quantity": 1,
+      "chance": 0.5
+    }
+  ],
+  "notes": "Floor one: genuinely soloable, and deliberately too poor to hold anybody - it exists to teach the loop, not to reward it. Was 7 at aggro 14, which swarmed a lone unarmed diver and killed them before they could put one down: that contradicts D-535's 'floor one is soloable' and made the whole descent a two-person job from the first step. Four at aggro 9 means one or two find you at a time. UNRATIFIED."
+}

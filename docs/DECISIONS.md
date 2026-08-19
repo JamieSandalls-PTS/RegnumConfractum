@@ -2950,3 +2950,69 @@ trying to hit someone is not a safety anyone will plan around.
 **⚠ Note for tests:** every suite that is not about the truce sets
 `graceTicks: 0`. Five of them had to, and they all failed loudly first —
 which is the right failure, since the truce works.
+
+### D-537: The dungeon has contents — and one shared implementation
+
+The floors were geometry with nothing in them (D-535). D-523 calls the
+dungeon the round's separation engine — the thing that pulls the cast apart
+voluntarily so the antagonist can act — and it separates nobody while empty.
+
+**Dungeon dwellers are night roamers with a different habitat**, not a second
+system. `RoamerSchema` gains `habitat: 'night' | 'dungeon'`, a `floor`, an
+`xp` value and a `loot` table; spawn, hunt, strike, wander and despawn are the
+same code. A dungeon needs a thing that walks towards you and hits you, which
+is exactly what night already had — a second implementation would have meant
+two sets of the same bugs.
+
+The one real difference: **dwellers arrive with the round and never leave.**
+Underground has no dawn to be driven off by. They are spawned onto **every
+floor at round start, including floors not yet open** — the gate is on the
+stair (D-535), not on the inhabitants, so a floor is fully alive the moment
+its stair gives way rather than filling up while somebody stands watching it.
+
+**The gradient runs on three axes at once**, because one is not a gradient:
+
+| Floor | Opens | Worth | Carries | Hits |
+|---|---|---|---|---|
+| 1 crypt-crawler | at once | 12 xp | iron ore | 2-4 |
+| 2 gallery-drowned | second dawn | 26 xp | **gravebright**, hide | 4-7 |
+| 3 undercroft-warden | third dawn | 55 xp | gravebright ×2 | 6-10 |
+
+**Gravebright exists so that descending is not merely faster mining.** It is
+the one material nothing above floor two carries, and its only use — a warding
+charm — also needs timber from the opposite end of the map, so **a diver still
+has to talk to a woodcutter.** That is the cross map's argument (D-529) applied
+downwards.
+
+**Loot goes straight to the killer, not onto the floor.** A pile in a dungeon
+nobody can re-enter after dusk (D-535) is a reward that evaporates — and
+carrying the haul home yourself is what makes you worth following.
+
+**Floors refill on a timer** (90s). A floor cleared once must not stay cleared,
+or the first party down takes everything and the schedule stops meaning
+anything to whoever arrives second.
+
+**Two things measurement changed, both found by the bot suite:**
+
+1. **Floor one was not soloable, which contradicted its own design.** Seven
+   crawlers at a fourteen-tile notice radius meant a lone unarmed diver was
+   swarmed and killed before putting one down — so the very first step of the
+   descent was a two-person job, and the floor could not do the job D-535 gave
+   it (teach the loop, reward it poorly). Four at nine tiles means one or two
+   find you at a time.
+2. **Loot rolls were effectively random per RUN, not per seed.** They drew
+   from the roamer RNG, which is consumed every tick by wander decisions — so
+   whether something dropped depended on how many things were alive and how
+   fast the machine was going. Loot now has **its own stream**, and the same
+   seed with the same kill gives the same answer. This is exactly the class of
+   nondeterminism D-114's harness exists to forbid, and it would have been
+   invisible except as an occasionally-failing test.
+
+**The orphan check learned about drops.** `findOrphans` counted only nodes as
+producers, so gravebright — which no node yields — failed the build as
+unreachable. Monster loot is now a legitimate way an item enters the world,
+and for gravebright it is the only way.
+
+**⚠ Every number here is unratified**, and floor three's warden is the one
+most likely to be wrong: it opens with five minutes left, so it has never been
+fought in a real round.

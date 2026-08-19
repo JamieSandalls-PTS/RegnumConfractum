@@ -1,0 +1,19 @@
+{
+  "id": "warding-charm",
+  "name": "Bind a warding charm",
+  "output": "warding-charm",
+  "outputQuantity": 1,
+  "inputs": [
+    {
+      "item": "gravebright",
+      "quantity": 2
+    },
+    {
+      "item": "rough-timber",
+      "quantity": 1
+    }
+  ],
+  "station": "workshop",
+  "effortTicks": 70,
+  "notes": "The only use for what the dungeon yields, and it needs timber from the far side of the map - so a diver still has to talk to a woodcutter."
+}

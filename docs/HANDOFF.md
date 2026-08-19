@@ -9,10 +9,10 @@ have to step in them again. Rewrite it at the end of your session.
 
 ## Where the project stands
 
-**Branch `mr-round-spine`, 14 commits ahead of `main`. Main is untouched.**
+**Branch `mr-round-spine`, 16 commits ahead of `main`. Main is untouched.**
 The stakeholder has not asked for a merge; ask before fast-forwarding.
 
-**315 tests green**, content validator green over 52 files.
+**322 tests green**, content validator green over 58 files.
 `npm run typecheck && npm run validate:content && npx vitest run`.
 
 The project pivoted this session-series to **MR — the Round** (D-521): a
@@ -26,7 +26,7 @@ validated content, victory evaluation, no-respawn death, xp banking and
 forfeit, round reset, day/night lighting, free-but-loud violence, the cross
 map, the HUD, and the combat sound cue. Verified live in three browsers.
 
-### MR2 — the loop inside the round: MOSTLY BUILT
+### MR2 — the loop inside the round: BUILT BAR ONE PIECE
 
 | Piece | State |
 |---|---|
@@ -35,7 +35,8 @@ map, the HUD, and the combat sound cue. Verified live in three browsers.
 | Night roamers (D-532) | built, bot-verified |
 | Hunger and thirst (D-533, D-534) | built, bot-verified; starvation kills |
 | Stations as real objects (D-534) | built |
-| Three dungeon floors (D-535) | **geometry and gates built, CONTENTS EMPTY** |
+| Three dungeon floors (D-535) | built — floors, day-gating, dusk seal |
+| Dungeon contents (D-537) | built, bot-verified — dwellers, loot, gradient |
 | Dawn truce (D-536) | built, bot-verified |
 | Storehouse depletion | **NOT BUILT — see below** |
 
@@ -43,19 +44,7 @@ map, the HUD, and the combat sound cue. Verified live in three browsers.
 
 ## What to do next, in the order I would do it
 
-### 1. The dungeon's contents ⚠ the biggest hole
-
-Three floors of empty cavern. **No monsters, no loot, no reason to descend.**
-D-523 calls the dungeon the round's separation engine — the thing that pulls
-the cast apart voluntarily so the antagonist can act — and it cannot separate
-anybody while it is empty. Everything else in MR2 is finished enough to play
-around; this is not.
-
-Needs: a per-floor monster table (the roamer system in `gateway.ts` is the
-obvious thing to generalise — it already spawns, hunts, strikes and despawns),
-loot on death, and a reward gradient that makes floor 2 worth the second day.
-
-### 2. The storehouse must RUN OUT
+### 1. The storehouse must RUN OUT ⚠ the last real gap
 
 D-529 identified this and it is still open. **Hiding in town beats the clock**
 unless the town's food supply depletes. Bread needs grain, grain is on the
@@ -66,7 +55,13 @@ is only pressured after the first hunger step.
 This is content and tuning, not systems. Probably: a storehouse stock counter
 that starts at N meals and is drawn down by eating at the facility.
 
-### 3. Per-round procedural dungeon layouts (D-535)
+### 1b. Play a round — honestly the highest-value thing left
+
+Everything MR2 needs to be playable now exists. Nobody has actually played
+one end to end with three humans. That is the cheapest way left to find out
+which of the two dozen unratified numbers are wrong.
+
+### 2. Per-round procedural dungeon layouts (D-535)
 
 The floors are authored and identical every round. Generating their shape at
 **round start** — before anyone is inside, so the eviction problem never
@@ -74,7 +69,7 @@ arises — gives variety across rounds to go with the deepening within one.
 Self-contained; the round already spawns nodes, roamers and stations into an
 empty world, and a layout is the same move.
 
-### 4. Facility potency beyond meals (D-530)
+### 3. Facility potency beyond meals (D-530)
 
 Stations are real objects now, so the door is open. Eating at the storehouse
 already holds you 1.5× longer. Healing at the infirmary should beat a field
@@ -154,6 +149,12 @@ Regenerate the map with `python tools/src/build-round-map.py`.
 - **The mine is dense with rock and a greedy walker wedges on the first
   outcrop.** `mr2-gathering.test.ts` reuses the CLIENT's A*
   (`client/src/game/path.ts`).
+- **Do not wait for AI to reach you.** A test that stands still until a
+  monster arrives passes alone and times out under full-suite load — it is
+  measuring the machine. Close on the target instead.
+- **Anything probabilistic needs its OWN Rng.** Loot rolls once shared the
+  roamer stream, which wander consumes every tick, so a drop depended on
+  run timing rather than on the seed.
 
 **Code traps**
 
@@ -186,6 +187,8 @@ chain `$env:X='y'; cmd1 && cmd2`.
 
 ## The one thing I would tell you if you only read a sentence
 
-MR2's systems are largely done and the round is playable, but **the dungeon is
-empty**, and the dungeon is the mechanism that makes a hidden antagonist
-possible at all. Fill it before tuning anything else.
+MR2 is essentially built — gather, craft, eat, drink, night, dungeon, truce —
+and **nobody has played a round yet**. The remaining code (storehouse
+depletion) is small; the remaining RISK is entirely in two dozen unratified
+numbers that only real play will sort out. Get three people into a round
+before building anything else.

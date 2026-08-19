@@ -266,23 +266,9 @@ export function validateContent(contentDir: string): ValidationResult {
     }
   }
 
-  // INVARIANT 2 (D-210): every item has a consumer. This has been declared
-  // since Phase 2 and could not be checked until recipes existed. It can now.
-  if (recipes.length > 0 || nodes.length > 0) {
-    errors.push(
-      ...findOrphans({
-        items: itemsForGraph,
-        recipes: recipes.map((r) => ({ output: r.output, inputs: r.inputs })),
-        nodes: nodes.map((n) => ({ yields: n.yields })),
-        // Authored into the world by hand or by scenario rather than made:
-        // the signet is an objective target, the note and parchment are the
-        // writing system's own, and bread is also baked.
-        otherwiseUsed: ['tarnished-signet', 'written-note', 'parchment', 'rusted-shortsword'],
-      }),
-    );
-  }
-
   const roamerIds = new Set<string>();
+  /** Everything the world's inhabitants carry, for the D-210 graph. */
+  const roamerLoot: { item: string }[] = [];
   for (const file of listJson(join(contentDir, 'roamers'))) {
     checked++;
     let data: unknown;
@@ -302,6 +288,32 @@ export function validateContent(contentDir: string): ValidationResult {
       continue;
     }
     roamerIds.add(parsed.data.id);
+    for (const drop of parsed.data.loot) {
+      roamerLoot.push({ item: drop.item });
+      if (!itemIds.has(drop.item)) {
+        errors.push(`roamer '${parsed.data.id}' drops unknown item '${drop.item}'`);
+      }
+    }
+    if (parsed.data.habitat === 'dungeon' && parsed.data.floor === undefined) {
+      errors.push(`roamer '${parsed.data.id}' lives in the dungeon but names no floor`);
+    }
+  }
+
+  // INVARIANT 2 (D-210): every item has a consumer. This has been declared
+  // since Phase 2 and could not be checked until recipes existed. It can now.
+  if (recipes.length > 0 || nodes.length > 0) {
+    errors.push(
+      ...findOrphans({
+        items: itemsForGraph,
+        recipes: recipes.map((r) => ({ output: r.output, inputs: r.inputs })),
+        nodes: nodes.map((n) => ({ yields: n.yields })),
+        loot: roamerLoot,
+        // Authored into the world by hand or by scenario rather than made:
+        // the signet is an objective target, the note and parchment are the
+        // writing system's own, and bread is also baked.
+        otherwiseUsed: ['tarnished-signet', 'written-note', 'parchment', 'rusted-shortsword'],
+      }),
+    );
   }
 
   const classIds = new Set<string>();

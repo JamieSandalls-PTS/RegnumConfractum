@@ -88,6 +88,9 @@ export interface OrphanInput {
   items: { id: string; category: string }[];
   recipes: { output: string; inputs: { item: string }[] }[];
   nodes: { yields: string }[];
+  /** What the world's inhabitants carry (D-537) — also a way an item enters
+   * the world, and the only way some of them do. */
+  loot?: { item: string }[];
   /** Items reachable some other way — objective targets, authored spawns. */
   otherwiseUsed?: string[];
 }
@@ -112,7 +115,10 @@ export function findOrphans(input: OrphanInput): string[] {
     producedByRecipe.add(r.output);
     for (const i of r.inputs) consumedByRecipe.add(i.item);
   }
-  const yielded = new Set(input.nodes.map((n) => n.yields));
+  const yielded = new Set([
+    ...input.nodes.map((n) => n.yields),
+    ...(input.loot ?? []).map((l) => l.item),
+  ]);
   const otherwise = new Set(input.otherwiseUsed ?? []);
   const problems: string[] = [];
 
@@ -163,6 +169,39 @@ export const RoamerSchema = z
     moveCooldownTicks: z.number().int().min(1).default(4),
     /** How many of this kind per qualifying area, each night. */
     perArea: z.number().int().min(0).default(4),
+    /**
+     * Where this thing lives (D-537).
+     *
+     *   - `night` — outdoor wilderness, out at dusk and gone by dawn.
+     *   - `dungeon` — a named floor, present from the moment the round opens
+     *     and never leaving. Underground has no dawn to be driven off by.
+     *
+     * The two share every line of spawn, hunt, strike and wander code. A
+     * dungeon needs a thing that walks towards you and hits you, which is
+     * exactly what the night already had; giving it a second implementation
+     * would have meant two sets of bugs.
+     */
+    habitat: z.enum(['night', 'dungeon']).default('night'),
+    /** Which dungeon floor, for `habitat: 'dungeon'`. */
+    floor: z.number().int().min(1).optional(),
+    /** Experience for putting it down. Deeper floors are worth more. */
+    xp: z.number().int().min(0).default(10),
+    /**
+     * What it was carrying. Granted straight to the killer rather than
+     * dropped: a pile on the floor of a dungeon nobody can re-enter after
+     * dusk is a reward that evaporates, and carrying the haul home yourself
+     * is what makes you worth following (D-529).
+     */
+    loot: z
+      .array(
+        z.object({
+          item: ContentIdSchema,
+          quantity: z.number().int().min(1).default(1),
+          /** 0..1. Rolled once per kill. */
+          chance: z.number().min(0).max(1).default(1),
+        }),
+      )
+      .default([]),
     notes: z.string().optional(),
   })
   .strict()

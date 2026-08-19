@@ -397,7 +397,13 @@ it deepens rather than reshapes, so nothing ever changes under anybody's
 feet, and "the lower stair opens at dawn" is a scheduled meeting. **The
 entrance seals dusk→dawn**: come up before dark or be shut in till
 morning, which stops diving being a way to earn through the night without
-night's risk. ⚠ The floors are authored and EMPTY — no contents yet.
+night's risk. **The floors are stocked (D-537):** dungeon dwellers are night roamers with
+`habitat: 'dungeon'` — one implementation, not two — arriving with the round
+and never leaving, refilling on a 90s timer. The gradient runs on xp, loot
+and damage together, and **gravebright** (floor 2+) is the material that
+makes descending more than faster mining; its only recipe also needs timber
+from the far side of the map. Loot goes straight to the killer, never to the
+floor. ⚠ All dungeon numbers unratified.
 
 **The dawn truce (D-536):** 60s at the round's opening and every dawn where
 the round's clock genuinely STOPS — no attacking, no roamer damage, no need

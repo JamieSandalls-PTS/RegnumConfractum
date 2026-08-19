@@ -1,0 +1,8 @@
+{
+  "id": "gravebright",
+  "name": "Gravebright",
+  "description": "A crust of pale mineral that only grows where light has never been. It aches to hold.",
+  "category": "base_material",
+  "stackable": true,
+  "value": 11
+}

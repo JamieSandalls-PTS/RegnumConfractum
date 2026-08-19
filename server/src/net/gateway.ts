@@ -91,6 +91,9 @@ function bearingFrom(dx: number, dy: number): 'n' | 'ne' | 'e' | 'se' | 's' | 's
   return ((ns + ew) || 'here') as 'n';
 }
 
+/** How often the dungeon tops itself back up (D-537). */
+const DUNGEON_RESPAWN_INTERVAL_TICKS = 900; // 90s
+
 /** How close you must stand to use a facility (D-530). */
 const STATION_REACH_TILES = 2;
 
@@ -343,6 +346,15 @@ export class GameServer {
   private roamerRng = new Rng(1);
   /** Each roamer's current drift, held for a stretch so they cross ground. */
   private roamerHeadings = new Map<number, Direction>();
+  /**
+   * Loot rolls draw from their OWN stream. Sharing `roamerRng` made a drop
+   * depend on how many wander rolls had happened first — which is a function
+   * of how many things were alive and how fast the machine was running, so
+   * "did it drop" was effectively random per run rather than per seed. A
+   * separate stream makes the same seed and the same kill give the same
+   * answer, which is what D-114's reproducibility is for.
+   */
+  private lootRng = new Rng(2);
 
   constructor(opts: GameServerOptions) {
     this.store = opts.store;
@@ -371,6 +383,7 @@ export class GameServer {
       });
       this.roundResolutionTicks = opts.round.resolutionTicks ?? ROUND_RESOLUTION_TICKS;
       this.roamerRng = new Rng(opts.round.seed ?? 'roamers');
+      this.lootRng = new Rng(`${opts.round.seed ?? 'roamers'}-loot`);
       this.roundDayTicks = opts.round.dayTicks ?? ROUND_DAY_TICKS;
       this.roundGraceTicks = opts.round.graceTicks ?? ROUND_GRACE_TICKS;
       // A configured minimum below anything the content can actually run is a
@@ -486,6 +499,7 @@ export class GameServer {
     await this.roundTick();
     this.nodeTick();
     if (this.roundRunning) await this.roamerTick();
+    this.dungeonRespawnTick();
     await this.needsTick();
     await this.workTick();
     this.onTickHook?.(this.world.tick);
@@ -627,6 +641,7 @@ export class GameServer {
     this.spawnNodes();
     this.spawnStations();
     this.despawnRoamers(); // a new round opens at dawn, whatever the last one left
+    this.spawnDungeon();
     this.beginGrace('You have all woken in the same place. Say what needs saying.');
     return true;
   }
@@ -1011,7 +1026,7 @@ export class GameServer {
         .entitiesIn(areaId)
         .filter((e) => e.characterId !== null && !e.ghost)
         .map((e) => e.pos);
-      for (const kind of this.content.roamers) {
+      for (const kind of this.content.roamers.filter((r) => r.habitat === 'night')) {
         for (let i = 0; i < kind.perArea; i++) {
           const at = this.findRoamerTile(def, players);
           if (!at) continue;
@@ -1063,6 +1078,72 @@ export class GameServer {
     }
     this.roamers.clear();
     this.roamerHeadings.clear();
+  }
+
+  /**
+   * Stocks the dungeon (D-537). Unlike the night's roamers these arrive with
+   * the round and never leave: underground has no dawn to be driven off by.
+   *
+   * They are spawned onto EVERY floor at round start, including floors that
+   * have not opened yet — the gate is on the stair (D-535), not on the
+   * inhabitants, so a floor is fully alive the moment its stair gives way
+   * rather than filling up while somebody watches.
+   */
+  private spawnDungeon(): void {
+    const dwellers = this.content.roamers.filter((r) => r.habitat === 'dungeon');
+    if (dwellers.length === 0) return;
+    for (const areaId of this.world.areaIds()) {
+      const def = this.world.getAreaDef(areaId);
+      if (def.dungeonFloor === undefined) continue;
+      for (const kind of dwellers.filter((d) => d.floor === def.dungeonFloor)) {
+        for (let i = 0; i < kind.perArea; i++) this.placeDweller(areaId, def, kind);
+      }
+    }
+  }
+
+  /** One dweller, somewhere walkable and not on top of anybody. */
+  private placeDweller(areaId: string, def: AreaDef, kind: RoamerDef): void {
+    const players = this.world
+      .entitiesIn(areaId)
+      .filter((e) => e.characterId !== null && !e.ghost)
+      .map((e) => e.pos);
+    const at = this.findRoamerTile(def, players);
+    if (!at) return;
+    const { entity } = this.world.spawn(areaId, {
+      characterId: null,
+      name: kind.descriptor,
+      npcDescriptor: kind.descriptor,
+      appearanceSeed: this.roamerRng.int(1, 1_000_000),
+      pos: at,
+      hp: kind.hp,
+    });
+    this.roamers.set(entity.id, kind);
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_entered', entity: toWireEntity(entity, kind.descriptor) }],
+    });
+  }
+
+  /**
+   * Refills the dungeon over time. A floor cleared once must not stay cleared
+   * for the rest of the round, or the first party down takes everything and
+   * the schedule (D-535) stops meaning anything to whoever arrives second.
+   */
+  private dungeonRespawnTick(): void {
+    if (!this.roundRunning) return;
+    if (this.world.tick % DUNGEON_RESPAWN_INTERVAL_TICKS !== 0) return;
+    for (const areaId of this.world.areaIds()) {
+      const def = this.world.getAreaDef(areaId);
+      if (def.dungeonFloor === undefined) continue;
+      for (const kind of this.content.roamers) {
+        if (kind.habitat !== 'dungeon' || kind.floor !== def.dungeonFloor) continue;
+        const alive = this.world
+          .entitiesIn(areaId)
+          .filter((e) => this.roamers.get(e.id) === kind).length;
+        if (alive < kind.perArea) this.placeDweller(areaId, def, kind);
+      }
+    }
   }
 
   /** Moves and strikes. Called every tick while a round runs. */
@@ -1127,6 +1208,29 @@ export class GameServer {
       this.roamerHeadings.set(entityId, heading);
     }
     this.world.setMoveIntent(entityId, heading);
+  }
+
+  /**
+   * Hands over what a dead thing was carrying. Granted straight to the killer
+   * rather than dropped: a pile on the floor of a dungeon nobody can re-enter
+   * after dusk is a reward that evaporates, and carrying the haul home
+   * yourself is what makes you worth following (D-529).
+   */
+  private async grantLoot(conn: ConnState, kind: RoamerDef): Promise<void> {
+    if (!conn.character || kind.loot.length === 0) return;
+    const taken: string[] = [];
+    for (const drop of kind.loot) {
+      if (this.lootRng.float() > drop.chance) continue;
+      await this.store.grantItem(conn.character.id, drop.item, drop.quantity);
+      taken.push(drop.item);
+    }
+    if (taken.length === 0) return;
+    await this.sendInventory(conn);
+    await this.store.appendEvent('loot_taken', {
+      characterId: conn.character.id,
+      from: kind.id,
+      items: taken,
+    });
   }
 
   private async roamerStrike(
@@ -2121,8 +2225,14 @@ export class GameServer {
         if (this.roundRunning && target.npcDescriptor) {
           this.round!.noteNpcDeath(target.npcDescriptor);
         }
+        // What it was worth, and what it was carrying, both come from the
+        // definition (D-537): the flat 10 xp made floor three worth exactly
+        // as much as a rabbit, which is not a gradient.
+        const kind = this.roamers.get(targetId);
+        this.roamers.delete(targetId);
         this.world.despawn(targetId);
-        this.gainXp(conn, 10);
+        this.gainXp(conn, kind?.xp ?? 10);
+        if (kind) await this.grantLoot(conn, kind);
         this.sendStatus(conn);
         const zombieInfo = this.zombies.get(targetId);
         if (zombieInfo) {

@@ -1,0 +1,8 @@
+{
+  "id": "warding-charm",
+  "name": "Warding Charm",
+  "description": "Bound gravebright on a thong of hide. It does nothing you can point to, and everyone wearing one says they sleep better.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 26
+}
