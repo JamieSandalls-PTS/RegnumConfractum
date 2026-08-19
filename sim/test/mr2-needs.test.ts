@@ -72,6 +72,9 @@ beforeAll(async () => {
       enabled: true,
       lengthTicks: 200_000,
       minCast: 2,
+      // No dawn truce here (D-536): this suite is not about it, and a
+      // 60-second peace at the round's opening would only add dead time.
+      graceTicks: 0,
       seed: 'needs-test',
       // A game hour every 60 ticks. Fast enough that thirst and hunger both
       // bite inside the suite, SLOW enough that nobody reaches 'starving'

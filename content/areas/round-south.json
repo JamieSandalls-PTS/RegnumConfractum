@@ -252,14 +252,14 @@
     {
       "x": 50,
       "y": 99,
-      "toArea": "round-dungeon",
+      "toArea": "round-dungeon-1",
       "toX": 50,
       "toY": 1
     },
     {
       "x": 49,
       "y": 99,
-      "toArea": "round-dungeon",
+      "toArea": "round-dungeon-1",
       "toX": 49,
       "toY": 1
     }

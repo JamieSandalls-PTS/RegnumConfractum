@@ -2846,3 +2846,107 @@ antagonist something particular to stand beside — or to spoil.
    tiles from the well — and spent the suite quietly drinking its fill while
    an assertion waited for "there is no water here". The lesson generalises:
    **a position that lands in a wall does not error, it teleports.**
+
+### D-535: The dungeon deepens rather than reshapes, and shuts at dusk
+
+**Stakeholder, 2026-08-19:** "Ideally, I would like it to change shape/rooms
+each day, but that requires forcing the players to leave it... Maybe there are
+3 floors, and the later floors only open on days 2/3?" And, choosing between
+the options offered: **"option 2 sounds good"** — the stairs close at dusk.
+
+**Decision: three floors, opening on successive round-days, with the entrance
+sealed between dusk and dawn.**
+
+**The floors dissolve the problem rather than working around it.** Reshaping a
+space requires it to be EMPTY, which requires evicting whoever is standing in
+it — teleporting people out of a dungeon is the kind of thing players never
+forgive. Revealing a new floor requires nothing, because nobody was ever in
+it. The stakeholder's own instinct was the answer.
+
+**And it buys something reshaping would not: a schedule.** "The lower stair
+opens at dawn" is a fixed, shared, knowable event. The cast has to gather and
+decide who goes down, which is a meeting, and meetings are where the social
+game lives. A dungeon that silently rearranged itself would give novelty; one
+that opens on a timer gives novelty *and* an argument.
+
+| Floor | Opens | Character |
+|---|---|---|
+| 1 | round start | Modest. Soloable, and too poor to hold you |
+| 2 | second dawn | Wants a partner. The reason to come back |
+| 3 | third dawn | Wants the cast — and only the round's last five minutes remain |
+
+Floor 3 opening at tick 12,000 of a 15,000-tick round means it is reachable
+for **exactly the closing daylight and not one minute of night**. A climax you
+cannot fully exploit is what makes it tempting.
+
+**The entrance seals at dusk, and that is the interesting half.** The dungeon
+is the one place roamers cannot reach (D-529), so leaving it open would make
+diving the correct way to earn through the night without taking night's risk
+— precisely the inversion D-528 restricted the night bonus to prevent.
+Sealing it makes dusk a decision with teeth: **come up now, or be shut in
+until morning.** Being locked below overnight is a good horror beat, and it
+hands the antagonist a sealed room with a known set of people in it.
+
+**Only the ENTRANCE seals.** Movement between floors already reached stays
+open, so being caught below is frightening rather than merely idle.
+
+**Both gates narrate rather than fail silently.** A stair that simply does
+nothing reads as a bug, and players need to know a way exists *before* it
+opens in order to plan around it. The geometry is always connected; the
+gating is entirely server-side.
+
+**⚠ Not built: per-round procedural layout.** Generating the floors' shape at
+round start — before anyone is inside, so the same eviction problem never
+arises — would give variety ACROSS rounds to go with the deepening WITHIN a
+round. The floors are currently authored and identical every time. This is
+the obvious next step and it is a self-contained one.
+
+**⚠ Not built: the dungeon's contents.** Three floors of empty cavern. No
+monsters, no loot, no reason to descend yet. D-523 called the dungeon the
+round's separation engine; it cannot separate anybody until there is
+something down there.
+
+### D-536: The dawn truce — sixty seconds where the day does not start
+
+**Stakeholder, 2026-08-19:** "ensure there is a 60 second grace window at dawn
+before the day actually begins ticking down... survivors should have 60
+seconds to discuss their plans, illnesses, injuries, etc." And: "During this
+grace window, no player can attack, take damage, or starve, or transition to
+new zones."
+
+**Decision: a hard, total truce of 600 ticks at the round's opening and at
+every dawn.** Not a quiet period — a **stopped clock**.
+
+**The round's clock genuinely pauses.** Paused ticks are counted and
+subtracted from every round-clock reading, so the countdown does not run, the
+day-night cycle does not advance, and needs do not deepen. A truce that merely
+suppressed damage would still be spending the round's time, and players would
+notice they were being charged for their own meeting.
+
+**Four prohibitions, each a way the truce could be quietly incomplete:**
+
+| | Why it would otherwise leak |
+|---|---|
+| No attacking | the obvious one |
+| No roamer damage | the wild things do not observe truces unless told to |
+| No need progression | starving through a truce is taking damage by another name |
+| No leaving the area | the antagonist could skip the one moment it must answer questions |
+
+A truce with a hole in it is **worse than none**, because players will have
+planned around it.
+
+**Why this matters more than it looks.** The Round is a game about people
+talking to each other (D-521), and a mode that never stops moving never lets
+them. Dawn is when the survivors count themselves, show their wounds, and
+argue about who goes where — and it is the one moment **the antagonist has to
+lie in front of everybody, with no way to end the conversation by violence.**
+This is the closest thing MR has to a scheduled scene, and it costs sixty
+seconds of a twenty-five minute round.
+
+**It is visible.** `round_state` carries `graceTicks` and the HUD shows
+`dawn · 0:47` in place of the countdown. A safety you can only discover by
+trying to hit someone is not a safety anyone will plan around.
+
+**⚠ Note for tests:** every suite that is not about the truce sets
+`graceTicks: 0`. Five of them had to, and they all failed loudly first —
+which is the right failure, since the truce works.

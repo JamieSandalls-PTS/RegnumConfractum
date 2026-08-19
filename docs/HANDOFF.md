@@ -1,286 +1,191 @@
-# Session handoff — written 2026-08-18 (combat & cloth session)
+# Session handover — written 2026-08-19 (MR1 complete, MR2 most of the way)
 
 **For the next Claude Code session.** Read `CLAUDE.md` first as always; this
-file is the working context that doesn't belong in the ADR: where things
-stand mid-milestone, what to do next, and the traps already stepped in once.
-Delete or rewrite this file at the end of the next session.
+file is the working context that does not belong in the ADR — where things
+stand, what to do next, and the traps already stepped in once so you do not
+have to step in them again. Rewrite it at the end of your session.
 
 ---
 
 ## Where the project stands
 
-M0–M4 complete; the post-M4 **UI-before-M5 milestone** (stakeholder ruling)
-is well underway. This session shipped D-515 through D-520:
+**Branch `mr-round-spine`, 17 commits ahead of `main`. Main is untouched.**
+The stakeholder has not asked for a merge; ask before fast-forwarding.
 
-- **D-515** — character creation screen (calling → skills → feats → spells
-  → name), split pixelation reinstated with a depth-tested composite and a
-  Graphics settings panel, speech bubbles over speakers. Creation
-  catalogues are content (`content/skills|feats|spells/`);
-  `validateBuild()` in `shared/` is the single rule set; migration
-  `0008_character_build.sql`; tests `sim/test/m5a-creation.test.ts`.
-- **D-516** — combat state (server-owned, enter on attack/hostility, leave
-  after 10s quiet AND no hostile within 20 tiles), weapons sheathe to the
-  back out of combat, four server-chosen attack variants + caster cast,
-  projectile/particle effects (`client/src/render/effects.ts`), carryable
-  corpses gated on Athletics vs the dead build's burden. Tests
-  `sim/test/m5b-combat-state.test.ts`.
-- **D-517** — the viewer is TABBED (Cast / Animation / Cloth / Render),
-  one live scene; the Cloth tab is a full workbench (re-pin to any bone,
-  resize, recollide, retune physics, export JSON). `cloth-lab.ts` /
-  `cloth-ui.ts`.
-- **D-518** — death is a verlet RAGDOLL (`client/src/render/ragdoll.ts`),
-  driven by the killing blow's direction; bodies stay down; corpses seen
-  fresh fast-forward to settled. Tests `client/test/ragdoll.test.ts`.
-- **D-519** — garments are cut to the BODY: rig-derived `capeAnchorY`, cut
-  from shoulder span, collar from head size. Tests
-  `client/test/garment-scale.test.ts` (fails against the old formulas).
-- **D-520** — the stakeholder's workbench exports for cape, skirt and
-  sleeves are BAKED into `CharacterVisual`; hood flap physics removed
-  entirely; workbench presets re-baselined so its zero = the game.
+**317 tests green**, content validator green over 52 files.
+`npm run typecheck && npm run validate:content && npx vitest run`.
 
-## ⚠ Scope change landed after this handoff was written
+The project pivoted this session-series to **MR — the Round** (D-521): a
+20–30 minute scenario with a hidden antagonist and no respawn. The persistent
+world (M5–M7) is resequenced behind it, not cancelled.
 
-**2026-08-18, D-521:** the shipping target is now **MR — the Round**
-(20-30 min scenario, hidden antagonist, no respawn). See CLAUDE.md's
-current position and BUILD_PLAN's MR section. The priority list below is
-superseded where it conflicts: **inventory UI is promoted** (MR2 cannot
-exist without it), **richer injuries and Plane Shift are demoted**, and
-the immediate next build is **MR1, the round spine**. Combat-feel
-iteration with the stakeholder still stands and is independent.
+### MR1 — the round spine: COMPLETE
 
-**D-522 followed the same day:** characters are **persistent** across
-rounds (xp/level kept, gear stripped), creation is at a roster screen
-outside the round, minimum cast three. Two hard rules for whoever builds
-MR2: **no xp for player kills** and **levels buy access, not power**.
+Round lifecycle on its own clock, secret antagonist assignment, objectives as
+validated content, victory evaluation, no-respawn death, xp banking and
+forfeit, round reset, day/night lighting, free-but-loud violence, the cross
+map, the HUD, and the combat sound cue. Verified live in three browsers.
 
-**D-523/D-524 same day:** the **dungeon** is the round's separation engine
-(per-round reset, `wilderness` tier — **never `endgame`**, which would
-permadeath a persistent character); **recognition memory resets each
-round**; **dying forfeits that round's xp**. Antagonist assignment must
-stay **random** — D-524's recognition reset depends on it.
+### MR2 — the loop inside the round: MOSTLY BUILT
 
-**D-525/D-526 same day:** characters **keep** their names and faces across
-rounds; what wipes is the **recognition system's per-observer knowledge** —
-round-scoped state, never written to the persistent character record.
-(D-525 briefly recorded a per-round-anonymity mechanism; that was an
-over-reading, withdrawn, and the entry now says so.) **Food and water** are in as the anti-camping mechanic and
-farming's consumer — coarse events on the day-night cycle, never a
-draining bar, no death spiral. Cast of three is carried by objectives that
-never need the antagonist to win a fight.
+| Piece | State |
+|---|---|
+| Gathering and crafting | built, bot-verified, playable in the client |
+| Invariant 2 (no orphan items) | **ENFORCED in CI** — first time since Phase 2 |
+| Night roamers (D-532) | built, bot-verified |
+| Hunger and thirst (D-533, D-534) | built, bot-verified; starvation kills |
+| Stations as real objects (D-534) | built |
+| Three dungeon floors (D-535) | **geometry and gates built, CONTENTS EMPTY** |
+| Dawn truce (D-536) | built, bot-verified |
+| Storehouse depletion | **NOT BUILT — see below** |
 
-**D-527:** day-night cycle is **10 real minutes** (5 day / 5 night), on the
-round's own clock; a round **opens at dawn** so 25 min = exactly two
-nights. **Night NPCs roam outdoors** — the third movement force. Needs an
-`outdoor` flag on areas (do NOT overload `lighting`).
+---
 
-## Next work (rough priority — pre-D-521, retained for context)
+## What to do next, in the order I would do it
 
-1. **Combat-feel iteration with the stakeholder** — they now have the full
-   loop (stance, draw/sheathe, four swings, cast bolts, ragdoll death,
-   body carrying) plus the viewer to inspect it. Expect tuning requests:
-   swing timing, bolt speed, combat-leave window (all flagged unratified).
-2. **Inventory / character-sheet UI** — the stakeholder said "we will get
-   into the inventory system later"; body-carrying already touches it.
-3. **M4b remainder** — richer injuries (D-205 matrix), Vessel's
-   Plane Shift, class skills/balance beyond the scaffold.
-4. **Tavern zone dressing round 2** — chairs/hearth/ambience shipped;
-   likely next: more prop variety, hearth in the main hall wall,
-   sound-level tuning.
+### 1. The dungeon's contents ⚠ the biggest hole
 
-## Open items that need JAMIE, not code
+Three floors of empty cavern. **No monsters, no loot, no reason to descend.**
+D-523 calls the dungeon the round's separation engine — the thing that pulls
+the cast apart voluntarily so the antagonist can act — and it cannot separate
+anybody while it is empty. Everything else in MR2 is finished enough to play
+around; this is not.
 
-- **Creation budget (D-515):** 120 pts / 40 cap / 2 feats / 3 spells —
-  placeholder balance in `shared/src/content.ts`.
-- **Combat tuning (D-516):** 10s/20-tile combat window, 4-swing roster,
-  `CARRY_BASE_CAPACITY + athletics` carry formula — first-pass numbers.
-- **Legacy-locked class pricing (D-512)** and **zero Legacy award on
-  involuntary endgame death (D-513)** — still unratified.
-- **The M2 go/no-go test** — two writers, ninety minutes, the tavern.
-  Still never run; BUILD_PLAN's declared gate, and the oldest unpaid debt.
-- **Hood reference photos** still only exist in chat (2026-08-17/18);
-  worth asking for copies in docs/reference/.
+Needs: a per-floor monster table (the roamer system in `gateway.ts` is the
+obvious thing to generalise — it already spawns, hunts, strikes and despawns),
+loot on death, and a reward gradient that makes floor 2 worth the second day.
 
-## MR1 state (this session)
+### 2. The storehouse must RUN OUT
 
-Branch `mr-round-spine`. The round spine is **built and bot-verified**:
-`shared/src/round.ts` (objectives, phases, D-527 clock),
-`server/src/game/round.ts` (pure engine), gateway wiring, wire v4
-(`round_state` / `round_role` / `round_ended`), `content/objectives/`
-(3 live, 2 planned), `sim/test/mr1-round.test.ts` + `server/test/round.test.ts`.
-**232 tests green.**
+D-529 identified this and it is still open. **Hiding in town beats the clock**
+unless the town's food supply depletes. Bread needs grain, grain is on the
+farm, so the pressure exists in principle — but nothing stocks the town with a
+starting supply that then runs down. A cast that begins fed and never leaves
+is only pressured after the first hunger step.
 
-⚠ **Two traps found the hard way, both now covered by tests:**
-- **`gainXp(conn, 25)` on a PLAYER kill violated D-522** — the persistent
-  world pays 25 xp + 5 deeds for killing a player, which in a round is
-  literally payment for lynching. Now gated on `!this.roundRunning`.
-  **Do not remove that guard.**
-- A round **opens at dawn**, not midnight. `roundHour()` carries a
-  `ROUND_DAWN_HOUR` offset; without it a 25-min round gets three nights
-  starting in the dark.
+This is content and tuning, not systems. Probably: a storehouse stock counter
+that starts at N meals and is drawn down by eating at the facility.
 
-⚠ **Two test traps from this session:** (1) `enterCombat(self)/(target)`
-appears in BOTH `handleHostile` and `handleAttack` — a naive
-find-and-replace patches the wrong one, and combat noise silently fired
-on declarations instead of blows. (2) A bot test that attacks another
-PLAYER changes who is alive and therefore decides the round later tests
-are trying to observe; hit a spawned throwaway NPC instead. `ATTACK_RANGE`
-is 1, so spawn it at `x + 1`, not `x + 2`.
+### 3. Per-round procedural dungeon layouts (D-535)
 
-**Test pacing:** the server runs **~60 ticks/s under test load**, not the
-nominal 200 — a `lengthTicks` budget sized as if 200 will blow the 30s
-vitest timeout. Prefer ending a test round by the DEED (spawn an NPC next
-to the antagonist via `server.spawnNpc`) rather than waiting on the clock.
+The floors are authored and identical every round. Generating their shape at
+**round start** — before anyone is inside, so the eviction problem never
+arises — gives variety across rounds to go with the deepening within one.
+Self-contained; the round already spawns nodes, roamers and stations into an
+empty world, and a layout is the same move.
 
-**The cross map is built** (D-529/D-530): `round-town` (settled, the
-well/tavern/workshop/storehouse/infirmary) with `round-farm` N,
-`round-mine` E, `round-wood` W, `round-south` S (all wilderness +
-outdoor), and `round-dungeon` beneath the south approach (wilderness,
-NOT outdoor, NOT endgame). **100×100 by measurement, not by feel** — at
-64×64 a mid-depth errand measured 20s against D-530's 30-45s ruling;
-at 100 it measures ~30s and a deep one ~45s. Regenerate with
-`python tools/src/build-round-map.py`; `server/test/round-map.test.ts`
-asserts zones, outdoor flags, the transition graph and the travel band,
-so none of it can drift silently.
+### 4. Facility potency beyond meals (D-530)
 
-**D-531 landed:** in a round, hostility declaration is OFF and every blow
-emits a `sound` (wire v5) to everyone within 30 tiles — no LOS, no
-identity, never across the plane. Client work outstanding: **play the
-audio cue** on `sound` (server sends `kind`/`bearing`/`distance`/`text`).
+Stations are real objects now, so the door is open. Eating at the storehouse
+already holds you 1.5× longer. Healing at the infirmary should beat a field
+bandage; crafting at the workshop should beat improvising. ⚠ Keep the band at
+**1.5×–2×**: if facilities are much better, field goods become worthless,
+everyone pools, and one act of sabotage decides every round.
 
-**MR1 is complete.** The round HUD is built (`client/src/game/round-hud.ts`,
-markup + styles in `client/index.html`) — clock, countdown, cast size, the
-antagonist's objective card, and the end-of-round reveal. The `sound`
-message plays a procedural steel cue (`Ambience.combat`, panned by bearing,
-attenuated by near/far) and prints its line to the chat log.
+---
 
-**Verified live, three browsers, round mode on:** lobby held at 2/3 and
-started at 3; exactly ONE client showed an objective card; the clock read
-☀ 06:00 at the start and advanced to 12:00; an attack in the SETTLED town
-needed no declaration; a third player 3 tiles away saw "Steel and shouting,
-to the east." while the attacker saw nothing. Screenshot flow in this
-session's history.
+## Blocked on the stakeholder
 
-**To run it yourself:**
-`DATABASE_URL=... ROUND_MODE=1 ROUND_MIN_CAST=3 DEFAULT_AREA_ID=round-town`
-(plus optional `ROUND_LENGTH_TICKS`, `ROUND_SEED`). Round mode is OFF by
-default — an unconfigured server is still the persistent world.
+- **Night tuning** — roamer `perArea` and `aggroTiles` together decide whether
+  night is a decision or a wall. Currently 8 dogs (aggro 20) and 3 walkers
+  (aggro 26) per outdoor wilderness area, after measurement showed the first
+  guess was far too sparse.
+- **Whether roamers may enter settled areas.** I ruled NO to keep the town a
+  refuge; it is one line in `roamerAreas()`.
+- **Whether an objective may sit inside the dungeon.**
+- **Multiple antagonists above a cast size**, and whether they know each other.
+- **Minimum party size to enter the dungeon** at low cast counts.
+- **What a revived player returns with.**
+- Older, still open: creation budget (D-515), combat window and carry formula
+  (D-516), Legacy class pricing (D-512), zero-award endgame death (D-513).
 
-⚠ **Audio not confirmed audible.** The graph is wired and throws no console
-errors, but browsers only unlock an AudioContext on a REAL user gesture;
-scripted clicks do not count. Someone has to click the page and listen. **MR2:** night
-roamers, hunger, gathering/crafting, facility potency (D-530), and the
-dungeon's contents — the areas exist but are empty.
+---
 
-## MR2 in progress — gathering and crafting (server side done)
+## How to run it
 
-`shared/src/gathering.ts` (node + recipe schemas, `findOrphans`),
-`content/nodes/` (5), `content/recipes/` (4), 6 new items, nodes placed by
-`tools/src/build-round-map.py` on all four spokes. Server: nodes are
-ENTITIES (wire kind `node`), spawned by the round and cleared at reset;
-`harvest`/`craft`/`cancel_work` verbs; work is timed and interruptible.
-Wire is v6. `sim/test/mr2-gathering.test.ts` (11 tests).
+```bash
+npm run db:up   # Docker Desktop must already be RUNNING — start it by hand
+```
 
-✅ **INVARIANT 2 IS NOW ENFORCED.** D-210's orphan check has been declared
-since Phase 2 and was uncheckable until recipes existed. `findOrphans` runs
-in CI: a base material no recipe consumes, or that no node yields, fails the
-build. Verified by adding an orphan and watching it fail.
+Then, for round mode (it is **OFF by default** — an unconfigured server is
+still the persistent world):
 
-⚠ **`atStation()` is coarse:** a "workshop" recipe currently means "you are
-in round-town". The buildings are authored geometry with no identity of
-their own. MR3 should make stations real placed objects.
+```bash
+DATABASE_URL=postgres://rc:rc@localhost:5433/regnum ROUND_MODE=1 ROUND_MIN_CAST=3 DEFAULT_AREA_ID=round-town npm run dev:server
+```
 
-⚠ **Two bugs found by tests, worth not re-introducing:** (1) `spawnNodes`
-wrote to the world without broadcasting, so nodes were invisible to every
-client that snapshotted before the round began — which is all of them.
-(2) `sendWork` read `conn.work` to label its report, but completion clears
-that slot first, so **every finished craft reported as a harvest**. The job
-is passed in explicitly now.
+Optional: `ROUND_LENGTH_TICKS`, `ROUND_SEED`. Note **5433, not 5432**; without
+`DATABASE_URL` the pg suites silently skip.
 
-**Test notes:** the mine is dense with rock and a greedy walker wedges
-itself on the first outcrop — `mr2-gathering.test.ts` reuses the CLIENT's A*
-(`client/src/game/path.ts`). And ONE blow interrupts work: do not loop
-attacks in a test, it kills the subject and breaks every later test.
+Client: `npm run dev:client`, two or three browser windows on
+`http://localhost:5173`. Accounts `jamie_dev_one/two`, password
+`dev-only-passphrase`. In game: **I** for the pack, **C** for the workbench,
+right-click a node to "Work it".
 
-**The client side is built too.** `NodeVisual` in `main.ts` draws nodes as
-rock / timber / scrub chosen from the server's descriptor (rendering them
-through `CharacterVisual` would stand seventeen people in the mine).
-Right-click a node → **Work it**. **I** opens the pack, **C** the
-workbench; a work bar shows progress and reports interruptions. The wire
-message is now `catalogue` (items + recipes together) so the client can
-show "Iron Ore" rather than `iron-ore`. Craft arithmetic is pure and
-tested: `client/src/game/pack.ts`, `client/test/pack.test.ts`.
+⚠ **`DEFAULT_AREA_ID` only applies to NEW characters.** Existing ones load at
+their saved position, so a dev character stays wherever it last stood. This
+wasted a walk across two areas before I noticed.
 
-**Verified live in the mine:** node rendered as a pale boulder among the
-terrain rock; harvest ran the bar and yielded; pack showed "Iron Ore 1";
-workbench listed all four recipes correctly disabled, with per-input
-shortfalls in red and "needs the workshop / storehouse" where the station
-was wrong.
+Regenerate the map with `python tools/src/build-round-map.py`.
 
-⚠ `DEFAULT_AREA_ID` only applies to NEW characters — existing ones load at
-their saved position, so a dev character stays wherever it last stood.
+---
 
-**Still to build in MR2:** hunger and thirst (D-526), facility potency
-(D-530), night roamers (D-527/D-529), and the dungeon's contents.
+## Traps, all paid for once already
 
-## How to work in this repo (hard-won specifics)
+**Test traps**
 
-- **Dev loop:** `npm run db:up` (Docker Desktop must be RUNNING — start it
-  manually), then `npm run dev:server` + `npm run dev:client`. Full verify:
-  `npm run typecheck && npm run validate:content && npm test` with
-  `DATABASE_URL=postgres://rc:rc@localhost:5433/regnum` (5433, not 5432!).
-  Without DATABASE_URL the pg suites silently skip.
-- **Tests are the review** (D-114). Suite: **198 tests**, all green at
-  handoff, committed on main.
-- **Windows shell:** `Start-Process npx` fails — background the server with
-  `node node_modules/tsx/dist/cli.mjs server/src/index.ts`. Don't chain
-  `$env:X='y'; cmd1 && cmd2` — use separate statements.
-- **The visual iteration loop** (use for ALL model/anim/cloth work):
-  shot-receiver script in the scratchpad + browser pane on `/viewer.html`,
-  drive `window.__viewer` (`solo`, `setAnim`, `setPixel`, `view`,
-  `advance`, `await shoot(name)`, `sheet(name)` for the 8-direction
-  Muybridge grid, `visuals()` for state inspection). The pane throttles
-  timers when hidden: `setTimeout` stalls and busy-waits block the
-  websocket callbacks — send in one `javascript` call, read in the next;
-  1s `setInterval` still fires for slow marches.
-- **Review standard (stakeholder):** garment/model changes are judged on
-  ALL FOUR archetypes from EIGHT directions — `sheet()` after soloing one
-  extreme seed per archetype. The sheet frames from the character's own
-  height (used to decapitate brutes).
-- **Garment sizing (D-519/D-520):** `appearance.height` is NOT rig height.
-  Hanging garments size off `measurements.capeAnchorY`; cuts off shoulder
-  span; collars off `headH`. Tune in the viewer's Cloth tab, export, and
-  bake the export into `CharacterVisual` — presets must be re-baselined to
-  match afterwards so the workbench zero stays truthful.
-- **Ragdoll traps** (all covered by tests, don't re-learn): verlet impulse
-  needs ×dt on the first step; settle checks need an age guard; the floor
-  is where the character STOOD, not root height; `setDead(false)` must
-  clear `deathStart` or the guard blocks every later fall.
-- **Split-render traps:** lights AND camera need `layers.enableAll()`
-  AFTER terrain builds (the hearth adds lights); the composite must
-  depth-test both passes (`palette.ts`) or characters float over walls.
-- **Bot-test flake traps:** never `Promise.race` two `bot.expect(...)`
-  calls; character names are LETTERS ONLY (no digits); tests shrink combat
-  pacing via `combatLeaveTicks`/`combatProximityTiles` server options.
-- **Albedo lesson:** if a new prop renders near-black, brighten the
-  ALBEDO, not the lights.
+- **A death ends the round, and a round reset clears everything.** Any suite
+  with a bot that dies — starving, or alone in the wilderness at dusk — is
+  measuring the reset rather than the thing it meant to measure. Starvation
+  has its own file and its own server for exactly this reason.
+- **One blow interrupts work.** Do not loop attacks in a test: the first swing
+  does the job and the rest kill the subject, breaking every later test.
+- **`ATTACK_RANGE` is 1.** Spawn a target at `x + 1`, not `x + 2`.
+- **An unwalkable spawn is silently RELOCATED to the area spawn.** A bot placed
+  on the tavern's wall corner ended up two tiles from the well and spent a
+  whole suite quietly drinking while an assertion waited for "no water here".
+  A position in a wall does not error — it teleports.
+- **The server runs ~60 ticks/s under test load, not the nominal 200.** Budget
+  `lengthTicks` accordingly, or better, end a test round by the DEED (spawn an
+  NPC next to the antagonist via `server.spawnNpc`) rather than by the clock.
+- **`round.dayTicks` and `round.graceTicks` are server options** so tests can
+  reach dusk or skip the truce. Every suite not about the truce sets
+  `graceTicks: 0`.
+- **The mine is dense with rock and a greedy walker wedges on the first
+  outcrop.** `mr2-gathering.test.ts` reuses the CLIENT's A*
+  (`client/src/game/path.ts`).
 
-## Manual testing quick-reference (for Jamie)
+**Code traps**
 
-Two browser windows on `http://localhost:5173`, accounts
-`jamie_dev_one/two` (password `dev-only-passphrase`). The creation wizard
-runs on "Begin someone new". Combat: right-click → Attack (wilderness
-yard; declare hostility first in the settled tavern), watch the draw →
-stance → swing → ragdoll loop; corpses offer "Carry the body". ⚙ Settings
-(top right in-game) tunes pixelation live. The viewer at `/viewer.html`
-has tabs: Cast (seeds/editor), Animation (all clips incl. combat + both
-deaths), Cloth (the workbench — export JSON and paste it to Claude to
-bake), Render (lighting/pixelation).
+- **`enterCombat(self)/(target)` appears in BOTH `handleHostile` and
+  `handleAttack`.** A naive find-and-replace patches the wrong one; combat
+  noise silently fired on declarations instead of blows for a while.
+- **`sendWork` must be passed the job explicitly.** Completion clears
+  `conn.work` first, so reading it there reported every finished craft as a
+  harvest.
+- **Spawning into the world does not tell anybody.** `spawnNodes` wrote
+  entities with no broadcast and they were invisible to every client that
+  snapshotted before the round began — which is all of them, since the round
+  is what spawns them.
+- **The xp guard on player kills must not be removed.** `gateway.ts`
+  `handleAttack` grants 25 xp + 5 deeds for killing a player in the persistent
+  world; in a round that is payment for lynching, so it is gated on
+  `!this.roundRunning`. `sim/test/mr1-round.test.ts` asserts it.
+- **Never make the round dungeon `endgame` tier.** That carries involuntary
+  permadeath, and a round death must not cost a character levelled across
+  fifty rounds. `server/test/round-map.test.ts` asserts it.
+- **Do not infer `outdoor` from `lighting`.** Lighting is a render profile; a
+  bright cavern or a gloomy field breaks the coupling immediately.
 
-## State of the running dev environment at handoff
+**Older, still true** — Windows shell: `Start-Process npx` fails; background
+the server with `node node_modules/tsx/dist/cli.mjs server/src/index.ts` and
+redirect to a file (piping to `head` closes the stream and kills it). Do not
+chain `$env:X='y'; cmd1 && cmd2`.
 
-- Dev Postgres container `regnumconfractum-db-1` (port 5433) was running.
-  Migrations through `0008_character_build.sql` applied.
-- A game server may be running on :8080 from this session (background
-  task); kill the listener before starting a new one
-  (`Get-NetTCPConnection -LocalPort 8080`). The vite client on :5173 may
-  belong to ANOTHER session — it serves the same files; just reuse it.
+---
+
+## The one thing I would tell you if you only read a sentence
+
+MR2's systems are largely done and the round is playable, but **the dungeon is
+empty**, and the dungeon is the mechanism that makes a hidden antagonist
+possible at all. Fill it before tuning anything else.

@@ -53,7 +53,10 @@ import {
   type RoamerDef,
   ROAMER_SPAWN_CLEARANCE,
   ROUND_DAY_TICKS,
+  ROUND_GRACE_TICKS,
   DIRECTIONS,
+  dungeonEntranceOpen,
+  dungeonFloorOpen,
   HUNGER_WORK_MULTIPLIER,
   THIRST_MAX_HP_FRACTION,
   deepen,
@@ -162,6 +165,8 @@ export interface GameServerOptions {
     resolutionTicks?: number;
     /** Length of one day-night cycle. Tests shrink it; the rule is tick-based. */
     dayTicks?: number;
+    /** Length of the dawn truce (D-536). Tests shrink it. */
+    graceTicks?: number;
   };
   log?: (msg: string) => void;
 }
@@ -311,6 +316,16 @@ export class GameServer {
   private roundLastNight: boolean | null = null;
   /** One full day-night cycle for this server (D-527); tests shrink it. */
   private roundDayTicks = ROUND_DAY_TICKS;
+  /** Length of the dawn truce (D-536); tests shrink it. */
+  private roundGraceTicks = ROUND_GRACE_TICKS;
+  /** World tick the current truce ends at, or null when the day is running. */
+  private roundGraceUntil: number | null = null;
+  /**
+   * Total ticks the round's clock has been stopped for. Everything on the
+   * round clock is measured against `world.tick - this`, so a truce genuinely
+   * pauses the day rather than merely suppressing its effects.
+   */
+  private roundPausedTicks = 0;
   /**
    * XP earned this round, per connection, banked to the character only if
    * they are alive at the end (D-524). Dying forfeits the round's earnings —
@@ -357,6 +372,7 @@ export class GameServer {
       this.roundResolutionTicks = opts.round.resolutionTicks ?? ROUND_RESOLUTION_TICKS;
       this.roamerRng = new Rng(opts.round.seed ?? 'roamers');
       this.roundDayTicks = opts.round.dayTicks ?? ROUND_DAY_TICKS;
+      this.roundGraceTicks = opts.round.graceTicks ?? ROUND_GRACE_TICKS;
       // A configured minimum below anything the content can actually run is a
       // server that fills its lobby and never starts. That is a
       // misconfiguration, and it belongs in the log at boot rather than being
@@ -435,7 +451,11 @@ export class GameServer {
             const conn = [...(this.connsByArea.get(areaId) ?? [])].find(
               (c) => c.entityId === event.id,
             );
-            if (conn && this.confirmEndgameEntry(conn, areaId, event.x, event.y, tr.toArea)) {
+            if (
+              conn &&
+              this.dungeonGateAllows(conn, areaId, tr.toArea) &&
+              this.confirmEndgameEntry(conn, areaId, event.x, event.y, tr.toArea)
+            ) {
               transfers.push({ conn, toArea: tr.toArea, toX: tr.toX, toY: tr.toY });
             }
           }
@@ -498,12 +518,42 @@ export class GameServer {
 
   /** Ticks elapsed in the current round - the origin of its own clock. */
   private roundTickOffset(): number {
-    return Math.max(0, this.world.tick - this.roundStartedAtTick);
+    return Math.max(0, this.roundEffectiveTick() - this.roundStartedAtTick);
+  }
+
+  /** World tick minus every tick the round has been paused for (D-536). */
+  private roundEffectiveTick(): number {
+    return this.world.tick - this.roundPausedTicks;
+  }
+
+  /** True while the dawn truce holds: no clock, no harm, no leaving. */
+  private get inGrace(): boolean {
+    return this.roundGraceUntil !== null && this.world.tick < this.roundGraceUntil;
+  }
+
+  /** Opens a truce and tells everyone why the world has gone quiet. */
+  private beginGrace(reason: string): void {
+    if (this.roundGraceTicks <= 0) return;
+    this.roundGraceUntil = this.world.tick + this.roundGraceTicks;
+    this.broadcastNarrate(reason);
+    this.broadcastRoundState();
   }
 
   private async roundTick(): Promise<void> {
     const r = this.round;
     if (!r) return;
+    if (this.inGrace) {
+      // The day does not advance. Counted rather than skipped, so every
+      // round-clock reading stays consistent with itself.
+      this.roundPausedTicks++;
+      if (this.world.tick % 10 === 0) this.broadcastRoundState();
+      return;
+    }
+    if (this.roundGraceUntil !== null && this.world.tick >= this.roundGraceUntil) {
+      this.roundGraceUntil = null;
+      this.broadcastNarrate('The day begins.');
+      this.broadcastRoundState();
+    }
     if (r.phase === 'lobby') {
       const cast = this.roundCast();
       if (cast.length >= r.minimumCast && (await this.startRound(cast))) return;
@@ -516,7 +566,7 @@ export class GameServer {
     }
     if (r.phase === 'running') {
       this.roundDayNightTick();
-      const resolution = r.evaluate(this.world.tick);
+      const resolution = r.evaluate(this.roundEffectiveTick());
       if (resolution) await this.finishRound(resolution);
       else if (this.world.tick % 10 === 0) this.broadcastRoundState();
       return;
@@ -527,7 +577,7 @@ export class GameServer {
   }
 
   private async startRound(cast: { characterId: string; entityId: number }[]): Promise<boolean> {
-    const assignment = this.round!.start(cast, this.world.tick);
+    const assignment = this.round!.start(cast, this.roundEffectiveTick());
     if (!assignment) {
       // Complain ONCE per change of circumstance, not once per tick. The
       // first version logged this ten times a second.
@@ -541,7 +591,7 @@ export class GameServer {
       return false;
     }
     this.lobbyStuckAt = null;
-    this.roundStartedAtTick = this.world.tick;
+    this.roundStartedAtTick = this.roundEffectiveTick();
     this.roundLastNight = null;
     this.roundXp.clear();
     this.roundDead.clear();
@@ -577,6 +627,7 @@ export class GameServer {
     this.spawnNodes();
     this.spawnStations();
     this.despawnRoamers(); // a new round opens at dawn, whatever the last one left
+    this.beginGrace('You have all woken in the same place. Say what needs saying.');
     return true;
   }
 
@@ -592,8 +643,17 @@ export class GameServer {
     this.roundLastNight = night;
     // Dusk puts them out; dawn takes them back. Survivors do not linger —
     // night is a phase, not a growing infestation.
-    if (night) this.spawnRoamers();
-    else this.despawnRoamers();
+    if (night) {
+      this.spawnRoamers();
+    } else {
+      this.despawnRoamers();
+      // Dawn: the survivors get a minute before the day starts (D-536).
+      if (announce) {
+        this.beginGrace(
+          'Grey light, and everyone still standing. There is a little time before the day starts properly.',
+        );
+      }
+    }
     // At round start there is no transition to announce — the sun did not
     // just come up, the round merely began. Without this every round opened
     // with "it is over, for a while", which reads as the end of a night
@@ -640,10 +700,13 @@ export class GameServer {
       phase: r.phase,
       cast: this.roundCast().length,
       minCast: r.minimumCast,
-      remainingTicks: r.remainingTicks(this.world.tick),
+      remainingTicks: r.remainingTicks(this.roundEffectiveTick()),
       // Outside a running round the clock has no meaning; show first light.
       hour: running ? roundHour(offset, this.roundDayTicks) : 6,
       night: running ? isNight(offset, this.roundDayTicks) : false,
+      graceTicks: this.roundGraceUntil === null
+        ? 0
+        : Math.max(0, this.roundGraceUntil - this.world.tick),
     };
     for (const conn of this.conns) {
       if (conn.character) this.send(conn, msg);
@@ -708,6 +771,8 @@ export class GameServer {
     for (const conn of this.conns) this.interruptWork(conn, 'the round ended');
     this.round!.reset();
     this.roundResetAtTick = null;
+    this.roundPausedTicks = 0;
+    this.roundGraceUntil = null;
     this.roundStartedAtTick = this.world.tick;
     this.roundLastNight = null;
     this.roundXp.clear();
@@ -794,7 +859,7 @@ export class GameServer {
   }
 
   private async needsTick(): Promise<void> {
-    if (!this.roundRunning) return;
+    if (!this.roundRunning || this.inGrace) return;
     const hours = this.roundElapsedHours();
     for (const conn of this.conns) {
       if (!conn.character || conn.entityId === null || !conn.vitals) continue;
@@ -1071,6 +1136,7 @@ export class GameServer {
     areaId: string,
   ): Promise<void> {
     if (!victim.vitals || victim.entityId === null) return;
+    if (this.inGrace) return; // the truce binds the wild things too (D-536)
     const damage = this.roamerRng.int(kind.damageMin, kind.damageMax);
     this.enterCombat(roamer, areaId);
     this.enterCombat(this.world.getEntity(victim.entityId), areaId);
@@ -1542,6 +1608,58 @@ export class GameServer {
    * endgame area does NOT cross — it warns. Stepping off and back on within
    * the window confirms. Ghosts pass freely; they have nothing left to lose.
    */
+  /**
+   * The dungeon's stairs (D-535). Two gates, both narrated rather than
+   * silent — a stair that simply does nothing reads as a bug, and players
+   * need to know a way exists before it opens in order to plan around it.
+   *
+   *   1. **Floors open on successive round-days.** The dungeon deepens
+   *      instead of reshaping, so nothing ever changes under someone's feet.
+   *   2. **The entrance seals between dusk and dawn.** The dungeon is the
+   *      one place roamers cannot reach; leaving it open would make diving
+   *      the correct way to earn through the night without taking night's
+   *      risk. Movement between floors already reached stays open, so being
+   *      caught below is frightening rather than merely idle.
+   */
+  private dungeonGateAllows(conn: ConnState, fromArea: string, toArea: string): boolean {
+    if (!this.roundRunning || !this.world.hasArea(toArea)) return true;
+    // Nobody slips away during the truce (D-536). Leaving mid-conversation
+    // would let the antagonist skip the one moment it must answer questions.
+    if (this.inGrace) {
+      this.send(conn, {
+        t: 'narrate',
+        text: 'Not yet. Nobody is going anywhere until the day starts.',
+      });
+      return false;
+    }
+    const to = this.world.getAreaDef(toArea);
+    const from = this.world.getAreaDef(fromArea);
+    const offset = this.roundTickOffset();
+
+    // Crossing the threshold in either direction, at night: shut.
+    const crossingEntrance =
+      (to.dungeonFloor !== undefined) !== (from.dungeonFloor !== undefined);
+    if (crossingEntrance && !dungeonEntranceOpen(offset, this.roundDayTicks)) {
+      this.send(conn, {
+        t: 'narrate',
+        text: to.dungeonFloor !== undefined
+          ? 'The shaft breathes cold and will not take you. Whatever opens it does so at dawn.'
+          : 'The way up has closed against the dark. You are down here until morning.',
+      });
+      return false;
+    }
+
+    // Descending to a floor that has not opened yet.
+    if (to.dungeonFloor !== undefined && !dungeonFloorOpen(to.dungeonFloor, offset, this.roundDayTicks)) {
+      this.send(conn, {
+        t: 'narrate',
+        text: 'The stair below is choked with fallen rock. It shifts, a little, each dawn.',
+      });
+      return false;
+    }
+    return true;
+  }
+
   private confirmEndgameEntry(
     conn: ConnState,
     areaId: string,
@@ -1932,6 +2050,11 @@ export class GameServer {
     }
     if (this.world.tick < self.attackReadyAt) {
       return this.fail(conn, 'on_cooldown', 'not ready');
+    }
+    // The dawn truce is total (D-536): nobody strikes, so nobody has to
+    // watch their back while the cast is deciding what to do with the day.
+    if (this.inGrace) {
+      return this.fail(conn, 'grace_window', 'not now — the day has not started');
     }
     // Zone rules (D-206): NPCs are fair game; players are protected in
     // settled zones unless hostility was declared and the window has passed.

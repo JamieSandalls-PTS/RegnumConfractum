@@ -24,7 +24,9 @@ const area = (id: string): AreaDef => {
 
 const TOWN = 'round-town';
 const SPOKES = ['round-farm', 'round-mine', 'round-wood', 'round-south'] as const;
-const DUNGEON = 'round-dungeon';
+// The dungeon is three floors now (D-535); the surface only ever reaches
+// the first of them.
+const DUNGEON = 'round-dungeon-1';
 /** Tiles per second: one step per MOVE_COOLDOWN_TICKS (3) at 10Hz. */
 const SECONDS_PER_TILE = 3 / 10;
 
@@ -60,8 +62,9 @@ describe('the cross (D-529)', () => {
     for (const id of ['round-farm', 'round-mine', 'round-wood'] as const) {
       expect(area(id).transitions.some((t) => t.toArea === DUNGEON)).toBe(false);
     }
+    // Floor one goes back up to the approach and down to floor two.
     expect(new Set(area(DUNGEON).transitions.map((t) => t.toArea))).toEqual(
-      new Set(['round-south']),
+      new Set(['round-south', 'round-dungeon-2']),
     );
   });
 

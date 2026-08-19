@@ -47,6 +47,7 @@ const state = (over: Partial<Parameters<RoundHud['onState']>[0]> = {}) => ({
   remainingTicks: 6000,
   hour: 14,
   night: false,
+  graceTicks: 0,
   ...over,
 });
 
@@ -62,6 +63,14 @@ describe('formatting', () => {
     expect(formatClock(14, false)).toBe('☀ 14:00');
     expect(formatClock(22, true)).toBe('☾ 22:00');
     expect(formatClock(24, false)).toBe('☀ 00:00'); // wraps
+  });
+
+  it('shows the dawn truce instead of the countdown while it holds (D-536)', () => {
+    // While the truce runs the round's clock is stopped, so showing the
+    // countdown would be a lie — it is not moving.
+    expect(formatPhase(state({ graceTicks: 600 }))).toBe('dawn · 1:00');
+    expect(formatPhase(state({ graceTicks: 75 }))).toBe('dawn · 0:08');
+    expect(formatPhase(state({ graceTicks: 0 }))).toBe('10:00');
   });
 
   it('tells the lobby how many more are wanted', () => {

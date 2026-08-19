@@ -390,7 +390,21 @@ differently (hunger slows work, thirst thins your health). **Starvation
 KILLS (D-534)** — a full day of neglect to empty, then hours more before
 it is fatal, announced at every step; **thirst never kills**, it just
 makes something else kill you. **Stations are real placed objects**
-(workshop/storehouse/infirmary/well), usable from two tiles. ⚠ **Still unmet: the storehouse must RUN OUT**, or hiding in town
+(workshop/storehouse/infirmary/well), usable from two tiles.
+
+**The dungeon is THREE FLOORS (D-535)** opening on successive round-days —
+it deepens rather than reshapes, so nothing ever changes under anybody's
+feet, and "the lower stair opens at dawn" is a scheduled meeting. **The
+entrance seals dusk→dawn**: come up before dark or be shut in till
+morning, which stops diving being a way to earn through the night without
+night's risk. ⚠ The floors are authored and EMPTY — no contents yet.
+
+**The dawn truce (D-536):** 60s at the round's opening and every dawn where
+the round's clock genuinely STOPS — no attacking, no roamer damage, no need
+progression, no leaving the area. It is the one scheduled scene: survivors
+compare wounds and argue about the day, and the antagonist must lie to
+everyone with no way to end the conversation by violence. Tests that are
+not about it set `graceTicks: 0`. ⚠ **Still unmet: the storehouse must RUN OUT**, or hiding in town
 beats the clock (D-529). Still to build: that, facility potency beyond
 meals (D-530), and the dungeon's contents.
 

@@ -71,6 +71,11 @@ export const AreaSchema = z
       )
       .default([]),
     /**
+     * Which floor of the dungeon this is, if any (D-535). Floors open on
+     * successive round-days and the entrance seals at dusk.
+     */
+    dungeonFloor: z.number().int().min(1).optional(),
+    /**
      * Crafting and facility stations (D-530). Real placed objects rather
      * than "you are in the town", so a recipe can require the workshop and
      * mean it — and so the antagonist has something specific to stand next

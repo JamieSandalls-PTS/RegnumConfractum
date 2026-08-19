@@ -231,3 +231,66 @@ export function winnerFor(outcome: RoundOutcome): RoundWinner {
       return 'nobody';
   }
 }
+
+/**
+ * The dawn grace window (D-536): sixty real seconds at the round's opening
+ * and at every dawn during which the day does not begin.
+ *
+ * The round's clock is PAUSED, not merely quiet: needs do not deepen, the
+ * countdown does not run, and nobody can strike, be struck, starve or leave
+ * the area they are standing in. It is a hard, total truce.
+ *
+ * It exists because the Round's whole point is people talking to each other
+ * (D-521), and a mode that never stops moving never lets them. Dawn is when
+ * the survivors count themselves, show their wounds, argue about who goes
+ * where — and it is when the antagonist has to lie in front of everybody,
+ * with no way to end the conversation by violence.
+ */
+export const ROUND_GRACE_TICKS = 600; // 60s at 10Hz
+
+// ---------------------------------------------------------------------------
+// The dungeon's floors (D-535)
+// ---------------------------------------------------------------------------
+
+/**
+ * Which round-day each floor opens on, one-based. Floor 1 from the start,
+ * floor 2 at the second dawn, floor 3 at the third.
+ *
+ * This is how the dungeon changes without ever being reshaped underneath
+ * anybody. Regenerating a space needs it EMPTY, which needs players evicted;
+ * revealing a new one needs nothing, because nobody was ever in it. It also
+ * buys something reshaping would not: a **schedule**. "The lower stair opens
+ * at dawn" is a fixed, shared, known event, and the cast has to gather and
+ * decide who goes down — which is where the social game happens.
+ */
+export const DUNGEON_FLOOR_OPENS_ON_DAY: Record<number, number> = { 1: 1, 2: 2, 3: 3 };
+
+/** Round-day, one-based: day 1 is the round's opening dawn. */
+export function roundDay(tickIntoRound: number, dayTicks = ROUND_DAY_TICKS): number {
+  return Math.floor(tickIntoRound / dayTicks) + 1;
+}
+
+/** Whether a given floor has opened yet. */
+export function dungeonFloorOpen(floor: number, tickIntoRound: number, dayTicks = ROUND_DAY_TICKS): boolean {
+  const opensOn = DUNGEON_FLOOR_OPENS_ON_DAY[floor];
+  if (opensOn === undefined) return true; // not a gated floor
+  return roundDay(tickIntoRound, dayTicks) >= opensOn;
+}
+
+/**
+ * The way in and out of the dungeon is shut between dusk and dawn (D-535,
+ * stakeholder's option 2).
+ *
+ * The dungeon is the one place night's roamers cannot reach, so leaving it
+ * open would make diving the correct way to earn through the night without
+ * taking night's risk — exactly the inversion D-528 restricted the night
+ * bonus to prevent. Sealing the entrance instead makes dusk a decision with
+ * teeth: come up now, or be shut in until morning.
+ *
+ * Only the ENTRANCE seals. Movement between floors already reached stays
+ * open, so being caught below is frightening rather than merely idle — and
+ * it hands the antagonist a sealed room with a known set of people in it.
+ */
+export function dungeonEntranceOpen(tickIntoRound: number, dayTicks = ROUND_DAY_TICKS): boolean {
+  return !isNight(tickIntoRound, dayTicks);
+}

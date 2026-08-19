@@ -79,6 +79,9 @@ beforeAll(async () => {
       enabled: true,
       lengthTicks: 200_000, // nothing here is decided by the clock running out
       minCast: 2,
+      // No dawn truce here (D-536): this suite is not about it, and a
+      // 60-second peace at the round's opening would only add dead time.
+      graceTicks: 0,
       seed: 'roamer-test',
       // A 10-minute cycle would put dusk fifty real seconds away, past the
       // suite's timeout. The rule is tick-based, so shrinking the cycle

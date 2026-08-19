@@ -32,6 +32,12 @@ export function formatClock(hour: number, night: boolean): string {
 
 /** The lobby's own line: how many are here, and how many are wanted. */
 export function formatPhase(state: RoundState): string {
+  // The dawn truce takes over the clock while it holds (D-536). It has to be
+  // legible: a safety you can only discover by trying to hit someone is not
+  // a safety anybody will plan a conversation around.
+  if (state.phase === 'running' && state.graceTicks > 0) {
+    return `dawn · ${formatRemaining(state.graceTicks)}`;
+  }
   switch (state.phase) {
     case 'lobby':
       return state.cast >= state.minCast
@@ -98,6 +104,7 @@ export class RoundHud {
     this.el.clock.textContent = state.phase === 'running' ? formatClock(state.hour, state.night) : '';
     this.el.cast.textContent = state.phase === 'running' ? `${state.cast} in the round` : '';
     this.el.root.classList.toggle('night', state.phase === 'running' && state.night);
+    this.el.root.classList.toggle('grace', state.phase === 'running' && state.graceTicks > 0);
     // A new round clears the last one's reveal; the objective card is
     // rebuilt from round_role rather than surviving the reset.
     if (state.phase === 'lobby') this.reset();

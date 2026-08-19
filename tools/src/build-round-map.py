@@ -235,34 +235,56 @@ for aid, name, side, floor, obstacle, density, seed, node_types in spokes:
         "transitions": [],
     }
 
-# --- THE DUNGEON: beneath the south approach -------------------------------
-d = blank('#')
-# A rough cavern carved out of solid rock, reached from its north edge.
-for y in range(2, H - 2):
-    for x in range(2, W - 2):
-        keep = (abs(x - MID) + abs(y - MID)) < 54
-        if keep:
-            d[y][x] = ','
-scatter(d, 'r', 7700, 300, avoid_band=4)
-for y in range(1, 4):
-    d[y][MID] = d[y][MID - 1] = ','
-d[0][MID] = d[0][MID - 1] = ','
-seal_unreachable(d, (MID, 4), [(MID, 0), (MID - 1, 0)])
-areas['round-dungeon'] = {
-    "id": "round-dungeon",
-    "name": "The Sunken Crypt",
-    "width": W, "height": H,
-    "legend": LEGEND,
-    "tiles": rows(d),
-    "spawn": {"x": MID, "y": 4},
-    "lighting": "underground",
-    # Wilderness, NEVER endgame: a round death must not cost a character
-    # levelled across fifty rounds (D-523).
-    "zone": "wilderness",
-    # No sky: no roamers, no night bonus. Its danger is its own (D-529).
-    "outdoor": False,
-    "transitions": [],
-}
+# --- THE DUNGEON: three floors beneath the south approach (D-535) ---------
+# Floors open on successive round-days, so the dungeon deepens rather than
+# reshapes - nobody is ever standing in the space that changes. Each floor is
+# tighter and more broken than the one above it.
+for floor, (name, reach, rocks, seed) in enumerate(
+    [
+        ("The Sunken Crypt", 54, 300, 7700),
+        ("The Drowned Gallery", 46, 420, 8800),
+        ("The Undercroft", 38, 520, 9900),
+    ],
+    start=1,
+):
+    d = blank('#')
+    for y in range(2, H - 2):
+        for x in range(2, W - 2):
+            if (abs(x - MID) + abs(y - MID)) < reach:
+                d[y][x] = ','
+    scatter(d, 'r', seed, rocks, avoid_band=4)
+    # The stair up, carved from the north edge all the way DOWN to the
+    # cavern. Deeper floors are smaller diamonds, so a fixed three-tile
+    # corridor leaves the stair hanging in solid rock and the spawn tile
+    # unwalkable - which CI catches, but only after a confusing minute.
+    cavern_top = MID - reach + 2
+    for y in range(0, max(cavern_top, 1) + 1):
+        d[y][MID] = d[y][MID - 1] = ','
+    # The stair down, at the south edge, on every floor but the last.
+    if floor < 3:
+        cavern_bottom = MID + reach - 2
+        for y in range(min(cavern_bottom, H - 2), H):
+            d[y][MID] = d[y][MID - 1] = ','
+        must = [(MID, 0), (MID - 1, 0), (MID, H - 1), (MID - 1, H - 1)]
+    else:
+        must = [(MID, 0), (MID - 1, 0)]
+    seal_unreachable(d, (MID, max(MID - reach + 3, 2)), must)
+    areas['round-dungeon-%d' % floor] = {
+        "id": "round-dungeon-%d" % floor,
+        "name": name,
+        "width": W, "height": H,
+        "legend": LEGEND,
+        "tiles": rows(d),
+        "spawn": {"x": MID, "y": max(MID - reach + 3, 2)},
+        "lighting": "underground",
+        # Wilderness, NEVER endgame: a round death must not cost a character
+        # levelled across fifty rounds (D-523).
+        "zone": "wilderness",
+        # No sky: no roamers, no night bonus. Its danger is its own (D-529).
+        "outdoor": False,
+        "dungeonFloor": floor,
+        "transitions": [],
+    }
 
 # --- TRANSITIONS: the cross ------------------------------------------------
 # Town's four gates lead out; each spoke's town-facing gate leads back.
@@ -290,18 +312,24 @@ for side, spoke in links:
         areas[spoke]["transitions"].append(
             {"x": sx, "y": sy, "toArea": "round-town", "toX": back[0], "toY": back[1]})
 
-# The way down: the south approach's far (southern) edge opens on the dungeon.
-for x in (MID, MID - 1):
-    areas['round-south'][
-        "tiles"] = areas['round-south']["tiles"]  # no-op, kept for clarity
+# The way down: the south approach's far edge opens on floor 1, then each
+# floor's south stair opens on the next. The GATING is server-side (D-535) -
+# the geometry is always connected, and a sealed stair refuses with a line
+# rather than vanishing, so players can see where they will be able to go.
 south = [list(r) for r in areas['round-south']["tiles"]]
 south[H - 1][MID] = south[H - 1][MID - 1] = ','
 areas['round-south']["tiles"] = [''.join(r) for r in south]
 for x in (MID, MID - 1):
     areas['round-south']["transitions"].append(
-        {"x": x, "y": H - 1, "toArea": "round-dungeon", "toX": x, "toY": 1})
-    areas['round-dungeon']["transitions"].append(
+        {"x": x, "y": H - 1, "toArea": "round-dungeon-1", "toX": x, "toY": 1})
+    areas['round-dungeon-1']["transitions"].append(
         {"x": x, "y": 0, "toArea": "round-south", "toX": x, "toY": H - 2})
+for floor in (1, 2):
+    for x in (MID, MID - 1):
+        areas['round-dungeon-%d' % floor]["transitions"].append(
+            {"x": x, "y": H - 1, "toArea": "round-dungeon-%d" % (floor + 1), "toX": x, "toY": 1})
+        areas['round-dungeon-%d' % (floor + 1)]["transitions"].append(
+            {"x": x, "y": 0, "toArea": "round-dungeon-%d" % floor, "toX": x, "toY": H - 2})
 
 out = 'content/areas'
 for aid, doc in areas.items():

@@ -181,6 +181,7 @@ export const ErrorCodeSchema = z.enum([
   'not_hungry',
   'no_water_here',
   'not_food',
+  'grace_window',
   'too_soon',
   'no_injury',
   /** Speak With Dead on a spirit that is offline or already respawned — a
@@ -436,6 +437,12 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     /** The round's compressed clock (D-527) — drives lighting and dread. */
     hour: z.number().int().min(0).max(23),
     night: z.boolean(),
+    /**
+     * The dawn truce (D-536). While this is counting down the round's clock
+     * is stopped and nobody can be hurt — it must be visible, or the safety
+     * is only knowable by trying to attack someone.
+     */
+    graceTicks: z.number().int().nonnegative(),
   }),
   z.object({
     t: z.literal('round_role'),

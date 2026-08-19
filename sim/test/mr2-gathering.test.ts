@@ -118,6 +118,9 @@ beforeAll(async () => {
       enabled: true,
       lengthTicks: 60_000, // the clock decides nothing here
       minCast: 2,
+      // No dawn truce here (D-536): this suite is not about it, and a
+      // 60-second peace at the round's opening would only add dead time.
+      graceTicks: 0,
       seed: 'mr2-test',
       objectives: [SURVIVE],
       resolutionTicks: 10,

@@ -95,6 +95,9 @@ beforeAll(async () => {
       // runs ~60 ticks/s under test load, not the nominal 200.
       lengthTicks: 60_000,
       minCast: 3,
+      // No dawn truce here (D-536): this suite is not about it, and a
+      // 60-second peace at the round's opening would only add dead time.
+      graceTicks: 0,
       seed: 'mr1-test',
       objectives: [KILL_KEEPER],
       resolutionTicks: 10,
