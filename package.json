@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "Regnum Confractum — persistent-world roleplaying MMO. See CLAUDE.md and docs/.",
+  "description": "Regnum Confractum \u2014 persistent-world roleplaying MMO. See CLAUDE.md and docs/.",
   "engines": {
     "node": ">=22"
   },
@@ -11,13 +11,27 @@
     "dev:server": "tsx server/src/index.ts",
     "dev:client": "vite --config client/vite.config.ts client",
     "build:client": "vite build --config client/vite.config.ts client",
+    "build:characters": "tsx tools/src/build-characters.ts",
+    "build:environment": "tsx tools/src/build-environment.ts",
+    "rebuild:walls": "python tools/src/walls-to-assets.py",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
     "db:migrate": "tsx server/src/db/migrate-cli.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p client/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "validate:content": "tsx tools/src/validate-content.ts"
+    "validate:content": "tsx tools/src/validate-content.ts",
+    "bots": "tsx sim/src/run-bots.ts",
+    "dev:editor": "tsx tools/src/editor-server.ts",
+    "dev:studio": "tsx tools/src/studio-server.ts",
+    "play": "tsx tools/src/control.ts",
+    "name:assets": "tsx tools/src/name-assets.ts",
+    "draft:animations": "tsx tools/src/draft-animation-sets.ts",
+    "measure:weapons": "tsx tools/src/measure-weapons.ts",
+    "fit:weapons": "tsx tools/src/fit-weapons.ts",
+    "measure:hand": "tsx tools/src/measure-hand.ts",
+    "name:parts": "tsx tools/src/name-parts.ts",
+    "name:environment": "tsx tools/src/name-environment.ts"
   },
   "dependencies": {
     "pg": "^8.13.0",

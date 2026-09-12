@@ -4,5 +4,10 @@
   "description": "A wedge of iron on a green haft. Meant for wood. Used for wood, mostly.",
   "category": "equipment",
   "stackable": false,
-  "value": 18
+  "value": 18,
+  "equip": {
+    "slot": "main-hand",
+    "damage": 2,
+    "weight": 4
+  }
 }

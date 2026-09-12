@@ -4,69 +4,367 @@
     "name": "Steady Hands",
     "description": "You do not shake when it matters. Binding a wound under pressure comes as easily as at rest.",
     "classes": [],
-    "requiresSkills": { "medicine": 20 }
+    "requiresSkills": {
+      "medicine": 20
+    },
+    "effect": {
+      "kind": "treat_bonus",
+      "value": 2
+    },
+    "minLevel": 1
   },
   {
     "id": "practised-liar",
     "name": "Practised Liar",
     "description": "The lie arrives already worn in. You have told this one before, in other towns, under other names.",
     "classes": [],
-    "requiresSkills": { "bluff": 20 }
+    "requiresSkills": {
+      "bluff": 20
+    },
+    "minLevel": 1
   },
   {
     "id": "hard-to-read",
     "name": "Hard to Read",
     "description": "Your face gives nothing. Those reading you get less than they think they do.",
     "classes": [],
-    "requiresSkills": {}
+    "requiresSkills": {},
+    "minLevel": 1
   },
   {
     "id": "quiet-footed",
     "name": "Quiet Footed",
     "description": "Floorboards forgive you. You have left rooms nobody knew you entered.",
     "classes": [],
-    "requiresSkills": { "stealth": 20 }
+    "requiresSkills": {
+      "stealth": 20
+    },
+    "minLevel": 1
   },
   {
     "id": "night-eyes",
     "name": "Night Eyes",
     "description": "You see in the dark better than you should, and have stopped mentioning it.",
     "classes": [],
-    "requiresSkills": {}
+    "requiresSkills": {},
+    "minLevel": 1
   },
   {
     "id": "strong-back",
     "name": "Strong Back",
     "description": "You carry what two others would split, and are asked to, constantly.",
     "classes": [],
-    "requiresSkills": { "athletics": 20 }
+    "requiresSkills": {
+      "athletics": 20
+    },
+    "effect": {
+      "kind": "carry",
+      "value": 15
+    },
+    "minLevel": 1
+  },
+  {
+    "id": "iron-stomach",
+    "name": "Iron Stomach",
+    "description": "You have eaten worse than this and kept it down. Going without sits lighter on you than on other people.",
+    "classes": [],
+    "requiresSkills": {
+      "endurance": 20
+    },
+    "effect": {
+      "kind": "hunger_rate",
+      "value": 0.25
+    },
+    "minLevel": 1
+  },
+  {
+    "id": "taken-in-sips",
+    "name": "Taken in Sips",
+    "description": "You learned to make a canteen last on a road with no wells. The habit never left.",
+    "classes": [],
+    "requiresSkills": {
+      "endurance": 20
+    },
+    "effect": {
+      "kind": "thirst_rate",
+      "value": 0.25
+    },
+    "minLevel": 1
+  },
+  {
+    "id": "quick-hands",
+    "name": "Quick Hands",
+    "description": "You waste no motion at a bench. The work is no better than anyone else's, it is simply finished sooner.",
+    "classes": [],
+    "requiresSkills": {
+      "craft": 20
+    },
+    "effect": {
+      "kind": "craft_speed",
+      "value": 0.15
+    },
+    "minLevel": 1
+  },
+  {
+    "id": "weather-eye",
+    "name": "Weather Eye",
+    "description": "You know where a seam runs and where a thing grows before you have started digging for it.",
+    "classes": [],
+    "requiresSkills": {
+      "survival": 20
+    },
+    "effect": {
+      "kind": "harvest_speed",
+      "value": 0.15
+    },
+    "minLevel": 1
   },
   {
     "id": "duellist",
     "name": "Duellist",
-    "description": "Trained for the single opponent who has agreed to it — a narrower education than it sounds, and a deadly one.",
-    "classes": ["man-at-arms", "berserker", "shade", "hunter"],
-    "requiresSkills": { "arms": 20 }
+    "description": "Trained for the single opponent who has agreed to it, a narrower education than it sounds, and a deadly one.",
+    "classes": [
+      "man-at-arms",
+      "berserker",
+      "shade",
+      "hunter"
+    ],
+    "requiresSkills": {
+      "arms": 20
+    },
+    "minLevel": 1
   },
   {
     "id": "field-surgeon",
     "name": "Field Surgeon",
     "description": "You have worked on people who were still being shot at. Speed, and a tolerance for screaming.",
-    "classes": ["physician", "cantor"],
-    "requiresSkills": { "medicine": 30 }
+    "classes": [
+      "physician",
+      "cantor"
+    ],
+    "requiresSkills": {
+      "medicine": 30
+    },
+    "effect": {
+      "kind": "treat_bonus",
+      "value": 3
+    },
+    "minLevel": 1
   },
   {
     "id": "grave-touched",
     "name": "Grave-Touched",
     "description": "The dead find you legible. They answer a little more readily, and are no more honest for it.",
-    "classes": ["bonespeaker", "vessel"],
-    "requiresSkills": { "necromancy": 20 }
+    "classes": [
+      "bonespeaker",
+      "vessel"
+    ],
+    "requiresSkills": {
+      "necromancy": 20
+    },
+    "minLevel": 1
   },
   {
     "id": "old-tongue",
     "name": "The Old Tongue",
     "description": "You were taught the imperial speech by someone who remembered it being spoken in anger.",
     "classes": [],
-    "requiresSkills": { "lore": 20 }
+    "requiresSkills": {
+      "lore": 20
+    },
+    "minLevel": 1
+  },
+  {
+    "id": "porter",
+    "name": "Porter",
+    "description": "Somewhere along the way you stopped arguing about who carries the sacks, and now nobody else offers.",
+    "classes": [
+      "man-at-arms",
+      "berserker",
+      "hunter"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "carry",
+      "value": 20
+    },
+    "minLevel": 3
+  },
+  {
+    "id": "sworn-witness",
+    "name": "Sworn Witness",
+    "description": "You have stood up in front of people who did not want to hear it and said what you saw. When you name a stranger to a room, the room believes you.",
+    "classes": [
+      "man-at-arms",
+      "physician",
+      "cantor"
+    ],
+    "requiresSkills": {},
+    "minLevel": 3
+  },
+  {
+    "id": "taproom-lawyer",
+    "name": "Taproom Lawyer",
+    "description": "You can make a bad position sound procedural. Half of talking your way out of a room is sounding bored while you do it.",
+    "classes": [
+      "shade",
+      "cantor",
+      "magus"
+    ],
+    "requiresSkills": {},
+    "minLevel": 3
+  },
+  {
+    "id": "master-of-the-bench",
+    "name": "Master of the Bench",
+    "description": "Your tools are where your hand goes. Others watch you work and cannot say what you did differently.",
+    "classes": [
+      "man-at-arms",
+      "physician",
+      "hunter",
+      "magus"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "craft_speed",
+      "value": 0.2
+    },
+    "minLevel": 4
+  },
+  {
+    "id": "read-the-ground",
+    "name": "Read the Ground",
+    "description": "Tracks, spoor, bent grass, the wrong kind of quiet. You take what a place has before it has noticed you are there.",
+    "classes": [
+      "hunter",
+      "shade"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "harvest_speed",
+      "value": 0.2
+    },
+    "minLevel": 4
+  },
+  {
+    "id": "shield-of-the-line",
+    "name": "Shield of the Line",
+    "description": "You were taught to stand where someone else would have to fall first. It is a habit of position, not of courage.",
+    "classes": [
+      "man-at-arms"
+    ],
+    "requiresSkills": {},
+    "minLevel": 4
+  },
+  {
+    "id": "unremarkable",
+    "name": "Unremarkable",
+    "description": "People give descriptions of you that could be anyone. You have worked at this for years.",
+    "classes": [
+      "shade"
+    ],
+    "requiresSkills": {},
+    "minLevel": 5
+  },
+  {
+    "id": "field-kit",
+    "name": "The Full Kit",
+    "description": "Needle, gut, tincture, tourniquet, and the discipline to have packed them before they were needed.",
+    "classes": [
+      "physician",
+      "cantor",
+      "vessel"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "treat_bonus",
+      "value": 4
+    },
+    "minLevel": 5
+  },
+  {
+    "id": "lean-years",
+    "name": "Lean Years",
+    "description": "You have been hungrier than this for longer than this, and you were still walking at the end of it.",
+    "classes": [
+      "hunter",
+      "shade",
+      "berserker"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "hunger_rate",
+      "value": 0.25
+    },
+    "minLevel": 6
+  },
+  {
+    "id": "deep-draught",
+    "name": "Deep Draught",
+    "description": "You drink like someone who expects not to find water again, and then do not think about it.",
+    "classes": [
+      "berserker",
+      "man-at-arms"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "thirst_rate",
+      "value": 0.3
+    },
+    "minLevel": 6
+  },
+  {
+    "id": "second-vessel",
+    "name": "A Second Vessel",
+    "description": "Holding one up was the hard part. The second is only more of the same weight, which is not a comfort.",
+    "classes": [
+      "bonespeaker"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "zombie_cap",
+      "value": 1
+    },
+    "minLevel": 6
+  },
+  {
+    "id": "the-long-memory",
+    "name": "The Long Memory",
+    "description": "Names, seals, debts, and who was standing where when the thing happened. You have never needed to write any of it down.",
+    "classes": [
+      "magus",
+      "bonespeaker",
+      "cantor",
+      "vessel"
+    ],
+    "requiresSkills": {},
+    "minLevel": 7
+  },
+  {
+    "id": "past-the-point",
+    "name": "Past the Point",
+    "description": "There is a moment where sensible people stop. You have been on the other side of it often enough that it no longer registers as a decision.",
+    "classes": [
+      "berserker"
+    ],
+    "requiresSkills": {},
+    "minLevel": 8
+  },
+  {
+    "id": "second-blow",
+    "name": "Second Blow",
+    "description": "The follow-up stops being a decision and becomes a habit. Where another soldier commits to one stroke a round, you have already begun the next.",
+    "classes": [
+      "man-at-arms",
+      "berserker",
+      "hunter",
+      "shade"
+    ],
+    "requiresSkills": {},
+    "effect": {
+      "kind": "extra_attack",
+      "value": 1
+    },
+    "minLevel": 8
   }
 ]

@@ -8,7 +8,154 @@
   "affinities": [
     "medicine",
     "insight",
-    "lore"
+    "lore",
+    "craft"
   ],
-  "spellcasting": false
+  "spellcasting": false,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "medicine": 5,
+        "insight": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You stop flinching at the part where it opens."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "lore": 5
+      },
+      "feats": [
+        "sworn-witness"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You have testified to what a wound was, and been believed."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "craft": 5
+      },
+      "feats": [
+        "master-of-the-bench"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You make your own tinctures rather than trusting the market."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "medicine": 10
+      },
+      "feats": [
+        "field-kit"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "The kit is packed before it is needed, which is the whole discipline."
+    },
+    {
+      "level": 6,
+      "skills": {
+        "craft": 10,
+        "insight": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You can tell what happened from the shape of the injury, and the story does not always match."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "medicine": 10,
+        "lore": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have read the old anatomies and found half of them wrong."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "insight": 10,
+        "persuasion": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Getting a frightened person to sit still is most of the work."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "lore": 10,
+        "perception": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You notice the poisoning before the patient does."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "medicine": 10,
+        "insight": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "There is nobody better within a week of travel, and everybody knows it."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "surgeons-knife",
+      "equip": "main-hand"
+    },
+    {
+      "item": "physicians-apron",
+      "equip": "chest"
+    },
+    {
+      "item": "leather-gloves",
+      "equip": "hands"
+    },
+    {
+      "item": "bandage",
+      "qty": 4
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ],
+  "armour": [
+    "cloth",
+    "leather"
+  ],
+  "weapons": [
+    "dagger",
+    "staff"
+  ]
 }

@@ -1,0 +1,11 @@
+{
+  "id": "stance-bow",
+  "name": "Bow — carried",
+  "layer": "stance",
+  "applies": "bow",
+  "clips": {
+    "draw": "bow-draw",
+    "sheathe": "bow-sheathe"
+  },
+  "note": "How the weapon is carried when it is not up, and the draw and sheathe that move between the two. Everything else comes from the rig set."
+}

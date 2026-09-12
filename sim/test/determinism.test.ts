@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { DIRECTIONS, Rng } from '@rc/shared';
+import { DIRECTIONS, Rng, canStandAt } from '@rc/shared';
 import { loadContent } from '@rc/server/content';
 import { World, hashWorld } from '@rc/server/game/world';
 
@@ -63,10 +63,12 @@ describe('deterministic simulation harness', () => {
           pos: { x: 2, y: 2 + i },
         }).entity.id,
     );
-    const walkable = (x: number, y: number) => {
-      const ch = areaDef.tiles[y]?.[x];
-      return ch !== undefined && areaDef.legend[ch]!.walkable;
-    };
+    // ⚠ Asked of the COLLISION LAYER, not of the tile grid (D-567). The tile
+    // version indexed `tiles[3.33]`, got undefined, and failed on the very
+    // first tick of continuous movement — while a check that merely ROUNDED
+    // would have been weaker than what it replaced, passing a body wedged
+    // half inside a wall. This is the server's own rule, asked directly.
+    const walkable = (x: number, y: number) => canStandAt(areaDef, { x, y });
     for (let t = 0; t < 2000; t++) {
       for (const id of ids) world.setMoveIntent(id, rng.pick(DIRECTIONS));
       world.step();

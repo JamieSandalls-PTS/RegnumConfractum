@@ -1,0 +1,9 @@
+{
+  "id": "flag",
+  "name": "Flagstone",
+  "repeat": 0.22,
+  "tint": "#7f7b74",
+  "walkable": true,
+  "notes": "Cut slabs. Indoors, or somewhere important.",
+  "texture": "flag-01.png"
+}

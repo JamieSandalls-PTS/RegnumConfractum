@@ -2,7 +2,8 @@
 -- Everything here runs through the sandboxed area API; there is no other way
 -- for a script to touch the world.
 
-local keeper = spawn_npc{ x = 18, y = 14, descriptor = "a heavyset keeper with scarred knuckles", seed = 4242 }
+-- Behind the bar, in the rebuilt 32x32 room (D-544).
+local keeper = spawn_npc{ x = 27, y = 14, descriptor = "a heavyset keeper with scarred knuckles", seed = 4242 }
 
 local greeted_recently = false
 

@@ -1,0 +1,13 @@
+{
+  "id": "roughspun-tunic",
+  "name": "Roughspun Tunic",
+  "description": "Undyed wool, mended at the shoulder by somebody who could not sew.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 4,
+  "equip": {
+    "slot": "chest",
+    "weight": 2,
+    "material": "cloth"
+  }
+}

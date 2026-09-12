@@ -8,6 +8,26 @@
       "walkable": false,
       "kind": "wall"
     },
+    "W": {
+      "walkable": false,
+      "kind": "wall-timber"
+    },
+    "P": {
+      "walkable": false,
+      "kind": "wall-plaster"
+    },
+    "B": {
+      "walkable": false,
+      "kind": "wall-brick"
+    },
+    "p": {
+      "walkable": false,
+      "kind": "palisade"
+    },
+    "F": {
+      "walkable": false,
+      "kind": "wall-forest"
+    },
     ".": {
       "walkable": true,
       "kind": "floor"
@@ -234,15 +254,7886 @@
       "x": 50,
       "y": 99,
       "toArea": "round-town",
-      "toX": 50,
+      "toX": 25,
       "toY": 1
     },
     {
       "x": 49,
       "y": 99,
       "toArea": "round-town",
-      "toX": 49,
+      "toX": 24,
       "toY": 1
     }
+  ],
+  "ambience": "ambience-farm",
+  "assets": [
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 36.9,
+      "y": 89.36,
+      "z": 0,
+      "rotation": 161.90049421131425,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 90.36,
+      "y": 53.58,
+      "z": 0,
+      "rotation": 339.6539787861197,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 71.2,
+      "y": 21.66,
+      "z": 0,
+      "rotation": 269.00863357558535,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 52.99,
+      "y": 9.01,
+      "z": 0,
+      "rotation": 202.48451045821494,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 25.57,
+      "y": 68.51,
+      "z": 0,
+      "rotation": 147.3381595220618,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 16.31,
+      "y": 6.95,
+      "z": 0,
+      "rotation": 52.622623516426145,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 19.39,
+      "y": 40.04,
+      "z": 0,
+      "rotation": 187.3824970552834,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 41.54,
+      "y": 25.35,
+      "z": 0,
+      "rotation": 197.01374606883275,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 76.43,
+      "y": 43.1,
+      "z": 0,
+      "rotation": 326.7595673225043,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 22.79,
+      "y": 94.18,
+      "z": 0,
+      "rotation": 199.6067405540497,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 67.62,
+      "y": 68.36,
+      "z": 0,
+      "rotation": 244.50334722204934,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 74.51,
+      "y": 5.46,
+      "z": 0,
+      "rotation": 154.75402297331433,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 97.09,
+      "y": 5.91,
+      "z": 0,
+      "rotation": 164.47269857188792,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 30.37,
+      "y": 25.66,
+      "z": 0,
+      "rotation": 359.6501320695757,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 7.21,
+      "y": 9.88,
+      "z": 0,
+      "rotation": 78.34594991301248,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 55.27,
+      "y": 42.93,
+      "z": 0,
+      "rotation": 324.536697173276,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 14.17,
+      "y": 38.14,
+      "z": 0,
+      "rotation": 203.68131916382163,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 95.74,
+      "y": 60.72,
+      "z": 0,
+      "rotation": 329.85464143706037,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 28.73,
+      "y": 73.76,
+      "z": 0,
+      "rotation": 155.35478322486054,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 51.54,
+      "y": 47.55,
+      "z": 0,
+      "rotation": 176.306532543287,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 70.09,
+      "y": 8.43,
+      "z": 0,
+      "rotation": 350.59866145574324,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 80.56,
+      "y": 93.44,
+      "z": 0,
+      "rotation": 329.42158120927945,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 12.5,
+      "y": 5.77,
+      "z": 0,
+      "rotation": 342.40243591187203,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 69.54,
+      "y": 54.44,
+      "z": 0,
+      "rotation": 27.778022148492084,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 90.68,
+      "y": 75.46,
+      "z": 0,
+      "rotation": 40.75893036520067,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 46.14,
+      "y": 36.34,
+      "z": 0,
+      "rotation": 48.115075229517956,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 27.37,
+      "y": 65.52,
+      "z": 0,
+      "rotation": 148.28788138178518,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 6.6,
+      "y": 69.44,
+      "z": 0,
+      "rotation": 68.81707982987675,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 10.54,
+      "y": 48.7,
+      "z": 0,
+      "rotation": 247.37556506297148,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 88.91,
+      "y": 72.5,
+      "z": 0,
+      "rotation": 32.45477821641741,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 40.33,
+      "y": 83.01,
+      "z": 0,
+      "rotation": 89.83680273472157,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 55.05,
+      "y": 41.33,
+      "z": 0,
+      "rotation": 169.96543944662437,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 12.95,
+      "y": 2.02,
+      "z": 0,
+      "rotation": 55.44650272261814,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 53.28,
+      "y": 18.63,
+      "z": 0,
+      "rotation": 67.38085328404203,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 11.9,
+      "y": 90.9,
+      "z": 0,
+      "rotation": 94.6003888807813,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 30.81,
+      "y": 83.75,
+      "z": 0,
+      "rotation": 95.1448297303474,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 1.61,
+      "y": 62.42,
+      "z": 0,
+      "rotation": 252.92211070898114,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 44.31,
+      "y": 58.41,
+      "z": 0,
+      "rotation": 270.3505249319865,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 94.94,
+      "y": 13.95,
+      "z": 0,
+      "rotation": 266.30070542369907,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 28.81,
+      "y": 11.63,
+      "z": 0,
+      "rotation": 45.83557368531189,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 18.6,
+      "y": 86.87,
+      "z": 0,
+      "rotation": 20.12185122949909,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 84.63,
+      "y": 95.12,
+      "z": 0,
+      "rotation": 129.54293442470822,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 58.26,
+      "y": 30.02,
+      "z": 0,
+      "rotation": 191.70075534279863,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 14.73,
+      "y": 44.05,
+      "z": 0,
+      "rotation": 66.41235749312233,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 83.82,
+      "y": 82.19,
+      "z": 0,
+      "rotation": 194.30401816522536,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 86.26,
+      "y": 66.15,
+      "z": 0,
+      "rotation": 36.80184527839017,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 95.59,
+      "y": 93.34,
+      "z": 0,
+      "rotation": 325.2200613032423,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 20.03,
+      "y": 51.32,
+      "z": 0,
+      "rotation": 75.05257269477748,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 16.19,
+      "y": 41.85,
+      "z": 0,
+      "rotation": 25.0594969018548,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 46.35,
+      "y": 56.09,
+      "z": 0,
+      "rotation": 128.5958440381467,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 3.63,
+      "y": 4.92,
+      "z": 0,
+      "rotation": 135.48459057757802,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 61.74,
+      "y": 61.25,
+      "z": 0,
+      "rotation": 133.8221837192669,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 55.03,
+      "y": 70.72,
+      "z": 0,
+      "rotation": 171.21255392895674,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 39.6,
+      "y": 63.39,
+      "z": 0,
+      "rotation": 350.2469070413177,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 53.86,
+      "y": 52.94,
+      "z": 0,
+      "rotation": 353.9120089813937,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 31.04,
+      "y": 18.22,
+      "z": 0,
+      "rotation": 124.77185519244811,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 83.83,
+      "y": 48.8,
+      "z": 0,
+      "rotation": 225.04702655154088,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 4.02,
+      "y": 21.3,
+      "z": 0,
+      "rotation": 22.722661775527673,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 25.42,
+      "y": 49.58,
+      "z": 0,
+      "rotation": 201.38258490058624,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 24.41,
+      "y": 42.16,
+      "z": 0,
+      "rotation": 243.10808075790968,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 95.41,
+      "y": 73.44,
+      "z": 0,
+      "rotation": 72.06182940490798,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 34.32,
+      "y": 41.18,
+      "z": 0,
+      "rotation": 226.94589422857723,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 41.67,
+      "y": 80.9,
+      "z": 0,
+      "rotation": 200.26651598435782,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 37.47,
+      "y": 52.72,
+      "z": 0,
+      "rotation": 54.22813157686207,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 6.46,
+      "y": 49.53,
+      "z": 0,
+      "rotation": 125.35214724247507,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 60.45,
+      "y": 29.8,
+      "z": 0,
+      "rotation": 101.46639014246803,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 54.22,
+      "y": 49.72,
+      "z": 0,
+      "rotation": 122.1520477310924,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 66.99,
+      "y": 84.48,
+      "z": 0,
+      "rotation": 47.51046223229294,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 93.99,
+      "y": 46.6,
+      "z": 0,
+      "rotation": 102.80312315249778,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 75.65,
+      "y": 89.52,
+      "z": 0,
+      "rotation": 296.95089455572827,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 3.56,
+      "y": 88.88,
+      "z": 0,
+      "rotation": 295.8126659227266,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 55.89,
+      "y": 77.62,
+      "z": 0,
+      "rotation": 267.79901579055377,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 64.11,
+      "y": 30.88,
+      "z": 0,
+      "rotation": 64.09062294622812,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 90.22,
+      "y": 52.95,
+      "z": 0,
+      "rotation": 318.005506708777,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 32.76,
+      "y": 71.21,
+      "z": 0,
+      "rotation": 190.72442035232714,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 69.55,
+      "y": 22.47,
+      "z": 0,
+      "rotation": 112.72474627385235,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 8.34,
+      "y": 66.58,
+      "z": 0,
+      "rotation": 171.15192946923796,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 43.35,
+      "y": 10.48,
+      "z": 0,
+      "rotation": 247.03758916690168,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 66.3,
+      "y": 6.43,
+      "z": 0,
+      "rotation": 67.54300596793514,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 13.68,
+      "y": 68.82,
+      "z": 0,
+      "rotation": 325.28544778697216,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 92.05,
+      "y": 37.45,
+      "z": 0,
+      "rotation": 313.39545751032955,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 72.94,
+      "y": 33.1,
+      "z": 0,
+      "rotation": 181.4682491103117,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 74.54,
+      "y": 6.04,
+      "z": 0,
+      "rotation": 340.5124297030383,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 77.63,
+      "y": 46.26,
+      "z": 0,
+      "rotation": 151.24991596323656,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 64,
+      "y": 14.45,
+      "z": 0,
+      "rotation": 308.3164610833529,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 32.32,
+      "y": 82.67,
+      "z": 0,
+      "rotation": 189.73507567351004,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 82.77,
+      "y": 91.63,
+      "z": 0,
+      "rotation": 294.05198963867184,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 51.28,
+      "y": 33.74,
+      "z": 0,
+      "rotation": 7.621782251036393,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 41.04,
+      "y": 54.91,
+      "z": 0,
+      "rotation": 294.6142381853423,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 57.62,
+      "y": 59.96,
+      "z": 0,
+      "rotation": 253.30929398406067,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 51.58,
+      "y": 67.07,
+      "z": 0,
+      "rotation": 278.7773350094563,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 64.21,
+      "y": 33.71,
+      "z": 0,
+      "rotation": 317.6429427252511,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 72.89,
+      "y": 96.7,
+      "z": 0,
+      "rotation": 131.27387098608554,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 7.87,
+      "y": 71.87,
+      "z": 0,
+      "rotation": 282.64934456645847,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 15.03,
+      "y": 90.08,
+      "z": 0,
+      "rotation": 71.8692457513711,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 52.66,
+      "y": 60.77,
+      "z": 0,
+      "rotation": 227.31487243234375,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 71.07,
+      "y": 56.68,
+      "z": 0,
+      "rotation": 345.11369460828723,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 38.06,
+      "y": 90.65,
+      "z": 0,
+      "rotation": 51.31038699024146,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 9.52,
+      "y": 20.75,
+      "z": 0,
+      "rotation": 66.06387123479244,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 86.52,
+      "y": 64.79,
+      "z": 0,
+      "rotation": 319.6488315760597,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 80.41,
+      "y": 81.32,
+      "z": 0,
+      "rotation": 192.7399783706959,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 91.12,
+      "y": 91.05,
+      "z": 0,
+      "rotation": 71.6618774494419,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 67.83,
+      "y": 33.2,
+      "z": 0,
+      "rotation": 128.00762047945685,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 36.21,
+      "y": 82.58,
+      "z": 0,
+      "rotation": 49.015969188889784,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 10.27,
+      "y": 23.2,
+      "z": 0,
+      "rotation": 141.22472474369965,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 34.92,
+      "y": 89.38,
+      "z": 0,
+      "rotation": 311.51977396436115,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 5.58,
+      "y": 65.83,
+      "z": 0,
+      "rotation": 245.55765115448364,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 90.24,
+      "y": 8.91,
+      "z": 0,
+      "rotation": 312.731853451643,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 47.26,
+      "y": 91.85,
+      "z": 0,
+      "rotation": 243.7363357479185,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 79.46,
+      "y": 79.15,
+      "z": 0,
+      "rotation": 343.54221163317186,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 25.86,
+      "y": 74.91,
+      "z": 0,
+      "rotation": 1.3745769706791222,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 61.13,
+      "y": 38.85,
+      "z": 0,
+      "rotation": 37.68115986698063,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 57.04,
+      "y": 3.08,
+      "z": 0,
+      "rotation": 308.5905025028878,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 85.06,
+      "y": 87.81,
+      "z": 0,
+      "rotation": 210.88878456420645,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 38.95,
+      "y": 60.9,
+      "z": 0,
+      "rotation": 193.02147480612658,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 7.73,
+      "y": 17.02,
+      "z": 0,
+      "rotation": 96.80839518337353,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 24.38,
+      "y": 82.33,
+      "z": 0,
+      "rotation": 224.3074058822285,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 13.93,
+      "y": 88.52,
+      "z": 0,
+      "rotation": 123.55331830343907,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 21.44,
+      "y": 17.08,
+      "z": 0,
+      "rotation": 116.53446548568716,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 79.81,
+      "y": 35.95,
+      "z": 0,
+      "rotation": 244.29625992396382,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 50.54,
+      "y": 27.14,
+      "z": 0,
+      "rotation": 59.87715227727625,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 55.11,
+      "y": 60.66,
+      "z": 0,
+      "rotation": 289.5825639403203,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 61.37,
+      "y": 50.49,
+      "z": 0,
+      "rotation": 88.18822040651963,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 54.87,
+      "y": 67.45,
+      "z": 0,
+      "rotation": 225.68099900533983,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 26.01,
+      "y": 95.33,
+      "z": 0,
+      "rotation": 220.97659764383732,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 58.26,
+      "y": 20.2,
+      "z": 0,
+      "rotation": 349.1306852286367,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 4.65,
+      "y": 15.95,
+      "z": 0,
+      "rotation": 254.91136036453344,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 92.03,
+      "y": 60.41,
+      "z": 0,
+      "rotation": 235.60995147201587,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 15.09,
+      "y": 71.93,
+      "z": 0,
+      "rotation": 203.42231408517895,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 16.45,
+      "y": 46.53,
+      "z": 0,
+      "rotation": 148.562741779578,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 61.21,
+      "y": 90.83,
+      "z": 0,
+      "rotation": 104.5762268849928,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 87.14,
+      "y": 8.98,
+      "z": 0,
+      "rotation": 234.2822600284284,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 14.39,
+      "y": 7.96,
+      "z": 0,
+      "rotation": 71.8280099683938,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 97.41,
+      "y": 37.4,
+      "z": 0,
+      "rotation": 295.23565481441716,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 89.98,
+      "y": 71.27,
+      "z": 0,
+      "rotation": 16.659918264881636,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 53.52,
+      "y": 32.43,
+      "z": 0,
+      "rotation": 40.929557358352696,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 71.96,
+      "y": 81.22,
+      "z": 0,
+      "rotation": 242.18963506432695,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 11.62,
+      "y": 90.31,
+      "z": 0,
+      "rotation": 0.9199353773440455,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 59.24,
+      "y": 80.7,
+      "z": 0,
+      "rotation": 36.14909751052774,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 31.5,
+      "y": 68.29,
+      "z": 0,
+      "rotation": 284.8098093880592,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 27.95,
+      "y": 73.33,
+      "z": 0,
+      "rotation": 258.262179869925,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 71.63,
+      "y": 73.89,
+      "z": 0,
+      "rotation": 155.88183260275136,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 71.7,
+      "y": 51.46,
+      "z": 0,
+      "rotation": 95.88832997272671,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 78.95,
+      "y": 42.36,
+      "z": 0,
+      "rotation": 109.85524084359608,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 56.46,
+      "y": 79.6,
+      "z": 0,
+      "rotation": 23.2900992958745,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 74.53,
+      "y": 74.08,
+      "z": 0,
+      "rotation": 353.73537360946654,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 88.14,
+      "y": 91.83,
+      "z": 0,
+      "rotation": 44.22393537399021,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 43.51,
+      "y": 9.13,
+      "z": 0,
+      "rotation": 175.86593548074,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 15.77,
+      "y": 92.44,
+      "z": 0,
+      "rotation": 180.50786960170333,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 27.07,
+      "y": 73.11,
+      "z": 0,
+      "rotation": 298.4470928668798,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 22.25,
+      "y": 19.64,
+      "z": 0,
+      "rotation": 358.288993155616,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 70.78,
+      "y": 37.82,
+      "z": 0,
+      "rotation": 177.69468464693142,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 61.37,
+      "y": 87.66,
+      "z": 0,
+      "rotation": 278.07717228429306,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 34.8,
+      "y": 65.75,
+      "z": 0,
+      "rotation": 304.31758995464696,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 54.79,
+      "y": 11.81,
+      "z": 0,
+      "rotation": 353.11639235632134,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 82.55,
+      "y": 37.72,
+      "z": 0,
+      "rotation": 86.45767183543006,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 92.66,
+      "y": 91.91,
+      "z": 0,
+      "rotation": 322.264577820696,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 41.75,
+      "y": 49.83,
+      "z": 0,
+      "rotation": 202.93052046800574,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 17.9,
+      "y": 1.97,
+      "z": 0,
+      "rotation": 67.4860763580932,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 90.22,
+      "y": 87.33,
+      "z": 0,
+      "rotation": 286.6873975450427,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 40.17,
+      "y": 59.19,
+      "z": 0,
+      "rotation": 254.14695380975527,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 70.98,
+      "y": 64.53,
+      "z": 0,
+      "rotation": 256.52297957477185,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 80.97,
+      "y": 32.73,
+      "z": 0,
+      "rotation": 34.44924588135414,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 4.4,
+      "y": 11.03,
+      "z": 0,
+      "rotation": 175.33695712314125,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 5.79,
+      "y": 84.5,
+      "z": 0,
+      "rotation": 15.434088569873868,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 82.73,
+      "y": 61.47,
+      "z": 0,
+      "rotation": 21.470203927435065,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 57.9,
+      "y": 74.87,
+      "z": 0,
+      "rotation": 85.53390455742012,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 80.12,
+      "y": 23.75,
+      "z": 0,
+      "rotation": 343.3667156049453,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 92.04,
+      "y": 28.46,
+      "z": 0,
+      "rotation": 285.6421352815292,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 53.84,
+      "y": 73.3,
+      "z": 0,
+      "rotation": 72.29178450110989,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 44.81,
+      "y": 73.98,
+      "z": 0,
+      "rotation": 207.33464030966582,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 91.17,
+      "y": 61.34,
+      "z": 0,
+      "rotation": 287.4087793081629,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 14.12,
+      "y": 55.34,
+      "z": 0,
+      "rotation": 275.38625839571256,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 59.98,
+      "y": 15.95,
+      "z": 0,
+      "rotation": 19.61835676334617,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 4.58,
+      "y": 28.66,
+      "z": 0,
+      "rotation": 213.8383465962092,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 73.91,
+      "y": 55.89,
+      "z": 0,
+      "rotation": 80.50413439740802,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 57.04,
+      "y": 89.84,
+      "z": 0,
+      "rotation": 155.51960529348267,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 50.22,
+      "y": 64.59,
+      "z": 0,
+      "rotation": 282.6798804947994,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 33.7,
+      "y": 8.05,
+      "z": 0,
+      "rotation": 165.64049084977756,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 91.86,
+      "y": 76.66,
+      "z": 0,
+      "rotation": 191.51357044950586,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 17.59,
+      "y": 13.63,
+      "z": 0,
+      "rotation": 313.7345494530483,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 66.37,
+      "y": 49.74,
+      "z": 0,
+      "rotation": 191.5067256095332,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 45.81,
+      "y": 13.74,
+      "z": 0,
+      "rotation": 353.9051690571113,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 28.37,
+      "y": 47.07,
+      "z": 0,
+      "rotation": 270.42088213461494,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 80.37,
+      "y": 42.19,
+      "z": 0,
+      "rotation": 159.06129260938206,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 46.39,
+      "y": 76.28,
+      "z": 0,
+      "rotation": 87.68539681336651,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 45.75,
+      "y": 43.21,
+      "z": 0,
+      "rotation": 137.70493450837142,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 89.15,
+      "y": 46.72,
+      "z": 0,
+      "rotation": 124.47153874709778,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 9.75,
+      "y": 75.26,
+      "z": 0,
+      "rotation": 72.97531668404976,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 53.14,
+      "y": 45.62,
+      "z": 0,
+      "rotation": 286.67561352523546,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 4.65,
+      "y": 47.49,
+      "z": 0,
+      "rotation": 345.384996400831,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 47.98,
+      "y": 69.58,
+      "z": 0,
+      "rotation": 317.8699889567246,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 61.49,
+      "y": 91.84,
+      "z": 0,
+      "rotation": 8.939485641824483,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 42.59,
+      "y": 35.58,
+      "z": 0,
+      "rotation": 301.1348880724214,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 71.75,
+      "y": 31.53,
+      "z": 0,
+      "rotation": 211.73948369922954,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 28.55,
+      "y": 34.4,
+      "z": 0,
+      "rotation": 306.6003133942815,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 9.33,
+      "y": 28.56,
+      "z": 0,
+      "rotation": 272.55555834411973,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 25.68,
+      "y": 56.32,
+      "z": 0,
+      "rotation": 95.71525723018479,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 4.67,
+      "y": 71.1,
+      "z": 0,
+      "rotation": 115.96799270091368,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 71.18,
+      "y": 60.18,
+      "z": 0,
+      "rotation": 277.8953476819553,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 36.14,
+      "y": 9.08,
+      "z": 0,
+      "rotation": 81.9626416555549,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 27,
+      "y": 95.08,
+      "z": 0,
+      "rotation": 274.0454582208155,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 55.06,
+      "y": 20.24,
+      "z": 0,
+      "rotation": 211.97466090169507,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 94.34,
+      "y": 10.41,
+      "z": 0,
+      "rotation": 64.96836680845504,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 8.11,
+      "y": 81.94,
+      "z": 0,
+      "rotation": 82.60446577859076,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 59.34,
+      "y": 86.34,
+      "z": 0,
+      "rotation": 254.05057177892866,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 74.35,
+      "y": 25.75,
+      "z": 0,
+      "rotation": 224.4621216773281,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-01",
+      "pack": "vikings",
+      "x": 40.9,
+      "y": 49.96,
+      "z": 0,
+      "rotation": 239.5006451757753,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 22.12,
+      "y": 53.9,
+      "z": 0,
+      "rotation": 262.941097709981,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 96.61,
+      "y": 12.55,
+      "z": 0,
+      "rotation": 56.81040962609883,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 85.84,
+      "y": 16.97,
+      "z": 0,
+      "rotation": 186.95036402553325,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 54.42,
+      "y": 67.06,
+      "z": 0,
+      "rotation": 127.84767856360692,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 18.73,
+      "y": 26.47,
+      "z": 0,
+      "rotation": 170.82445481827835,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 92.68,
+      "y": 9.74,
+      "z": 0,
+      "rotation": 253.0715738779445,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 29.57,
+      "y": 45.72,
+      "z": 0,
+      "rotation": 144.10528252055917,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-02",
+      "pack": "vikings",
+      "x": 12.67,
+      "y": 76.91,
+      "z": 0,
+      "rotation": 263.8675410774535,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 84.77,
+      "y": 80.95,
+      "z": 0,
+      "rotation": 123.36581841852579,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 63.06,
+      "y": 80.87,
+      "z": 0,
+      "rotation": 98.38020884151754,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 15.06,
+      "y": 19.36,
+      "z": 0,
+      "rotation": 252.7489151063905,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flax-03",
+      "pack": "vikings",
+      "x": 2.47,
+      "y": 45.38,
+      "z": 0,
+      "rotation": 250.36383600687685,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 80.46,
+      "y": 82.29,
+      "z": 0,
+      "rotation": 303.446775260853,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 87.48,
+      "y": 76.61,
+      "z": 0,
+      "rotation": 102.62673460025913,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 20.83,
+      "y": 59.04,
+      "z": 0,
+      "rotation": 176.4001919240936,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 71.39,
+      "y": 65.26,
+      "z": 0,
+      "rotation": 108.89394585388281,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 8.03,
+      "y": 18.8,
+      "z": 0,
+      "rotation": 120.23088272443063,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 2.06,
+      "y": 91.31,
+      "z": 0,
+      "rotation": 64.51265412871784,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 18.1,
+      "y": 72.27,
+      "z": 0,
+      "rotation": 279.5768555896922,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 78.12,
+      "y": 90.08,
+      "z": 0,
+      "rotation": 272.6810225303719,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 89.6,
+      "y": 34.04,
+      "z": 0,
+      "rotation": 280.66857219554004,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 19.88,
+      "y": 34.93,
+      "z": 0,
+      "rotation": 65.9004638126534,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 94.87,
+      "y": 23.72,
+      "z": 0,
+      "rotation": 196.37473009917696,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 41.27,
+      "y": 35.87,
+      "z": 0,
+      "rotation": 204.36718489664125,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 4.83,
+      "y": 21.18,
+      "z": 0,
+      "rotation": 3.450809899604761,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 1.91,
+      "y": 39.89,
+      "z": 0,
+      "rotation": 253.74524629276272,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 16.11,
+      "y": 72.04,
+      "z": 0,
+      "rotation": 16.47379991154469,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 82.81,
+      "y": 89.73,
+      "z": 0,
+      "rotation": 34.23764113608214,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 74.57,
+      "y": 60.54,
+      "z": 0,
+      "rotation": 187.8716211473481,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 76.48,
+      "y": 70.84,
+      "z": 0,
+      "rotation": 146.02252370323413,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 61.11,
+      "y": 65.14,
+      "z": 0,
+      "rotation": 234.79552638009034,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 84.9,
+      "y": 89.37,
+      "z": 0,
+      "rotation": 83.10478550336578,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 71.31,
+      "y": 72.24,
+      "z": 0,
+      "rotation": 5.73878300523575,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 15.56,
+      "y": 81.11,
+      "z": 0,
+      "rotation": 38.06575466899623,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 48.85,
+      "y": 59.46,
+      "z": 0,
+      "rotation": 282.4126843856762,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 35.72,
+      "y": 92,
+      "z": 0,
+      "rotation": 230.44793708307466,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 96.11,
+      "y": 47.23,
+      "z": 0,
+      "rotation": 71.05367343561109,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 88.35,
+      "y": 71.37,
+      "z": 0,
+      "rotation": 218.87962555767876,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 29.15,
+      "y": 78.38,
+      "z": 0,
+      "rotation": 152.00516955398115,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 6.8,
+      "y": 22.34,
+      "z": 0,
+      "rotation": 265.0333858637078,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 92.52,
+      "y": 84.96,
+      "z": 0,
+      "rotation": 265.7247525754378,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 74.72,
+      "y": 10.1,
+      "z": 0,
+      "rotation": 205.62503486788307,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 79.15,
+      "y": 25.03,
+      "z": 0,
+      "rotation": 283.9881668555136,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 84.67,
+      "y": 38.95,
+      "z": 0,
+      "rotation": 133.2957101688662,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 85.78,
+      "y": 84.06,
+      "z": 0,
+      "rotation": 352.1957508066214,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 49.54,
+      "y": 36.18,
+      "z": 0,
+      "rotation": 319.03059574784925,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 92.76,
+      "y": 89.56,
+      "z": 0,
+      "rotation": 309.9589440534636,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 7.49,
+      "y": 51.03,
+      "z": 0,
+      "rotation": 70.30359846075581,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 55.5,
+      "y": 12.39,
+      "z": 0,
+      "rotation": 323.3750841527517,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 78.24,
+      "y": 36.1,
+      "z": 0,
+      "rotation": 21.159308451144195,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 40.86,
+      "y": 23.1,
+      "z": 0,
+      "rotation": 221.18456005569445,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 20.58,
+      "y": 95.72,
+      "z": 0,
+      "rotation": 240.68797715422397,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 36.01,
+      "y": 5.63,
+      "z": 0,
+      "rotation": 245.22325354832637,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 88.18,
+      "y": 52.15,
+      "z": 0,
+      "rotation": 295.9530622662522,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 85.62,
+      "y": 97.08,
+      "z": 0,
+      "rotation": 287.4126640215056,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 53.74,
+      "y": 84.92,
+      "z": 0,
+      "rotation": 358.25257945686207,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 57,
+      "y": 79.85,
+      "z": 0,
+      "rotation": 102.1842666333313,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 90.35,
+      "y": 73.82,
+      "z": 0,
+      "rotation": 340.96029290776596,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 63.14,
+      "y": 75.09,
+      "z": 0,
+      "rotation": 345.3178250644323,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 95.57,
+      "y": 93.83,
+      "z": 0,
+      "rotation": 269.38113627434524,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 88.82,
+      "y": 62.69,
+      "z": 0,
+      "rotation": 230.04216310079988,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 37.77,
+      "y": 74.01,
+      "z": 0,
+      "rotation": 8.966630954875052,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 48.92,
+      "y": 83.36,
+      "z": 0,
+      "rotation": 65.74538733401951,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 9.79,
+      "y": 63.14,
+      "z": 0,
+      "rotation": 16.010052592974425,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 68.16,
+      "y": 28.63,
+      "z": 0,
+      "rotation": 115.38190574198858,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 47.55,
+      "y": 18.42,
+      "z": 0,
+      "rotation": 228.33413237961264,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 46.66,
+      "y": 51.02,
+      "z": 0,
+      "rotation": 151.41111391876507,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 57.09,
+      "y": 93.93,
+      "z": 0,
+      "rotation": 264.0010717440315,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 54.09,
+      "y": 10.89,
+      "z": 0,
+      "rotation": 162.9339520592302,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 89.6,
+      "y": 11.35,
+      "z": 0,
+      "rotation": 267.0789585560224,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 92.63,
+      "y": 36.89,
+      "z": 0,
+      "rotation": 10.083515107723265,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 87.9,
+      "y": 90.53,
+      "z": 0,
+      "rotation": 187.78754606450659,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 81.07,
+      "y": 26.37,
+      "z": 0,
+      "rotation": 104.61187796909367,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 24.06,
+      "y": 16.89,
+      "z": 0,
+      "rotation": 129.69614483474157,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 96.39,
+      "y": 95.27,
+      "z": 0,
+      "rotation": 332.21426875892604,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 20.02,
+      "y": 37.44,
+      "z": 0,
+      "rotation": 261.74109095120633,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 51.1,
+      "y": 49.78,
+      "z": 0,
+      "rotation": 253.33085157822185,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 93.16,
+      "y": 30.41,
+      "z": 0,
+      "rotation": 303.4020861542475,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 15.85,
+      "y": 13.6,
+      "z": 0,
+      "rotation": 263.8246439483059,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 49.16,
+      "y": 49.39,
+      "z": 0,
+      "rotation": 27.197471512909512,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 87.14,
+      "y": 9.85,
+      "z": 0,
+      "rotation": 261.7143897860163,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 46.24,
+      "y": 64.55,
+      "z": 0,
+      "rotation": 113.97982619214584,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 59.74,
+      "y": 46.49,
+      "z": 0,
+      "rotation": 329.188696508845,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 14.09,
+      "y": 64.77,
+      "z": 0,
+      "rotation": 47.232630196205776,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 51.41,
+      "y": 19.54,
+      "z": 0,
+      "rotation": 170.5825839807391,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 72.89,
+      "y": 63.02,
+      "z": 0,
+      "rotation": 66.49199479088182,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 78.27,
+      "y": 70.84,
+      "z": 0,
+      "rotation": 325.4979442747412,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 3.44,
+      "y": 57.58,
+      "z": 0,
+      "rotation": 162.9393981647145,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 52.83,
+      "y": 94.45,
+      "z": 0,
+      "rotation": 104.60414122508197,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 45.66,
+      "y": 19.88,
+      "z": 0,
+      "rotation": 8.13630811132144,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 95.05,
+      "y": 75.43,
+      "z": 0,
+      "rotation": 165.5675510926941,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 61.18,
+      "y": 62.13,
+      "z": 0,
+      "rotation": 47.50014974283796,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 44.77,
+      "y": 97.08,
+      "z": 0,
+      "rotation": 336.7604578199036,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 56.43,
+      "y": 37.57,
+      "z": 0,
+      "rotation": 290.9925068050637,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 43.68,
+      "y": 30.83,
+      "z": 0,
+      "rotation": 300.32731571763657,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 75.88,
+      "y": 79.21,
+      "z": 0,
+      "rotation": 180.3144537310461,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 7.09,
+      "y": 59.19,
+      "z": 0,
+      "rotation": 234.81780428274072,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 75.65,
+      "y": 10.68,
+      "z": 0,
+      "rotation": 221.65942006301375,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 22.19,
+      "y": 22.42,
+      "z": 0,
+      "rotation": 233.06284375670637,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 90.47,
+      "y": 57.99,
+      "z": 0,
+      "rotation": 337.9659732324144,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 54.74,
+      "y": 39.4,
+      "z": 0,
+      "rotation": 157.42040327936908,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 11.57,
+      "y": 24.8,
+      "z": 0,
+      "rotation": 182.00302518370984,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 38.77,
+      "y": 84.1,
+      "z": 0,
+      "rotation": 246.26192316935723,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 19.02,
+      "y": 69.08,
+      "z": 0,
+      "rotation": 198.39528311145284,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 36.72,
+      "y": 73.46,
+      "z": 0,
+      "rotation": 356.7831535804177,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 44.46,
+      "y": 76.08,
+      "z": 0,
+      "rotation": 86.94415329188051,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 56.01,
+      "y": 97.03,
+      "z": 0,
+      "rotation": 145.08545209293004,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 54.1,
+      "y": 49.63,
+      "z": 0,
+      "rotation": 171.83753302646622,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 54.89,
+      "y": 19.67,
+      "z": 0,
+      "rotation": 111.44554007516128,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 20.84,
+      "y": 83.65,
+      "z": 0,
+      "rotation": 199.8561937012671,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 83.07,
+      "y": 11.64,
+      "z": 0,
+      "rotation": 173.6060245086931,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 96.69,
+      "y": 8.18,
+      "z": 0,
+      "rotation": 152.40868685731604,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 67.81,
+      "y": 93.09,
+      "z": 0,
+      "rotation": 90.99234071340575,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 30.72,
+      "y": 18.98,
+      "z": 0,
+      "rotation": 64.42485472724213,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 54.82,
+      "y": 7.22,
+      "z": 0,
+      "rotation": 333.7562494162458,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 41.02,
+      "y": 78.26,
+      "z": 0,
+      "rotation": 16.57224382970756,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 96.48,
+      "y": 13.29,
+      "z": 0,
+      "rotation": 50.19827514870143,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 58.62,
+      "y": 12.86,
+      "z": 0,
+      "rotation": 307.9239979465616,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 57.4,
+      "y": 42.04,
+      "z": 0,
+      "rotation": 267.5575484133199,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 63.76,
+      "y": 39.23,
+      "z": 0,
+      "rotation": 9.676951014767056,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 77.13,
+      "y": 25.01,
+      "z": 0,
+      "rotation": 206.07384986645962,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 69.21,
+      "y": 33.78,
+      "z": 0,
+      "rotation": 206.74324191824726,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 11.25,
+      "y": 64.89,
+      "z": 0,
+      "rotation": 322.67552048303264,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 10.3,
+      "y": 51.6,
+      "z": 0,
+      "rotation": 2.145079063374591,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 92.69,
+      "y": 76.73,
+      "z": 0,
+      "rotation": 100.38844177459961,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 42.28,
+      "y": 28.23,
+      "z": 0,
+      "rotation": 151.8814648311854,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 77.27,
+      "y": 5.34,
+      "z": 0,
+      "rotation": 150.0176022883888,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 80.6,
+      "y": 36.44,
+      "z": 0,
+      "rotation": 348.50266588546896,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 20.89,
+      "y": 31.02,
+      "z": 0,
+      "rotation": 333.9586847390112,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 68.68,
+      "y": 36.3,
+      "z": 0,
+      "rotation": 43.79724697607902,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 71.1,
+      "y": 97.42,
+      "z": 0,
+      "rotation": 312.3514607726038,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 92.07,
+      "y": 12.49,
+      "z": 0,
+      "rotation": 349.4257369779104,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 2.8,
+      "y": 95.38,
+      "z": 0,
+      "rotation": 326.39018325564126,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 66.68,
+      "y": 47.28,
+      "z": 0,
+      "rotation": 55.91018330953756,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 92.59,
+      "y": 60.74,
+      "z": 0,
+      "rotation": 4.054702831957413,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 69.02,
+      "y": 59.97,
+      "z": 0,
+      "rotation": 214.60224550770502,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 20.62,
+      "y": 96.41,
+      "z": 0,
+      "rotation": 72.46320850423717,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 27.02,
+      "y": 29.07,
+      "z": 0,
+      "rotation": 56.25312273749167,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 29.29,
+      "y": 11.72,
+      "z": 0,
+      "rotation": 36.41351372577174,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 3.47,
+      "y": 66.66,
+      "z": 0,
+      "rotation": 203.1574942477302,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 48.76,
+      "y": 2.37,
+      "z": 0,
+      "rotation": 276.0968622905948,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 17.72,
+      "y": 38.12,
+      "z": 0,
+      "rotation": 277.9166437611598,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 33.66,
+      "y": 88.85,
+      "z": 0,
+      "rotation": 129.65939104316638,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 95.26,
+      "y": 73.41,
+      "z": 0,
+      "rotation": 92.30700903938904,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 1.5,
+      "y": 39.16,
+      "z": 0,
+      "rotation": 241.88282411230608,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 8.98,
+      "y": 95.18,
+      "z": 0,
+      "rotation": 210.68455104648763,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 39.02,
+      "y": 64.73,
+      "z": 0,
+      "rotation": 145.98985164261904,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 85.17,
+      "y": 57.18,
+      "z": 0,
+      "rotation": 353.74582224572794,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 94.61,
+      "y": 44.01,
+      "z": 0,
+      "rotation": 92.68465038289409,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 22.84,
+      "y": 75.75,
+      "z": 0,
+      "rotation": 46.996052215485705,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 61.29,
+      "y": 61.76,
+      "z": 0,
+      "rotation": 151.37982677974435,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 9,
+      "y": 85.48,
+      "z": 0,
+      "rotation": 187.27338246862877,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 81.62,
+      "y": 92.35,
+      "z": 0,
+      "rotation": 16.81572656806464,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 96.36,
+      "y": 1.53,
+      "z": 0,
+      "rotation": 149.31856623328144,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 24.5,
+      "y": 64.84,
+      "z": 0,
+      "rotation": 201.45123564616495,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 22.76,
+      "y": 87.01,
+      "z": 0,
+      "rotation": 96.56697298297732,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 68.62,
+      "y": 7.67,
+      "z": 0,
+      "rotation": 257.4228978217799,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 34.48,
+      "y": 76.91,
+      "z": 0,
+      "rotation": 143.21815242523147,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 46.76,
+      "y": 62.68,
+      "z": 0,
+      "rotation": 48.26574586106864,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 12.14,
+      "y": 96.18,
+      "z": 0,
+      "rotation": 100.64129922438612,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 5.32,
+      "y": 32.06,
+      "z": 0,
+      "rotation": 237.20959232924397,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 93.78,
+      "y": 51.88,
+      "z": 0,
+      "rotation": 159.10359144449842,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 13.31,
+      "y": 15.96,
+      "z": 0,
+      "rotation": 318.2024851250645,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 34.54,
+      "y": 55.03,
+      "z": 0,
+      "rotation": 28.17615211172459,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 37.35,
+      "y": 54.4,
+      "z": 0,
+      "rotation": 166.43583425634154,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 14.33,
+      "y": 25.36,
+      "z": 0,
+      "rotation": 35.647646320065505,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 66.05,
+      "y": 39.7,
+      "z": 0,
+      "rotation": 144.18652225284208,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 28.62,
+      "y": 4.92,
+      "z": 0,
+      "rotation": 306.7344127632393,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 45.31,
+      "y": 33.8,
+      "z": 0,
+      "rotation": 217.87748004804888,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 53.29,
+      "y": 68.98,
+      "z": 0,
+      "rotation": 46.294806691861154,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 12.61,
+      "y": 30.05,
+      "z": 0,
+      "rotation": 301.64843925108397,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 26.38,
+      "y": 56.87,
+      "z": 0,
+      "rotation": 255.49739439156065,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 84.09,
+      "y": 48.73,
+      "z": 0,
+      "rotation": 255.2578120125058,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 31.64,
+      "y": 16.15,
+      "z": 0,
+      "rotation": 249.55467519933208,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 72.85,
+      "y": 50.76,
+      "z": 0,
+      "rotation": 163.11436613812063,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 42.46,
+      "y": 69.76,
+      "z": 0,
+      "rotation": 154.50560161755553,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 19.47,
+      "y": 25.24,
+      "z": 0,
+      "rotation": 157.9097243179442,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 17.79,
+      "y": 59.31,
+      "z": 0,
+      "rotation": 222.97789397621392,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 35.98,
+      "y": 62.34,
+      "z": 0,
+      "rotation": 254.73229720134995,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 20.57,
+      "y": 37.46,
+      "z": 0,
+      "rotation": 291.57427733381303,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 65.02,
+      "y": 59,
+      "z": 0,
+      "rotation": 317.99830835692643,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 85.98,
+      "y": 79.12,
+      "z": 0,
+      "rotation": 38.14933926237144,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 44.3,
+      "y": 17.37,
+      "z": 0,
+      "rotation": 225.00884280509,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 25.31,
+      "y": 42.57,
+      "z": 0,
+      "rotation": 307.07298233686873,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 54.52,
+      "y": 61.71,
+      "z": 0,
+      "rotation": 221.9518302486979,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 64.01,
+      "y": 31.25,
+      "z": 0,
+      "rotation": 42.83816893164426,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 60.14,
+      "y": 13.8,
+      "z": 0,
+      "rotation": 199.31573667844228,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 12.65,
+      "y": 39.75,
+      "z": 0,
+      "rotation": 61.08037859743363,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 9.78,
+      "y": 36.84,
+      "z": 0,
+      "rotation": 359.3307199947894,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 2.33,
+      "y": 21.91,
+      "z": 0,
+      "rotation": 27.766285646592866,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 34.87,
+      "y": 33.66,
+      "z": 0,
+      "rotation": 65.04203552681766,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 87.91,
+      "y": 52.7,
+      "z": 0,
+      "rotation": 156.10324277599142,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 94.1,
+      "y": 90.79,
+      "z": 0,
+      "rotation": 80.58197778850773,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 60.47,
+      "y": 28.66,
+      "z": 0,
+      "rotation": 218.19836600720467,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 4.68,
+      "y": 62.93,
+      "z": 0,
+      "rotation": 322.5264663229704,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 42.6,
+      "y": 50.29,
+      "z": 0,
+      "rotation": 67.57840256097334,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 82.58,
+      "y": 83.3,
+      "z": 0,
+      "rotation": 215.37920064880612,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 6.22,
+      "y": 8.03,
+      "z": 0,
+      "rotation": 124.84717123565429,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 19.93,
+      "y": 20.34,
+      "z": 0,
+      "rotation": 251.6037590180266,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 14.21,
+      "y": 12.21,
+      "z": 0,
+      "rotation": 209.94350459046828,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 39.96,
+      "y": 47.07,
+      "z": 0,
+      "rotation": 26.717373199147993,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 93.99,
+      "y": 91.8,
+      "z": 0,
+      "rotation": 215.11383624690177,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 71.67,
+      "y": 51.98,
+      "z": 0,
+      "rotation": 21.33530914676479,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 47.16,
+      "y": 46.19,
+      "z": 0,
+      "rotation": 262.8453991232145,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 29.31,
+      "y": 10.08,
+      "z": 0,
+      "rotation": 74.88417307649131,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 85.64,
+      "y": 97.35,
+      "z": 0,
+      "rotation": 166.12595375440364,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 26.31,
+      "y": 24.3,
+      "z": 0,
+      "rotation": 184.55416013001903,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 77.55,
+      "y": 89.16,
+      "z": 0,
+      "rotation": 68.10764027694049,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 63.71,
+      "y": 12.69,
+      "z": 0,
+      "rotation": 346.95600697336533,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 62.13,
+      "y": 39.89,
+      "z": 0,
+      "rotation": 204.49539327679372,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 52.01,
+      "y": 23.37,
+      "z": 0,
+      "rotation": 207.46643163894072,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 52.94,
+      "y": 64.72,
+      "z": 0,
+      "rotation": 194.62722710675195,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 23.24,
+      "y": 25.17,
+      "z": 0,
+      "rotation": 302.839772970028,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 5.11,
+      "y": 39.6,
+      "z": 0,
+      "rotation": 294.6298662065409,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 33.6,
+      "y": 48.5,
+      "z": 0,
+      "rotation": 320.0606478561507,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 73.5,
+      "y": 25.4,
+      "z": 0,
+      "rotation": 47.066156462859574,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 5.05,
+      "y": 36.37,
+      "z": 0,
+      "rotation": 278.83326965944275,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 84.62,
+      "y": 85.55,
+      "z": 0,
+      "rotation": 29.613372171211886,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 60.65,
+      "y": 48.02,
+      "z": 0,
+      "rotation": 291.41487120304606,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 75.73,
+      "y": 60.56,
+      "z": 0,
+      "rotation": 263.4191113621562,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 53.11,
+      "y": 63.2,
+      "z": 0,
+      "rotation": 239.38860767387112,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 79.88,
+      "y": 28.75,
+      "z": 0,
+      "rotation": 239.5917304965851,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 59.3,
+      "y": 44.56,
+      "z": 0,
+      "rotation": 248.1784607398102,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 76.89,
+      "y": 81.62,
+      "z": 0,
+      "rotation": 331.78724191973083,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 80.52,
+      "y": 28.69,
+      "z": 0,
+      "rotation": 326.2896939055001,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 65.77,
+      "y": 69.97,
+      "z": 0,
+      "rotation": 282.1510758107477,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 76.53,
+      "y": 83.72,
+      "z": 0,
+      "rotation": 316.35847851624374,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 50.97,
+      "y": 52.82,
+      "z": 0,
+      "rotation": 1.4677894946252534,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 1.67,
+      "y": 28.39,
+      "z": 0,
+      "rotation": 209.8559542419864,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 35.33,
+      "y": 60.37,
+      "z": 0,
+      "rotation": 310.62493338528395,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 35.49,
+      "y": 42.71,
+      "z": 0,
+      "rotation": 39.58520773998675,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 63.16,
+      "y": 47.96,
+      "z": 0,
+      "rotation": 64.06944119004116,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 43.16,
+      "y": 10.23,
+      "z": 0,
+      "rotation": 63.79966670463,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 8.8,
+      "y": 29.38,
+      "z": 0,
+      "rotation": 320.5232265673424,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 51.1,
+      "y": 42.83,
+      "z": 0,
+      "rotation": 49.56915427046368,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 43.98,
+      "y": 92.02,
+      "z": 0,
+      "rotation": 21.88611787678047,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 62.56,
+      "y": 82.7,
+      "z": 0,
+      "rotation": 112.71538387999033,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 81.64,
+      "y": 95.04,
+      "z": 0,
+      "rotation": 96.10332183562576,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 13.53,
+      "y": 49.8,
+      "z": 0,
+      "rotation": 128.81332514866583,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 91.28,
+      "y": 57.41,
+      "z": 0,
+      "rotation": 219.42184730261147,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 90.37,
+      "y": 32.83,
+      "z": 0,
+      "rotation": 305.1500858034564,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 72.47,
+      "y": 69.77,
+      "z": 0,
+      "rotation": 79.88028582820296,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 90.2,
+      "y": 61.45,
+      "z": 0,
+      "rotation": 120.98110734266696,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 14.42,
+      "y": 27.5,
+      "z": 0,
+      "rotation": 344.45960223505983,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 96.82,
+      "y": 58.37,
+      "z": 0,
+      "rotation": 221.19514474538994,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 29.4,
+      "y": 52.47,
+      "z": 0,
+      "rotation": 38.06318409694752,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 46.98,
+      "y": 65.19,
+      "z": 0,
+      "rotation": 126.63051999292688,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 21.36,
+      "y": 88.7,
+      "z": 0,
+      "rotation": 105.17593964217788,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 46.89,
+      "y": 57.14,
+      "z": 0,
+      "rotation": 276.0941384332549,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 19.03,
+      "y": 3.44,
+      "z": 0,
+      "rotation": 109.22135631697427,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 65.79,
+      "y": 80.93,
+      "z": 0,
+      "rotation": 237.00841322577213,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 34.7,
+      "y": 22.63,
+      "z": 0,
+      "rotation": 229.99497709773576,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 11.23,
+      "y": 48.87,
+      "z": 0,
+      "rotation": 239.3574443702958,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 57.15,
+      "y": 5.73,
+      "z": 0,
+      "rotation": 247.82944990585824,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 48.21,
+      "y": 20.54,
+      "z": 0,
+      "rotation": 251.92691640226428,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 72.21,
+      "y": 73.59,
+      "z": 0,
+      "rotation": 23.76603767448707,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 86.66,
+      "y": 33.04,
+      "z": 0,
+      "rotation": 319.2903715751644,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 95.79,
+      "y": 17.2,
+      "z": 0,
+      "rotation": 62.34583308202792,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 55.1,
+      "y": 46.82,
+      "z": 0,
+      "rotation": 258.69302030617104,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 66.5,
+      "y": 83.23,
+      "z": 0,
+      "rotation": 218.1242833521243,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 51.46,
+      "y": 70.34,
+      "z": 0,
+      "rotation": 293.5091687887039,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 59.33,
+      "y": 27.95,
+      "z": 0,
+      "rotation": 338.6964928236484,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 5.14,
+      "y": 31.26,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 18.01,
+      "y": 76.11,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 55.34,
+      "y": 20.27,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 27.72,
+      "y": 34.53,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 66.91,
+      "y": 89.29,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 78.46,
+      "y": 65.21,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 67.15,
+      "y": 22.18,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 55.79,
+      "y": 64.15,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 86.02,
+      "y": 46.86,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 69.03,
+      "y": 27.81,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 40.48,
+      "y": 17.2,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 29.71,
+      "y": 79.25,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 74.05,
+      "y": 90.48,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 37.95,
+      "y": 85.69,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 49.72,
+      "y": 3.74,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 82.94,
+      "y": 54.14,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 42.88,
+      "y": 68.52,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 3.06,
+      "y": 21.06,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 46.45,
+      "y": 88.18,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 6.58,
+      "y": 60.04,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-02",
+      "pack": "vikings",
+      "x": 63.35,
+      "y": 29.67,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 2.11,
+      "y": 53.93,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 25.73,
+      "y": 86.53,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-carthay-01",
+      "pack": "knights",
+      "x": 37.71,
+      "y": 77.08,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-cart-01",
+      "pack": "knights",
+      "x": 64.54,
+      "y": 52.2,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-carthay-01",
+      "pack": "knights",
+      "x": 88.23,
+      "y": 11.29,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-carthay-01",
+      "pack": "knights",
+      "x": 36.45,
+      "y": 39.65,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-carthay-01",
+      "pack": "knights",
+      "x": 54.89,
+      "y": 37.62,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-cart-01",
+      "pack": "knights",
+      "x": 37.95,
+      "y": 48.33,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 59.7,
+      "y": 25.7,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-rack-01",
+      "pack": "vikings",
+      "x": 11.21,
+      "y": 78.43,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-crate-open-01",
+      "pack": "vikings",
+      "x": 94.45,
+      "y": 78.22,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 31.1,
+      "y": 6.96,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 92.14,
+      "y": 43.35,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 84.31,
+      "y": 34.22,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-rack-01",
+      "pack": "vikings",
+      "x": 67.81,
+      "y": 58.11,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-clay-pot-01",
+      "pack": "vikings",
+      "x": 75.46,
+      "y": 16.1,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-wheel-barrow-01",
+      "pack": "vikings",
+      "x": 93.13,
+      "y": 27.57,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-wheel-barrow-01",
+      "pack": "vikings",
+      "x": 48.79,
+      "y": 80.44,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-clay-pot-01",
+      "pack": "vikings",
+      "x": 5.79,
+      "y": 93.25,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-crate-open-01",
+      "pack": "vikings",
+      "x": 31.58,
+      "y": 38.33,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-crate-open-01",
+      "pack": "vikings",
+      "x": 48.52,
+      "y": 12.42,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-rack-01",
+      "pack": "vikings",
+      "x": 66.73,
+      "y": 95.78,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 60.04,
+      "y": 48.43,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-clay-pot-01",
+      "pack": "vikings",
+      "x": 45.66,
+      "y": 94.54,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-clay-pot-01",
+      "pack": "vikings",
+      "x": 59.03,
+      "y": 82.33,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-wheel-barrow-01",
+      "pack": "vikings",
+      "x": 54.61,
+      "y": 46.56,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-bld-leanto-01",
+      "pack": "knights",
+      "x": 28.47,
+      "y": 22.55,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-bld-leanto-01",
+      "pack": "knights",
+      "x": 15.41,
+      "y": 20.36,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-bld-leanto-01",
+      "pack": "knights",
+      "x": 70.53,
+      "y": 1.85,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-logs-01",
+      "pack": "vikings",
+      "x": 85.68,
+      "y": 70.98,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-log-01",
+      "pack": "vikings",
+      "x": 56.46,
+      "y": 56.99,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-log-01",
+      "pack": "vikings",
+      "x": 59.12,
+      "y": 42.28,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-logs-01",
+      "pack": "vikings",
+      "x": 16.73,
+      "y": 11.56,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-logs-01",
+      "pack": "vikings",
+      "x": 7.94,
+      "y": 37.15,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-logs-01",
+      "pack": "vikings",
+      "x": 59.82,
+      "y": 95.17,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-logs-01",
+      "pack": "vikings",
+      "x": 48.25,
+      "y": 60.26,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-logs-01",
+      "pack": "vikings",
+      "x": 36.32,
+      "y": 70.66,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-log-01",
+      "pack": "vikings",
+      "x": 15.52,
+      "y": 27.77,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-log-01",
+      "pack": "vikings",
+      "x": 73.66,
+      "y": 36.47,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 24.82,
+      "y": 7.53,
+      "z": 0,
+      "rotation": 180,
+      "scale": 0.939,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 43.79,
+      "y": 50.72,
+      "z": 0,
+      "rotation": 270,
+      "scale": 0.962,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 70.46,
+      "y": 44.6,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1.161,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 31.67,
+      "y": 16.62,
+      "z": 0,
+      "rotation": 90,
+      "scale": 0.985,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 80.77,
+      "y": 81.73,
+      "z": 0,
+      "rotation": 270,
+      "scale": 0.946,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 71.21,
+      "y": 50.68,
+      "z": 0,
+      "rotation": 270,
+      "scale": 0.956,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 50.72,
+      "y": 92.84,
+      "z": 0,
+      "rotation": 90,
+      "scale": 0.972,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 2.89,
+      "y": 69.88,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1.208,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 33.67,
+      "y": 45.72,
+      "z": 0,
+      "rotation": 90,
+      "scale": 0.972,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 91.35,
+      "y": 2.57,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1.136,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 86.58,
+      "y": 91.01,
+      "z": 0,
+      "rotation": 0,
+      "scale": 0.987,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 61.7,
+      "y": 7.86,
+      "z": 0,
+      "rotation": 90,
+      "scale": 0.959,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 29.13,
+      "y": 96.93,
+      "z": 0,
+      "rotation": 270,
+      "scale": 0.993,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 32.74,
+      "y": 52.56,
+      "z": 0,
+      "rotation": 180,
+      "scale": 0.916,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 32.78,
+      "y": 64.1,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1.008,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 56.71,
+      "y": 14.62,
+      "z": 0,
+      "rotation": 0,
+      "scale": 0.926,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 27.61,
+      "y": 49.84,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1.009,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 14.28,
+      "y": 47.64,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1.136,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 87.52,
+      "y": 29.73,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1.067,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 25.2,
+      "y": 16.86,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1.201,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 14.03,
+      "y": 83,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1.022,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 17.64,
+      "y": 33.15,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1.065,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    }
+  ],
+  "roofs": [],
+  "live": true,
+  "groundPaint": [
+    "round-farm-0.png",
+    "round-farm-1.png"
+  ],
+  "groundMaterials": [
+    "grass",
+    "dirt",
+    "leafmould",
+    "mud",
+    "sand",
+    "gravel"
   ]
 }

@@ -1,0 +1,12 @@
+{
+  "id": "workshop",
+  "name": "Workshop",
+  "descriptor": "an anvil and its bench",
+  "art": {
+    "pack": "vikings",
+    "asset": "sm-prop-anvil-01",
+    "rotation": 0,
+    "scale": 1
+  },
+  "notes": "Where a recipe that names the workshop is made (D-530)."
+}

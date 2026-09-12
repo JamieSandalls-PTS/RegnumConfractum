@@ -6,6 +6,11 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 
+/** The town, read from content so a map change cannot silently move a bot
+ * into a wall — where an unwalkable spawn is relocated to the area spawn. */
+const TOWN = loadContent(fileURLToPath(new URL('../../content', import.meta.url)))
+  .areas.get('round-town')!;
+
 /**
  * Starvation kills (D-534, amending D-526's plateau for hunger).
  *
@@ -75,14 +80,16 @@ beforeAll(async () => {
     await bot.expect('auth_ok');
     bot.send({ t: 'create_character', name, appearanceSeed: seed });
     const id = (await bot.expect('character_created')).character.id;
-    await store.saveCharacterPosition(id, 'round-town', x, 20);
+    // Clear of the storehouse and the well: standing at a facility stretches
+    // the need clock, which is the opposite of what this test measures.
+    await store.saveCharacterPosition(id, 'round-town', x, TOWN.height - 6);
     bot.send({ t: 'enter_world', characterId: id });
     await bot.expect('snapshot');
   };
   faster = await BotClient.connect(url);
   other = await BotClient.connect(url);
-  await join(faster, 'starve_one', 'Wick Harrow', 931, 30);
-  await join(other, 'starve_two', 'Lome Fennick', 932, 34);
+  await join(faster, 'starve_one', 'Wick Harrow', 931, Math.floor(TOWN.width / 2));
+  await join(other, 'starve_two', 'Lome Fennick', 932, Math.floor(TOWN.width / 2) + 4);
   await waitUntil(() => faster.roundState?.phase === 'running', 'the round begins');
 });
 

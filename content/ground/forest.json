@@ -1,0 +1,9 @@
+{
+  "id": "forest",
+  "name": "Forest floor",
+  "texture": "forest.jpg",
+  "repeat": 0.4,
+  "tint": "#6b7a55",
+  "walkable": true,
+  "notes": "Needles, roots and moss. The wood's own ground."
+}

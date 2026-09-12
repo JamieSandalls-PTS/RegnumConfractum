@@ -1,0 +1,734 @@
+{
+  "pack": "vikings",
+  "kind": "character-item",
+  "assets": [
+    {
+      "id": "wep-axe-01",
+      "name": "Axe",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Axe_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-axe-02",
+      "name": "Axe 2",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Axe_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-ball-hammer-01",
+      "name": "Ball hammer",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Ball_Hammer_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-club-01",
+      "name": "Club",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Club_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-fishingspear-01",
+      "name": "Fishing spear",
+      "pack": "vikings",
+      "mesh": "SM_Wep_FishingSpear_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammerlarge-01",
+      "name": "Large hammer",
+      "pack": "vikings",
+      "mesh": "SM_Wep_HammerLarge_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-01",
+      "name": "Hammer",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Hammer_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-02",
+      "name": "Hammer 2",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Hammer_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-horn-01",
+      "name": "Horn",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Horn_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-horn-02",
+      "name": "Horn 2",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Horn_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-largeaxe-01",
+      "name": "Large axe",
+      "pack": "vikings",
+      "mesh": "SM_Wep_LargeAxe_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-pickaxe-01",
+      "name": "Pickaxe",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Pickaxe_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-saw-01",
+      "name": "Saw",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Saw_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-01",
+      "name": "Shield",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-02",
+      "name": "Shield 2",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-03",
+      "name": "Shield 3",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_03",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-04",
+      "name": "Shield 4",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_04",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-05",
+      "name": "Shield 5",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_05",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-06",
+      "name": "Shield 6",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_06",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-07",
+      "name": "Shield 7",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_07",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-08",
+      "name": "Shield 8",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Shield_08",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-spade-01",
+      "name": "Spade",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Spade_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-spear-01",
+      "name": "Spear",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Spear_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-spear-02",
+      "name": "Spear 2",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Spear_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-spear-03",
+      "name": "Spear 3",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Spear_03",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-spike-01",
+      "name": "Spike",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Spike_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-01",
+      "name": "Sword",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Sword_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-tongs-01",
+      "name": "Tongs",
+      "pack": "vikings",
+      "mesh": "SM_Wep_Tongs_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    }
+  ]
+}

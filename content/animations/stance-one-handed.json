@@ -1,0 +1,11 @@
+{
+  "id": "stance-one-handed",
+  "name": "Sword and shield — carried",
+  "layer": "stance",
+  "applies": "one-handed",
+  "clips": {
+    "draw": "one-handed-draw",
+    "sheathe": "one-handed-sheathe"
+  },
+  "note": "How the weapon is carried when it is not up, and the draw and sheathe that move between the two. Everything else comes from the rig set."
+}

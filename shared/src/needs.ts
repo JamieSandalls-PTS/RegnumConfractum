@@ -45,6 +45,21 @@ export type NeedStage = z.infer<typeof NeedStageSchema>;
  * Thirst is faster because it is the leash back to town, and a leash that
  * pays out for eight hours is not a leash.
  */
+/**
+ * How long a poisoned well stays poisoned, in round-game hours (D-529/D-552).
+ *
+ * Long enough to matter — a round day is 24 of these — and short enough that
+ * one act does not decide the whole round on its own. Nothing announces it:
+ * the well looks exactly the same, and the only way anybody learns is by
+ * drinking or by having seen it done.
+ *
+ * ⚠ Unratified.
+ */
+export const WELL_POISON_HOURS = 10;
+
+/** What a mouthful of spoiled water costs. Sickening, not lethal on its own. */
+export const WELL_POISON_DAMAGE = 3;
+
 export const HUNGER_STEP_HOURS = 8;
 export const THIRST_STEP_HOURS = 6;
 

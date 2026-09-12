@@ -1,0 +1,24 @@
+{
+  "id": "ashfold-townsfolk",
+  "name": "Ashfold townsfolk",
+  "pack": "modular-fantasy-hero",
+  "sex": "male",
+  "parts": {
+    "head": "SK_Chr_Head_Male_00",
+    "hair": "SK_Chr_Hair_04",
+    "facialHair": "SK_Chr_FacialHair_Male_02",
+    "eyebrows": "SK_Chr_Eyebrow_Male_01",
+    "torso": "SK_Chr_Torso_Male_11",
+    "hips": "SK_Chr_Hips_Male_11",
+    "armUpperL": "SK_Chr_ArmUpperLeft_Male_11",
+    "armUpperR": "SK_Chr_ArmUpperRight_Male_11",
+    "armLowerL": "SK_Chr_ArmLowerLeft_Male_11",
+    "armLowerR": "SK_Chr_ArmLowerRight_Male_11",
+    "handL": "SK_Chr_HandLeft_Male_11",
+    "handR": "SK_Chr_HandRight_Male_11",
+    "legL": "SK_Chr_LegLeft_Male_11",
+    "legR": "SK_Chr_LegRight_Male_11"
+  },
+  "texture": "PolygonFantasyHero_Texture_01_A",
+  "note": "Plain clothes, bare head. The contrast with the guard is the point: one is a face, the other is a helmet."
+}

@@ -4,8 +4,12 @@
     {
       "name": "client",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:client"],
-      "port": 5173
+      "runtimeArgs": [
+        "run",
+        "dev:client"
+      ],
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }

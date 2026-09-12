@@ -86,16 +86,232 @@
     text-transform: uppercase; margin-bottom: 4px; }
   .card .cdesc { color: var(--dim); font-size: 11.5px; line-height: 1.45; }
   .card .creq { color: #9a7f5c; font-size: 11px; margin-top: 5px; font-style: italic; }
-  .skillrow { display: flex; align-items: center; gap: 10px; padding: 5px 0;
-    border-bottom: 1px solid #1e1c23; }
+  /* ⚠ `flex-wrap` is load-bearing, not tidiness. `.sdesc` below declares
+     `flex-basis: 100%` to sit on its own line — but without wrapping it stayed
+     on the FIRST line and ate the width, squeezing the slider to its 22px
+     minimum. A range input 22px wide with a step of 5 and a max of 40 has
+     three reachable positions, which is why allocating skills "did not work". */
+  .skillrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    padding: 5px 0; border-bottom: 1px solid #1e1c23; }
   .skillrow .sname { width: 118px; font-size: 12.5px; color: #e0d8c8; }
   .skillrow .sname .aff { color: var(--warm); }
-  .skillrow input[type=range] { flex: 1; }
+  /* A floor as well as a grow factor: whatever else lands in this row, the
+     slider must stay wide enough to actually drag. */
+  .skillrow input[type=range] { flex: 1 1 180px; min-width: 140px; }
   .skillrow .sval { width: 30px; text-align: right; font-family: monospace; font-size: 12px; }
   .skillrow .sdesc { color: var(--dim); font-size: 11px; flex-basis: 100%; margin: 0 0 4px 128px; }
+  .card .cgrants { margin-top: 7px; border-top: 1px solid #201e26; padding-top: 6px;
+    color: var(--dim); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  .card .cgrant { color: #9a8f7c; font-size: 11px; letter-spacing: 0; text-transform: none;
+    margin-top: 3px; }
+  .card .cgrant b { color: var(--warm); font-weight: 600; margin-right: 5px; }
+
+  /* ---- Appearance step (D-539): live preview beside explicit controls ---- */
+  .appearance { display: grid; grid-template-columns: 240px 1fr; gap: 14px; }
+  .app-preview { height: 300px; border: 1px solid var(--line); border-radius: 2px;
+    background: #0d0c10; overflow: hidden; position: relative; }
+  .app-preview canvas { display: block; width: 100%; height: 100%; }
+  .app-controls { display: flex; flex-direction: column; gap: 2px; }
+  .app-descriptor { grid-column: 1 / -1; color: var(--dim); font-size: 11.5px;
+    font-style: italic; margin-top: 2px; }
+  .app-row { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+  .app-label { width: 82px; font-size: 11.5px; color: var(--dim); flex: none; }
+  .app-row input[type=range] { flex: 1; }
+  /* ⚠ The face picker's chips (D-574) were styled by NOTHING in the game.
+     `.chip` is defined in creation-tool.html and editor.html — the authoring
+     tools — and the creation screen borrowed the class name without the rule,
+     so 46 faces rendered as a run of plain text and `.chip.on` meant the
+     CHOSEN face had no mark on it at all. Same shape as the missing names
+     (D-576): the tool had it and the game never asked. */
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+  .chip { display: inline-block; border: 1px solid var(--line); border-radius: 2px;
+    padding: 2px 6px; font-size: 11px; cursor: pointer; color: var(--text);
+    background: #1b1a20; user-select: none; }
+  .chip:hover { border-color: #4a4654; }
+  .chip.on { border-color: var(--warm); color: #e0d8c8; background: #2c2118; }
+  /* The cut a row is grouped under, when it shows both (D-576). */
+  .chip-group { flex-basis: 100%; margin: 4px 0 0; font-size: 10.5px;
+    color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
+  .app-val { width: 42px; text-align: right; font-family: monospace; font-size: 11px;
+    color: var(--dim); }
+  .app-swatches, .app-choice { display: flex; gap: 4px; flex-wrap: wrap; }
+  .app-swatches button { width: 20px; height: 20px; padding: 0; margin: 0;
+    border: 1px solid #2c2933; border-radius: 2px; cursor: pointer; }
+  .app-swatches button.active { border-color: var(--warm); box-shadow: 0 0 0 1px var(--warm); }
+  .app-choice button { margin: 0; padding: 3px 8px; font-size: 11px; }
+  .app-choice button.active { border-color: var(--warm); color: var(--warm); }
+
   .create-nav { display: flex; gap: 8px; margin-top: 18px; }
   .create-nav button { flex: 1; margin-top: 0; }
   #create-error { color: var(--bad); font-size: 12px; min-height: 15px; margin-top: 8px; }
+
+
+  /* ---- Vitals, compass and clock (D-546, D-548) ---------------------------
+     The bars sit bottom-left above the text HUD. Deliberately chunky: the
+     question they answer is asked at a glance, mid-fight, and a thin line
+     needs looking at. ---------------------------------------------------- */
+  /* Bottom-RIGHT, not bottom-left. The chat log owns the bottom-left corner
+     and grows upward as people talk, so bars placed there are legible right
+     up until the moment a conversation starts — which in this game is always,
+     and is exactly when you most want to see your health. */
+  #vitals {
+    position: absolute; right: 12px; bottom: 34px; width: 244px; z-index: 5;
+    display: flex; flex-direction: column; gap: 4px; pointer-events: none;
+  }
+  .vbar {
+    position: relative; height: 19px; border-radius: 3px; overflow: hidden;
+    background: #1b1820; border: 1px solid #34303c;
+  }
+  .vbar i {
+    display: block; height: 100%; width: 0%;
+    transition: width .18s ease-out, background-color .3s;
+  }
+  .vbar > span {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 7px;
+    font-size: 11.5px; letter-spacing: .05em; color: #f0e8d8;
+    text-shadow: 0 1px 2px rgba(0,0,0,.9); font-variant-numeric: tabular-nums;
+  }
+  #v-hp i { background: #8d3b38; }
+  #v-hp.low i { background: #a8562f; }
+  #v-hp.critical i { background: #c0392b; }
+  #v-mana i { background: #3f5f8e; }
+  #v-hunger i { background: #8a7440; }
+  #v-hunger.low i { background: #9a6a34; }
+  #v-hunger.critical i { background: #b04f2c; }
+  /* Experience is a hairline under the rest: it never needs reading fast. */
+  .vxp { position: relative; height: 4px; background: #1b1820; border-radius: 2px; overflow: hidden; }
+  .vxp i { display: block; height: 100%; width: 0%; background: #5c5340; transition: width .3s; }
+  #v-xp-label {
+    position: absolute; right: 0; top: -13px; font-size: 9.5px; color: #6b6478;
+  }
+
+  #dials {
+    position: absolute; top: 12px; right: 12px; z-index: 5;
+    display: flex; gap: 8px; align-items: flex-start; pointer-events: none;
+  }
+  #compass, #clock { width: 62px; }
+  #clock { width: 62px; text-align: center; }
+  #compass svg, #clock svg { display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)); }
+  .dial-face { fill: rgba(16,15,19,.86); stroke: #423d4d; stroke-width: 2; }
+  /* Night reads on the clock face itself — a twelve-hour dial cannot tell
+     noon from midnight, so the dial says which one it is (D-548). */
+  #clock-face.night { fill: rgba(14,16,26,.9); stroke: #3d4560; }
+  .dial-mark { fill: #6b6478; font-size: 13px; font-family: inherit; }
+  .needle-n { fill: #b4675f; }
+  .needle-s { fill: #4a4553; }
+  #compass-rose { transition: transform .08s linear; transform-origin: 0 0; }
+  .dial-tick { stroke: #4a4553; stroke-width: 1.6; }
+  .hand-hour { stroke: #ded6c6; stroke-width: 4; stroke-linecap: round; transform-origin: 0 0; }
+  .hand-min { stroke: #8d8698; stroke-width: 2; stroke-linecap: round; transform-origin: 0 0; }
+  .hand-pin { fill: #b4675f; }
+  .dial-orb { fill: #9a8352; font-size: 11px; }
+  #clock-text {
+    margin-top: 2px; font-size: 10.5px; color: #6b6478;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- The character panel (D-547) ---- */
+  #char-panel { width: 330px; }
+  #char-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .ctab {
+    flex: 1; margin: 0; padding: 4px 0; font-size: 11px; letter-spacing: .07em;
+    text-transform: uppercase; cursor: pointer; border-radius: 3px;
+    background: #221f29; color: #8d8698; border: 1px solid #34303c;
+  }
+  .ctab.active { color: var(--warm); border-color: #5b5140; }
+  #paperdoll {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 9px;
+  }
+  .doll-slot {
+    position: relative; min-height: 46px; padding: 4px 5px; border-radius: 3px;
+    background: #1b1820; border: 1px dashed #34303c; cursor: default;
+    font-size: 10.5px; line-height: 1.3; color: #5d5867;
+  }
+  .doll-slot.filled { border-style: solid; border-color: #4b4459; color: var(--text); cursor: pointer; }
+  .doll-slot.filled:hover { border-color: var(--warm); }
+  .doll-slot .dslot { display: block; font-size: 9px; letter-spacing: .07em;
+    text-transform: uppercase; color: #5d5867; margin-bottom: 2px; }
+  .doll-slot.drop { border-color: var(--warm); background: #241f2b; }
+  #loadout-line {
+    font-size: 11.5px; color: #7b7488; padding: 5px 0 3px;
+    border-top: 1px solid #2a2732; display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  #loadout-line b { color: var(--text); font-weight: 400; }
+  #loadout-line .over { color: var(--bad); }
+  .pack-row { align-items: center; }
+  .pack-acts { display: flex; gap: 4px; margin-left: auto; margin-right: 8px; }
+  .pack-acts button {
+    margin: 0; padding: 2px 7px; font-size: 10.5px; cursor: pointer;
+    background: #262330; color: #b3abc0; border: 1px solid #3b3648; border-radius: 3px;
+  }
+  .pack-acts button:hover { color: var(--warm); border-color: #5b5140; }
+  .pack-row.wearable { cursor: pointer; }
+  /* The common stores (D-580). Set apart from the pack because the two are
+     different places with different rules: one is yours, the other is
+     everybody's — and the whole dilemma is knowing which is which. */
+  .store-head { font-size: 10.5px; color: var(--dim); letter-spacing: .08em;
+    text-transform: uppercase; margin: 6px 0 2px; }
+  .store-row { background: #17161c; border-left: 2px solid #2f2b24; padding-left: 6px; }
+  .pack-row.wearable:hover { color: var(--warm); }
+  .pack-row .verb { color: #5d5867; font-size: 10.5px; margin-left: 6px; }
+  .sheet-attr { display: flex; justify-content: space-between; padding: 3px 0; }
+  .sheet-attr b { color: var(--text); font-weight: 400; font-variant-numeric: tabular-nums; }
+  .sheet-attr .blurb { display: block; font-size: 10.5px; color: #5d5867; }
+  #sheet-derived { font-size: 11.5px; color: #7b7488; padding: 6px 0;
+    border-top: 1px solid #2a2732; margin-top: 6px; }
+  #sheet-skills, #sheet-feats { font-size: 12px; line-height: 1.6; }
+  .book-hint { font-size: 11.5px; color: #5d5867; margin-bottom: 8px; line-height: 1.4; }
+  .book-item {
+    display: flex; align-items: center; gap: 8px; padding: 5px 7px; margin-bottom: 4px;
+    border-radius: 3px; background: #1b1820; border: 1px solid #34303c;
+    cursor: grab; font-size: 12.5px; color: var(--text);
+  }
+  .book-item:hover { border-color: var(--warm); }
+  .book-item .bglyph { width: 18px; text-align: center; color: var(--warm); }
+  .book-item .bnote { margin-left: auto; font-size: 10.5px; color: #5d5867; }
+  /* Something the character HAS but cannot yet use. Shown rather than hidden,
+     and explicitly not draggable — a bar slot that does nothing is the lie
+     D-538 refused for feats, and it would be the same lie here. */
+  .book-item.inert { cursor: default; opacity: .55; border-style: dashed; }
+  .book-item.inert:hover { border-color: #34303c; }
+  #sheet-skills span { display: inline-block; margin-right: 10px; }
+  #sheet-skills b, #sheet-feats b { color: var(--text); font-weight: 400; }
+
+  /* ---- The level-up screen (D-546) ---- */
+  #levelup {
+    position: absolute; inset: 0; z-index: 20; display: flex;
+    align-items: center; justify-content: center; background: rgba(8,7,10,.72);
+  }
+  #levelup .lvlpanel {
+    position: static; width: 520px; max-height: 82vh; overflow-y: auto;
+  }
+  #levelup h2 { margin: 0 0 2px; font-size: 20px; color: var(--warm); font-weight: 400; }
+  #levelup .sub { color: var(--dim); font-size: 12.5px; margin-bottom: 14px; }
+  .lvl-group { margin-bottom: 14px; }
+  .lvl-group h4 {
+    margin: 0 0 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text); font-weight: 400;
+  }
+  .lvl-group .left { color: var(--warm); }
+  .lvl-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+  .lvl-row .lname { flex: 1; font-size: 12.5px; }
+  .lvl-row .lval { width: 46px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+  .lvl-row button {
+    margin: 0; width: 24px; height: 22px; padding: 0; font-size: 13px; line-height: 1;
+    cursor: pointer; background: #2c2933; color: #e0d8c8; border: 1px solid #423d4d;
+    border-radius: 3px;
+  }
+  .lvl-row button:disabled { opacity: .3; cursor: default; }
+  .lvl-pick {
+    display: inline-block; margin: 0 5px 5px 0; padding: 4px 9px; font-size: 12px;
+    cursor: pointer; border-radius: 3px; background: #221f29; color: #b3abc0;
+    border: 1px solid #34303c;
+  }
+  .lvl-pick.on { border-color: var(--warm); color: var(--warm); }
+  .lvl-pick:disabled { opacity: .35; cursor: default; }
+  .lvl-note { font-size: 11.5px; color: #5d5867; margin-top: 3px; }
+  #lvl-error { color: var(--bad); font-size: 12px; min-height: 15px; }
 
   #hud {
     position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 12px;
@@ -286,9 +502,16 @@
   /* Target frame */
   #target-frame {
     position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    background: rgba(11,10,12,.78); border: 1px solid var(--line); border-radius: 3px;
+    background: rgba(11,10,12,.82); border: 1px solid var(--line); border-radius: 3px;
     padding: 6px 14px; font-size: 12.5px; color: #d9cdb4; pointer-events: none;
+    display: flex; align-items: baseline; gap: 8px; max-width: 60vw;
   }
+  #target-frame.near { border-color: var(--warm); }
+  #target-frame .tmark { color: var(--warm); }
+  #target-frame b { font-weight: 400; color: #e8dcc4; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  #target-frame .tmeta { color: var(--dim); font-size: 11px; letter-spacing: .04em;
+    white-space: nowrap; }
 
   /* Action hotbar */
   #hotbar {
@@ -362,47 +585,144 @@
     <div id="work-label"></div>
     <div id="work-track"><div id="work-fill"></div></div>
   </div>
-  <div id="pack-panel" class="panel hidden">
-    <h3>Pack</h3>
-    <div id="pack-list"></div>
+  <!-- The character panel (D-547): paperdoll, pack and sheet in one place,
+       because "what am I wearing", "what am I carrying" and "what does that
+       make me" are one question a player asks once. -->
+  <div id="char-panel" class="panel hidden">
+    <div id="char-tabs">
+      <button class="ctab active" data-tab="gear">Gear</button>
+      <button class="ctab" data-tab="sheet">Sheet</button>
+      <button class="ctab" data-tab="book">Abilities</button>
+    </div>
+    <div id="tab-gear">
+      <div id="paperdoll"></div>
+      <div id="loadout-line"></div>
+      <h3>Pack</h3>
+      <div id="pack-list"></div>
+    </div>
+    <!-- The book (D-553): what this character can actually do, and the place
+         you drag those things onto the bar from. -->
+    <div id="tab-book" class="hidden">
+      <div class="book-hint">Drag onto the bar below. Drag a slot off the bar to clear it.</div>
+      <div id="book-actions"></div>
+      <h3>Rites &amp; spells</h3>
+      <div id="book-rites"></div>
+    </div>
+    <div id="tab-sheet" class="hidden">
+      <div id="sheet-attrs"></div>
+      <div id="sheet-derived"></div>
+      <h3>Skills</h3>
+      <div id="sheet-skills"></div>
+      <h3>Feats &amp; rites</h3>
+      <div id="sheet-feats"></div>
+    </div>
   </div>
+
   <div id="craft-panel" class="panel hidden">
     <h3>Workbench</h3>
     <div id="craft-list"></div>
   </div>
 
+  <!-- Vitals (D-546/D-548). A bar, not a number: the question a player asks
+       mid-fight is "am I nearly out", and nobody reads a fraction to answer
+       it. Hunger sits with them because it is a resource too, even though
+       D-526 keeps it coarse underneath. -->
+  <div id="vitals" class="hidden">
+    <div class="vbar" id="v-hp"><i></i><span></span></div>
+    <div class="vbar" id="v-mana"><i></i><span></span></div>
+    <div class="vbar" id="v-hunger"><i></i><span></span></div>
+    <div class="vxp"><i id="v-xp-fill"></i><span id="v-xp-label"></span></div>
+  </div>
+
+  <!-- Compass and clock (D-548). Top-right, out of the way of the round HUD. -->
+  <div id="dials" class="hidden">
+    <div id="compass" title="north">
+      <svg viewBox="-50 -50 100 100" width="100%" height="100%">
+        <circle class="dial-face" cx="0" cy="0" r="46"></circle>
+        <g id="compass-rose">
+          <polygon class="needle-n" points="0,-36 7,0 0,10 -7,0"></polygon>
+          <polygon class="needle-s" points="0,36 7,0 0,-10 -7,0"></polygon>
+        </g>
+        <text class="dial-mark" x="0" y="-30" text-anchor="middle">N</text>
+        <text class="dial-mark" x="32" y="4" text-anchor="middle">E</text>
+        <text class="dial-mark" x="0" y="37" text-anchor="middle">S</text>
+        <text class="dial-mark" x="-32" y="4" text-anchor="middle">W</text>
+      </svg>
+    </div>
+    <div id="clock" title="the hour">
+      <svg viewBox="-50 -50 100 100" width="100%" height="100%">
+        <circle class="dial-face" id="clock-face" cx="0" cy="0" r="46"></circle>
+        <g id="clock-ticks"></g>
+        <line class="hand-hour" id="clock-hour" x1="0" y1="6" x2="0" y2="-24"></line>
+        <line class="hand-min" id="clock-minute" x1="0" y1="8" x2="0" y2="-34"></line>
+        <circle class="hand-pin" cx="0" cy="0" r="3"></circle>
+        <text class="dial-orb" id="clock-orb" x="0" y="-14" text-anchor="middle">☀</text>
+      </svg>
+      <div id="clock-text"></div>
+    </div>
+  </div>
+
   <div id="hud" class="hidden">
     <span id="hud-area"></span>
     <span>pos <b id="hud-pos">–</b></span>
-    <span>hp <b id="hud-hp">–</b></span>
-    <span>coin <b id="hud-coin">0</b></span>
+    <span id="hud-coin-wrap">coin <b id="hud-coin">0</b></span>
     <span id="hud-ghost" style="color:#8b95a5"></span>
     <span id="hud-conn"></span>
-    <span style="margin-left:auto">move: WASD or left-click · drag: rotate · wheel: zoom · right-click: act · I: pack · C: craft</span>
+    <span style="margin-left:auto">move: WASD or left-click · drag: rotate · wheel: zoom · right-click: act · I: character · C: craft</span>
+  </div>
+
+  <!-- The level-up screen (D-546). Shown whenever anything is unspent, which
+       is also how a player who levelled twice while away gets both screens'
+       worth in one sitting rather than losing one. -->
+  <div id="levelup" class="hidden">
+    <div class="panel lvlpanel">
+      <h2 id="lvl-title">You are changed</h2>
+      <div class="sub" id="lvl-sub"></div>
+      <div id="lvl-body"></div>
+      <div id="lvl-error"></div>
+      <div class="create-nav">
+        <button id="btn-lvl-later">Later</button>
+        <button id="btn-lvl-confirm">Confirm</button>
+      </div>
+    </div>
   </div>
 
   <button id="btn-settings" class="hidden">⚙ Settings</button>
   <div id="settings" class="hidden">
     <h2>Graphics</h2>
 
-    <label>render mode</label>
-    <select id="set-mode">
-      <option value="split">split — pixel characters, crisp world</option>
-      <option value="uniform">uniform — everything pixelated</option>
-      <option value="raw">raw — no pixelation</option>
+    <label>character models</label>
+    <select id="set-cast">
+      <option value="procedural">procedural — generated from the seed</option>
+      <option value="imported">imported — built from the art packs</option>
     </select>
+    <div class="note" id="cast-note" style="margin-top:6px"></div>
 
-    <label>character pixelation</label>
-    <div class="sl"><input type="range" id="set-charpx" min="1" max="8" step="1" value="4"><b id="v-charpx">4</b></div>
 
-    <label>environment pixelation</label>
-    <div class="sl"><input type="range" id="set-envpx" min="1" max="8" step="1" value="1"><b id="v-envpx">1</b></div>
-
-    <div class="check"><input type="checkbox" id="set-envpal"><span>palette-quantise the world</span></div>
+    <div class="check"><input type="checkbox" id="set-seethrough" checked><span>see through walls in the way</span></div>
 
     <div class="note">
       1 = crisp, 8 = very chunky. Split mode is the ratified direction:
       characters carry the pixel look, the world stays readable.
+    </div>
+
+    <h2 style="margin-top:16px">Sound</h2>
+
+    <label>master</label>
+    <div class="sl"><input type="range" id="set-vol-master" min="0" max="100" step="1" value="80"><b id="v-vol-master">80</b></div>
+
+    <label>effects</label>
+    <div class="sl"><input type="range" id="set-vol-effects" min="0" max="100" step="1" value="100"><b id="v-vol-effects">100</b></div>
+
+    <label>ambience</label>
+    <div class="sl"><input type="range" id="set-vol-ambience" min="0" max="100" step="1" value="70"><b id="v-vol-ambience">70</b></div>
+
+    <label>music</label>
+    <div class="sl"><input type="range" id="set-vol-music" min="0" max="100" step="1" value="50"><b id="v-vol-music">50</b></div>
+
+    <div class="note">
+      Every sound is levelled against the same target on load, so these are
+      balance between layers rather than repairs to individual files.
     </div>
   </div>
 

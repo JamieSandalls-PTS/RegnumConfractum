@@ -1,0 +1,9 @@
+{
+  "id": "boards",
+  "name": "Floorboards",
+  "repeat": 0.3,
+  "tint": "#6f5741",
+  "walkable": true,
+  "notes": "Timber floor, for an interior.",
+  "texture": "boards-01.png"
+}

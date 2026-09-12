@@ -1,0 +1,18 @@
+{
+  "id": "banded-shield",
+  "name": "Banded Shield",
+  "description": "Limewood behind an iron rim. It is heavier than it looks and that is the entire point of it.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 16,
+  "equip": {
+    "slot": "off-hand",
+    "armour": 2,
+    "weight": 5
+  },
+  "art": {
+    "pack": "dungeon-pack",
+    "asset": "wep-shield-heater-01",
+    "swaps": []
+  }
+}

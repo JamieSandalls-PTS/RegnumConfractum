@@ -1,0 +1,9 @@
+{
+  "id": "grass",
+  "name": "Grass",
+  "repeat": 0.5,
+  "tint": "#6b7a55",
+  "walkable": true,
+  "notes": "Open ground. The default outside.",
+  "texture": "grass-01.png"
+}

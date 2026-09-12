@@ -1,0 +1,26 @@
+{
+  "id": "combat-polearm",
+  "name": "Polearm — weapon up",
+  "layer": "readiness",
+  "applies": "polearm/combat",
+  "clips": {
+    "idle": "polearm-combat-idle",
+    "walk": "polearm-combat-walk",
+    "run": "polearm-combat-run",
+    "walk-back": "polearm-combat-walk-back",
+    "strafe-left": "polearm-combat-strafe-left",
+    "strafe-right": "polearm-combat-strafe-right",
+    "turn-left": "polearm-combat-turn-left",
+    "turn-right": "polearm-combat-turn-right",
+    "jump": "polearm-combat-jump",
+    "attack-1": "polearm-combat-attack-1",
+    "attack-2": "polearm-combat-attack-2",
+    "attack-3": "polearm-combat-attack-3",
+    "attack-heavy": "polearm-combat-attack-heavy",
+    "attack-thrust": "polearm-combat-attack-thrust",
+    "block": "polearm-combat-block",
+    "block-impact": "polearm-combat-block-impact",
+    "hit-heavy": "polearm-combat-hit-heavy"
+  },
+  "note": "Plays only with the weapon up: 17 of 61 actions. Sheathed, the character falls through to the stance and the rig."
+}

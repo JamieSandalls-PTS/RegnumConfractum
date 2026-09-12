@@ -1,0 +1,11 @@
+{
+  "id": "stance-staff",
+  "name": "Staff — carried",
+  "layer": "stance",
+  "applies": "staff",
+  "clips": {
+    "draw": "staff-draw",
+    "sheathe": "staff-sheathe"
+  },
+  "note": "How the weapon is carried when it is not up, and the draw and sheathe that move between the two. Everything else comes from the rig set."
+}

@@ -1,0 +1,15 @@
+{
+  "id": "scholars-robe",
+  "name": "Scholar\u2019s Robe",
+  "description": "Heavy black wool with the collegiate braid picked off. The pockets are the good part.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 22,
+  "equip": {
+    "slot": "chest",
+    "armour": 1,
+    "mana": 4,
+    "weight": 3,
+    "material": "cloth"
+  }
+}

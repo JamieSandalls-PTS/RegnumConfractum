@@ -40,6 +40,22 @@ export const ResourceNodeSchema = z
      * resets when the round does (D-523's per-round reset).
      */
     respawnTicks: z.number().int().min(1).default(1200),
+  /**
+   * The mesh this is drawn as (D-583). Absent keeps the built-in shape.
+   *
+   * ⚠ The SAME shape a station's art has, and that is the point: a facility
+   * and a resource node are both interactive objects the server spawns, and
+   * two spellings of "which mesh" would drift. What differs between them is
+   * what they DO, not how they are drawn.
+   */
+  art: z
+    .object({
+      pack: z.string().min(1),
+      asset: ContentIdSchema,
+      rotation: z.number().default(0),
+      scale: z.number().positive().default(1),
+    })
+    .optional(),
   })
   .strict();
 export type ResourceNodeDef = z.infer<typeof ResourceNodeSchema>;
@@ -53,7 +69,8 @@ export type ResourceNodeDef = z.infer<typeof ResourceNodeSchema>;
  * naming a station ties the recipe to the town, which is D-530's trade:
  * the better result is only redeemable where you are not alone.
  */
-export const CraftStationSchema = z.enum(['anywhere', 'workshop', 'infirmary', 'storehouse']);
+export const CRAFT_STATIONS = ['anywhere', 'workshop', 'infirmary', 'storehouse'] as const;
+export const CraftStationSchema = z.enum(CRAFT_STATIONS);
 export type CraftStation = z.infer<typeof CraftStationSchema>;
 
 export const RecipeSchema = z
@@ -164,7 +181,15 @@ export const RoamerSchema = z
     damageMin: z.number().int().min(0),
     damageMax: z.number().int().min(1),
     /** How far it notices a living player, in tiles. */
-    aggroTiles: z.number().int().min(1).default(9),
+    /**
+   * How far it notices you, in METRES (D-567).
+   *
+   * WARNING: renamed from `aggroTiles` and no longer an integer. The value in
+   * every authored roamer is unchanged, so a guard that watched nine tiles now
+   * watches nine metres -- slightly less ground in the diagonals, which is the
+   * shape change the metric always implied.
+   */
+  aggroMetres: z.number().min(1).default(9),
     attackCooldownTicks: z.number().int().min(1).default(12),
     moveCooldownTicks: z.number().int().min(1).default(4),
     /** How many of this kind per qualifying area, each night. */
@@ -175,13 +200,17 @@ export const RoamerSchema = z
      *   - `night` — outdoor wilderness, out at dusk and gone by dawn.
      *   - `dungeon` — a named floor, present from the moment the round opens
      *     and never leaving. Underground has no dawn to be driven off by.
+     *   - `guard` — the town watch (D-552). Present in SETTLED areas for the
+     *     whole round, day and night, and the only kind that does not hunt on
+     *     sight: a guard has to have WITNESSED something first.
      *
-     * The two share every line of spawn, hunt, strike and wander code. A
+     * All three share every line of spawn, hunt, strike and wander code. A
      * dungeon needs a thing that walks towards you and hits you, which is
      * exactly what the night already had; giving it a second implementation
-     * would have meant two sets of bugs.
+     * would have meant two sets of bugs. The guard adds one filter — who it
+     * is willing to hunt — and nothing else.
      */
-    habitat: z.enum(['night', 'dungeon']).default('night'),
+    habitat: z.enum(['night', 'dungeon', 'guard']).default('night'),
     /** Which dungeon floor, for `habitat: 'dungeon'`. */
     floor: z.number().int().min(1).optional(),
     /** Experience for putting it down. Deeper floors are worth more. */
@@ -216,3 +245,91 @@ export type RoamerDef = z.infer<typeof RoamerSchema>;
  * is not danger — it is a coin toss.
  */
 export const ROAMER_SPAWN_CLEARANCE = 12;
+
+/**
+ * How long the watch remembers a crime, in ticks (D-552).
+ *
+ * Long enough that running away is not an answer by itself, short enough that
+ * a round does not end with the whole cast permanently hunted. It is a
+ * MEMORY, not a status: it decays, and nothing tells other players about it.
+ *
+ * ⚠ Unratified.
+ */
+export const WANTED_TICKS = 1_800; // 3 minutes at 10Hz
+
+// ---------------------------------------------------------------------------
+// Per-entity validators (D-569)
+// ---------------------------------------------------------------------------
+
+/**
+ * What a recipe or roamer is allowed to refer to.
+ *
+ * ⚠ Every field is OPTIONAL to the caller in the sense that passing `null`
+ * means "I cannot check this". The authoring server sometimes can and CI
+ * always can, and the difference must be a skipped check rather than a
+ * fabricated pass: a validator that silently treats "I don't know the items"
+ * as "the item exists" is worse than one that says nothing.
+ */
+export interface ContentRefs {
+  /** Every `content/items/` id, or null if unknown. */
+  itemIds: ReadonlySet<string> | null;
+}
+
+/**
+ * Everything wrong with one recipe, in one list.
+ *
+ * Pure, so CI and the authoring tool agree — the same reason `assetProblems`
+ * is shaped this way. ⚠ It is deliberately NOT the whole rule set: the D-210
+ * orphan check is a property of the GRAPH, not of a recipe, and lives in
+ * `findOrphans`. A recipe can be perfect here and still orphan a material by
+ * being the only thing that consumed it, which is why the tool runs both.
+ */
+export function recipeProblems(recipe: RecipeDef, refs: ContentRefs): string[] {
+  const problems: string[] = [];
+  const { itemIds } = refs;
+  if (itemIds && !itemIds.has(recipe.output)) {
+    problems.push(`outputs unknown item '${recipe.output}'`);
+  }
+  for (const i of recipe.inputs) {
+    if (itemIds && !itemIds.has(i.item)) problems.push(`consumes unknown item '${i.item}'`);
+  }
+  if (recipe.inputs.some((i) => i.item === recipe.output)) {
+    // A recipe that eats its own output can be run for free or forever;
+    // either way it is a duplication bug wearing a content hat.
+    problems.push(`consumes its own output '${recipe.output}'`);
+  }
+  // ⚠ Two entries for one item is not a doubled quantity, it is a recipe the
+  // crafting code will read one of. Caught here because it looks correct in
+  // a form: two rows, same dropdown.
+  const seen = new Set<string>();
+  for (const i of recipe.inputs) {
+    if (seen.has(i.item)) problems.push(`lists '${i.item}' twice — raise the quantity instead`);
+    seen.add(i.item);
+  }
+  return problems;
+}
+
+/** Everything wrong with one roamer. Pure, for the same reason. */
+export function roamerProblems(roamer: RoamerDef, refs: ContentRefs): string[] {
+  const problems: string[] = [];
+  const { itemIds } = refs;
+  for (const drop of roamer.loot) {
+    if (itemIds && !itemIds.has(drop.item)) problems.push(`drops unknown item '${drop.item}'`);
+  }
+  if (roamer.habitat === 'dungeon' && roamer.floor === undefined) {
+    problems.push('lives in the dungeon but names no floor');
+  }
+  if (roamer.habitat !== 'dungeon' && roamer.floor !== undefined) {
+    problems.push(`names dungeon floor ${roamer.floor} but does not live there`);
+  }
+  // ⚠ A GUARD that pays is a farming strategy, not a watch (D-552). The town
+  // watch stands in the one place the cast cannot avoid, all round, day and
+  // night; if killing one paid xp or dropped gear, murdering the watch would
+  // be the safest income in the game and the guardhouse would become a barn.
+  // This is a RULE, not tuning, so it is refused rather than warned about.
+  if (roamer.habitat === 'guard') {
+    if (roamer.xp !== 0) problems.push(`is a guard worth ${roamer.xp} xp — killing the watch must never pay`);
+    if (roamer.loot.length > 0) problems.push('is a guard carrying loot — killing the watch must never pay');
+  }
+  return problems;
+}

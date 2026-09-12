@@ -1,0 +1,9 @@
+{
+  "id": "gravel",
+  "name": "Gravel",
+  "texture": "gravel.jpg",
+  "repeat": 0.5,
+  "tint": "#8a8880",
+  "walkable": true,
+  "notes": "Loose stones. A yard, a track, the edge of a road."
+}

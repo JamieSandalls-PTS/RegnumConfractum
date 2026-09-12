@@ -4,5 +4,9 @@
   "description": "Bound gravebright on a thong of hide. It does nothing you can point to, and everyone wearing one says they sleep better.",
   "category": "equipment",
   "stackable": false,
-  "value": 26
+  "value": 26,
+  "equip": {
+    "slot": "amulet",
+    "mana": 3
+  }
 }

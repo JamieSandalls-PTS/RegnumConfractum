@@ -5,5 +5,11 @@
   "quantity": 1,
   "effortTicks": 35,
   "charges": 3,
-  "respawnTicks": 900
+  "respawnTicks": 900,
+  "art": {
+    "pack": "knights",
+    "asset": "sm-env-tree-01",
+    "rotation": 0,
+    "scale": 1
+  }
 }

@@ -8,6 +8,26 @@
       "walkable": false,
       "kind": "wall"
     },
+    "W": {
+      "walkable": false,
+      "kind": "wall-timber"
+    },
+    "P": {
+      "walkable": false,
+      "kind": "wall-plaster"
+    },
+    "B": {
+      "walkable": false,
+      "kind": "wall-brick"
+    },
+    "p": {
+      "walkable": false,
+      "kind": "palisade"
+    },
+    "F": {
+      "walkable": false,
+      "kind": "wall-forest"
+    },
     ".": {
       "walkable": true,
       "kind": "floor"
@@ -172,5 +192,4462 @@
       "toX": 49,
       "toY": 1
     }
+  ],
+  "ambience": "ambience-cave",
+  "assets": [
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 25.05,
+      "y": 41.09,
+      "z": 0,
+      "rotation": 156.19858079590009,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 63.18,
+      "y": 76.43,
+      "z": 0,
+      "rotation": 181.31878910797528,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 21.48,
+      "y": 41.25,
+      "z": 0,
+      "rotation": 154.36283147908958,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 39.85,
+      "y": 46.08,
+      "z": 0,
+      "rotation": 345.0359184532663,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 31.02,
+      "y": 48.39,
+      "z": 0,
+      "rotation": 163.87081985716827,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 64.81,
+      "y": 22.21,
+      "z": 0,
+      "rotation": 16.104139500436506,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 50.28,
+      "y": 20.32,
+      "z": 0,
+      "rotation": 290.69273690693404,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 60,
+      "y": 38.54,
+      "z": 0,
+      "rotation": 127.83274540667503,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 68.34,
+      "y": 40.61,
+      "z": 0,
+      "rotation": 139.20915082956827,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 57.77,
+      "y": 22.05,
+      "z": 0,
+      "rotation": 217.57853121106547,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 49.85,
+      "y": 31.26,
+      "z": 0,
+      "rotation": 192.39668801007875,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 7.51,
+      "y": 46.57,
+      "z": 0,
+      "rotation": 279.19915990089123,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 55.45,
+      "y": 81.61,
+      "z": 0,
+      "rotation": 219.86285513032325,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 59.24,
+      "y": 50.77,
+      "z": 0,
+      "rotation": 106.97341784805775,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 74.6,
+      "y": 48.02,
+      "z": 0,
+      "rotation": 316.47326028445656,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 6.39,
+      "y": 49.78,
+      "z": 0,
+      "rotation": 92.00899658434389,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 57.6,
+      "y": 66.41,
+      "z": 0,
+      "rotation": 273.75324864940166,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 51.22,
+      "y": 8.93,
+      "z": 0,
+      "rotation": 29.931110927531282,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 74.1,
+      "y": 41.54,
+      "z": 0,
+      "rotation": 249.13569676955868,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 36.85,
+      "y": 19.15,
+      "z": 0,
+      "rotation": 262.02219451948787,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 51.71,
+      "y": 31.39,
+      "z": 0,
+      "rotation": 124.03153894195779,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 32.94,
+      "y": 35.69,
+      "z": 0,
+      "rotation": 205.32280273806504,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 40.03,
+      "y": 42.35,
+      "z": 0,
+      "rotation": 122.35122882254282,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 85,
+      "y": 47.46,
+      "z": 0,
+      "rotation": 356.89495875709844,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 86.16,
+      "y": 47.01,
+      "z": 0,
+      "rotation": 178.44262345911204,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 54.03,
+      "y": 70.8,
+      "z": 0,
+      "rotation": 132.65570390460675,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 67.38,
+      "y": 63.11,
+      "z": 0,
+      "rotation": 222.60396274773439,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 56.41,
+      "y": 60.79,
+      "z": 0,
+      "rotation": 276.7024261184654,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 31.22,
+      "y": 51.98,
+      "z": 0,
+      "rotation": 337.7449616007879,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 47.96,
+      "y": 20.23,
+      "z": 0,
+      "rotation": 134.64997166659413,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 28.55,
+      "y": 35.87,
+      "z": 0,
+      "rotation": 77.17611100921215,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 19.87,
+      "y": 44,
+      "z": 0,
+      "rotation": 293.34321693864615,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 72.42,
+      "y": 48.25,
+      "z": 0,
+      "rotation": 279.55861382823883,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 50,
+      "y": 84.66,
+      "z": 0,
+      "rotation": 96.64789842556992,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 60.81,
+      "y": 70,
+      "z": 0,
+      "rotation": 128.15006681414607,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 58.15,
+      "y": 21.2,
+      "z": 0,
+      "rotation": 259.3515954069741,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 60.86,
+      "y": 41.02,
+      "z": 0,
+      "rotation": 81.54475238348323,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 37.11,
+      "y": 50.67,
+      "z": 0,
+      "rotation": 332.62693193294456,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 40.31,
+      "y": 20.71,
+      "z": 0,
+      "rotation": 89.57424712462853,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 46.38,
+      "y": 90.42,
+      "z": 0,
+      "rotation": 278.4455159527554,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 43.93,
+      "y": 62.89,
+      "z": 0,
+      "rotation": 0.6967616147916367,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 38.22,
+      "y": 58.55,
+      "z": 0,
+      "rotation": 210.41705522443013,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 21.4,
+      "y": 52.81,
+      "z": 0,
+      "rotation": 273.86657691737236,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 36.31,
+      "y": 42.24,
+      "z": 0,
+      "rotation": 106.47146417049383,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 79.41,
+      "y": 48.03,
+      "z": 0,
+      "rotation": 98.74950095341087,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 23.66,
+      "y": 46.92,
+      "z": 0,
+      "rotation": 120.90513180136242,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 42.56,
+      "y": 78.06,
+      "z": 0,
+      "rotation": 193.30702791645123,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 67.57,
+      "y": 39.89,
+      "z": 0,
+      "rotation": 248.90350959981558,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 47.27,
+      "y": 36.99,
+      "z": 0,
+      "rotation": 313.187037475394,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 58.39,
+      "y": 65.35,
+      "z": 0,
+      "rotation": 263.8726737311788,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 66.12,
+      "y": 26.63,
+      "z": 0,
+      "rotation": 165.29101362156464,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 37.51,
+      "y": 32.85,
+      "z": 0,
+      "rotation": 39.919970956289255,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 76.63,
+      "y": 63,
+      "z": 0,
+      "rotation": 270.0220112821231,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 30.22,
+      "y": 45.28,
+      "z": 0,
+      "rotation": 328.25747152031386,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 52.09,
+      "y": 31.92,
+      "z": 0,
+      "rotation": 87.69528827762106,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 61.94,
+      "y": 20.3,
+      "z": 0,
+      "rotation": 3.51849362432592,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 21.2,
+      "y": 53.81,
+      "z": 0,
+      "rotation": 114.81440588379779,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 39.23,
+      "y": 48.83,
+      "z": 0,
+      "rotation": 147.38386794984663,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 64.55,
+      "y": 19.69,
+      "z": 0,
+      "rotation": 204.48967823449337,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 46.2,
+      "y": 65.4,
+      "z": 0,
+      "rotation": 349.54170144302674,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 41.87,
+      "y": 36.37,
+      "z": 0,
+      "rotation": 336.2600020611048,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 65.08,
+      "y": 74.02,
+      "z": 0,
+      "rotation": 16.251669068496156,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 76.52,
+      "y": 58.75,
+      "z": 0,
+      "rotation": 244.68159896956658,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 63.4,
+      "y": 77.36,
+      "z": 0,
+      "rotation": 40.60260957661319,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 71.42,
+      "y": 49.27,
+      "z": 0,
+      "rotation": 224.93568138687542,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 38.7,
+      "y": 71.24,
+      "z": 0,
+      "rotation": 318.3626907214995,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 19.69,
+      "y": 38.46,
+      "z": 0,
+      "rotation": 163.08481387213175,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 57.87,
+      "y": 40.04,
+      "z": 0,
+      "rotation": 114.39001958979202,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 25.13,
+      "y": 31.63,
+      "z": 0,
+      "rotation": 235.61415894465003,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 38.28,
+      "y": 73.07,
+      "z": 0,
+      "rotation": 294.3440149398732,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 40.38,
+      "y": 75.26,
+      "z": 0,
+      "rotation": 255.8041999292006,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 42.69,
+      "y": 30.17,
+      "z": 0,
+      "rotation": 75.84422066410653,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 57.51,
+      "y": 64.3,
+      "z": 0,
+      "rotation": 139.26290493214992,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 81.44,
+      "y": 63.15,
+      "z": 0,
+      "rotation": 155.2691394993272,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 57.37,
+      "y": 54.56,
+      "z": 0,
+      "rotation": 107.45133057081162,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 56.53,
+      "y": 20.64,
+      "z": 0,
+      "rotation": 101.1105995635054,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 85.6,
+      "y": 44.68,
+      "z": 0,
+      "rotation": 282.94520415696184,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 38.37,
+      "y": 67.71,
+      "z": 0,
+      "rotation": 250.70706115086833,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 66.94,
+      "y": 63.42,
+      "z": 0,
+      "rotation": 118.02457594781326,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 49.51,
+      "y": 77.97,
+      "z": 0,
+      "rotation": 307.7006206402627,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 61.88,
+      "y": 34.31,
+      "z": 0,
+      "rotation": 225.24597387550065,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 21.94,
+      "y": 57.75,
+      "z": 0,
+      "rotation": 278.92192878863983,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 37.25,
+      "y": 40.53,
+      "z": 0,
+      "rotation": 248.15341321295466,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 44.82,
+      "y": 71.64,
+      "z": 0,
+      "rotation": 152.0850286513832,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 50.95,
+      "y": 16.96,
+      "z": 0,
+      "rotation": 57.19803919376817,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 57.99,
+      "y": 15.67,
+      "z": 0,
+      "rotation": 317.65770928045305,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 45.35,
+      "y": 54.24,
+      "z": 0,
+      "rotation": 275.3462762322641,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 33.33,
+      "y": 40.23,
+      "z": 0,
+      "rotation": 171.88883738781158,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 23.34,
+      "y": 42.46,
+      "z": 0,
+      "rotation": 286.1556671445627,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 26.11,
+      "y": 66.05,
+      "z": 0,
+      "rotation": 171.0922383134943,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 30.31,
+      "y": 51.82,
+      "z": 0,
+      "rotation": 318.7412672015904,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 79.04,
+      "y": 50.76,
+      "z": 0,
+      "rotation": 17.36515271179354,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 35.41,
+      "y": 67.29,
+      "z": 0,
+      "rotation": 97.23837107493084,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 80.04,
+      "y": 42.65,
+      "z": 0,
+      "rotation": 312.885986513667,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 69.07,
+      "y": 38.15,
+      "z": 0,
+      "rotation": 320.2546205208738,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 58.18,
+      "y": 84.34,
+      "z": 0,
+      "rotation": 77.87496940431808,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 46.47,
+      "y": 36.55,
+      "z": 0,
+      "rotation": 158.44450540047146,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 36.85,
+      "y": 18.3,
+      "z": 0,
+      "rotation": 253.87924926846452,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 63.3,
+      "y": 42.89,
+      "z": 0,
+      "rotation": 182.68847132215453,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 65.95,
+      "y": 76.63,
+      "z": 0,
+      "rotation": 116.3073611181186,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 14.96,
+      "y": 51.89,
+      "z": 0,
+      "rotation": 23.432722513031592,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 43.36,
+      "y": 67.64,
+      "z": 0,
+      "rotation": 155.2180859195295,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 69.24,
+      "y": 39.81,
+      "z": 0,
+      "rotation": 222.11084815288058,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 33.96,
+      "y": 70.51,
+      "z": 0,
+      "rotation": 41.17629347506278,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 18.61,
+      "y": 36.45,
+      "z": 0,
+      "rotation": 151.88040921475056,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 43.32,
+      "y": 66.12,
+      "z": 0,
+      "rotation": 184.4070387821349,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 36,
+      "y": 34.22,
+      "z": 0,
+      "rotation": 132.7988054492235,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 15.2,
+      "y": 46.69,
+      "z": 0,
+      "rotation": 188.8912473422568,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 28.23,
+      "y": 69.32,
+      "z": 0,
+      "rotation": 318.9897152407434,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 68,
+      "y": 45.94,
+      "z": 0,
+      "rotation": 84.34784420162678,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 22.72,
+      "y": 48.5,
+      "z": 0,
+      "rotation": 218.5192229376596,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 36.2,
+      "y": 29.61,
+      "z": 0,
+      "rotation": 16.455703356653085,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 20.49,
+      "y": 51.8,
+      "z": 0,
+      "rotation": 197.53978880133064,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 39.93,
+      "y": 64.51,
+      "z": 0,
+      "rotation": 62.01381602628181,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 51.63,
+      "y": 35.51,
+      "z": 0,
+      "rotation": 214.32397565894107,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 33.79,
+      "y": 31,
+      "z": 0,
+      "rotation": 23.50735016648533,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 35.32,
+      "y": 64.02,
+      "z": 0,
+      "rotation": 256.8047326647704,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 79.8,
+      "y": 64.16,
+      "z": 0,
+      "rotation": 76.08523896065874,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 38.42,
+      "y": 74.56,
+      "z": 0,
+      "rotation": 165.80669966308645,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 46.07,
+      "y": 61.66,
+      "z": 0,
+      "rotation": 249.45587002038695,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 54.56,
+      "y": 71.11,
+      "z": 0,
+      "rotation": 279.54389416846914,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 65.06,
+      "y": 58.17,
+      "z": 0,
+      "rotation": 190.2436031657904,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 37.81,
+      "y": 65.07,
+      "z": 0,
+      "rotation": 164.17923387849697,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 91.75,
+      "y": 49.9,
+      "z": 0,
+      "rotation": 19.47649415668007,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 42.88,
+      "y": 12.19,
+      "z": 0,
+      "rotation": 140.65288189058225,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 22.43,
+      "y": 47.09,
+      "z": 0,
+      "rotation": 253.3959053847806,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 52.42,
+      "y": 8.5,
+      "z": 0,
+      "rotation": 87.71835075742055,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 44.65,
+      "y": 80.84,
+      "z": 0,
+      "rotation": 226.55120055966705,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 41.01,
+      "y": 13.62,
+      "z": 0,
+      "rotation": 19.46498747678064,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 77.66,
+      "y": 50.2,
+      "z": 0,
+      "rotation": 312.84911647344296,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 62.06,
+      "y": 23.73,
+      "z": 0,
+      "rotation": 143.04057866140238,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 34,
+      "y": 46.2,
+      "z": 0,
+      "rotation": 36.92800689153933,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 30.91,
+      "y": 63.77,
+      "z": 0,
+      "rotation": 35.71510762199756,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 34.55,
+      "y": 66.66,
+      "z": 0,
+      "rotation": 238.1976347276542,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 70.91,
+      "y": 63.59,
+      "z": 0,
+      "rotation": 159.8802696462454,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 70.24,
+      "y": 44.99,
+      "z": 0,
+      "rotation": 78.29235616793459,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 81.13,
+      "y": 39.69,
+      "z": 0,
+      "rotation": 202.95903525588162,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 51.62,
+      "y": 13.39,
+      "z": 0,
+      "rotation": 166.44802502298268,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 24.03,
+      "y": 42.98,
+      "z": 0,
+      "rotation": 268.1948026118691,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 75.29,
+      "y": 46.17,
+      "z": 0,
+      "rotation": 130.3272824706939,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 59.84,
+      "y": 58.78,
+      "z": 0,
+      "rotation": 304.3042050252207,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 43.19,
+      "y": 86.73,
+      "z": 0,
+      "rotation": 212.6909543261394,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 48.52,
+      "y": 60.91,
+      "z": 0,
+      "rotation": 304.45560397000025,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 75.13,
+      "y": 36.22,
+      "z": 0,
+      "rotation": 286.09892646899664,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 54.01,
+      "y": 12.93,
+      "z": 0,
+      "rotation": 87.864117128018,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 75.44,
+      "y": 68.08,
+      "z": 0,
+      "rotation": 112.03932093400643,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 46.12,
+      "y": 58.22,
+      "z": 0,
+      "rotation": 344.48204815171414,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 74.17,
+      "y": 52.1,
+      "z": 0,
+      "rotation": 41.23913949358966,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 17.65,
+      "y": 46.75,
+      "z": 0,
+      "rotation": 164.59370943482958,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 65.49,
+      "y": 44.05,
+      "z": 0,
+      "rotation": 33.22564618666034,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 21.07,
+      "y": 35.29,
+      "z": 0,
+      "rotation": 54.193843156534705,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 50.89,
+      "y": 47.97,
+      "z": 0,
+      "rotation": 157.51217654319814,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 70.01,
+      "y": 47.82,
+      "z": 0,
+      "rotation": 219.90949696734017,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 64.99,
+      "y": 25.84,
+      "z": 0,
+      "rotation": 272.94835326916143,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 42.85,
+      "y": 22.45,
+      "z": 0,
+      "rotation": 12.250165914422158,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 59.89,
+      "y": 76.94,
+      "z": 0,
+      "rotation": 0.22061297276806613,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 37.79,
+      "y": 51.27,
+      "z": 0,
+      "rotation": 205.82797410614953,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 19.61,
+      "y": 34.92,
+      "z": 0,
+      "rotation": 48.09888064202549,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 91.95,
+      "y": 50.8,
+      "z": 0,
+      "rotation": 195.7990270980205,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 25.51,
+      "y": 39.83,
+      "z": 0,
+      "rotation": 76.47231834760174,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 56.23,
+      "y": 54.49,
+      "z": 0,
+      "rotation": 84.59634917087801,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 68.57,
+      "y": 74.47,
+      "z": 0,
+      "rotation": 209.09964946206924,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 47.21,
+      "y": 86.54,
+      "z": 0,
+      "rotation": 346.09356876149235,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 52.59,
+      "y": 22.86,
+      "z": 0,
+      "rotation": 248.71579941133294,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-pebbles-01",
+      "pack": "dungeon-pack",
+      "x": 83.37,
+      "y": 50.14,
+      "z": 0,
+      "rotation": 238.73096401854124,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 63.53,
+      "y": 73.05,
+      "z": 0,
+      "rotation": 187.43855594613214,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 81.51,
+      "y": 41.66,
+      "z": 0,
+      "rotation": 227.52695130402338,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 39.87,
+      "y": 46.84,
+      "z": 0,
+      "rotation": 215.9554075420534,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-mushroom-small-01",
+      "pack": "dungeon-pack",
+      "x": 80.48,
+      "y": 49.96,
+      "z": 0,
+      "rotation": 149.24904850935852,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-moss-patch-01",
+      "pack": "dungeon-pack",
+      "x": 43.74,
+      "y": 69.08,
+      "z": 0,
+      "rotation": 69.3325715239722,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": true,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 40.64,
+      "y": 14.19,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 21.36,
+      "y": 58.09,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 62.1,
+      "y": 63.15,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 22.21,
+      "y": 41.39,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 43.38,
+      "y": 42.57,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 28.94,
+      "y": 41.3,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 53.57,
+      "y": 31.17,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 62.07,
+      "y": 81.27,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 43.71,
+      "y": 84,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 36.32,
+      "y": 22.06,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 48.17,
+      "y": 80.66,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 84.16,
+      "y": 61.15,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 34.68,
+      "y": 47.67,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 57.36,
+      "y": 71.68,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 57.93,
+      "y": 85.9,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 34.94,
+      "y": 55.45,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 40.65,
+      "y": 60.13,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 52.56,
+      "y": 73.72,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 59.95,
+      "y": 44.04,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 19.74,
+      "y": 47.4,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 15.08,
+      "y": 57.04,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 27.55,
+      "y": 49.99,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 85.99,
+      "y": 52.93,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 56.98,
+      "y": 55.53,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 76.17,
+      "y": 40.64,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 60.82,
+      "y": 33.96,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 56.36,
+      "y": 38.2,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 40,
+      "y": 80.01,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 34.66,
+      "y": 39.7,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 88.68,
+      "y": 47.21,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 58.3,
+      "y": 76.75,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 41.22,
+      "y": 22.5,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-05",
+      "pack": "dungeon-pack",
+      "x": 70.64,
+      "y": 68.28,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 73.33,
+      "y": 63.33,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 48.43,
+      "y": 89.98,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 87.19,
+      "y": 57.38,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 46.45,
+      "y": 51.3,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 24.53,
+      "y": 46.56,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 47.93,
+      "y": 38.01,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-04",
+      "pack": "dungeon-pack",
+      "x": 38.28,
+      "y": 68.99,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-stalagmite-03",
+      "pack": "dungeon-pack",
+      "x": 57.33,
+      "y": 61.04,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 9.2,
+      "y": 53.68,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 70.04,
+      "y": 28.62,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 41.95,
+      "y": 38.03,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bone-rib-01",
+      "pack": "dungeon-pack",
+      "x": 30.4,
+      "y": 67.09,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bone-rib-01",
+      "pack": "dungeon-pack",
+      "x": 47.36,
+      "y": 75.11,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 40,
+      "y": 48.76,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 52.43,
+      "y": 44.47,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 36.24,
+      "y": 29.22,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-01",
+      "pack": "dungeon-pack",
+      "x": 48.55,
+      "y": 67.28,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bone-rib-01",
+      "pack": "dungeon-pack",
+      "x": 36.56,
+      "y": 74.83,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-01",
+      "pack": "dungeon-pack",
+      "x": 43.28,
+      "y": 54.63,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 49.46,
+      "y": 25.66,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-01",
+      "pack": "dungeon-pack",
+      "x": 48.23,
+      "y": 57.25,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-01",
+      "pack": "dungeon-pack",
+      "x": 68.21,
+      "y": 76.16,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 76.58,
+      "y": 33.64,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bone-rib-01",
+      "pack": "dungeon-pack",
+      "x": 58.17,
+      "y": 24.54,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bone-rib-01",
+      "pack": "dungeon-pack",
+      "x": 45.6,
+      "y": 18.71,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-01",
+      "pack": "dungeon-pack",
+      "x": 64.14,
+      "y": 19.26,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-01",
+      "pack": "dungeon-pack",
+      "x": 62.59,
+      "y": 48.5,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bonepile-small-02",
+      "pack": "dungeon-pack",
+      "x": 67.24,
+      "y": 40.75,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-bone-rib-01",
+      "pack": "dungeon-pack",
+      "x": 42.49,
+      "y": 65.67,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 65.33,
+      "y": 37.98,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 34.89,
+      "y": 70.66,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 33.4,
+      "y": 31.08,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 82.47,
+      "y": 37.9,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 34.82,
+      "y": 64.03,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 47.88,
+      "y": 67.31,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 38.93,
+      "y": 70.77,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 73.39,
+      "y": 42.84,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 74.81,
+      "y": 30.7,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 62.4,
+      "y": 79.4,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 43.44,
+      "y": 51.11,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 19.92,
+      "y": 65.11,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 42.25,
+      "y": 20.61,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 24.8,
+      "y": 56.03,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 81.43,
+      "y": 46.95,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 50.36,
+      "y": 62.55,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 60.43,
+      "y": 20.87,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 14.95,
+      "y": 53.27,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 24.75,
+      "y": 48.29,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 61.4,
+      "y": 60.25,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 12.68,
+      "y": 48.68,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 52.07,
+      "y": 87.85,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 60.28,
+      "y": 46.56,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 53.77,
+      "y": 19.06,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 78.31,
+      "y": 51.27,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 51.13,
+      "y": 39.27,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 49.67,
+      "y": 3.96,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 83.69,
+      "y": 54.03,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 29.06,
+      "y": 73.65,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 92.55,
+      "y": 47.8,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 57.38,
+      "y": 48.36,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 79.43,
+      "y": 50.38,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 57.58,
+      "y": 77.95,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-01",
+      "pack": "dungeon-pack",
+      "x": 49.36,
+      "y": 66.01,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 86.88,
+      "y": 55.97,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-brick-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 46.46,
+      "y": 49.24,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 61.98,
+      "y": 75.05,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-env-rubble-03",
+      "pack": "dungeon-pack",
+      "x": 33.27,
+      "y": 30.53,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-crate-wood-02",
+      "pack": "dungeon-pack",
+      "x": 35.16,
+      "y": 63.79,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-broken-01",
+      "pack": "dungeon-pack",
+      "x": 51.57,
+      "y": 49.99,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-crate-wood-02",
+      "pack": "dungeon-pack",
+      "x": 23.91,
+      "y": 31.47,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-chain-01",
+      "pack": "dungeon-pack",
+      "x": 52.72,
+      "y": 15.23,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-crate-wood-02",
+      "pack": "dungeon-pack",
+      "x": 53.55,
+      "y": 89.27,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-chain-01",
+      "pack": "dungeon-pack",
+      "x": 80.7,
+      "y": 52.48,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-broken-01",
+      "pack": "dungeon-pack",
+      "x": 94.41,
+      "y": 51.48,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-barrel-broken-01",
+      "pack": "dungeon-pack",
+      "x": 77.61,
+      "y": 66.96,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-chain-01",
+      "pack": "dungeon-pack",
+      "x": 85.36,
+      "y": 42.47,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    },
+    {
+      "asset": "sm-prop-candles-01",
+      "pack": "dungeon-pack",
+      "x": 17.46,
+      "y": 37.67,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false,
+      "dressed": true
+    }
+  ],
+  "roofs": [],
+  "live": true,
+  "groundPaint": [
+    "round-dungeon-2-0.png",
+    "round-dungeon-2-1.png"
+  ],
+  "groundMaterials": [
+    "stone",
+    "gravel",
+    "mud",
+    "dirt",
+    "sand",
+    "leafmould"
   ]
 }

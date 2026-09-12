@@ -8,7 +8,155 @@
   "affinities": [
     "perception",
     "stealth",
+    "survival",
     "athletics"
   ],
-  "spellcasting": false
+  "spellcasting": false,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "survival": 5,
+        "perception": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The wood stops being scenery and starts being information."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "stealth": 5
+      },
+      "feats": [
+        "porter"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You come back with more than you went out for, and carry it yourself."
+    },
+    {
+      "level": 4,
+      "skills": {},
+      "feats": [
+        "read-the-ground",
+        "master-of-the-bench"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You take what a place has before it notices you, and you make your own gear."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "stealth": 10,
+        "survival": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Nothing hears you leave."
+    },
+    {
+      "level": 6,
+      "skills": {
+        "perception": 10
+      },
+      "feats": [
+        "lean-years"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You have gone long enough without food to know precisely how long that is."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "survival": 10,
+        "craft": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Pelt, gut, sinew, bone. Nothing you kill is wasted."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "athletics": 10,
+        "endurance": 5
+      },
+      "feats": [
+        "second-blow"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Distance has stopped being a consideration."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "stealth": 10,
+        "perception": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have not been surprised by anything in years."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "survival": 10,
+        "endurance": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You could live out there, and some seasons you do."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "hunting-bow",
+      "equip": "main-hand"
+    },
+    {
+      "item": "narrow-dagger"
+    },
+    {
+      "item": "hide-jerkin",
+      "equip": "chest"
+    },
+    {
+      "item": "leather-cap",
+      "equip": "head"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ],
+  "armour": [
+    "leather",
+    "cloth"
+  ],
+  "weapons": [
+    "bow",
+    "dagger",
+    "one-handed"
+  ]
 }

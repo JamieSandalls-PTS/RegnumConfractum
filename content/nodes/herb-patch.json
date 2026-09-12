@@ -5,5 +5,11 @@
   "quantity": 1,
   "effortTicks": 25,
   "charges": 2,
-  "respawnTicks": 700
+  "respawnTicks": 700,
+  "art": {
+    "pack": "knights",
+    "asset": "sm-env-flower-01",
+    "rotation": 0,
+    "scale": 1
+  }
 }

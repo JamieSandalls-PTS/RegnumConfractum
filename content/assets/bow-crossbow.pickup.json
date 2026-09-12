@@ -1,0 +1,69 @@
+{
+  "pack": "bow-crossbow",
+  "kind": "pickup",
+  "assets": [
+    {
+      "id": "arrow-01",
+      "name": "Arrow",
+      "pack": "bow-crossbow",
+      "mesh": "SM_Arrow_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      }
+    },
+    {
+      "id": "arrow-barbed-01",
+      "name": "Barbed arrow",
+      "pack": "bow-crossbow",
+      "mesh": "SM_Prop_Arrow_NativeAmerican_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      }
+    },
+    {
+      "id": "crossbow-bolt-01",
+      "name": "Crossbow bolt",
+      "pack": "bow-crossbow",
+      "mesh": "SM_Wep_Crossbow_Bolt_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      }
+    }
+  ]
+}

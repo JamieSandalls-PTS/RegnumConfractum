@@ -4,7 +4,7 @@
   "hp": 14,
   "damageMin": 3,
   "damageMax": 6,
-  "aggroTiles": 26,
+  "aggroMetres": 26,
   "attackCooldownTicks": 16,
   "moveCooldownTicks": 5,
   "perArea": 3,

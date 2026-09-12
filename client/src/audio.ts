@@ -31,6 +31,16 @@ export class Ambience {
   private roomTone = false;
   private crackleTarget = 0;
 
+  /** The shared graph, so sampled sound (D-541) can hang off the same
+   * context rather than opening a second one. Null until enable(). */
+  get context(): AudioContext | null {
+    return this.ctx;
+  }
+
+  get masterGain(): GainNode | null {
+    return this.master;
+  }
+
   /** Build the audio graph. Safe to call repeatedly; first call wins. */
   enable(): void {
     if (this.ctx) return;

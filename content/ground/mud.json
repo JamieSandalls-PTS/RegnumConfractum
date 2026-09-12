@@ -1,0 +1,9 @@
+{
+  "id": "mud",
+  "name": "Mud",
+  "texture": "mud.jpg",
+  "repeat": 0.45,
+  "tint": "#5a4c3c",
+  "walkable": true,
+  "notes": "Churned and wet. Where a lot of feet have been."
+}

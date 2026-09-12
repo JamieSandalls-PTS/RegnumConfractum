@@ -23,11 +23,24 @@ import {
 interface AreaMirror {
   id: string;
   name: string;
+  /** Render profile, and the only cue on the wire that a place is under the
+   * ground rather than under the sky (D-527 keeps `outdoor` server-side). */
+  lighting: 'overcast' | 'night' | 'underground' | 'interior';
   width: number;
   height: number;
   legend: Record<string, { walkable: boolean; kind: string }>;
   tiles: string[];
   transitions: { x: number; y: number }[];
+  /** Pack meshes standing on the map (D-567) — where, turned, scaled. */
+  assets: {
+    pack: string;
+    asset: string;
+    x: number;
+    y: number;
+    z: number;
+    rotation: number;
+    scale: number;
+  }[];
 }
 
 export class BotClient {
@@ -57,10 +70,22 @@ export class BotClient {
   /** This client's role, delivered once at round start. Every player gets
    * one; only the antagonist's carries an objective. */
   roundRole: Extract<ServerMessage, { t: 'round_role' }> | null = null;
+  /**
+   * What the common stores held, last time this client was told (D-580).
+   *
+   * ⚠ Pushed rather than polled: everybody standing at the stores is told
+   * when they change, because pooling is public and that is its whole cost.
+   * A bot that only saw its OWN deposits would be testing a private chest.
+   */
+  storeContents: Extract<ServerMessage, { t: 'store_contents' }> | null = null;
   /** Every round this client saw end, in order — including the reveal. */
   readonly roundsEnded: Extract<ServerMessage, { t: 'round_ended' }>[] = [];
   /** Everything this client HEARD (D-531). Never carries an identity. */
   readonly sounds: Extract<ServerMessage, { t: 'sound' }>[] = [];
+  /** Every refusal the server sent, in order. A bot learns from these the
+   * way a player learns from a message in the log — a spent seam looks
+   * exactly like a full one on the wire. */
+  readonly errors: Extract<ServerMessage, { t: 'error' }>[] = [];
   /** Every work report (MR2) — progress, completion, and interruptions. */
   readonly work: Extract<ServerMessage, { t: 'work' }>[] = [];
   /** The craft catalogue, sent on entering the world. */
@@ -209,18 +234,41 @@ export class BotClient {
     }
   }
 
-  private walkable(x: number, y: number): boolean {
+  /**
+   * A coarse "the server did not put me inside a wall" check.
+   *
+   * ⚠ Positions are METRES now (D-567), so this ROUNDS. Indexing `tiles[59.6]`
+   * returns undefined, which reads as "not walkable", which made the bot
+   * report every single step as a protocol violation — eighty-eight of them in
+   * one short test, all of them false.
+   *
+   * ⚠ It is deliberately coarser than the server's own rule. The collision
+   * layer keeps a body a third of a metre clear of anything solid, so a legal
+   * position always rounds to a walkable tile; the reverse does not hold, and
+   * this check is not trying to. It catches a body in the middle of masonry,
+   * which is the failure worth shouting about.
+   */
+  private walkable(fx: number, fy: number): boolean {
     const a = this.area;
     if (!a) return true; // can't judge yet
+    const x = Math.round(fx);
+    const y = Math.round(fy);
     if (x < 0 || y < 0 || x >= a.width || y >= a.height) return false;
     const ch = a.tiles[y]?.[x];
-    return ch !== undefined && (a.legend[ch]?.walkable ?? false);
+    if (ch === undefined || !(a.legend[ch]?.walkable ?? false)) return false;
+    return true;
   }
 
   private apply(msg: ServerMessage): void {
     switch (msg.t) {
       case 'snapshot': {
-        if (this.area !== null) this.lastResyncDiffs = this.diffAgainstSnapshot(msg);
+        // A snapshot for a DIFFERENT area is not a resync — it is arrival.
+        // Diffing across a door reports every entity in the room you left as
+        // a discrepancy, which turns the desync check into noise exactly when
+        // a bot starts using the map.
+        if (this.area !== null && this.area.id === msg.area.id) {
+          this.lastResyncDiffs = this.diffAgainstSnapshot(msg);
+        }
         this.area = msg.area;
         this.you = msg.you;
         this.lastTick = msg.tick;
@@ -247,7 +295,9 @@ export class BotClient {
               this.violations.push(`entity_moved for unknown entity ${event.id}`);
               continue;
             }
-            const dist = Math.max(Math.abs(e.x - event.x), Math.abs(e.y - event.y));
+            // Euclidean, in metres (D-567). One tick of walking is a third of
+            // a metre, so anything past a metre in one event is a teleport.
+            const dist = Math.hypot(e.x - event.x, e.y - event.y);
             if (dist > 1) {
               this.violations.push(
                 `entity ${event.id} teleported (${e.x},${e.y}) -> (${event.x},${event.y})`,
@@ -258,6 +308,7 @@ export class BotClient {
             }
             e.x = event.x;
             e.y = event.y;
+            e.z = event.z;
             e.facing = event.facing;
             e.posture = 'standing'; // protocol rule: moving implies standing
           } else if (event.type === 'entity_entered') {
@@ -277,6 +328,23 @@ export class BotClient {
             const e = this.entities.get(event.id);
             if (!e) this.violations.push(`entity_presentation for unknown entity ${event.id}`);
             else e.presentation = event.state;
+          } else if (event.type === 'entity_worn') {
+            // ⚠ This was not handled at all, so a bot's view of what anybody
+            // was wearing froze at the snapshot. D-554 put the event on the
+            // wire and nothing headless ever read it — which means every
+            // assertion about equipment silently tested the starting kit.
+            //
+            // ⚠ An unknown entity is NOT a violation here, unlike every
+            // neighbour in this switch. Entering the world grants the kit and
+            // publishes the silhouette before the new entity has been
+            // broadcast to anybody, so observers legitimately receive one
+            // delta about somebody they cannot see yet — and the
+            // `entity_entered` that follows carries the authoritative `worn`
+            // anyway. The real client drops it on the same `if`. Recording a
+            // violation would fail ten honest tests to flag a redundant
+            // message.
+            const e = this.entities.get(event.id);
+            if (e) e.worn = event.worn;
           } else if (event.type === 'entity_combat') {
             const e = this.entities.get(event.id);
             if (!e) this.violations.push(`entity_combat for unknown entity ${event.id}`);
@@ -328,6 +396,10 @@ export class BotClient {
         this.roundRole = msg;
         break;
       }
+      case 'store_contents': {
+        this.storeContents = msg;
+        break;
+      }
       case 'round_ended': {
         this.roundsEnded.push(msg);
         break;
@@ -338,6 +410,10 @@ export class BotClient {
       }
       case 'work': {
         this.work.push(msg);
+        break;
+      }
+      case 'error': {
+        this.errors.push(msg);
         break;
       }
       case 'catalogue': {

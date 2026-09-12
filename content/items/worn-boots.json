@@ -1,0 +1,14 @@
+{
+  "id": "worn-boots",
+  "name": "Worn Boots",
+  "description": "Resoled twice. They fit the way only somebody else\u2019s boots eventually do.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 9,
+  "equip": {
+    "slot": "feet",
+    "armour": 1,
+    "weight": 2,
+    "material": "leather"
+  }
+}

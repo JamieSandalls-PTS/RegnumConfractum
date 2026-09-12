@@ -1,0 +1,13 @@
+{
+  "id": "chorister-bell",
+  "name": "Chorister’s Bell",
+  "description": "Small, flat-toned, and audible three streets away. It was cast for a rite nobody performs now.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 15,
+  "equip": {
+    "slot": "off-hand",
+    "mana": 4,
+    "weight": 2
+  }
+}

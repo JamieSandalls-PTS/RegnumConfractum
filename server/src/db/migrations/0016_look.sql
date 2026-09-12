@@ -1,0 +1,11 @@
+-- D-574: the face a player chose at creation.
+--
+-- One JSONB document rather than a column per slot. The slot vocabulary
+-- belongs to content and grows with the art (D-561) — head, hair, brows,
+-- ears today, and whatever a pack ships next — and a migration per hat is not
+-- something anybody should have to write.
+--
+-- NULL, and nullable. Every character that exists was made before the face
+-- step; a null look is not a blank face, it means the renderer falls back to
+-- picking a body from the seed exactly as it did before (D-559).
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS look JSONB;

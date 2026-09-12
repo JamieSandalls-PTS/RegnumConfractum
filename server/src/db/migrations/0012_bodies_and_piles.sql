@@ -1,0 +1,17 @@
+-- Bodies that are not people's, and heaps that were never anybody (D-554).
+--
+-- `corpses` has carried a NOT NULL character_id since D-511, because the only
+-- thing that could die was a player. Three separate needs now want a corpse
+-- row with no character behind it:
+--
+--   * a roamer leaves a body (it used to vanish mid-swing);
+--   * that body holds what it was carrying, so loot is something you walk to
+--     rather than something that teleports into your pack;
+--   * a dropped item becomes a heap on the floor, and heaps are already
+--     modelled as corpses in state 'ground'.
+--
+-- Making the column nullable serves all three with one shape rather than
+-- three. `character_id IS NULL` reads as "this was never a person", which is
+-- exactly what Speak With Dead and Animate Dead need to refuse (a heap of
+-- sacks has nothing to say).
+alter table corpses alter column character_id drop not null;

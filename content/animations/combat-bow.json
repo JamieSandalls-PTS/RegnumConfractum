@@ -1,0 +1,17 @@
+{
+  "id": "combat-bow",
+  "name": "Bow — weapon up",
+  "layer": "readiness",
+  "applies": "bow/combat",
+  "clips": {
+    "idle": "bow-combat-idle",
+    "aim": "bow-combat-aim",
+    "shoot": "bow-combat-shoot",
+    "reload": "bow-combat-reload",
+    "walk": "bow-combat-walk",
+    "walk-back": "bow-combat-walk-back",
+    "strafe-left": "bow-combat-strafe-left",
+    "strafe-right": "bow-combat-strafe-right"
+  },
+  "note": "Plays only with the weapon up: 8 of 61 actions. Sheathed, the character falls through to the stance and the rig."
+}

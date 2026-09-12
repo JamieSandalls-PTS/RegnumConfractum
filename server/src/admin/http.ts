@@ -55,6 +55,13 @@ export class AdminServer {
           res.end(JSON.stringify({ events, runs }));
           return;
         }
+        // Round state, for the launcher. GET and read-only, and it carries
+        // nothing secret — no objective, no antagonist (D-521).
+        if (url.pathname === '/api/round' && req.method === 'GET') {
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify(gameServer.adminRoundState()));
+          return;
+        }
         if (url.pathname === '/api/state') {
           const world = gameServer.world;
           const state = {
@@ -113,6 +120,11 @@ export class AdminServer {
     const gs = this.opts.gameServer;
     try {
       switch (pathname) {
+        // The launcher's one write (tools/src/control.ts). Kept beside the DM
+        // verbs because it IS one: cutting a round short is a decision
+        // somebody makes about a live game, and it is logged like the rest.
+        case '/api/dm/round/restart':
+          return gs.adminRestartRound();
         case '/api/dm/spawn-npc': {
           const entityId = gs.spawnNpc(String(body.areaId), {
             x: Number(body.x),

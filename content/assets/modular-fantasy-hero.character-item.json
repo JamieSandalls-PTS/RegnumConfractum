@@ -1,0 +1,1410 @@
+{
+  "pack": "modular-fantasy-hero",
+  "kind": "character-item",
+  "assets": [
+    {
+      "id": "wep-axe-01",
+      "name": "Axe",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Axe_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-dagger-01",
+      "name": "Dagger",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Dagger_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "dagger",
+      "clips": {}
+    },
+    {
+      "id": "wep-joust-01",
+      "name": "Joust",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Joust_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-joust-02",
+      "name": "Joust 2",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Joust_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-joust-03",
+      "name": "Joust 3",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Joust_03",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-mace-01",
+      "name": "Mace",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Mace_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-mace-02",
+      "name": "Mace 2",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Mace_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-01",
+      "name": "Shield",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-02",
+      "name": "Shield 2",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-03",
+      "name": "Shield 3",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_03",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-04",
+      "name": "Shield 4",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_04",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-05",
+      "name": "Shield 5",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_05",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-06",
+      "name": "Shield 6",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_06",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-07",
+      "name": "Shield 7",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_07",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-08",
+      "name": "Shield 8",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_08",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-09",
+      "name": "Shield 9",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_09",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-10",
+      "name": "Shield 10",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_10",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-11",
+      "name": "Shield 11",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_11",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-12",
+      "name": "Shield 12",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_12",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-13",
+      "name": "Shield 13",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_13",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-14",
+      "name": "Shield 14",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_14",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-15",
+      "name": "Shield 15",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_15",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-16",
+      "name": "Shield 16",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_16",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-17",
+      "name": "Shield 17",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_17",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-18",
+      "name": "Shield 18",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_18",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-19",
+      "name": "Shield 19",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_19",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-20",
+      "name": "Shield 20",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_20",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-buckler-01",
+      "name": "Shield buckler",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Buckler_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-01",
+      "name": "Long shield",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-02",
+      "name": "Long shield 2",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-03",
+      "name": "Long shield 3",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_03",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-04",
+      "name": "Long shield 4",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_04",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-05",
+      "name": "Long shield 5",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_05",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-06",
+      "name": "Long shield 6",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_06",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-07",
+      "name": "Long shield 7",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_07",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-08",
+      "name": "Long shield 8",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_08",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-09",
+      "name": "Long shield 9",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_09",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-10",
+      "name": "Long shield 10",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_10",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-11",
+      "name": "Long shield 11",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_11",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-12",
+      "name": "Long shield 12",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_12",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-13",
+      "name": "Long shield 13",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_13",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-14",
+      "name": "Long shield 14",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_14",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-15",
+      "name": "Long shield 15",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_15",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-long-16",
+      "name": "Long shield 16",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Shield_Long_16",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-staff-01",
+      "name": "Staff",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Staff_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "staff",
+      "clips": {}
+    },
+    {
+      "id": "wep-staff-02",
+      "name": "Staff 2",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Staff_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "staff",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-01",
+      "name": "Sword",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Sword_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-cover-01",
+      "name": "Sword cover",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Sword_Cover_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-large-01",
+      "name": "Large sword",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Sword_Large_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-rapier-01",
+      "name": "Sword rapier",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Sword_Rapier_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-rapier-cover-01",
+      "name": "Sword rapier cover",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Sword_Rapier_Cover_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-small-01",
+      "name": "Small sword",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Sword_Small_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-sword-small-cover-01",
+      "name": "Sword small cover",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_Sword_Small_Cover_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-thowingknife-01",
+      "name": "Thowing knife",
+      "pack": "modular-fantasy-hero",
+      "mesh": "SK_Wep_ThowingKnife_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "dagger",
+      "clips": {}
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "hunting-bow",
+  "name": "Hunting Bow",
+  "description": "Horn and yew, strung with gut. Made for deer, and it has never much minded the difference.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 18,
+  "equip": {
+    "slot": "both-hands",
+    "damage": 3,
+    "weight": 3,
+    "range": 6
+  },
+  "art": {
+    "pack": "bow-crossbow",
+    "asset": "wep-longbow-01",
+    "swaps": []
+  }
+}

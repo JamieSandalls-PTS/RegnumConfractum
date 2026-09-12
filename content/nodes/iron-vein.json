@@ -5,5 +5,11 @@
   "quantity": 1,
   "effortTicks": 40,
   "charges": 3,
-  "respawnTicks": 900
+  "respawnTicks": 900,
+  "art": {
+    "pack": "vikings",
+    "asset": "sm-env-rock-02",
+    "rotation": 0,
+    "scale": 1
+  }
 }

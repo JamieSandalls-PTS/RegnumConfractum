@@ -5,6 +5,7 @@ import {
   type Direction,
   type Posture,
   type Presentation,
+  type Stance,
   type TransientAnim,
 } from '@rc/shared';
 import { Cloth, SolidHair } from './cloth';
@@ -44,6 +45,29 @@ export interface EquipmentState {
   cape: boolean;
   /** Full-length robe: skirt to the ankles, overtunic, rope belt. */
   robe: boolean;
+  /**
+   * Garments worn, in the wire's canonical order (D-571).
+   *
+   * ⚠ The PROCEDURAL cast ignores this, deliberately. It draws armour as
+   * generated geometry from the five flags above — that is what it is for —
+   * and a mesh swap has nothing to swap into. The field lives on the shared
+   * state because both casts take the same `setEquipment`, and the compiler
+   * holding them to one interface is what keeps `main.ts` from knowing which
+   * cast it has (D-559).
+   */
+  garments: readonly string[];
+  /**
+   * How the weapon in hand is carried (D-565, wired D-578).
+   *
+   * ⚠ The PROCEDURAL cast ignores this for the same reason it ignores
+   * `garments`: it animates from its own verlet rig and has no clip library to
+   * select from. It lives on the shared state because both casts take one
+   * `setEquipment` and the compiler holding them to one interface is what
+   * keeps `main.ts` from knowing which cast it has (D-559).
+   *
+   * Absent means empty-handed — the rig's own clips, never a stance (D-564).
+   */
+  stance?: Stance;
 }
 
 interface Limb {
@@ -175,6 +199,7 @@ export class CharacterVisual {
       weaponKind: 'sword',
       cape: this.appearance.hasCape,
       robe: false,
+      garments: [],
     };
     this.build();
     parent.add(this.root);
@@ -1063,12 +1088,20 @@ export class CharacterVisual {
     this.targetAngle = FACING_ANGLE[dir];
   }
 
-  setPosition(x: number, z: number): void {
+  setPosition(x: number, z: number, elevation = 0): void {
     // Y is owned by the death animation (a fallen body sinks to the floor),
     // so only the horizontal placement is written here.
     this.root.position.x = x;
     this.root.position.z = z;
+    // ⚠ Kept as a FIELD rather than written to `root.position.y`. The fall
+    // and the reset both own that value outright; assigning to it here would
+    // stand a corpse back up the moment the server reported it had drifted a
+    // centimetre. Whoever owns y adds this in.
+    this.groundElevation = elevation;
   }
+
+  /** Metres above the area datum: a gallery, a stair, a bridge (D-567). */
+  private groundElevation = 0;
 
   setPosture(posture: Posture): void {
     this.posture = posture;
@@ -1335,6 +1368,52 @@ export class CharacterVisual {
   }
 
   /** Holds the final prone pose — used for corpses that spawn already dead. */
+  private lootSack: THREE.Group | null = null;
+
+  /**
+   * Shows or hides the pack beside a body (D-554).
+   *
+   * A body worth looting has to be readable from where you are standing, or
+   * every corpse is a walk you might have wasted. It hangs off the ROOT
+   * rather than a bone so the ragdoll cannot fling it across the room.
+   */
+  setLootable(lootable: boolean): void {
+    if (lootable === (this.lootSack !== null)) return;
+    if (!lootable) {
+      if (this.lootSack) {
+        this.root.remove(this.lootSack);
+        this.lootSack.traverse((o) => {
+          if (o instanceof THREE.Mesh) {
+            o.geometry.dispose();
+            (o.material as THREE.Material).dispose();
+          }
+        });
+        this.lootSack = null;
+      }
+      return;
+    }
+    const group = new THREE.Group();
+    const sack = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.22, 0.24),
+      new THREE.MeshLambertMaterial({ color: 0xb5875a }),
+    );
+    sack.position.y = 0.11;
+    sack.rotation.y = 0.5;
+    const tie = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.08, 0.12),
+      new THREE.MeshLambertMaterial({ color: 0xcfc39a }),
+    );
+    tie.position.y = 0.25;
+    group.add(sack, tie);
+    // Beside the body in WORLD terms: the root does not rotate once the
+    // ragdoll owns the skeleton, so this stays put while the body settles.
+    group.position.set(0.42, 0, 0.24);
+    group.layers.set(1);
+    group.traverse((o) => o.layers.set(1));
+    this.root.add(group);
+    this.lootSack = group;
+  }
+
   setDead(dead: boolean): void {
     this.dead = dead;
     if (dead) {
@@ -1652,7 +1731,7 @@ export class CharacterVisual {
     // The fall writes root roll and height; everything else must clear them
     // or a revived character would stay lying down.
     this.root.rotation.z = 0;
-    this.root.position.y = 0;
+    this.root.position.y = this.groundElevation;
     for (const o of [this.pelvis, this.spine, this.chest, this.neck, this.head]) {
       o.rotation.set(0, 0, 0);
     }

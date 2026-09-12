@@ -1,17 +1,41 @@
-import { MOVE_COOLDOWN_TICKS, TICK_MS } from '@rc/shared';
+import { WALK_SPEED } from '@rc/shared';
 
 /**
- * Client-side interpolation of server-authoritative tile positions (D-104).
- * The server steps entities one tile per cooldown window at 10Hz; the client
- * glides the visual toward the authoritative tile so movement reads as
- * continuous. The render position is presentation only — it never feeds back
- * into game state (D-102).
+ * Client-side interpolation of server-authoritative positions (D-104, D-567).
+ * The server moves entities in metres at 10Hz; the client glides the visual
+ * toward the authoritative point so movement reads as continuous. The render
+ * position is presentation only — it never feeds back into game state (D-102).
  *
  * Pure module: testable headlessly.
  */
 
-/** Seconds the server takes to cross one tile — the speed we glide at. */
-export const TILE_SECONDS = (MOVE_COOLDOWN_TICKS * TICK_MS) / 1000;
+/**
+ * How long after the last position change a character is still "walking".
+ *
+ * ⚠ This exists because "is it moving" CANNOT be answered by comparing the
+ * render position to the target. Under D-567 the server sends a new position
+ * every tick and the client glides at the same speed, so the gap closes to
+ * nothing just before each update and opens again just after — the answer
+ * flickered false ten times a second, and the walk animation restarted every
+ * time. What it looked like in play was a character resetting its stride
+ * several times a second while walking in a straight line.
+ *
+ * Longer than a server tick (100ms) so an ordinary gap between updates never
+ * reads as a stop, and short enough that stopping looks immediate.
+ */
+export const MOVE_GRACE_MS = 260;
+
+/**
+ * Seconds to cross a metre — the speed we glide at.
+ *
+ * ⚠ Derived from the server's own `WALK_SPEED` (D-567). It used to be
+ * `MOVE_COOLDOWN_TICKS × TICK_MS`, a movement cooldown the server no longer
+ * has, and the two were equal only by coincidence. Left alone it would have
+ * looked perfect until the first time walking pace was tuned — and then every
+ * character would glide at the old speed, arriving visibly before or after the
+ * position the server reported, which reads as lag rather than as a constant.
+ */
+export const TILE_SECONDS = 1 / WALK_SPEED;
 
 /** Beyond this many tiles of error, snap instead of glide (area change,
  * teleport, or resync — gliding across the map would look absurd). */
@@ -20,6 +44,8 @@ const SNAP_DISTANCE = 2.5;
 export interface InterpolatedPosition {
   x: number;
   y: number;
+  /** When the authoritative position last changed. See `MOVE_GRACE_MS`. */
+  movedAt?: number;
 }
 
 /**
@@ -56,6 +82,26 @@ export function stepToward(
 }
 
 /** True when the visual should play the walk animation. */
-export function isMoving(render: InterpolatedPosition, target: { x: number; y: number }): boolean {
-  return Math.hypot(target.x - render.x, target.y - render.y) > 0.01;
+/**
+ * Note that the authoritative position has changed.
+ *
+ * Called when a new target arrives, which is what "moving" actually means —
+ * not whether the visual has caught up with it yet.
+ */
+export function markMoved(render: InterpolatedPosition, now: number): void {
+  render.movedAt = now;
+}
+
+export function isMoving(
+  render: InterpolatedPosition,
+  target: { x: number; y: number },
+  now?: number,
+): boolean {
+  // Still catching up: unambiguously moving.
+  if (Math.hypot(target.x - render.x, target.y - render.y) > 0.01) return true;
+  // Caught up, but the server moved us a moment ago — which happens between
+  // every pair of updates at walking pace. Without this the walk animation
+  // restarts ten times a second.
+  if (now === undefined || render.movedAt === undefined) return false;
+  return now - render.movedAt < MOVE_GRACE_MS;
 }

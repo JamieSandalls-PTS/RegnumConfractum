@@ -1,30 +1,54 @@
 import * as THREE from 'three';
 import {
   DIRECTION_VECTORS,
+  SoundsFileSchema,
+  CORE_STATION_TYPES,
+  resolveAppearance,
+  type CoreStationType,
   type Channel,
   type CharacterSummary,
   type Direction,
   type ServerMessage,
   type WireEntity,
+  attackSpacingTicks,
+  xpForLevel,
 } from '@rc/shared';
 import { Connection } from './net/connection';
 import { Ambience } from './audio';
+import { SoundBank, DEFAULT_VOLUMES, type Volumes } from './sound';
+import soundManifest from '../../content/audio/sounds.json';
 import { CreationWizard } from './creation';
 import { GameScene } from './render/scene';
-import type { PixelPost } from './render/palette';
+import { StationVisual } from './render/station-visual';
+import { LightRig } from './render/lights';
+import { Roofs } from './render/roofs';
+import { occlusionState, setOcclusionFocus } from './render/occlusion';
 import { CombatEffects } from './render/effects';
 import { Terrain } from './render/terrain';
+import { buildPaintedGround } from './render/ground';
+import { WorldAssets, loadOneAsset } from './render/world-assets';
 import { CharacterVisual } from './render/character';
-import { isMoving, stepToward, type InterpolatedPosition } from './game/interpolation';
-import { findPath } from './game/path';
+import { ImportedVisual } from './render/imported-visual';
+import * as importedModels from './render/imported-models';
+import { isMoving, markMoved, stepToward, type InterpolatedPosition } from './game/interpolation';
 import { RoundHud } from './game/round-hud';
 import {
   formatEffort,
-  packRows,
   recipeStatus,
   type CatalogueItem,
   type CatalogueRecipe,
 } from './game/pack';
+import {
+  barFraction,
+  barState,
+  clockHands,
+  clockText,
+  compassRotationDeg,
+  needFraction,
+  needLabel,
+} from './game/hud';
+import { CharacterPanel, type BookEntry } from './character-panel';
+import { LevelUpScreen } from './levelup';
 
 /**
  * Client glue: UI flow (login → character → world), the entity mirror driven
@@ -82,10 +106,14 @@ class PileVisual {
     this.root.add(sack, bundle);
     parent.add(this.root);
   }
-  setPosition(x: number, z: number): void {
-    this.root.position.set(x, 0, z);
+  setPosition(x: number, z: number, elevation = 0): void {
+    this.root.position.set(x, elevation, z);
   }
   setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  /** A heap IS the loot, so this only ever hides an emptied one. */
+  setLootable(lootable: boolean): void {
+    this.root.visible = lootable;
+  }
   setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
   setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
   playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
@@ -111,6 +139,25 @@ class PileVisual {
  */
 class NodeVisual {
   readonly root = new THREE.Group();
+  private disposed = false;
+
+  /**
+   * Swap the built-in shape for the authored mesh, once it has loaded (D-583).
+   *
+   * ⚠ Built-in geometry first, replaced only when a mesh actually arrives —
+   * the same rule a station follows. A node you cannot see is a node nobody
+   * harvests, and the whole danger of gathering is standing still beside one
+   * for a known length of time.
+   */
+  async wear(art: { pack: string; asset: string; rotation: number; scale: number }): Promise<void> {
+    const object = await loadOneAsset(art.pack, art.asset);
+    if (!object || this.disposed) return;
+    for (const child of [...this.root.children]) this.root.remove(child);
+    object.rotation.y = (-art.rotation * Math.PI) / 180;
+    object.scale.setScalar(art.scale);
+    this.root.add(object);
+  }
+
   constructor(private parent: THREE.Scene, descriptor: string) {
     const leafy = /leaf|grain|scrub|tangle|run\b/i.test(descriptor);
     const woody = /timber|tree|stand/i.test(descriptor);
@@ -167,14 +214,15 @@ class NodeVisual {
     }
     parent.add(this.root);
   }
-  setPosition(x: number, z: number): void {
-    this.root.position.set(x, 0, z);
+  setPosition(x: number, z: number, elevation = 0): void {
+    this.root.position.set(x, elevation, z);
   }
   /** Spent nodes sink and grey off, so "worked out" reads at a glance. */
   setSpent(spent: boolean): void {
     this.root.scale.setScalar(spent ? 0.55 : 1);
   }
   setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  setLootable(_lootable: boolean): void {}
   setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
   setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
   playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
@@ -190,15 +238,76 @@ class NodeVisual {
   }
 }
 
+/**
+ * A facility in the entity interface (D-542).
+ *
+ * ⚠ The last procedural geometry in the game. The 44 prop types are gone with
+ * the tile system (D-567); a station is not scenery but an object the server
+ * spawns, and the well has to be visible across the square for thirst to work
+ * (D-529). It should become a pack asset like everything else.
+ */
+class StationEntity {
+  private readonly visual: StationVisual;
+  constructor(
+    parent: THREE.Scene,
+    type: CoreStationType,
+    x: number,
+    y: number,
+    art?: { pack: string; asset: string; rotation: number; scale: number },
+  ) {
+    this.visual = new StationVisual(parent, type, x, y, art);
+  }
+  setPosition(x: number, z: number, elevation = 0): void {
+    this.visual.setPosition(x, z, elevation);
+  }
+  setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  setLootable(_lootable: boolean): void {}
+  setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
+  setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
+  playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
+  update(_dt: number, _t: number, _moving: boolean, _wind: number): void {
+    this.visual.update();
+  }
+  dispose(): void {
+    this.visual.dispose();
+  }
+}
+
 interface EntityState {
   wire: WireEntity;
   render: InterpolatedPosition;
-  visual: CharacterVisual | PileVisual | NodeVisual;
+  visual: CharacterVisual | ImportedVisual | PileVisual | NodeVisual | StationEntity;
 }
+
+// Start fetching the character manifest immediately rather than on the first
+// snapshot: by the time somebody has picked a character off the roster it is
+// usually already in hand, and the world builds with the right cast first
+// time instead of rebuilding a moment later.
+void importedModels.loadManifest();
 
 const conn = new Connection();
 let scene: GameScene | null = null;
 let terrain: Terrain | null = null;
+/**
+ * The painted ground for the area you are standing in (D-585 → D-588).
+ *
+ * ⚠ Its own object rather than part of `Terrain`, because it is not made of
+ * tiles: it is one plane over the whole area carrying a mask, and the terrain
+ * is instanced per tile kind. Keeping them separate is also what lets the map
+ * editor and the game share ONE implementation — the reason D-558 gives for
+ * sharing the character assembler. A floor that draws differently in the
+ * painter from the way it draws in the world is a painter that lies.
+ */
+let paintedGround: THREE.Mesh | null = null;
+let worldAssets: WorldAssets | null = null;
+const occlusionFocus = new THREE.Vector3();
+/** How wide the see-through hole is, in device pixels. */
+const SEE_THROUGH_RADIUS_PX = 110;
+/** Area scenery (D-542). Rebuilt with the terrain, on every area change. */
+/** Prop lighting (D-544): a small pool of real lights, given to the nearest. */
+let lightRig: LightRig | null = null;
+/** Roofs (D-545). They lift away when you are under them. */
+let roofs: Roofs | null = null;
 const entities = new Map<number, EntityState>();
 let youId: number | null = null;
 let areaName = '';
@@ -209,10 +318,35 @@ let status: Extract<ServerMessage, { t: 'status' }> | null = null;
 
 // Mouse interaction state (stakeholder UI pass, 2026-08-17)
 let selectedId: number | null = null;
+/**
+ * Auto-attack (D-550). A selected target that is visibly hostile is engaged
+ * without further clicking; everything else needs the verb.
+ *
+ * `struckBy` is how a PLAYER becomes auto-attackable: they hit you first. The
+ * wire never marks a player hostile (that would be an accusation the server
+ * has no business making, D-217), so the client remembers who has actually
+ * swung at it and treats only those as fair game. Clicking a stranger can
+ * therefore never start a fight, which matters more here than convenience —
+ * the tavern keeper is somebody's objective.
+ */
+const struckBy = new Set<number>();
+/** Tick of the last attack we sent, to pace the next one. */
+let lastAttackAt = 0;
+/** Latest server tick seen on a delta — the clock auto-attack paces against. */
+let serverTick = 0;
 let hoveredEntityId: number | null = null;
 let hoveredTile: { x: number; y: number } | null = null;
 /** Click-to-move destination; the executor re-plans each step (drift-safe). */
 let moveDest: { x: number; y: number } | null = null;
+/**
+ * Whether the server has already been asked to walk to `moveDest`.
+ *
+ * ⚠ A destination is asked for ONCE. Re-sending it on every poll restarts the
+ * route from wherever the character has reached, which reads as walking on the
+ * spot — the same drift the client's re-planning loop was written to avoid,
+ * arriving from the other direction.
+ */
+let moveAsked = false;
 /** Chair the player asked to sit on: emits the sit emote on arrival. */
 let pendingSit: { x: number; y: number } | null = null;
 let currentArea: Extract<ServerMessage, { t: 'snapshot' }>['area'] | null = null;
@@ -225,27 +359,14 @@ let itemCatalogue: CatalogueItem[] = [];
 let craftRecipes: CatalogueRecipe[] = [];
 
 /** Redraws the pack and the workbench. Cheap, and only when something moved. */
+/**
+ * The character panel owns the pack and the paperdoll (D-547); this function
+ * keeps the workbench, which is a different question and lives in its own
+ * window beside it.
+ */
 function renderPackAndCraft(): void {
-  const rows = packRows(inventory, itemCatalogue);
-  const packList = $('pack-list');
-  packList.innerHTML = '';
-  if (rows.length === 0) {
-    const empty = document.createElement('div');
-    empty.className = 'pack-empty';
-    empty.textContent = 'Nothing but lint.';
-    packList.appendChild(empty);
-  }
-  for (const row of rows) {
-    const el = document.createElement('div');
-    el.className = 'pack-row';
-    const name = document.createElement('span');
-    name.textContent = row.name;
-    const qty = document.createElement('span');
-    qty.className = 'qty';
-    qty.textContent = String(row.qty);
-    el.append(name, qty);
-    packList.appendChild(el);
-  }
+  charPanel.setInventory(inventory);
+  charPanel.setCatalogue(itemCatalogue);
 
   const craftList = $('craft-list');
   craftList.innerHTML = '';
@@ -284,6 +405,31 @@ function renderPackAndCraft(): void {
     craftList.appendChild(el);
   }
 }
+const charPanel = new CharacterPanel({
+  onEquip: (itemId, slot) => conn.send({ t: 'equip', itemId, ...(slot ? { slot } : {}) }),
+  onUnequip: (itemId) => conn.send({ t: 'unequip', itemId }),
+  onUse: (templateId) => conn.send({ t: 'use_item', templateId }),
+  onDrop: (itemId) => conn.send({ t: 'drop_item', itemId }),
+  onStock: (itemId) => conn.send({ t: 'store_deposit', itemId }),
+  onTake: (itemId) => conn.send({ t: 'store_withdraw', itemId }),
+  onLookAtStores: () => conn.send({ t: 'store_look' }),
+  book: () => characterBook(),
+});
+const levelUp = new LevelUpScreen({
+  onSubmit: (advances) => conn.send({ t: 'advance', advances }),
+});
+/**
+ * The round's clock, for the dial (D-548). The server sends only the whole
+ * game hour, so the minute hand is interpolated from when the hour last
+ * turned — cosmetic, bounded by one game hour, and the alternative is a hand
+ * that jumps in twelve-degree steps and reads as broken.
+ */
+let clockHour = 6;
+let clockNight = false;
+let clockHourChangedAt = performance.now();
+/** Real milliseconds per game hour, from the round's own cycle (D-527). */
+const GAME_HOUR_MS = 25_000;
+
 const roundHud = new RoundHud({
   root: $('round-hud'),
   phase: $('round-phase'),
@@ -296,9 +442,49 @@ const roundHud = new RoundHud({
   endingTitle: $('round-ending-title'),
   endingBody: $('round-ending-body'),
 });
-const enableAudio = (): void => ambience.enable();
+/**
+ * Sampled sound (D-541). The cue list is CONTENT — the same file the server
+ * loads and CI validates — imported directly rather than sent over the wire,
+ * because it is presentation and the menu music has to play before there is
+ * a connection to receive anything on.
+ */
+const sounds = new SoundBank(SoundsFileSchema.parse(soundManifest));
+
+const enableAudio = (): void => {
+  ambience.enable();
+  const ctx = ambience.context;
+  const master = ambience.masterGain;
+  // One graph for both layers: the procedural bed and the sampled one share
+  // a context, so there is a single master and a single latency budget.
+  if (ctx && master) {
+    sounds.attach(ctx, master);
+    sounds.setVolumes(loadVolumes());
+    // Before the world opens, the screen has music. It stops on entry.
+    if (!overlay.classList.contains('hidden')) sounds.setMusic('menu-music');
+  }
+};
 window.addEventListener('pointerdown', enableAudio, { once: true });
 window.addEventListener('keydown', enableAudio, { once: true });
+
+/** Volumes persist per browser, like the graphics settings do. */
+function loadVolumes(): Volumes {
+  try {
+    const raw = localStorage.getItem('rc.volumes');
+    if (raw) return { ...DEFAULT_VOLUMES, ...(JSON.parse(raw) as Partial<Volumes>) };
+  } catch {
+    // corrupt or unavailable storage — defaults are fine
+  }
+  return { ...DEFAULT_VOLUMES };
+}
+
+function saveVolumes(v: Partial<Volumes>): void {
+  sounds.setVolumes(v);
+  try {
+    localStorage.setItem('rc.volumes', JSON.stringify(sounds.volumeSettings));
+  } catch {
+    // storage unavailable — the setting simply does not persist
+  }
+}
 
 // ---------------------------------------------------------------------------
 // UI flow
@@ -327,16 +513,40 @@ $<HTMLInputElement>('in-pass').addEventListener('keydown', (e) => {
 // Character creation (D-208) lives in its own module; it submits a finished
 // build and the SERVER decides whether it is legal.
 const creation = new CreationWizard({
-  onSubmit: (name, classId, build) => {
+  onSubmit: (name, classId, build, appearance, raceId, look) => {
     conn.send({
       t: 'create_character',
       name,
       appearanceSeed: creation.seed,
       classId,
-      build,
+      // ⚠ Omitted, not null, when the wizard never asked — a server whose
+      // content has no races skips the step, and `raceId: undefined` is what
+      // the schema's `.optional()` means. Sending an empty string would be a
+      // race id nothing can resolve (D-572).
+      ...(raceId ? { raceId } : {}),
+      // Omitted when nothing was chosen, for the same reason as the race: an
+      // empty look is not a blank face, it is the absence of a choice (D-574).
+      ...(look ? { look } : {}),
+      // The wizard assembles a build a step at a time, so its fields are
+      // optional; the schema fills the gaps and the server re-validates the
+      // whole thing regardless (D-102).
+      build: {
+        attributes: build.attributes ?? {},
+        skills: build.skills ?? {},
+        feats: build.feats ?? [],
+        spells: build.spells ?? [],
+      },
+      appearance,
     });
   },
-  onCancel: () => setStatus(''),
+  // ⚠ Backing out of creation returns to the character list, and saying so
+  // here is the point: `close()` no longer decides what replaces the wizard,
+  // because the same call also serves a dropped connection, which must land on
+  // the login fields instead (D-577).
+  onCancel: () => {
+    setStatus('');
+    charForm.classList.remove('hidden');
+  },
 });
 
 $('btn-create').onclick = () => {
@@ -352,7 +562,10 @@ function showCharacters(characters: CharacterSummary[]): void {
   charList.innerHTML = '';
   for (const c of characters) {
     const li = document.createElement('li');
-    li.innerHTML = `<span>${c.name}</span><span class="where">${c.areaId}</span>`;
+    // Level belongs on the roster, not in the round (D-538): you choose who
+    // to take in knowing what they are, and the round itself never shows it.
+    li.innerHTML = `<span>${c.name}</span>`
+      + `<span class="where">level ${c.level} · ${c.areaId}</span>`;
     li.onclick = () => conn.send({ t: 'enter_world', characterId: c.id });
     charList.appendChild(li);
   }
@@ -378,6 +591,15 @@ conn.onProtocolError = (detail) => setStatus(`protocol error: ${detail}`);
 conn.onMessage = (msg: ServerMessage) => {
   switch (msg.t) {
     case 'error':
+      // ⚠ "There are no stores here" is an ANSWER, not a failure: the panel
+      // asks whenever it opens and the server is the authority on reach
+      // (D-102), so a refusal is what empties the section. Letting it fall
+      // through to the status line as well would put a red error in front of
+      // a player who did nothing but open their pack in a field.
+      if (msg.code === 'no_store_here') {
+        charPanel.setStores(null);
+        return;
+      }
       // While the creation wizard is open its own error line is the one the
       // player is looking at — a rejected build must land there, not in the
       // login status behind the panel.
@@ -393,6 +615,10 @@ conn.onMessage = (msg: ServerMessage) => {
       return;
     case 'creation_content':
       creation.setContent(msg);
+      // The level-up screen renders from the SAME catalogue (D-546/D-110):
+      // one content source, so a feat added in a file appears in both places
+      // without a client deploy.
+      levelUp.setContent(msg);
       return;
     case 'character_created':
       conn.send({ t: 'enter_world', characterId: msg.character.id });
@@ -401,6 +627,7 @@ conn.onMessage = (msg: ServerMessage) => {
       applySnapshot(msg);
       return;
     case 'delta':
+      serverTick = msg.tick;
       for (const event of msg.events) applyEvent(event);
       return;
     case 'inventory':
@@ -434,18 +661,15 @@ conn.onMessage = (msg: ServerMessage) => {
     case 'status': {
       const wasGhost = status?.ghost ?? false;
       status = msg;
-      $('hud-hp').textContent = `${msg.hp}/${msg.maxHp}`;
+      renderVitals(msg);
+      adoptHotbar(msg.hotbar);
+      charPanel.setStatus(msg);
+      levelUp.setStatus(msg);
       $('hud-ghost').textContent = msg.ghost ? '☽ dead — /respawn when released' : '';
       if (msg.ghost && !wasGhost) {
         appendSystemLine('The world goes quiet. Only the dead remain with you.');
       } else if (!msg.ghost && wasGhost) {
         appendSystemLine('You wake at the spawn, scarred but breathing.');
-      }
-      if (msg.injuries.length > 0) {
-        const majors = msg.injuries.filter((i) => i.severity === 'major');
-        if (majors.length > 0) {
-          $('hud-hp').textContent += ` (bleeding ×${majors.length})`;
-        }
       }
       return;
     }
@@ -494,6 +718,19 @@ conn.onMessage = (msg: ServerMessage) => {
     }
     case 'round_state':
       roundHud.onState(msg);
+      if (msg.hour !== clockHour) {
+        clockHour = msg.hour;
+        clockHourChangedAt = performance.now();
+      }
+      clockNight = msg.night;
+      // Gold is not part of a round (stakeholder, 2026-08-20). It stays in
+      // the persistent world's economy (D-220/D-221) and is simply not shown
+      // here — the round has no shops, no wages and nothing to spend on.
+      $('hud-coin-wrap').classList.toggle('hidden', msg.phase === 'running');
+      renderClock();
+      return;
+    case 'store_contents':
+      charPanel.setStores(msg);
       return;
     case 'round_role':
       roundHud.onRole(msg);
@@ -537,6 +774,19 @@ function clearWorld(): void {
   entities.clear();
   if (terrain && scene) terrain.dispose(scene.scene);
   terrain = null;
+  if (paintedGround && scene) {
+    scene.scene.remove(paintedGround);
+    paintedGround.geometry.dispose();
+    // ⚠ The MATERIAL only. Its mask and layer textures are cached and shared
+    // with whatever else is drawn from them, so freeing those here would blank
+    // the ground of the next area built from the same art.
+    (paintedGround.material as THREE.Material).dispose();
+  }
+  paintedGround = null;
+  if (roofs && scene) roofs.dispose(scene.scene);
+  roofs = null;
+  worldAssets?.dispose();
+  worldAssets = null;
   youId = null;
 }
 
@@ -544,33 +794,87 @@ function addEntity(wire: WireEntity): void {
   const s = ensureScene();
   if (wire.kind === 'pile') {
     const visual = new PileVisual(s.scene);
-    visual.setPosition(wire.x, wire.y);
+    visual.setPosition(wire.x, wire.y, wire.z);
+    entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
+    return;
+  }
+  if (wire.kind === 'station') {
+    // Stations are entities because they are used and targeted, but they are
+    // OBJECTS: before D-542 they fell through to the character pipeline and
+    // the well in the town square was a man standing very still.
+    // ⚠ A station's TYPE is content now (D-530), so the client may be told
+    // about a facility it has no built-in model for. It falls back to the
+    // workshop's geometry rather than drawing nothing: an invisible object
+    // you can still use reads as a bug, and a wrong-looking one reads as
+    // art that has not been made yet — which is the truth.
+    const type = (CORE_STATION_TYPES as readonly string[]).includes(wire.variant ?? '')
+      ? (wire.variant as CoreStationType)
+      : 'workshop';
+    // ⚠ The art comes off the WIRE, not from a table here (D-583): which mesh
+    // a facility wears is content the server resolved, and a client guessing
+    // it would draw a different well from everybody else's.
+    const visual = new StationEntity(s.scene, type, wire.x, wire.y, wire.art);
     entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
     return;
   }
   if (wire.kind === 'node') {
-    const visual = new NodeVisual(s.scene, wire.descriptor);
-    visual.setPosition(wire.x, wire.y);
+    // `variant` is the node's own id (D-542); the descriptor guess stays as
+    // the fallback for anything that predates it.
+    const visual = new NodeVisual(s.scene, wire.variant ?? wire.descriptor);
+    // ⚠ Off the wire, never guessed here (D-583) — which mesh a vein wears is
+    // content the server resolved against `content/nodes/`.
+    if (wire.art) void visual.wear(wire.art);
+    visual.setPosition(wire.x, wire.y, wire.z);
     entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
     return;
   }
-  const visual = new CharacterVisual(wire.appearanceSeed, s.scene);
+  // A body we watched fall keeps the ragdoll it fell with (D-554), rather
+  // than being replaced by a fresh one already settled.
+  const inherited = wire.kind === 'corpse' ? adoptDyingVisual(wire.x, wire.y) : null;
+  // Seed first, player second (D-539). Passing the raw seed here would draw
+  // everybody as the seed rolls them and quietly discard the body the player
+  // built — the descriptor would say "towering" over a slight figure.
+  const appearance = resolveAppearance(wire.appearanceSeed, wire.appearance);
+  const visual =
+    inherited ??
+    (useImportedCast()
+      // ⚠ The look is passed through, so an entity is drawn as the face its
+      // player chose rather than one picked from the seed (D-574, resolving
+      // what D-559 left open). Null for everything that never chose.
+      ? new ImportedVisual(appearance, s.scene, wire.appearanceSeed, wire.look)
+      : new CharacterVisual(appearance, s.scene));
   // Layer 1 is the character/pixel layer the split pass quantises (D-404).
   visual.setRenderLayer(1);
-  visual.setPosition(wire.x, wire.y);
+  visual.setPosition(wire.x, wire.y, wire.z);
   visual.setFacing(wire.facing);
   visual.setPosture(wire.posture);
   visual.setPresentation(wire.presentation);
   visual.setCombat(wire.combat);
-  if (wire.kind === 'corpse') {
+  applyWorn(visual, wire);
+  visual.setLootable(wire.lootable);
+  if (wire.kind === 'corpse' && !inherited) {
     // A body we are only now seeing is already down: hold the final frame
     // of the collapse rather than replaying a death nobody witnessed.
+    // An INHERITED one is mid-fall and already dead — calling setDead here
+    // would fast-forward the very collapse we kept it for.
     visual.setDead(true);
   }
   entities.set(wire.id, { wire: { ...wire }, render: { x: wire.x, y: wire.y }, visual });
 }
 
 function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
+  // Pull the built models in before anybody needs one. They are shared, so
+  // this is a handful of files once per session.
+  //
+  // And REBUILD when they land. `addEntity` runs synchronously further down
+  // this same function, so on the first snapshot of a session the manifest
+  // has not arrived yet, `available()` is false, and every character is
+  // built procedural however the setting is set. Without this the toggle
+  // looks broken until you walk through a door.
+  void importedModels.preload().then(() => {
+    syncSettingsUi();
+    if (useImportedCast()) rebuildCast();
+  });
   // Station availability depends on where you are, so the workbench has to
   // be redrawn on every area change, not only when the pack changes.
   queueMicrotask(renderPackAndCraft);
@@ -578,6 +882,18 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   clearWorld();
   s.applyLighting(snap.area.lighting);
   terrain = new Terrain(snap.area, s.scene);
+  // What somebody painted in the editor (D-588). Null when the area is
+  // unpainted, which is most of them — bare terrain, exactly as before.
+  paintedGround = buildPaintedGround(snap.area);
+  if (paintedGround) s.scene.add(paintedGround);
+  lightRig?.clear();
+  if (!lightRig) lightRig = new LightRig(s.scene);
+  roofs?.dispose(s.scene);
+  roofs = new Roofs(snap.area.roofs, s.scene);
+  // The pack meshes this map is built from (D-567). The server has been
+  // colliding with them all along; this is the half that draws them.
+  worldAssets?.dispose();
+  worldAssets = new WorldAssets(s.scene, snap.area.assets);
   effects?.dispose();
   effects = new CombatEffects(s.scene);
   // Lights (including the hearth's, added by Terrain just now) and the
@@ -589,7 +905,7 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   youId = snap.you;
   areaName = snap.area.name;
   currentArea = snap.area;
-  moveDest = null;
+  moveDest = null; moveAsked = false;
   pendingSit = null;
   // Ambience derives from the area data: hearth tiles crackle, interior
   // and underground profiles carry a room tone.
@@ -601,9 +917,19 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
     }
   }
   ambience.setScene(hearths, snap.area.lighting === 'interior' || snap.area.lighting === 'underground');
+  // The bed follows the area (D-541); the same cue twice is a no-op, so
+  // walking through a door and back does not restart it.
+  sounds.setAmbience(snap.area.ambience ?? null);
+  sounds.setMusic(null);
   selectedId = null;
   updateTargetFrame();
   coin = snap.coin;
+  // The snapshot carries the pack too, and it is the ONLY inventory a player
+  // gets on entering — there is no separate `inventory` message until
+  // something moves. Without this the paperdoll opened empty for a character
+  // who was standing there in full mail.
+  inventory = snap.inventory;
+  charPanel.setInventory(inventory);
   overlay.classList.add('hidden');
   hud.classList.remove('hidden');
   chat.classList.remove('hidden');
@@ -626,8 +952,13 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
   } else if (event.type === 'entity_moved') {
     const e = entities.get(event.id as number);
     if (e) {
+      // ⚠ The authoritative position CHANGED, which is what "walking" means.
+      // Inferring it from whether the visual has caught up flickers false
+      // between every pair of updates (D-567) and restarts the stride.
+      markMoved(e.render, performance.now());
       e.wire.x = event.x as number;
       e.wire.y = event.y as number;
+      e.wire.z = event.z as number;
       e.wire.facing = event.facing as Direction;
       e.wire.posture = 'standing';
       e.visual.setFacing(e.wire.facing);
@@ -658,17 +989,66 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
     }
   } else if (event.type === 'entity_attacked') {
     playAttack(event.attackerId as number, event.targetId as number, event.variant as number);
+    // Somebody who has swung at you is somebody you may swing back at without
+    // clicking again (D-550). Remembered CLIENT-side and never sent: a wire
+    // field saying "this player is hostile" would be the game making an
+    // accusation, which is exactly what D-217 leaves to players.
+    if (event.targetId === youId) struckBy.add(event.attackerId as number);
+  } else if (event.type === 'entity_dissolved') {
+    // Daylight has undone it (D-551). Play the effect where it stands; the
+    // `entity_left` that follows removes it from the mirror.
+    const e = entities.get(event.id as number);
+    if (e && effects) {
+      effects.dissolve(new THREE.Vector3(e.render.x, 0.05, e.render.y));
+    }
+  } else if (event.type === 'entity_lootable') {
+    const e = entities.get(event.id as number);
+    if (e) {
+      e.wire.lootable = event.lootable as boolean;
+      if (e.visual instanceof CharacterVisual) e.visual.setLootable(e.wire.lootable);
+      else if (e.visual instanceof PileVisual) e.visual.setLootable(e.wire.lootable);
+    }
+  } else if (event.type === 'entity_worn') {
+    // Somebody put something on (D-554). The silhouette changes for everyone
+    // watching, which is the whole point — armour you cannot see is armour
+    // nobody can decide to avoid.
+    const e = entities.get(event.id as number);
+    if (e) {
+      e.wire.worn = event.worn as WireEntity['worn'];
+      // ⚠ BOTH casts. This said `instanceof CharacterVisual`, so the imported
+      // cast never heard about a change of kit — a garment would appear only
+      // on the next full snapshot, which in practice means on the next area
+      // change. `applyWorn` takes the union precisely so the caller does not
+      // have to know which cast it is holding (D-559); testing for one of
+      // them here was undoing that.
+      // A pile, a node and a station wear nothing — the test excludes what
+      // is not a person, rather than picking one of the two casts.
+      if (e.visual instanceof CharacterVisual || e.visual instanceof ImportedVisual) {
+        applyWorn(e.visual, e.wire);
+      }
+    }
   } else if (event.type === 'entity_carried') {
     const e = entities.get(event.id as number);
     if (e) e.wire.carriedBy = event.carrierId as number | null;
+  } else if (event.type === 'entity_effect') {
+    // A mending or a rite, at somebody the room can see (D-541).
+    const e = entities.get(event.id as number);
+    if (e) {
+      sounds.play(
+        event.effect === 'heal' ? 'heal' : 'spirit-rite',
+        placementOf(e.render.x, e.render.y),
+      );
+    }
   } else if (event.type === 'entity_died') {
     const e = entities.get(event.id as number);
     if (e) {
       appendSystemLine(`${e.wire.descriptor} falls.`);
+      const deathCue = voiceCue(event.id as number, 'death');
+      if (deathCue) sounds.play(deathCue, placementOf(e.render.x, e.render.y));
       // The fall is watched, not skipped. The entity is removed from the
       // world mirror straight away (the server has already replaced it with
       // a corpse), but its visual lingers just long enough to collapse.
-      if (e.visual instanceof CharacterVisual) {
+      if (e.visual instanceof CharacterVisual || e.visual instanceof ImportedVisual) {
         // A recent blow shoves the body over; anything else (bleeding out,
         // sickness) simply drops it where it stands.
         const blow = lastBlow.get(event.id as number);
@@ -677,7 +1057,9 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
           : undefined;
         lastBlow.delete(event.id as number);
         e.visual.playDeath(t, shove);
-        dyingVisuals.push({ visual: e.visual, until: t + 3.0 });
+        dyingVisuals.push({
+          visual: e.visual, until: t + 3.0, x: e.render.x, y: e.render.y,
+        });
       } else {
         e.visual.dispose();
       }
@@ -687,11 +1069,74 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
 }
 
 /**
+ * Puts what somebody is wearing onto the model they are drawn with (D-554).
+ *
+ * Falls back to the SEED's own equipment when the server says nothing —
+ * `worn` is null for every NPC, roamer and corpse, and for any character not
+ * holding gear. That fallback is what keeps the world looking exactly as it
+ * did before equipment was visible, rather than stripping every NPC bare.
+ */
+function applyWorn(visual: CharacterVisual | ImportedVisual, wire: WireEntity): void {
+  const worn = wire.worn;
+  if (!worn) return;
+  visual.setEquipment({
+    helm: worn.helm,
+    pauldrons: worn.pauldrons,
+    cape: worn.cape,
+    robe: worn.robe,
+    weapon: worn.weapon !== 'none',
+    weaponKind: worn.weapon === 'staff' ? 'staff' : 'sword',
+    // ⚠ The imported cast re-assembles a body out of these (D-571); the
+    // procedural one ignores them and draws its generated armour from the
+    // flags above. One call, two casts, and `main.ts` still does not know
+    // which it is holding — which is the property D-559 exists to keep.
+    garments: worn.garments,
+    // ⚠ The server decides this (D-102/D-578): which stance an asset declares
+    // is content, and a client that guessed it from the silhouette would
+    // animate a crossbow as a sword. Undefined is empty-handed, which is the
+    // rig's own clips rather than a stance (D-564).
+    stance: worn.stance,
+  });
+}
+
+/**
  * Plays one blow. The variant comes from the server so every observer sees
  * the same swing; whether it is a cast or a cut is read from what the
  * attacker is actually holding, which every client derives identically
  * from the appearance seed.
  */
+/**
+ * Where a sound is, relative to you: how far, and how far to the side.
+ *
+ * Panning is computed against the CAMERA's forward, not the world axes —
+ * the camera orbits (D-514), so a fixed mapping would put a sound on the
+ * wrong side the moment the player turned the view.
+ */
+function placementOf(x: number, y: number): { pan: number; distance: number } {
+  const you = youId !== null ? entities.get(youId) : undefined;
+  if (!you) return { pan: 0, distance: 0 };
+  const dx = x - you.render.x;
+  const dy = y - you.render.y;
+  const distance = Math.hypot(dx, dy);
+  if (distance < 0.001) return { pan: 0, distance: 0 };
+  const az = scene?.azimuthAngle ?? 0;
+  // Right-hand vector of the camera, in world XZ.
+  const rx = Math.cos(az + Math.PI / 2);
+  const rz = Math.sin(az + Math.PI / 2);
+  const pan = Math.max(-1, Math.min(1, ((dx * rx + dy * rz) / distance) * 0.85));
+  return { pan, distance };
+}
+
+/** The sex-specific cry for an entity, read from the appearance it wears. */
+function voiceCue(entityId: number, kind: 'hurt' | 'death'): string | null {
+  const e = entities.get(entityId);
+  if (!e || !(e.visual instanceof CharacterVisual)) return null;
+  // Corpses and piles do not cry out; the living and the newly dead do.
+  if (e.wire.kind === 'corpse' || e.wire.kind === 'pile') return null;
+  const sex = resolveAppearance(e.wire.appearanceSeed, e.wire.appearance).sex;
+  return `${kind}-${sex}`;
+}
+
 function playAttack(attackerId: number, targetId: number, variant: number): void {
   const attacker = entities.get(attackerId);
   if (!attacker || !(attacker.visual instanceof CharacterVisual)) return;
@@ -705,6 +1150,19 @@ function playAttack(attackerId: number, targetId: number, variant: number): void
     );
     if (push.lengthSq() < 1e-6) push.set(0, 0, 1);
     lastBlow.set(targetId, { dir: push.normalize(), at: t });
+  }
+  // Sound follows the same fork the visuals do: steel or a bolt. Sampled
+  // cues play only for blows you can SEE — anything out of your area arrives
+  // as the anonymous procedural cue instead, which is what keeps hearing a
+  // fight from telling you who is in it (D-531).
+  const at = placementOf(attacker.render.x, attacker.render.y);
+  sounds.play(attacker.visual.castsSpells ? 'attack-bolt' : 'attack-swing', at);
+  const hurtCue = voiceCue(targetId, 'hurt');
+  if (hurtCue && target) {
+    const there = placementOf(target.render.x, target.render.y);
+    // A beat after the swing, so the cry answers the blow rather than
+    // arriving with it.
+    window.setTimeout(() => sounds.play(hurtCue, there), 220);
   }
   if (!effects) return;
   const muzzle = attacker.visual.weaponMuzzle(new THREE.Vector3());
@@ -1023,13 +1481,24 @@ window.addEventListener('keydown', (e) => {
   // Pack and workbench. Guarded on isTyping() so 'i' in a sentence does not
   // open a panel mid-word — this is a game people are meant to talk in.
   if (!isTyping() && (e.key === 'i' || e.key === 'I')) {
-    $('pack-panel').classList.toggle('hidden');
-    renderPackAndCraft();
+    charPanel.toggle();
     return;
   }
   if (!isTyping() && (e.key === 'c' || e.key === 'C')) {
     $('craft-panel').classList.toggle('hidden');
     renderPackAndCraft();
+    return;
+  }
+  // Tab takes the next body, nearest first (D-542). Targeting by mouse alone
+  // is hard work in a crowd, and harder while something is hitting you.
+  if (!isTyping() && e.key === 'Tab') {
+    e.preventDefault();
+    cycleTarget();
+    return;
+  }
+  if (!isTyping() && e.key === 'Escape' && selectedId !== null) {
+    selectedId = null;
+    updateTargetFrame();
     return;
   }
   if (e.key === 'Enter') {
@@ -1073,32 +1542,38 @@ setInterval(() => {
   if (!conn.open || youId === null) return;
   const dir = heldDirection();
   if (dir) {
-    moveDest = null; // keys always override the mouse
+    // Keys always override the mouse, and the server has to be told to drop
+    // the route as well — otherwise the two fight each other every tick.
+    if (moveDest) conn.send({ t: 'move_stop' });
+    moveDest = null; moveAsked = false;
+    moveAsked = false;
     conn.send({ t: 'move', dir });
     return;
   }
-  // Click-to-move: re-plan from the CURRENT tile every step, so queued-intent
-  // drift (see HANDOFF) can never walk us off the path.
+  // Click-to-move: ask the SERVER to walk there (D-567).
+  //
+  // ⚠ The client's own A* is gone from this path, and losing it fixes two
+  // things at once. It ran over the tile grid, so once positions became metres
+  // it indexed `tiles[12.7]`, found nothing, and quietly refused to move at
+  // all. And the route was never the client's to choose (D-102): the client
+  // sends intent and renders what it is told. It used to choose because the
+  // server could not path, which is no longer true.
+  //
+  // Asked ONCE, not re-planned every 90ms: the server owns the route and
+  // re-sending it each tick would restart the walk from wherever the character
+  // had got to, which is how a character walks on the spot.
   if (moveDest && currentArea) {
     const you = entities.get(youId);
     if (!you) return;
-    if (you.wire.x === moveDest.x && you.wire.y === moveDest.y) {
-      moveDest = null;
+    if (Math.hypot(you.wire.x - moveDest.x, you.wire.y - moveDest.y) < 0.4) {
+      conn.send({ t: 'move_stop' });
+      moveDest = null; moveAsked = false;
       return;
     }
-    const path = findPath(
-      {
-        width: currentArea.width,
-        height: currentArea.height,
-        walkable: (x, y) => tileWalkable(x, y),
-      },
-      you.wire.x, you.wire.y, moveDest.x, moveDest.y,
-    );
-    if (!path || path.length === 0) {
-      moveDest = null;
-      return;
+    if (!moveAsked) {
+      conn.send({ t: 'move_to', x: moveDest.x, y: moveDest.y });
+      moveAsked = true;
     }
-    conn.send({ t: 'move', dir: path[0]! });
   }
 }, 90);
 
@@ -1107,7 +1582,11 @@ function tileWalkable(x: number, y: number): boolean {
   if (!a) return false;
   if (x < 0 || y < 0 || x >= a.width || y >= a.height) return false;
   const ch = a.tiles[y]?.[x];
-  return ch !== undefined && (a.legend[ch]?.walkable ?? false);
+  if (ch === undefined || !(a.legend[ch]?.walkable ?? false)) return false;
+  // ⚠ Terrain only. What a body actually fits through is the server's
+  // question now (D-567) — this gates which tiles a CLICK may target, and
+  // erring open is right: the server walks you as close as it can.
+  return true;
 }
 
 function tileKind(x: number, y: number): string | null {
@@ -1164,24 +1643,86 @@ function tileAtScreen(px: number, py: number): { x: number; y: number } | null {
   return { x, y };
 }
 
-/** Screen-space entity pick: nearest projected entity under the cursor. */
+/**
+ * Screen-space entity pick (D-542).
+ *
+ * The first version measured to a single point at chest height with a 30px
+ * tolerance, which meant clicking someone's legs, head or weapon missed, and
+ * a resource node standing near a person stole the click. Targeting was the
+ * loudest complaint about the UI, and all three causes were here.
+ *
+ * Now: each entity is a vertical SEGMENT from its feet to the top of its
+ * head, the cursor is measured against the whole segment, and PEOPLE win
+ * ties against scenery. You aim at a body, not at a magic pixel.
+ */
 function entityAtScreen(px: number, py: number): number | null {
   if (!scene) return null;
   const rect = stageEl.getBoundingClientRect();
+  const foot = new THREE.Vector3();
+  const head = new THREE.Vector3();
   let best: number | null = null;
-  let bestDist = 30; // px
-  const v = new THREE.Vector3();
+  let bestScore = Infinity;
+  const project = (v: THREE.Vector3): { x: number; y: number } => {
+    v.project(scene!.camera);
+    return {
+      x: rect.left + ((v.x + 1) / 2) * rect.width,
+      y: rect.top + ((1 - v.y) / 2) * rect.height,
+    };
+  };
   for (const [id, e] of entities) {
-    v.set(e.render.x, 0.9, e.render.y).project(scene.camera);
-    const sx = rect.left + ((v.x + 1) / 2) * rect.width;
-    const sy = rect.top + ((1 - v.y) / 2) * rect.height;
-    const d = Math.hypot(sx - px, sy - py);
-    if (d < bestDist) {
-      bestDist = d;
+    const person = e.wire.kind === 'player' || e.wire.kind === 'npc';
+    // A body is about 1.8 tall; scenery is squatter and gets a smaller box.
+    const top = person ? 1.85 : e.wire.kind === 'station' ? 1.6 : 0.8;
+    const a = project(foot.set(e.render.x, 0.05, e.render.y));
+    const b = project(head.set(e.render.x, top, e.render.y));
+    // Distance from the cursor to the segment a→b.
+    const vx = b.x - a.x;
+    const vy = b.y - a.y;
+    const len2 = vx * vx + vy * vy;
+    const t = len2 > 0
+      ? Math.max(0, Math.min(1, ((px - a.x) * vx + (py - a.y) * vy) / len2))
+      : 0;
+    const d = Math.hypot(px - (a.x + vx * t), py - (a.y + vy * t));
+    // The grab radius scales with how big the thing is drawn, so zooming out
+    // does not make everything unclickable.
+    const radius = Math.max(18, Math.min(70, Math.hypot(vx, vy) * 0.45));
+    if (d > radius) continue;
+    // People are what you mean to click. A node has to be much closer to the
+    // cursor than a person to beat them.
+    const score = d * (person ? 1 : 2.2);
+    if (score < bestScore) {
+      bestScore = score;
       best = id;
     }
   }
   return best;
+}
+
+/** Everything targetable, nearest first — for Tab cycling. */
+function targetableEntities(): number[] {
+  const you = youId !== null ? entities.get(youId) : undefined;
+  if (!you) return [];
+  return [...entities.entries()]
+    .filter(([id, e]) => id !== youId && (e.wire.kind === 'player' || e.wire.kind === 'npc'))
+    .sort(
+      (a, b) =>
+        Math.hypot(a[1].render.x - you.render.x, a[1].render.y - you.render.y)
+        - Math.hypot(b[1].render.x - you.render.x, b[1].render.y - you.render.y),
+    )
+    .map(([id]) => id);
+}
+
+/** Tab: take the next body in range. Escape clears. */
+function cycleTarget(): void {
+  const order = targetableEntities();
+  if (order.length === 0) {
+    selectedId = null;
+    updateTargetFrame();
+    return;
+  }
+  const at = selectedId === null ? -1 : order.indexOf(selectedId);
+  selectedId = order[(at + 1) % order.length]!;
+  updateTargetFrame();
 }
 
 // Highlight meshes, created once the scene exists.
@@ -1241,11 +1782,22 @@ function updateHighlights(): void {
       tileHighlight.visible = false;
     }
   }
+  autoAttackStep();
   const sel = selectedId !== null ? entities.get(selectedId) : undefined;
   if (sel) {
     selectRing.visible = true;
     selectRing.position.x = sel.render.x;
     selectRing.position.z = sel.render.y;
+    // A slow pulse: the marker has to be findable in a crowd at a glance,
+    // and a static ring reads as scenery once there are props on the floor.
+    const pulse = 1 + Math.sin(t * 4) * 0.09;
+    selectRing.scale.set(pulse, 1, pulse);
+    // The panel carries a distance, so it has to be refreshed as either of
+    // you moves rather than only when the selection changes.
+    if (sel.wire.x !== lastTargetTile.x || sel.wire.y !== lastTargetTile.y) {
+      lastTargetTile = { x: sel.wire.x, y: sel.wire.y };
+      updateTargetFrame();
+    }
   } else {
     selectRing.visible = false;
     if (selectedId !== null) {
@@ -1253,6 +1805,43 @@ function updateHighlights(): void {
       updateTargetFrame();
     }
   }
+}
+
+/** Last tile the target stood on, so the panel refreshes only when it moves. */
+let lastTargetTile = { x: -1, y: -1 };
+
+/** Chebyshev distance, the same metric the server measures reach with. */
+function tilesBetween(a: { x: number; y: number }, b: { x: number; y: number }): number {
+  return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+}
+
+/**
+ * Swing at the selected target when it is something that fights back.
+ *
+ * The client decides NOTHING here (D-102) — the server still checks reach,
+ * line of sight, the zone rules and the round's budget, and refuses what it
+ * does not like. All this does is stop sending attacks that would be refused,
+ * because a stream of `on_cooldown` errors is indistinguishable from a bug.
+ *
+ * Ranged weapons work through the same path: the server reports the reach of
+ * whatever is in hand, so a bow simply starts engaging six tiles out. Mages
+ * hit with the staff for the same reason — a staff is a weapon with a
+ * damage value, and nothing here special-cases it.
+ */
+function autoAttackStep(): void {
+  if (selectedId === null || youId === null || status === null || status.ghost) return;
+  const target = entities.get(selectedId);
+  const you = entities.get(youId);
+  if (!target || !you) return;
+  if (target.wire.kind !== 'npc' && target.wire.kind !== 'player') return;
+  // Only things that are visibly hostile, or people who have already swung.
+  const engageable = target.wire.hostile || struckBy.has(target.wire.id);
+  if (!engageable) return;
+  if (tilesBetween(you.wire, target.wire) > status.reach) return;
+  const spacing = attackSpacingTicks(status.attacksPerRound, status.roundTicks);
+  if (serverTick - lastAttackAt < spacing) return;
+  lastAttackAt = serverTick;
+  conn.send({ t: 'attack', targetEntityId: target.wire.id });
 }
 
 stageEl.addEventListener('pointerdown', (e) => {
@@ -1293,8 +1882,15 @@ window.addEventListener('pointerup', (e) => {
   }
   const tile = tileAtScreen(e.clientX, e.clientY);
   if (tile && tileWalkable(tile.x, tile.y)) {
-    moveDest = tile;
+    moveDest = tile; moveAsked = false;
     pendingSit = null;
+    // Clicking open ground drops the target, the way every game with a
+    // target frame behaves. The hotbar still falls back to the nearest body,
+    // so this loses nothing except a stale selection.
+    if (selectedId !== null) {
+      selectedId = null;
+      updateTargetFrame();
+    }
   }
 });
 
@@ -1386,9 +1982,9 @@ function menuFor(entityId: number | null, tile: { x: number; y: number } | null)
     if (tileKind(tile.x, tile.y) === 'chair') {
       // Walk to the chair, then sit through the normal emote pipeline —
       // everyone nearby sees the same "*sits down*" they would if typed.
-      entries.push({ label: 'Sit here', act: () => { moveDest = tile; pendingSit = tile; } });
+      entries.push({ label: 'Sit here', act: () => { moveDest = tile; moveAsked = false; pendingSit = tile; } });
     }
-    entries.push({ label: `Walk here (${tile.x}, ${tile.y})`, act: () => { moveDest = tile; pendingSit = null; } });
+    entries.push({ label: `Walk here (${tile.x}, ${tile.y})`, act: () => { moveDest = tile; moveAsked = false; pendingSit = null; } });
   }
   return entries;
 }
@@ -1423,8 +2019,21 @@ function updateTargetFrame(): void {
     targetFrame.classList.add('hidden');
     return;
   }
+  const you = youId !== null ? entities.get(youId) : undefined;
+  const dist = you
+    ? Math.max(Math.abs(sel.wire.x - you.wire.x), Math.abs(sel.wire.y - you.wire.y))
+    : null;
+  // What it IS matters as much as what it is called: a corpse, a vein and a
+  // person all answer to a descriptor, and the hotbar treats them differently.
+  const kindLabel = {
+    player: 'person', npc: 'person', corpse: 'body',
+    pile: 'gear', node: 'resource', station: 'facility',
+  }[sel.wire.kind] ?? sel.wire.kind;
+  const reach = dist === null ? '' : dist <= 1 ? ' · within reach' : ` · ${dist} tiles`;
   targetFrame.classList.remove('hidden');
-  targetFrame.textContent = `◎ ${sel.wire.descriptor}`;
+  targetFrame.classList.toggle('near', dist !== null && dist <= 1);
+  targetFrame.innerHTML = `<span class="tmark">◎</span> <b>${sel.wire.descriptor}</b>`
+    + `<span class="tmeta">${kindLabel}${reach}</span>`;
 }
 
 /** The target an ability acts on: your selection, else a sensible nearest. */
@@ -1442,6 +2051,11 @@ interface AbilityDef {
   glyph: string;
   label: string;
   use: () => void;
+  /**
+   * Which class ability the character must hold for this to appear in the
+   * book (D-553). Absent means everybody has it.
+   */
+  requires?: string;
 }
 
 const ABILITIES: AbilityDef[] = [
@@ -1462,12 +2076,13 @@ const ABILITIES: AbilityDef[] = [
     if (t !== null) conn.send({ t: 'loot', targetEntityId: t });
     else appendSystemLine('Nothing here to loot.');
   } },
-  { id: 'speakdead', glyph: '☾', label: 'Speak with dead', use: () => {
+  { id: 'poison', glyph: '☣', label: 'Spoil the well', use: () => conn.send({ t: 'poison_well' }) },
+  { id: 'speakdead', glyph: '☾', label: 'Speak with dead', requires: 'speak-with-dead', use: () => {
     const t = abilityTarget(['corpse']);
     if (t !== null) conn.send({ t: 'speak_dead', targetEntityId: t });
     else appendSystemLine('No corpse near enough.');
   } },
-  { id: 'animate', glyph: '☠', label: 'Animate dead', use: () => {
+  { id: 'animate', glyph: '☠', label: 'Animate dead', requires: 'animate-dead', use: () => {
     const t = abilityTarget(['corpse']);
     if (t !== null) conn.send({ t: 'animate_dead', targetEntityId: t });
     else appendSystemLine('No corpse near enough.');
@@ -1478,21 +2093,43 @@ const ABILITIES: AbilityDef[] = [
 ];
 
 const HOTBAR_SLOTS = 9;
-const HOTBAR_KEY = 'rc.hotbar';
 const hotbarEl = $('hotbar');
 const drawerEl = $('ability-drawer');
-let hotbar: (string | null)[] = loadHotbar();
 
-function loadHotbar(): (string | null)[] {
-  try {
-    const raw = JSON.parse(localStorage.getItem(HOTBAR_KEY) ?? 'null') as (string | null)[] | null;
-    if (Array.isArray(raw) && raw.length === HOTBAR_SLOTS) return raw;
-  } catch { /* fall through to defaults */ }
+function defaultHotbar(): (string | null)[] {
   return ['attack', 'treat', 'loot', 'revive', 'hood', null, null, null, null];
 }
 
+let hotbar: (string | null)[] = defaultHotbar();
+let hotbarSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Takes the bar the SERVER holds for this character (D-553).
+ *
+ * It used to live in localStorage, which meant one bar shared by every
+ * character on the machine and none of it following the player to another
+ * browser. A physician's bar and a berserker's are not the same bar.
+ */
+function adoptHotbar(saved: (string | null)[] | null): void {
+  const next = defaultHotbar();
+  if (Array.isArray(saved)) {
+    for (let i = 0; i < HOTBAR_SLOTS; i++) next[i] = saved[i] ?? null;
+  }
+  if (JSON.stringify(next) === JSON.stringify(hotbar)) return;
+  hotbar = next;
+  renderHotbar();
+}
+
+/**
+ * Debounced, because dragging a slot around fires this on every drop and the
+ * bar is not worth a message per gesture.
+ */
 function saveHotbar(): void {
-  localStorage.setItem(HOTBAR_KEY, JSON.stringify(hotbar));
+  if (hotbarSaveTimer) clearTimeout(hotbarSaveTimer);
+  hotbarSaveTimer = setTimeout(() => {
+    hotbarSaveTimer = null;
+    conn.send({ t: 'set_hotbar', slots: hotbar });
+  }, 400);
 }
 
 function useHotbarSlot(i: number): void {
@@ -1508,7 +2145,9 @@ function renderHotbar(): void {
     slot.className = 'hb-slot';
     const ability = hotbar[i] ? ABILITIES.find((a) => a.id === hotbar[i]) : undefined;
     slot.innerHTML = `<span class="hb-key">${i + 1}</span><span class="hb-glyph">${ability?.glyph ?? ''}</span>`;
-    slot.title = ability ? `${ability.label} (key ${i + 1}; double-click to clear)` : 'Drop an ability here';
+    slot.title = ability
+      ? `${ability.label} — key ${i + 1}. Drag it off the bar, or double-click, to clear it.`
+      : 'Drop an ability here';
     slot.addEventListener('click', () => useHotbarSlot(i));
     slot.addEventListener('dblclick', () => {
       hotbar[i] = null;
@@ -1539,6 +2178,15 @@ function renderHotbar(): void {
       slot.addEventListener('dragstart', (e) => {
         e.dataTransfer?.setData('rc/ability', ability.id);
         e.dataTransfer?.setData('rc/from-slot', String(i));
+      });
+      // Dropped anywhere that is not a slot: the ability comes off the bar
+      // (D-553). `dropEffect === 'none'` is how the browser reports "nobody
+      // accepted this", which is exactly the gesture we want to mean clear.
+      slot.addEventListener('dragend', (e) => {
+        if (e.dataTransfer?.dropEffect !== 'none') return;
+        hotbar[i] = null;
+        saveHotbar();
+        renderHotbar();
       });
     }
     hotbarEl.appendChild(slot);
@@ -1577,26 +2225,72 @@ function renderDrawer(): void {
 renderHotbar();
 renderDrawer();
 
+/**
+ * What this character can actually do, for the Abilities tab (D-553).
+ *
+ * Two lists, and the split is the honest one: things every character can do,
+ * and things this calling was granted. Spells appear too — greyed and
+ * undraggable, with the reason — because a character that HAS a spell should
+ * be able to see it, and a hotbar slot that silently does nothing is exactly
+ * the lie D-538 refused for feats.
+ */
+function characterBook(): {
+  actions: BookEntry[];
+  rites: BookEntry[];
+} {
+  const held = new Set(status?.abilities ?? []);
+  const actions: BookEntry[] = [];
+  const rites: BookEntry[] = [];
+  for (const ability of ABILITIES) {
+    const entry: BookEntry = { id: ability.id, glyph: ability.glyph, label: ability.label };
+    if (ability.requires) {
+      if (!held.has(ability.requires)) continue;
+      rites.push(entry);
+    } else {
+      actions.push(entry);
+    }
+  }
+  for (const spell of status?.spells ?? []) {
+    rites.push({
+      id: `spell:${spell}`,
+      glyph: '✧',
+      label: spell,
+      inert: true,
+      note: 'no casting yet',
+    });
+  }
+  return { actions, rites };
+}
+
 // ---------------------------------------------------------------------------
 // Graphics settings (stakeholder request, 2026-08-18)
 //
-// The ratified art direction is SPLIT: characters are palette-pixelated, the
-// environment is not (D-404 as reinstated). Both scales are tunable here and
-// persist per browser.
+// ⚠ The pixel controls are GONE (D-586). They tuned a palette quantiser that
+// no longer exists: the world is drawn straight to the canvas at full
+// resolution. What is left here is what still decides something — which cast
+// the world is drawn with, and whether walls between you and the camera go
+// stippled.
 // ---------------------------------------------------------------------------
 
 interface GraphicsSettings {
-  mode: 'split' | 'uniform' | 'raw';
-  charPixel: number;
-  envPixel: number;
-  envPalette: boolean;
+  /** Walls between the camera and you go stippled (D-542). */
+  seeThrough: boolean;
+  /**
+   * Which cast the world is drawn with (D-559).
+   *
+   * `procedural` is D-402's generate-from-a-seed rig and remains the
+   * shipping default: it is the one that renders every appearance the server
+   * can describe, wears equipment, and raises a hood. `imported` swaps in
+   * the built Synty models so the art can be judged IN the game — which is
+   * what D-555 left to the stakeholder and could not be judged from a
+   * viewer.
+   */
+  cast: 'procedural' | 'imported';
 }
 
 const GRAPHICS_DEFAULTS: GraphicsSettings = {
-  mode: 'split',
-  charPixel: 4,
-  envPixel: 1,
-  envPalette: false,
+  cast: 'procedural',
+  seeThrough: true,
 };
 
 function loadGraphics(): GraphicsSettings {
@@ -1612,50 +2306,87 @@ function loadGraphics(): GraphicsSettings {
 
 const graphics = loadGraphics();
 
+/**
+ * Is the imported cast both wanted and BUILT?
+ *
+ * Both halves matter. A client served a `models/` directory that nobody has
+ * run `build:characters` for must fall back rather than draw nothing, and a
+ * setting saved in localStorage outlives the models it refers to.
+ */
+function useImportedCast(): boolean {
+  return graphics.cast === 'imported' && importedModels.available();
+}
+
+/**
+ * Redraw every character with the other cast.
+ *
+ * A visual is chosen when the entity arrives, so switching has to rebuild
+ * the ones already here — otherwise the change appears to do nothing until
+ * you walk to another area, and the person judging the art concludes the
+ * toggle is broken.
+ */
+function rebuildCast(): void {
+  if (!scene) return;
+  // Snapshot FIRST. `addEntity` re-inserts under the same key, and a Map
+  // iterator visits entries added during iteration — so deleting and
+  // re-adding while looping walks the same entity forever and hangs the
+  // tab. It does not throw; the page simply stops painting.
+  for (const [id, e] of [...entities]) {
+    if (e.wire.kind === 'pile' || e.wire.kind === 'station' || e.wire.kind === 'node') continue;
+    e.visual.dispose();
+    entities.delete(id);
+    addEntity(e.wire);
+  }
+}
+
 function applyGraphics(): void {
   if (!scene) return;
-  scene.post.pixelScale = graphics.charPixel;
-  scene.post.envPixelScale = graphics.envPixel;
   scene.resize();
   localStorage.setItem('rc.graphics', JSON.stringify(graphics));
 }
 
 function syncSettingsUi(): void {
-  $<HTMLSelectElement>('set-mode').value = graphics.mode;
-  $<HTMLInputElement>('set-charpx').value = String(graphics.charPixel);
-  $<HTMLInputElement>('set-envpx').value = String(graphics.envPixel);
-  $<HTMLInputElement>('set-envpal').checked = graphics.envPalette;
-  $('v-charpx').textContent = String(graphics.charPixel);
-  $('v-envpx').textContent = String(graphics.envPixel);
-  // Character pixelation is meaningless without a quantiser pass.
-  $<HTMLInputElement>('set-charpx').disabled = graphics.mode === 'raw';
-  $<HTMLInputElement>('set-envpx').disabled = graphics.mode !== 'split';
-  $<HTMLInputElement>('set-envpal').disabled = graphics.mode !== 'split';
+  $<HTMLSelectElement>('set-cast').value = graphics.cast;
+  // Say WHY it is unavailable rather than offering a control that does
+  // nothing: nobody can tell a broken toggle from an unbuilt one.
+  const built = importedModels.available();
+  $<HTMLSelectElement>('set-cast').disabled = !built;
+  $('cast-note').textContent = built
+    ? 'Imported models ignore hoods and equipment — see the note in DECISIONS D-559.'
+    : 'No imported models built. Run npm run build:characters.';
+  $<HTMLInputElement>('set-seethrough').checked = graphics.seeThrough;
 }
+
+$<HTMLSelectElement>('set-cast').addEventListener('change', (e) => {
+  graphics.cast = (e.target as HTMLSelectElement).value as GraphicsSettings['cast'];
+  applyGraphics();
+  rebuildCast();
+  syncSettingsUi();
+});
 
 $('btn-settings').addEventListener('click', () => {
   $('settings').classList.toggle('hidden');
   syncSettingsUi();
 });
-$('set-mode').addEventListener('change', () => {
-  graphics.mode = $<HTMLSelectElement>('set-mode').value as GraphicsSettings['mode'];
+// Sound levels (D-541). These balance the layers against each other; the
+// normalisation on load is what makes individual files consistent.
+for (const key of ['master', 'effects', 'ambience', 'music'] as const) {
+  const input = $<HTMLInputElement>(`set-vol-${key}`);
+  const readout = $(`v-vol-${key}`);
+  const current = loadVolumes();
+  input.value = String(Math.round(current[key] * 100));
+  readout.textContent = input.value;
+  input.addEventListener('input', () => {
+    readout.textContent = input.value;
+    saveVolumes({ [key]: Number(input.value) / 100 });
+  });
+}
+
+$('set-seethrough').addEventListener('change', () => {
+  graphics.seeThrough = $<HTMLInputElement>('set-seethrough').checked;
   applyGraphics();
-  syncSettingsUi();
 });
-$('set-charpx').addEventListener('input', () => {
-  graphics.charPixel = Number($<HTMLInputElement>('set-charpx').value);
-  applyGraphics();
-  syncSettingsUi();
-});
-$('set-envpx').addEventListener('input', () => {
-  graphics.envPixel = Number($<HTMLInputElement>('set-envpx').value);
-  applyGraphics();
-  syncSettingsUi();
-});
-$('set-envpal').addEventListener('change', () => {
-  graphics.envPalette = $<HTMLInputElement>('set-envpal').checked;
-  applyGraphics();
-});
+
 syncSettingsUi();
 
 // ---------------------------------------------------------------------------
@@ -1685,7 +2416,35 @@ const pendingBolts: { at: number; from: THREE.Vector3; to: THREE.Vector3; visual
 /** Melee impact sprays, timed to when the blade actually arrives. */
 const pendingImpacts: { at: number; at3: THREE.Vector3 }[] = [];
 /** Visuals kept alive past their entity so the collapse can finish. */
-const dyingVisuals: { visual: CharacterVisual; until: number }[] = [];
+/**
+ * Bodies mid-collapse (D-554).
+ *
+ * The tile is remembered as well as the timer, because the server replaces a
+ * dying entity with a SEPARATE corpse entity — and when that corpse arrives
+ * we hand it the ragdoll that is already falling rather than building a
+ * second, pre-settled one. Without the handover you watch a body drop and a
+ * different body appear on top of it in a tidy pose, which is exactly the
+ * "switches from a ragdoll into a static model" the stakeholder reported.
+ */
+const dyingVisuals: { visual: CharacterVisual | ImportedVisual; until: number; x: number; y: number }[] = [];
+
+/**
+ * Claims the ragdoll of something that just died on this tile, if there is
+ * one. Returns null when the death was not witnessed — a corpse found later
+ * is already down, and must not flop over as you walk up to it.
+ */
+function adoptDyingVisual(x: number, y: number): CharacterVisual | ImportedVisual | null {
+  for (let i = 0; i < dyingVisuals.length; i++) {
+    const d = dyingVisuals[i]!;
+    // Within a tile: the corpse is spawned where the entity fell, but
+    // interpolation means the visual may not have arrived exactly.
+    if (Math.abs(d.x - x) <= 1.01 && Math.abs(d.y - y) <= 1.01) {
+      dyingVisuals.splice(i, 1);
+      return d.visual;
+    }
+  }
+  return null;
+}
 /** The last blow each entity took, so a killing hit can shove the body. */
 const lastBlow = new Map<number, { dir: THREE.Vector3; at: number }>();
 
@@ -1776,11 +2535,16 @@ function stepFrame(dt: number): void {
   const wind = 0.22 + Math.sin(t * 0.13) * 0.12;
   scene.updateCamera(dt);
 
+  const now = performance.now();
   for (const e of entities.values()) {
     const target = { x: e.wire.x, y: e.wire.y };
-    const moving = isMoving(e.render, target);
+    const moving = isMoving(e.render, target, now);
     stepToward(e.render, target, dt);
-    e.visual.setPosition(e.render.x, e.render.y);
+    // ⚠ Height comes straight from the wire, NOT interpolated with x and y.
+    // A stair's treads are a series of small steps and easing between them
+    // makes a character wade through the stone; arriving at each tread is what
+    // climbing looks like (D-567).
+    e.visual.setPosition(e.render.x, e.render.y, e.wire.z);
     // Corpses animate too — their "animation" is the held prone pose, which
     // still has to be written to the bones every frame.
     e.visual.update(dt, t, moving, wind);
@@ -1799,21 +2563,132 @@ function stepFrame(dt: number): void {
     followPoint.set(you.render.x, 0, you.render.y);
     scene.follow(followPoint);
     ambience.update(you.render.x, you.render.y);
+    sounds.update();
+    // Anything between the camera and your own body goes stippled (D-542).
+    // Aimed at the chest rather than the feet: a wall that hides your head
+    // and leaves your boots visible is still hiding you.
+    // Braziers and lanterns near you are the ones that are real (D-544).
+    lightRig?.update(new THREE.Vector3(you.render.x, 0, you.render.y), t);
+    // The roof over your head lifts away (D-545).
+    roofs?.update({ x: you.render.x, y: you.render.y }, dt);
+    if (scene) {
+      occlusionFocus.set(you.render.x, 1.0, you.render.y);
+      setOcclusionFocus(
+        graphics.seeThrough ? occlusionFocus : null,
+        scene.camera,
+        scene.renderer,
+        SEE_THROUGH_RADIUS_PX,
+      );
+    }
     $('hud-pos').textContent = `${you.wire.x},${you.wire.y}`;
     $('hud-coin').textContent = String(coin);
+    renderCompass();
+    renderClock();
     $('hud-conn').textContent = conn.open ? '' : 'connection lost';
     // Arrived on the chosen chair: sit through the emote pipeline, once.
     if (pendingSit && you.wire.x === pendingSit.x && you.wire.y === pendingSit.y
-      && !isMoving(you.render, { x: you.wire.x, y: you.wire.y })) {
+      && !isMoving(you.render, { x: you.wire.x, y: you.wire.y }, performance.now())) {
       pendingSit = null;
       conn.send({ t: 'say', channel: 'say', text: '*sits down*' });
     }
   }
 
   // Split mode (D-404): characters through the quantiser, world crisp.
-  if (graphics.mode === 'split') scene.renderSplit(graphics.envPalette);
-  else if (graphics.mode === 'raw') scene.renderer.render(scene.scene, scene.camera);
-  else scene.render();
+  scene.render();
+}
+
+
+// ---------------------------------------------------------------------------
+// Vitals, compass and clock (D-546, D-548)
+// ---------------------------------------------------------------------------
+
+/** Fills one bar and colours it by how urgent it has become. */
+function setBar(id: string, fraction: number, label: string, value: string): void {
+  const el = $(id);
+  const fill = el.querySelector('i') as HTMLElement;
+  const text = el.querySelector('span') as HTMLElement;
+  fill.style.width = `${Math.round(fraction * 100)}%`;
+  el.classList.remove('low', 'critical');
+  const state = barState(fraction);
+  if (state !== 'ok') el.classList.add(state);
+  text.innerHTML = `<span>${label}</span><span>${value}</span>`;
+}
+
+function renderVitals(msg: Extract<ServerMessage, { t: 'status' }>): void {
+  $('vitals').classList.remove('hidden');
+  const bleeding = msg.injuries.filter((i) => i.severity === 'major').length;
+  setBar(
+    'v-hp',
+    barFraction(msg.hp, msg.maxHp),
+    bleeding > 0 ? `health · bleeding ×${bleeding}` : 'health',
+    `${msg.hp}/${msg.maxHp}`,
+  );
+  // A caster with no will has no bar at all rather than an empty one — an
+  // empty bar reads as "you are out", which is a different thing from "this
+  // does not apply to you".
+  $('v-mana').classList.toggle('hidden', msg.maxMana <= 0);
+  if (msg.maxMana > 0) {
+    setBar('v-mana', barFraction(msg.mana, msg.maxMana), 'reserve', `${msg.mana}/${msg.maxMana}`);
+  }
+  // Hunger only. Thirst is a separate need pulling the opposite way (D-533)
+  // and shares the label rather than the bar — two bars side by side would
+  // read as one resource with two halves, which is exactly what they are not.
+  setBar(
+    'v-hunger',
+    needFraction(msg.hunger),
+    `${needLabel('hunger', msg.hunger)} · ${needLabel('thirst', msg.thirst)}`,
+    '',
+  );
+  // Progress WITHIN the level, not toward the next total. Measuring from
+  // zero makes the bar look nearly full at level nine and crawl at level two,
+  // which is backwards from what is actually happening.
+  const next = msg.xpForNextLevel;
+  const floor = xpForLevel(msg.level);
+  ($('v-xp-fill') as HTMLElement).style.width =
+    next === null ? '100%' : `${Math.round(barFraction(msg.xp - floor, next - floor) * 100)}%`;
+  $('v-xp-label').textContent =
+    next === null ? `level ${msg.level}` : `level ${msg.level} · ${msg.xp - floor}/${next - floor}`;
+}
+
+/** Points the needle at world north, whatever the camera has been rotated to. */
+function renderCompass(): void {
+  if (!scene) return;
+  // North is -y in tile space, which is -z in world space.
+  const deg = compassRotationDeg(scene.screenDirection(0, -1));
+  const rose = document.getElementById('compass-rose');
+  if (rose) rose.setAttribute('transform', `rotate(${deg.toFixed(1)})`);
+}
+
+let clockTicksBuilt = false;
+
+function renderClock(): void {
+  $('dials').classList.remove('hidden');
+  if (!clockTicksBuilt) {
+    const ticks = document.getElementById('clock-ticks');
+    if (ticks) {
+      for (let i = 0; i < 12; i++) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('class', 'dial-tick');
+        line.setAttribute('x1', '0');
+        line.setAttribute('y1', '-40');
+        line.setAttribute('x2', '0');
+        line.setAttribute('y2', i % 3 === 0 ? '-32' : '-36');
+        line.setAttribute('transform', `rotate(${i * 30})`);
+        ticks.appendChild(line);
+      }
+    }
+    clockTicksBuilt = true;
+  }
+  const elapsed = performance.now() - clockHourChangedAt;
+  const hands = clockHands(clockHour, Math.min(0.999, elapsed / GAME_HOUR_MS));
+  const hour = document.getElementById('clock-hour');
+  const minute = document.getElementById('clock-minute');
+  if (hour) hour.setAttribute('transform', `rotate(${hands.hourDeg.toFixed(1)})`);
+  if (minute) minute.setAttribute('transform', `rotate(${hands.minuteDeg.toFixed(1)})`);
+  document.getElementById('clock-face')?.classList.toggle('night', clockNight);
+  const orb = document.getElementById('clock-orb');
+  if (orb) orb.textContent = clockNight ? '☾' : '☀';
+  $('clock-text').textContent = clockText(clockHour);
 }
 
 function frame(): void {
@@ -1831,6 +2706,16 @@ frame();
 declare global {
   interface Window {
     __rc?: {
+      /** How many pack meshes are drawn — verification, not a feature (D-567). */
+      walk: () => Promise<unknown>;
+      assets: () => { placed: number; drawn: number };
+      /** Which cast is drawn, and what each entity actually got (D-559). */
+      cast: () => {
+        setting: string;
+        modelsBuilt: boolean;
+        active: 'procedural' | 'imported';
+        visuals: string[];
+      };
       step: (dt: number) => void;
       entities: () => { id: number; x: number; y: number; rx: number; ry: number }[];
       you: () => number | null;
@@ -1843,12 +2728,82 @@ declare global {
       project: (x: number, y: number, height?: number) => { sx: number; sy: number; depth: number };
       /** Grabs the canvas as a data URL for visual diffing. */
       shot: () => string;
-      /** The post pass, so a check can A/B its split-mode depth test. */
-      post: () => PixelPost;
+      /** Sound state (D-541). Audio is the one system with no visual trace,
+       * so verifying it needs a hook or it needs a pair of ears. */
+      sound: () => {
+        ready: boolean;
+        context: string | null;
+        streams: { cue: string; kind: string; playing: boolean; time: number; gain: number }[];
+        volumes: Volumes;
+      };
+      /** Fires a cue by hand, to check a file decodes and plays. */
+      playCue: (id: string, pan?: number, distance?: number) => void;
+      /** What each loaded cue split into, and at what gains. */
+      cues: () => { id: string; takes: number; seconds: number[]; gains: number[] }[];
+      /** See-through state (D-542): where the cutout is aimed right now. */
+      occlusion: () => { on: boolean; x: number; y: number; depth: number };
+      /** Turn the camera, so a check can put a wall between it and the player. */
+      look: (azimuthRad: number) => void;
     };
   }
 }
 window.__rc = {
+  /**
+   * Watch your own walk for two seconds and report what actually flips.
+   *
+   * ⚠ A diagnostic, added because "the animation resets" could not be
+   * reproduced from the code — it says which of the three inputs to the clip
+   * choice is changing (moving, posture, facing) and how often, so the next
+   * step is a measurement rather than a fourth guess.
+   */
+  walk: async () => {
+    const id = youId;
+    if (id === null) return 'not in the world';
+    const e = entities.get(id);
+    if (!e) return 'no self';
+    let flips = 0;
+    let postures = 0;
+    let facings = 0;
+    let updates = 0;
+    let last = isMoving(e.render, { x: e.wire.x, y: e.wire.y }, performance.now());
+    let lastPosture = e.wire.posture;
+    let lastFacing = e.wire.facing;
+    let lastPos = `${e.wire.x},${e.wire.y}`;
+    const t0 = performance.now();
+    await new Promise<void>((done) => {
+      const h = setInterval(() => {
+        const now = performance.now();
+        const m = isMoving(e.render, { x: e.wire.x, y: e.wire.y }, now);
+        if (m !== last) { flips++; last = m; }
+        if (e.wire.posture !== lastPosture) { postures++; lastPosture = e.wire.posture; }
+        if (e.wire.facing !== lastFacing) { facings++; lastFacing = e.wire.facing; }
+        const pos = `${e.wire.x},${e.wire.y}`;
+        if (pos !== lastPos) { updates++; lastPos = pos; }
+        if (now - t0 > 2000) { clearInterval(h); done(); }
+      }, 8);
+    });
+    return {
+      seconds: 2,
+      serverUpdates: updates,
+      movingFlips: flips,
+      postureChanges: postures,
+      facingChanges: facings,
+      cast: graphics.cast,
+    };
+  },
+  assets: () => ({
+    placed: currentArea?.assets.length ?? 0,
+    drawn: worldAssets?.drawn ?? 0,
+  }),
+  // Two figures at isometric distance are hard to tell apart by eye, and the
+  // whole point of the toggle is that somebody can tell. This reports what
+  // was actually constructed rather than what was asked for.
+  cast: () => ({
+    setting: graphics.cast,
+    modelsBuilt: importedModels.available(),
+    active: useImportedCast() ? ('imported' as const) : ('procedural' as const),
+    visuals: [...entities.values()].map((e) => e.visual.constructor.name),
+  }),
   step: stepFrame,
   entities: () =>
     [...entities.entries()].map(([id, e]) => ({
@@ -1871,5 +2826,14 @@ window.__rc = {
     };
   },
   shot: () => scene!.renderer.domElement.toDataURL('image/png'),
-  post: () => scene!.post,
+  sound: () => ({
+    ready: sounds.ready,
+    context: ambience.context?.state ?? null,
+    streams: sounds.streams(),
+    volumes: sounds.volumeSettings,
+  }),
+  playCue: (id, pan = 0, distance = 0) => sounds.play(id, { pan, distance }),
+  cues: () => sounds.loadedCues(),
+  occlusion: () => occlusionState(),
+  look: (angle) => scene?.setAzimuth(angle),
 };

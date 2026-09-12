@@ -1,0 +1,14 @@
+{
+  "id": "travellers-cloak",
+  "name": "Traveller\u2019s Cloak",
+  "description": "Oiled wool, grey going green. It sheds a night\u2019s rain and smells of every fire it has sat by.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 10,
+  "equip": {
+    "slot": "cloak",
+    "armour": 1,
+    "weight": 2,
+    "material": "cloth"
+  }
+}

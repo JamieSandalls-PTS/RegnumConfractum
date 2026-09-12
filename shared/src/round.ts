@@ -192,10 +192,10 @@ export function roundPhaseOfDay(
  * from other players, rather than a zone rule, is what makes murder quiet.
  * Unratified first pass.
  */
-export const COMBAT_NOISE_TILES = 30;
+export const COMBAT_NOISE_METRES = 30;
 
 /** Inside this, the sound is close enough to place; beyond it, a direction. */
-export const COMBAT_NOISE_NEAR_TILES = 12;
+export const COMBAT_NOISE_NEAR_METRES = 12;
 
 export const RoundPhaseSchema = z.enum(['lobby', 'running', 'resolved']);
 export type RoundPhase = z.infer<typeof RoundPhaseSchema>;
@@ -293,4 +293,62 @@ export function dungeonFloorOpen(floor: number, tickIntoRound: number, dayTicks 
  */
 export function dungeonEntranceOpen(tickIntoRound: number, dayTicks = ROUND_DAY_TICKS): boolean {
   return !isNight(tickIntoRound, dayTicks);
+}
+
+// ---------------------------------------------------------------------------
+// Objective validation (D-569)
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything wrong with one objective. Pure, so CI and the authoring tool
+ * agree on what would refuse to build.
+ *
+ * ⚠ It cannot answer the question that actually matters — whether the SET of
+ * objectives still leaves a round startable. That is `castCoverageProblem`
+ * below, and it is the check a per-objective form cannot make: narrowing the
+ * last live objective's cast range is a legal edit to a legal document that
+ * makes the lobby fill and never start.
+ */
+export function objectiveProblems(
+  objective: ObjectiveDef,
+  refs: { itemIds: ReadonlySet<string> | null; npcDescriptors: ReadonlySet<string> | null },
+): string[] {
+  const problems: string[] = [];
+  if (objective.maxCast !== null && objective.maxCast < objective.minCast) {
+    problems.push(`maxCast ${objective.maxCast} is below minCast ${objective.minCast}`);
+  }
+  if (objective.kind.type === 'steal' && refs.itemIds && !refs.itemIds.has(objective.kind.itemTemplate)) {
+    problems.push(`steals unknown item '${objective.kind.itemTemplate}'`);
+  }
+  // ⚠ Matched by DESCRIPTOR, not by id, because that is what the round engine
+  // watches (`kill_npc`). A descriptor nobody wears is an objective that can
+  // never complete, and it reads as perfectly good prose in the form.
+  if (
+    objective.kind.type === 'kill_npc'
+    && refs.npcDescriptors
+    && !refs.npcDescriptors.has(objective.kind.descriptor)
+  ) {
+    problems.push(`targets '${objective.kind.descriptor}', which no NPC in any area is described as`);
+  }
+  return problems;
+}
+
+/**
+ * Why this set of objectives could not start a round, or null.
+ *
+ * A round cannot begin without something to give the antagonist, so if any
+ * objective exists at all, at least one must be live and playable at the
+ * minimum cast. Otherwise the lobby fills and nothing happens — a failure
+ * with no error message anywhere.
+ */
+export function castCoverageProblem(objectives: readonly ObjectiveDef[]): string | null {
+  if (objectives.length === 0) return null;
+  const playable = objectives.filter(
+    (o) =>
+      o.status === 'live'
+      && o.minCast <= ROUND_MIN_CAST
+      && (o.maxCast === null || o.maxCast >= ROUND_MIN_CAST),
+  );
+  if (playable.length > 0) return null;
+  return `no live objective is playable at the minimum cast of ${ROUND_MIN_CAST} — a round could never start`;
 }

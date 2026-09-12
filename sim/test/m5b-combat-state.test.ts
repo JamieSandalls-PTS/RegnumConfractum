@@ -168,7 +168,7 @@ describe('leaving combat', () => {
       combatLeaveTicks: COMBAT_LEAVE_TEST_TICKS,
       // A single tile of "proximity" so simply not being adjacent counts as
       // being away — the real 20 tiles is untestable in a small yard.
-      combatProximityTiles: 1,
+      combatProximityMetres: 1,
     });
     await server3.start();
     const bot = await BotClient.connect(`ws://127.0.0.1:${server3.port}`);

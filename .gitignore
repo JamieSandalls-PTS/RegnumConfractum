@@ -45,3 +45,36 @@ Thumbs.db
 .cache/
 .turbo/
 coverage/
+
+# map editor pre-save copies (D-543). Git is the real safety net; these are
+# the belt, and they are per-machine noise rather than content.
+content/.editor-backups/
+
+# Licensed source art (D-555). The .unitypackage and the Mixamo FBX drops are
+# large binaries under someone else's licence; the BUILT .glb is committed
+# instead, so CI and a fresh clone never need them.
+#
+# WARNING: `assets/source/` and `assets/retired/` were NOT here and should
+# always have been -- 1.1 GB of extracted Synty packs and 45 MB of retired
+# ones, sitting untracked in a repo whose next `git add -A` would have taken
+# all of it. That is the licence problem D-555 exists to prevent, and it is
+# irreversible once it is in history. `Sounds/` is the stakeholder's raw
+# drop, which `build-audio.py` turns into what the game actually serves.
+assets/incoming/
+assets/sidekick/
+assets/source/
+assets/retired/
+Sounds/
+# ⚠ NOT quoted. gitignore takes a path literally — spaces and all —
+# so `"Model and Animation test"/` matched a directory whose name
+# actually starts with a quote mark, and 117 MB stayed untracked and
+# unignored. `git check-ignore -v <path>` is what says which rule fired.
+Model and Animation test/
+
+# Python bytecode from the tools
+__pycache__/
+*.pyc
+
+# Derived from the licensed art in assets/source, which is gitignored: a
+# `measure:weapons` run reproduces it and `fit:weapons` needs it.
+tools/weapon-measurements.json

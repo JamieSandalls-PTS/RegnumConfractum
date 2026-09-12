@@ -1,4 +1,6 @@
 import pg from 'pg';
+import { maxHpFor, resolveAttributes } from '@rc/shared';
+import type { AppearanceOverride, CharacterAdvances, CharacterLook, EquipSlot } from '@rc/shared';
 import { migrate } from '../db/migrate';
 import { startingBuild } from './types';
 import type {
@@ -79,18 +81,31 @@ export class PgStore implements Store {
     try {
       const { rows } = await this.pool.query<{ id: string }>(
         `insert into characters
-           (account_id, name, appearance_seed, area_id, x, y, class_id,
-            skills, feats, spells, bluff, insight, necromancy)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`,
+           (account_id, name, appearance_seed, appearance, area_id, x, y, class_id,
+            skills, feats, spells, bluff, insight, necromancy, attributes, race_id, look)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) returning id`,
         [
-          c.accountId, c.name, c.appearanceSeed, c.areaId, c.x, c.y, c.classId,
+          c.accountId, c.name, c.appearanceSeed,
+          c.appearance ? JSON.stringify(c.appearance) : null,
+          c.areaId, c.x, c.y, c.classId,
           JSON.stringify(build.skills), JSON.stringify(build.feats), JSON.stringify(build.spells),
           build.bluff, build.insight, build.necromancy,
+          c.attributes ? JSON.stringify(c.attributes) : null,
+          c.raceId ?? null,
+          c.look ? JSON.stringify(c.look) : null,
         ],
       );
       return {
-        ...c, ...build, id: rows[0]!.id, coin: 0, languages: ['common'],
-        hp: 20, maxHp: 20, xp: 0, deathDebt: 0, deeds: 0, retired: false,
+        ...c, ...build, appearance: c.appearance ?? null,
+        attributes: c.attributes ?? null, raceId: c.raceId ?? null,
+        look: c.look ?? null,
+        advances: null, hotbar: null, kitGranted: false,
+        id: rows[0]!.id, coin: 0, languages: ['common'],
+        // Full health from the vigor just allocated (D-546), not a hardcoded
+        // 20 — which spawned a vigor-14 character already wounded.
+        hp: maxHpFor(resolveAttributes(c.attributes)),
+        maxHp: maxHpFor(resolveAttributes(c.attributes)),
+        xp: 0, deathDebt: 0, deeds: 0, retired: false,
       };
     } catch (err) {
       if ((err as { code?: string }).code === '23505') return 'character_name_taken';
@@ -124,6 +139,28 @@ export class PgStore implements Store {
        where id = $1`,
       [id, vitals.hp ?? null, vitals.xp ?? null, vitals.deathDebt ?? null, vitals.deeds ?? null],
     );
+  }
+
+  async setKitGranted(id: string, granted: boolean): Promise<void> {
+    await this.pool.query('update characters set kit_granted = $2 where id = $1', [id, granted]);
+  }
+
+  async clearAllKitGranted(): Promise<void> {
+    await this.pool.query('update characters set kit_granted = false where kit_granted');
+  }
+
+  async saveCharacterHotbar(id: string, hotbar: (string | null)[]): Promise<void> {
+    await this.pool.query('update characters set hotbar = $2 where id = $1', [
+      id,
+      JSON.stringify(hotbar),
+    ]);
+  }
+
+  async saveCharacterAdvances(id: string, advances: CharacterAdvances): Promise<void> {
+    await this.pool.query('update characters set advances = $2 where id = $1', [
+      id,
+      JSON.stringify(advances),
+    ]);
   }
 
   async addLegacyPoints(accountId: string, amount: number): Promise<void> {
@@ -274,12 +311,26 @@ export class PgStore implements Store {
       'insert into items (template_id, owner_character_id, qty, data) values ($1, $2, $3, $4) returning id',
       [templateId, ownerCharacterId, qty, data ? JSON.stringify(data) : null],
     );
-    return { id: rows[0]!.id, templateId, ownerCharacterId, ownerCorpseId: null, qty, data: data ?? null };
+    return {
+      id: rows[0]!.id, templateId, ownerCharacterId, ownerCorpseId: null, ownerStoreId: null,
+      qty, data: data ?? null, equippedSlot: null,
+    };
+  }
+
+  async grantItemToCorpse(corpseId: string, templateId: string, qty: number): Promise<ItemRecord> {
+    const { rows } = await this.pool.query<{ id: string }>(
+      'insert into items (template_id, owner_corpse_id, qty) values ($1, $2, $3) returning id',
+      [templateId, corpseId, qty],
+    );
+    return {
+      id: rows[0]!.id, templateId, ownerCharacterId: null, ownerCorpseId: corpseId,
+      ownerStoreId: null, qty, data: null, equippedSlot: null,
+    };
   }
 
   async getItem(itemId: string): Promise<ItemRecord | null> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, owner_corpse_id, qty, data from items where id = $1',
+      'select id, template_id, owner_character_id, owner_corpse_id, qty, data, equipped_slot from items where id = $1',
       [itemId],
     );
     return rows[0] ? rowToItem(rows[0]) : null;
@@ -287,34 +338,86 @@ export class PgStore implements Store {
 
   async getItemsByCharacter(characterId: string): Promise<ItemRecord[]> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, owner_corpse_id, qty, data from items where owner_character_id = $1 order by created_at',
+      'select id, template_id, owner_character_id, owner_corpse_id, qty, data, equipped_slot from items where owner_character_id = $1 order by created_at',
       [characterId],
     );
     return rows.map(rowToItem);
   }
 
-  async consumeOneItem(ownerCharacterId: string, templateId: string): Promise<boolean> {
+  async consumeOneItem(
+    ownerCharacterId: string,
+    templateId: string,
+  ): Promise<ItemRecord | null> {
     const client = await this.pool.connect();
     try {
       await client.query('begin');
-      const { rows } = await client.query<{ id: string; qty: number }>(
-        `select id, qty from items
+      const { rows } = await client.query(
+        `select * from items
          where owner_character_id = $1 and template_id = $2
-         order by created_at limit 1 for update`,
+         -- ⚠ A good loaf before a ruined one (D-580). Given the choice a
+         -- person eats the good one, so spoiling bites when the good food has
+         -- run out rather than making every meal a coin toss.
+         order by (coalesce(data ->> 'spoiled', 'false') = 'true'), created_at
+         limit 1 for update`,
         [ownerCharacterId, templateId],
       );
       const row = rows[0];
       if (!row) {
         await client.query('rollback');
-        return false;
+        return null;
       }
-      if (row.qty > 1) {
+      if ((row.qty as number) > 1) {
         await client.query('update items set qty = qty - 1 where id = $1', [row.id]);
       } else {
         await client.query('delete from items where id = $1', [row.id]);
       }
       await client.query('commit');
-      return true;
+      return { ...rowToItem(row as Record<string, unknown>), qty: 1 };
+    } catch (err) {
+      await client.query('rollback');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Put an item in a slot, or take it out of one.
+   *
+   * ⚠ Anything ALREADY in that slot comes off first, in the same transaction.
+   * Without it this was a plain update straight into a partial unique index
+   * (D-547), so equipping over an occupied slot did not replace anything — it
+   * threw `duplicate key value violates unique constraint`, killed the
+   * handler, and the player saw "an error" with nothing to go on. Replacing
+   * is what equipping means everywhere else in the game; the index is there
+   * to guarantee one item per slot, not to refuse the second one.
+   */
+  async setItemEquipped(
+    itemId: string,
+    characterId: string,
+    slot: EquipSlot | null,
+  ): Promise<boolean> {
+    if (slot === null) {
+      const off = await this.pool.query(
+        'update items set equipped_slot = null where id = $1 and owner_character_id = $2',
+        [itemId, characterId],
+      );
+      return off.rowCount === 1;
+    }
+    const client = await this.pool.connect();
+    try {
+      await client.query('begin');
+      await client.query(
+        `update items set equipped_slot = null
+         where owner_character_id = $1 and equipped_slot = $2 and id <> $3`,
+        [characterId, slot, itemId],
+      );
+      const result = await client.query(
+        'update items set equipped_slot = $3 where id = $1 and owner_character_id = $2',
+        [itemId, characterId, slot],
+      );
+      await client.query('commit');
+      return result.rowCount === 1;
     } catch (err) {
       await client.query('rollback');
       throw err;
@@ -331,7 +434,7 @@ export class PgStore implements Store {
     // Single conditional UPDATE — atomic under concurrency: only one caller
     // can match owner = from, so an item can never be duplicated (D-114).
     const result = await this.pool.query(
-      `update items set owner_character_id = $3
+      `update items set owner_character_id = $3, equipped_slot = null
        where id = $1 and owner_character_id = $2
          and exists (select 1 from characters where id = $3)`,
       [itemId, fromCharacterId, toCharacterId],
@@ -434,17 +537,32 @@ export class PgStore implements Store {
 
   async getItemsByCorpse(corpseId: string): Promise<ItemRecord[]> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, owner_corpse_id, qty, data from items where owner_corpse_id = $1 order by created_at',
+      'select id, template_id, owner_character_id, owner_corpse_id, qty, data, equipped_slot from items where owner_corpse_id = $1 order by created_at',
       [corpseId],
     );
     return rows.map(rowToItem);
+  }
+
+  async moveItemToCorpse(
+    itemId: string,
+    fromCharacterId: string,
+    corpseId: string,
+  ): Promise<boolean> {
+    // Single conditional UPDATE, same atomicity argument as transferItem.
+    const result = await this.pool.query(
+      `update items set owner_character_id = null, owner_corpse_id = $3, equipped_slot = null
+       where id = $1 and owner_character_id = $2
+         and exists (select 1 from corpses where id = $3)`,
+      [itemId, fromCharacterId, corpseId],
+    );
+    return result.rowCount === 1;
   }
 
   async moveItemsToCorpse(characterId: string, corpseId: string): Promise<number> {
     // Single conditional UPDATE, same atomicity argument as transferItem:
     // only rows still owned by the character move, so nothing can duplicate.
     const result = await this.pool.query(
-      `update items set owner_character_id = null, owner_corpse_id = $2
+      `update items set owner_character_id = null, owner_corpse_id = $2, equipped_slot = null
        where owner_character_id = $1`,
       [characterId, corpseId],
     );
@@ -453,7 +571,7 @@ export class PgStore implements Store {
 
   async moveItemsFromCorpse(corpseId: string, toCharacterId: string): Promise<number> {
     const result = await this.pool.query(
-      `update items set owner_corpse_id = null, owner_character_id = $2
+      `update items set owner_corpse_id = null, owner_character_id = $2, equipped_slot = null
        where owner_corpse_id = $1
          and exists (select 1 from characters where id = $2)`,
       [corpseId, toCharacterId],
@@ -562,6 +680,66 @@ export class PgStore implements Store {
     return Number(rows[0]!.total);
   }
 
+  // The common stores (D-580). Every write is a single conditional UPDATE,
+  // the same atomicity argument as `transferItem`: the WHERE clause is the
+  // permission check, so two clients racing cannot both win.
+  async getItemsByStore(storeId: string): Promise<ItemRecord[]> {
+    const { rows } = await this.pool.query(
+      'select * from items where owner_store = $1 order by template_id',
+      [storeId],
+    );
+    return rows.map(rowToItem);
+  }
+
+  async moveItemToStore(
+    itemId: string,
+    fromCharacterId: string,
+    storeId: string,
+  ): Promise<boolean> {
+    const result = await this.pool.query(
+      `update items
+          set owner_character_id = null, owner_corpse_id = null,
+              owner_store = $3, equipped_slot = null
+        where id = $1 and owner_character_id = $2`,
+      [itemId, fromCharacterId, storeId],
+    );
+    return result.rowCount === 1;
+  }
+
+  async moveItemFromStore(
+    itemId: string,
+    storeId: string,
+    toCharacterId: string,
+  ): Promise<boolean> {
+    // ⚠ `owner_store = $2` and not merely "is in a store": standing at the
+    // infirmary must not reach into the storehouse across the square.
+    const result = await this.pool.query(
+      `update items
+          set owner_store = null, owner_character_id = $3, equipped_slot = null
+        where id = $1 and owner_store = $2`,
+      [itemId, storeId, toCharacterId],
+    );
+    return result.rowCount === 1;
+  }
+
+  async spoilItems(itemIds: readonly string[]): Promise<number> {
+    if (itemIds.length === 0) return 0;
+    // Merged into whatever `data` already holds rather than replacing it: a
+    // letter that was spoiled must not lose its text (D-505).
+    const result = await this.pool.query(
+      `update items
+          set data = coalesce(data, '{}'::jsonb) || '{"spoiled": true}'::jsonb
+        where id = any($1::uuid[])`,
+      [itemIds as string[]],
+    );
+    return result.rowCount ?? 0;
+  }
+
+  async clearStores(): Promise<number> {
+    const result = await this.pool.query('delete from items where owner_store is not null');
+    return result.rowCount ?? 0;
+  }
+
   async countItems(): Promise<number> {
     const { rows } = await this.pool.query('select coalesce(sum(qty), 0) as total from items');
     return Number(rows[0]!.total);
@@ -579,8 +757,10 @@ function rowToItem(r: Record<string, unknown>): ItemRecord {
     templateId: r.template_id as string,
     ownerCharacterId: (r.owner_character_id as string | null) ?? null,
     ownerCorpseId: (r.owner_corpse_id as string | null) ?? null,
+    ownerStoreId: (r.owner_store as string | null) ?? null,
     qty: r.qty as number,
     data: (r.data as ItemData | null) ?? null,
+    equippedSlot: (r.equipped_slot as EquipSlot | null) ?? null,
   };
 }
 
@@ -590,6 +770,9 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     accountId: r.account_id as string,
     name: r.name as string,
     appearanceSeed: Number(r.appearance_seed),
+    raceId: (r.race_id as string | null) ?? null,
+    look: (r.look as CharacterLook | null) ?? null,
+    appearance: (r.appearance as AppearanceOverride | null) ?? null,
     areaId: r.area_id as string,
     x: r.x as number,
     y: r.y as number,
@@ -608,5 +791,9 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     skills: (r.skills as Record<string, number> | null) ?? {},
     feats: (r.feats as string[] | null) ?? [],
     spells: (r.spells as string[] | null) ?? [],
+    attributes: (r.attributes as Record<string, number> | null) ?? null,
+    advances: (r.advances as CharacterAdvances | null) ?? null,
+    hotbar: (r.hotbar as (string | null)[] | null) ?? null,
+    kitGranted: r.kit_granted === true,
   };
 }

@@ -1,0 +1,11 @@
+{
+  "id": "stance-two-handed",
+  "name": "Greatsword — carried",
+  "layer": "stance",
+  "applies": "two-handed",
+  "clips": {
+    "draw": "two-handed-draw",
+    "sheathe": "two-handed-sheathe"
+  },
+  "note": "How the weapon is carried when it is not up, and the draw and sheathe that move between the two. Everything else comes from the rig set."
+}

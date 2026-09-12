@@ -1,0 +1,5748 @@
+{
+  "pack": "knights",
+  "kind": "environment",
+  "assets": [
+    {
+      "id": "sm-bld-arrowslit-01",
+      "name": "Arrow slit",
+      "pack": "knights",
+      "mesh": "SM_Bld_ArrowSlit_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-arrowslit-01-snow",
+      "name": "Arrow slit 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_ArrowSlit_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-arrow-slit-01",
+      "name": "Castle arrow slit",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Arrow_Slit_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-door-01",
+      "name": "Castle door",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Door_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-door-01-snow",
+      "name": "Castle door 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Door_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-door-l",
+      "name": "Castle door l",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Door_L",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-door-r",
+      "name": "Castle door r",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Door_R",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-flag-01",
+      "name": "Castle flag",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Flag_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-flagpole-01",
+      "name": "Castle flagpole",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Flagpole_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-iron-gate-01",
+      "name": "Castle iron gate",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Iron_Gate_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-pillar-01",
+      "name": "Castle pillar",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Pillar_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-roof-spire-01",
+      "name": "Castle roof spire",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Roof_Spire_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-roof-spire-01-snow",
+      "name": "Castle roof spire 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Roof_Spire_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-01",
+      "name": "Castle tower",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-01-lite",
+      "name": "Castle tower 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-01-snow",
+      "name": "Castle tower 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-02",
+      "name": "Castle tower 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-02-lite",
+      "name": "Castle tower 02 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_02_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-03",
+      "name": "Castle tower 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-03-lite",
+      "name": "Castle tower 03 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_03_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-04",
+      "name": "Castle tower 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-04-lite",
+      "name": "Castle tower 04 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_04_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-base-01",
+      "name": "Castle tower base",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Base_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-base-02",
+      "name": "Castle tower base 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Base_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-mini-01",
+      "name": "Castle tower mini",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Mini_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-mini-01-snow",
+      "name": "Castle tower mini 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Mini_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-mini-02",
+      "name": "Castle tower mini 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Mini_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-mini-02-snow",
+      "name": "Castle tower mini 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Mini_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-round-01",
+      "name": "Castle tower round",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Round_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-round-01-lite",
+      "name": "Castle tower round 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Round_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-round-02",
+      "name": "Castle tower round 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Round_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-round-02-lite",
+      "name": "Castle tower round 02 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Round_02_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-round-top-01",
+      "name": "Castle tower round top",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Round_Top_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-round-top-01-lite",
+      "name": "Castle tower round top 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Round_Top_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-round-top-01-snow",
+      "name": "Castle tower round top 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Round_Top_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-top-01",
+      "name": "Castle tower top",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Top_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-top-01-lite",
+      "name": "Castle tower top 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Top_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-top-01-snow",
+      "name": "Castle tower top 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Top_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-wall-top-01",
+      "name": "Castle tower wall top",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Wall_Top_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-wall-top-01-lite",
+      "name": "Castle tower wall top 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Wall_Top_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-tower-wall-top-01-snow",
+      "name": "Castle tower wall top 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Tower_Wall_Top_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wall-01",
+      "name": "Castle wall",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wall_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wall-01-lite",
+      "name": "Castle wall 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wall_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wall-01-snow",
+      "name": "Castle wall 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wall_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wall-gate-01",
+      "name": "Castle wall gate",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wall_Gate_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wall-gate-01-lite",
+      "name": "Castle wall gate 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wall_Gate_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wall-gate-01-snow",
+      "name": "Castle wall gate 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wall_Gate_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        5,
+        2
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-01",
+      "name": "Castle wood battlement",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-01-snow",
+      "name": "Castle wood battlement 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-02",
+      "name": "Castle wood battlement 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-02-snow",
+      "name": "Castle wood battlement 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-03",
+      "name": "Castle wood battlement 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-03-snow",
+      "name": "Castle wood battlement 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-04",
+      "name": "Castle wood battlement 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-battlement-04-snow",
+      "name": "Castle wood battlement 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Battlement_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-detal-01",
+      "name": "Castle wood detal",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Detal_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-castle-wood-detal-01-snow",
+      "name": "Castle wood detal 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Castle_Wood_Detal_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-door-01",
+      "name": "Church door",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Door_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-door-01-snow",
+      "name": "Church door 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Door_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-extension-01",
+      "name": "Church extension",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Extension_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-extension-01-lite",
+      "name": "Church extension 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Extension_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-extension-01-snow",
+      "name": "Church extension 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Extension_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-01",
+      "name": "Church room",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-01-lite",
+      "name": "Church room 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-01-snow",
+      "name": "Church room 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-02",
+      "name": "Church room 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-02-lite",
+      "name": "Church room 02 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_02_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-02-snow",
+      "name": "Church room 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-03",
+      "name": "Church room 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-03-lite",
+      "name": "Church room 03 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_03_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-room-03-snow",
+      "name": "Church room 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Room_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-01",
+      "name": "Church tower",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-01-lite",
+      "name": "Church tower 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-01-snow",
+      "name": "Church tower 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-02",
+      "name": "Church tower 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-02-lite",
+      "name": "Church tower 02 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_02_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-02-snow",
+      "name": "Church tower 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-03",
+      "name": "Church tower 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-tower-03-lite",
+      "name": "Church tower 03 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Tower_03_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-towerbase-01",
+      "name": "Church tower base",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_TowerBase_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-towerbase-01-lite",
+      "name": "Church tower base 01 lite",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_TowerBase_01_Lite",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-church-window-01",
+      "name": "Church window",
+      "pack": "knights",
+      "mesh": "SM_Bld_Church_Window_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-01",
+      "name": "House chimney",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-01-snow",
+      "name": "House chimney 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-02",
+      "name": "House chimney 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-02-snow",
+      "name": "House chimney 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-03",
+      "name": "House chimney 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-03-snow",
+      "name": "House chimney 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-04",
+      "name": "House chimney 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-04-snow",
+      "name": "House chimney 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-05",
+      "name": "House chimney 5",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-chimney-05-snow",
+      "name": "House chimney 05 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Chimney_05_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-01",
+      "name": "House door",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-01-snow",
+      "name": "House door 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-02",
+      "name": "House door 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-02-snow",
+      "name": "House door 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-03",
+      "name": "House door 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-03-snow",
+      "name": "House door 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-04",
+      "name": "House door 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-door-04-snow",
+      "name": "House door 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Door_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-extension-01",
+      "name": "House extension",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Extension_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-extension-01-snow",
+      "name": "House extension 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Extension_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-extension-02",
+      "name": "House extension 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Extension_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-extension-02-snow",
+      "name": "House extension 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Extension_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-01",
+      "name": "House foundation",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-02",
+      "name": "House foundation 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-03",
+      "name": "House foundation 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-04",
+      "name": "House foundation 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-05",
+      "name": "House foundation 5",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-06",
+      "name": "House foundation 6",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-07",
+      "name": "House foundation 7",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_07",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundation-beams-01",
+      "name": "House foundation beams",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Foundation_Beams_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-foundationrock-01",
+      "name": "House foundation rock",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_FoundationRock_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-01",
+      "name": "House room",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-01-snow",
+      "name": "House room 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-02",
+      "name": "House room 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-02-snow",
+      "name": "House room 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-03",
+      "name": "House room 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-03-snow",
+      "name": "House room 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-04",
+      "name": "House room 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-04-snow",
+      "name": "House room 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-05",
+      "name": "House room 5",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-05-snow",
+      "name": "House room 05 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_05_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-06",
+      "name": "House room 6",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-06-snow",
+      "name": "House room 06 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_06_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-07",
+      "name": "House room 7",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_07",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-room-07-snow",
+      "name": "House room 07 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Room_07_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomround-01",
+      "name": "House room round",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomRound_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomround-01-snow",
+      "name": "House room round 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomRound_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomround-02",
+      "name": "House room round 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomRound_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomround-02-snow",
+      "name": "House room round 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomRound_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-01",
+      "name": "House room tall",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-01-snow",
+      "name": "House room tall 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-02",
+      "name": "House room tall 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-02-snow",
+      "name": "House room tall 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-03",
+      "name": "House room tall 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-03-snow",
+      "name": "House room tall 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-04",
+      "name": "House room tall 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-04-snow",
+      "name": "House room tall 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-05",
+      "name": "House room tall 5",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-05-snow",
+      "name": "House room tall 05 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_05_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-06",
+      "name": "House room tall 6",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtall-06-snow",
+      "name": "House room tall 06 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTall_06_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-01",
+      "name": "House room top",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-01-snow",
+      "name": "House room top 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-02",
+      "name": "House room top 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-02-snow",
+      "name": "House room top 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-03",
+      "name": "House room top 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-03-snow",
+      "name": "House room top 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-04",
+      "name": "House room top 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-04-snow",
+      "name": "House room top 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-05",
+      "name": "House room top 5",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-05-snow",
+      "name": "House room top 05 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_05_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-06",
+      "name": "House room top 6",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-06-snow",
+      "name": "House room top 06 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_06_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-07",
+      "name": "House room top 7",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_07",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-roomtop-07-snow",
+      "name": "House room top 07 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_RoomTop_07_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-stepssmall-01",
+      "name": "Small house steps",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_StepsSmall_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-stepssmall-01-snow",
+      "name": "House steps small 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_StepsSmall_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-01",
+      "name": "Small house top room",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-01-snow",
+      "name": "House top room small 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-02",
+      "name": "Small house top room 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-02-snow",
+      "name": "House top room small 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-03",
+      "name": "Small house top room 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-03-snow",
+      "name": "House top room small 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-04",
+      "name": "Small house top room 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-04-snow",
+      "name": "House top room small 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-05",
+      "name": "Small house top room 5",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-05-snow",
+      "name": "House top room small 05 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_05_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-06",
+      "name": "Small house top room 6",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-06-snow",
+      "name": "House top room small 06 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_06_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-07",
+      "name": "Small house top room 7",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_07",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-toproomsmall-07-snow",
+      "name": "House top room small 07 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_TopRoomSmall_07_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-tower-01",
+      "name": "House tower",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Tower_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-tower-01-snow",
+      "name": "House tower 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Tower_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-01",
+      "name": "House window",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-01-snow",
+      "name": "House window 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-02",
+      "name": "House window 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-02-snow",
+      "name": "House window 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-03",
+      "name": "House window 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-03-snow",
+      "name": "House window 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-04",
+      "name": "House window 4",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-04-snow",
+      "name": "House window 04 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-05",
+      "name": "House window 5",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-house-window-05-snow",
+      "name": "House window 05 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_House_Window_05_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-leanto-01",
+      "name": "Leanto",
+      "pack": "knights",
+      "mesh": "SM_Bld_Leanto_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-leanto-01-snow",
+      "name": "Leanto 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Leanto_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-archway-01",
+      "name": "Rockwall archway",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_Archway_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-archway-01-snow",
+      "name": "Rockwall archway 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_Archway_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-stairarchway-01",
+      "name": "Rockwall stair archway",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_StairArchway_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-stairarchway-01-snow",
+      "name": "Rockwall stair archway 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_StairArchway_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-stairs-01",
+      "name": "Rockwall stairs",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_Stairs_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-stairs-01-snow",
+      "name": "Rockwall stairs 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_Stairs_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-straight-01",
+      "name": "Rockwall straight",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_Straight_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-rockwall-straight-01-snow",
+      "name": "Rockwall straight 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Rockwall_Straight_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-01",
+      "name": "Large stairs",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-01-snow",
+      "name": "Stairs large 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-02",
+      "name": "Large stairs 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-02-snow",
+      "name": "Stairs large 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-corner-01",
+      "name": "Stairs large corner",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_Corner_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-corner-01-snow",
+      "name": "Stairs large corner 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_Corner_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-corner-02",
+      "name": "Stairs large corner 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_Corner_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stairslarge-corner-02-snow",
+      "name": "Stairs large corner 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_StairsLarge_Corner_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tent-01",
+      "name": "Tent",
+      "pack": "knights",
+      "mesh": "SM_Bld_Tent_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        8,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tent-01-snow",
+      "name": "Tent 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Tent_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        8,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tent-02",
+      "name": "Tent 2",
+      "pack": "knights",
+      "mesh": "SM_Bld_Tent_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        11,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tent-02-snow",
+      "name": "Tent 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Tent_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        11,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tent-03",
+      "name": "Tent 3",
+      "pack": "knights",
+      "mesh": "SM_Bld_Tent_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        11,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tent-03-snow",
+      "name": "Tent 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Tent_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        11,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-village-well-01",
+      "name": "Village well",
+      "pack": "knights",
+      "mesh": "SM_Bld_Village_Well_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-village-well-01-snow",
+      "name": "Village well 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Bld_Village_Well_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-canal-01",
+      "name": "Canal",
+      "pack": "knights",
+      "mesh": "SM_Env_Canal_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-canal-02",
+      "name": "Canal 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Canal_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-canal-03",
+      "name": "Canal 3",
+      "pack": "knights",
+      "mesh": "SM_Env_Canal_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-canal-block-01",
+      "name": "Canal block",
+      "pack": "knights",
+      "mesh": "SM_Env_Canal_Block_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-canal-bridge-01",
+      "name": "Canal bridge",
+      "pack": "knights",
+      "mesh": "SM_Env_Canal_Bridge_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-canal-bridge-01-snow",
+      "name": "Canal bridge 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Canal_Bridge_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-cliff-01",
+      "name": "Cliff",
+      "pack": "knights",
+      "mesh": "SM_Env_Cliff_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-cliff-02",
+      "name": "Cliff 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Cliff_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        18,
+        20
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-flower-01",
+      "name": "Flower",
+      "pack": "knights",
+      "mesh": "SM_Env_Flower_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-01",
+      "name": "Grass",
+      "pack": "knights",
+      "mesh": "SM_Env_Grass_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-groundmound-01",
+      "name": "Ground mound",
+      "pack": "knights",
+      "mesh": "SM_Env_GroundMound_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        14
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-groundmound-02",
+      "name": "Ground mound 2",
+      "pack": "knights",
+      "mesh": "SM_Env_GroundMound_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        14
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-mountaingrass-01",
+      "name": "Mountain grass",
+      "pack": "knights",
+      "mesh": "SM_Env_MountainGrass_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-mountaingrass-02",
+      "name": "Mountain grass 2",
+      "pack": "knights",
+      "mesh": "SM_Env_MountainGrass_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-mountainsnow-01",
+      "name": "Mountain snow",
+      "pack": "knights",
+      "mesh": "SM_Env_MountainSnow_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-mountainsnow-02",
+      "name": "Mountain snow 2",
+      "pack": "knights",
+      "mesh": "SM_Env_MountainSnow_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-cobble-01",
+      "name": "Path cobble",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Cobble_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-cobble-01-snow",
+      "name": "Path cobble 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Cobble_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-cobble-02",
+      "name": "Path cobble 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Cobble_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-cobble-02-snow",
+      "name": "Path cobble 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Cobble_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-cobble-stone-01",
+      "name": "Stone path cobble",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Cobble_Stone_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-dirt-01",
+      "name": "Path dirt",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Dirt_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-dirt-02",
+      "name": "Path dirt 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Dirt_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-dirt-03",
+      "name": "Path dirt 3",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Dirt_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-dirt-04",
+      "name": "Path dirt 4",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Dirt_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-dirt-05",
+      "name": "Path dirt 5",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Dirt_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-dirt-06",
+      "name": "Path dirt 6",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Dirt_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-snow-01-snow",
+      "name": "Path snow 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Snow_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-stone-01",
+      "name": "Stone path",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Stone_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-stone-01-snow",
+      "name": "Path stone 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Stone_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-stone-02",
+      "name": "Stone path 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Stone_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-stone-02-snow",
+      "name": "Path stone 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Stone_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-stone-03",
+      "name": "Stone path 3",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Stone_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-stone-03-snow",
+      "name": "Path stone 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Stone_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-tile-01",
+      "name": "Path tile",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Tile_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-tile-01-snow",
+      "name": "Path tile 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Tile_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-tile-02",
+      "name": "Path tile 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Tile_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-tile-02-snow",
+      "name": "Path tile 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Tile_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-tile-corner-01",
+      "name": "Path tile corner",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Tile_Corner_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-tile-corner-01-snow",
+      "name": "Path tile corner 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Path_Tile_Corner_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rockpile-01",
+      "name": "Rock pile",
+      "pack": "knights",
+      "mesh": "SM_Env_RockPile_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rockpile-01-snow",
+      "name": "Rock pile 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_RockPile_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rockpile-02",
+      "name": "Rock pile 2",
+      "pack": "knights",
+      "mesh": "SM_Env_RockPile_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rockpile-02-snow",
+      "name": "Rock pile 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_RockPile_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rockpile-03",
+      "name": "Rock pile 3",
+      "pack": "knights",
+      "mesh": "SM_Env_RockPile_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rockpile-03-snow",
+      "name": "Rock pile 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_RockPile_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tile-dirt-01",
+      "name": "Tile dirt",
+      "pack": "knights",
+      "mesh": "SM_Env_Tile_Dirt_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tile-grass-01",
+      "name": "Tile grass",
+      "pack": "knights",
+      "mesh": "SM_Env_Tile_Grass_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tile-snow-01",
+      "name": "Tile snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Tile_Snow_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tile-water-01",
+      "name": "Tile water",
+      "pack": "knights",
+      "mesh": "SM_Env_Tile_Water_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-01",
+      "name": "Tree",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-01-snow",
+      "name": "Tree 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-02",
+      "name": "Tree 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-02-snow",
+      "name": "Tree 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-03",
+      "name": "Tree 3",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-03-snow",
+      "name": "Tree 03 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-twisted-01",
+      "name": "Tree twisted",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_Twisted_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-twisted-01-snow",
+      "name": "Tree twisted 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_Twisted_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-twisted-02",
+      "name": "Tree twisted 2",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_Twisted_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-twisted-02-snow",
+      "name": "Tree twisted 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Env_Tree_Twisted_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-banner-01",
+      "name": "Banner",
+      "pack": "knights",
+      "mesh": "SM_Prop_Banner_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-banner-02",
+      "name": "Banner 2",
+      "pack": "knights",
+      "mesh": "SM_Prop_Banner_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-banner-03",
+      "name": "Banner 3",
+      "pack": "knights",
+      "mesh": "SM_Prop_Banner_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-beam-01",
+      "name": "Beam",
+      "pack": "knights",
+      "mesh": "SM_Prop_Beam_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-brazier-01",
+      "name": "Brazier",
+      "pack": "knights",
+      "mesh": "SM_Prop_Brazier_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-campfire-01",
+      "name": "Camp fire",
+      "pack": "knights",
+      "mesh": "SM_Prop_CampFire_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-cart-01",
+      "name": "Cart",
+      "pack": "knights",
+      "mesh": "SM_Prop_Cart_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-cart-01-snow",
+      "name": "Cart 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Cart_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-carthay-01",
+      "name": "Cart hay",
+      "pack": "knights",
+      "mesh": "SM_Prop_CartHay_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-carthay-01-snow",
+      "name": "Cart hay 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_CartHay_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-cartwheel-01",
+      "name": "Cart wheel",
+      "pack": "knights",
+      "mesh": "SM_Prop_CartWheel_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-chain-01",
+      "name": "Chain",
+      "pack": "knights",
+      "mesh": "SM_Prop_Chain_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-chain-02",
+      "name": "Chain 2",
+      "pack": "knights",
+      "mesh": "SM_Prop_Chain_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-01",
+      "name": "Crate",
+      "pack": "knights",
+      "mesh": "SM_Prop_Crate_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-01-snow",
+      "name": "Crate 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Crate_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-01",
+      "name": "Fence",
+      "pack": "knights",
+      "mesh": "SM_Prop_Fence_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-01-snow",
+      "name": "Fence 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Fence_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-02",
+      "name": "Fence 2",
+      "pack": "knights",
+      "mesh": "SM_Prop_Fence_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-02-snow",
+      "name": "Fence 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Fence_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-grate-01",
+      "name": "Grate",
+      "pack": "knights",
+      "mesh": "SM_Prop_Grate_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-grate-01-snow",
+      "name": "Grate 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Grate_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-gravestone-01",
+      "name": "Gravestone",
+      "pack": "knights",
+      "mesh": "SM_Prop_Gravestone_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-gravestone-01-snow",
+      "name": "Gravestone 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Gravestone_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-gravestone-02",
+      "name": "Gravestone 2",
+      "pack": "knights",
+      "mesh": "SM_Prop_Gravestone_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-gravestone-02-snow",
+      "name": "Gravestone 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Gravestone_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-guillotine-01",
+      "name": "Guillotine",
+      "pack": "knights",
+      "mesh": "SM_Prop_Guillotine_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-guillotine-01-snow",
+      "name": "Guillotine 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Guillotine_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-lampost-01",
+      "name": "Lampost",
+      "pack": "knights",
+      "mesh": "SM_Prop_Lampost_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-lampost-01-snow",
+      "name": "Lampost 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Lampost_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-plinth-01",
+      "name": "Plinth",
+      "pack": "knights",
+      "mesh": "SM_Prop_Plinth_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-plinth-01-snow",
+      "name": "Plinth 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Plinth_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-plinth-02",
+      "name": "Plinth 2",
+      "pack": "knights",
+      "mesh": "SM_Prop_Plinth_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-plinth-02-snow",
+      "name": "Plinth 02 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Plinth_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rowboat-01",
+      "name": "Rowboat",
+      "pack": "knights",
+      "mesh": "SM_Prop_Rowboat_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rowboat-01-snow",
+      "name": "Rowboat 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Rowboat_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shopsign-01",
+      "name": "Shop sign",
+      "pack": "knights",
+      "mesh": "SM_Prop_ShopSign_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shopsign-01-snow",
+      "name": "Shop sign 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_ShopSign_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-statue-01",
+      "name": "Statue",
+      "pack": "knights",
+      "mesh": "SM_Prop_Statue_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-statue-01-snow",
+      "name": "Statue 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Statue_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-statue-base-01",
+      "name": "Statue base",
+      "pack": "knights",
+      "mesh": "SM_Prop_Statue_Base_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-statue-base-01-snow",
+      "name": "Statue base 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Statue_Base_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-trapdoor-01",
+      "name": "Trapdoor",
+      "pack": "knights",
+      "mesh": "SM_Prop_Trapdoor_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-trapdoor-01-snow",
+      "name": "Trapdoor 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_Trapdoor_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-waterwheel-01",
+      "name": "Water wheel",
+      "pack": "knights",
+      "mesh": "SM_Prop_WaterWheel_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-waterwheel-01-snow",
+      "name": "Water wheel 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_WaterWheel_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-waterwheel-support-01",
+      "name": "Water wheel support",
+      "pack": "knights",
+      "mesh": "SM_Prop_WaterWheel_Support_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-waterwheel-support-01-snow",
+      "name": "Water wheel support 01 snow",
+      "pack": "knights",
+      "mesh": "SM_Prop_WaterWheel_Support_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-weathervane-01",
+      "name": "Weathervane",
+      "pack": "knights",
+      "mesh": "SM_Prop_Weathervane_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    }
+  ]
+}

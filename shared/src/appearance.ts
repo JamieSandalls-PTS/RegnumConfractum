@@ -168,3 +168,152 @@ export function generateAppearance(seed: number): Appearance {
     bust: 0.35 + rnd() * 0.3,
   };
 }
+
+/* ---------------------------------------------------------------------------
+ * Player-authored appearance (D-539)
+ *
+ * The seed stays the origin of every character — it is what NPCs, roamers and
+ * corpses are built from, and what a player rerolls until something is close.
+ * An OVERRIDE is the handful of fields a player then sets by hand. Storing a
+ * sparse override rather than a whole appearance means:
+ *
+ *   - old characters, NPCs and monsters keep working untouched (no override
+ *     at all is the pre-existing behaviour, exactly);
+ *   - a new appearance field added later is inherited from the seed by every
+ *     existing character rather than defaulting to something wrong;
+ *   - the wire carries a small object, not a full body description.
+ *
+ * Equipment presence (helm, pauldrons, weapon) is deliberately NOT here. Gear
+ * is stripped between rounds (D-522) and will be driven by the inventory; a
+ * player choosing to always appear helmed would be choosing a disguise the
+ * recognition system (D-219) never agreed to.
+ * ------------------------------------------------------------------------ */
+
+/** The fields a player may set. Everything else derives from the seed. */
+export interface AppearanceOverride {
+  archetype?: ArchetypeName;
+  sex?: 'male' | 'female';
+  height?: number;
+  bulk?: number;
+  shoulder?: number;
+  limb?: number;
+  headScale?: number;
+  bust?: number;
+  hairLen?: number;
+  hairStyle?: HairStyle;
+  hairColor?: number;
+  skin?: number;
+  cloth?: number;
+  accent?: number;
+  capeColor?: number;
+  hasCape?: boolean;
+}
+
+/**
+ * Hard bounds on every numeric the creator exposes. These are the SERVER's
+ * limits, not the UI's — a hand-rolled client that sends height 40 gets
+ * rejected, because the client never decides anything (D-102).
+ *
+ * ⚠ The ranges are wider than any single archetype on purpose: archetypes
+ * constrain *generation* (D-402, uniform random makes mush), while a player
+ * building deliberately is allowed the whole human range. They are narrow
+ * enough that no build breaks the rig or the garment cutter (D-519).
+ */
+export const APPEARANCE_LIMITS = {
+  height: [1.5, 2.1],
+  bulk: [0.16, 0.8],
+  shoulder: [0.18, 0.44],
+  limb: [0.9, 1.2],
+  headScale: [0.85, 1.12],
+  bust: [0.0, 1.0],
+  hairLen: [0.0, 0.7],
+} as const satisfies Record<string, readonly [number, number]>;
+
+/** Colour choices are enumerated, so a client cannot invent a palette. */
+const PALETTES = {
+  hairColor: HAIR_COLORS,
+  skin: SKIN_COLORS,
+  cloth: CLOTH_COLORS,
+  accent: ACCENT_COLORS,
+  capeColor: ACCENT_COLORS,
+} as const;
+
+/**
+ * Server-side legality. Returns [] for a legal override, else the reasons.
+ * Deliberately strict about palettes: colours off the palette survive the
+ * quantiser badly (D-404) and would make one character look wrong in a way
+ * nobody could explain.
+ */
+export function validateAppearanceOverride(o: AppearanceOverride): string[] {
+  const errors: string[] = [];
+  if (o.archetype !== undefined && !ARCHETYPE_NAMES.includes(o.archetype)) {
+    errors.push(`unknown build '${String(o.archetype)}'`);
+  }
+  if (o.sex !== undefined && o.sex !== 'male' && o.sex !== 'female') {
+    errors.push('unknown body type');
+  }
+  if (o.hairStyle !== undefined && !HAIR_STYLES.includes(o.hairStyle)) {
+    errors.push(`unknown hair style '${String(o.hairStyle)}'`);
+  }
+  for (const [key, range] of Object.entries(APPEARANCE_LIMITS)) {
+    const v = (o as Record<string, unknown>)[key];
+    if (v === undefined) continue;
+    if (typeof v !== 'number' || !Number.isFinite(v)) {
+      errors.push(`${key} must be a number`);
+    } else if (v < range[0] || v > range[1]) {
+      errors.push(`${key} must be between ${range[0]} and ${range[1]}`);
+    }
+  }
+  for (const [key, palette] of Object.entries(PALETTES)) {
+    const v = (o as Record<string, unknown>)[key];
+    if (v === undefined) continue;
+    if (typeof v !== 'number' || !(palette as readonly number[]).includes(v)) {
+      errors.push(`${key} is not one of the world's colours`);
+    }
+  }
+  return errors;
+}
+
+/**
+ * Seed first, player second. Every reader of an appearance goes through
+ * here — including the server's stranger-descriptors (D-201/D-219), so a
+ * player who builds a towering figure is described as one.
+ */
+export function resolveAppearance(
+  seed: number,
+  override?: AppearanceOverride | null,
+): Appearance {
+  const base = generateAppearance(seed);
+  if (!override) return base;
+  const out: Appearance = { ...base };
+  for (const [key, value] of Object.entries(override)) {
+    if (value === undefined || value === null) continue;
+    (out as unknown as Record<string, unknown>)[key] = value;
+  }
+  return out;
+}
+
+/**
+ * A creator's starting point: the seed's appearance as a full override, so
+ * every control has a value the moment the panel opens.
+ */
+export function overrideFromAppearance(a: Appearance): Required<AppearanceOverride> {
+  return {
+    archetype: a.archetype,
+    sex: a.sex,
+    height: a.height,
+    bulk: a.bulk,
+    shoulder: a.shoulder,
+    limb: a.limb,
+    headScale: a.headScale,
+    bust: a.bust,
+    hairLen: a.hairLen,
+    hairStyle: a.hairStyle,
+    hairColor: a.hairColor,
+    skin: a.skin,
+    cloth: a.cloth,
+    accent: a.accent,
+    capeColor: a.capeColor,
+    hasCape: a.hasCape,
+  };
+}

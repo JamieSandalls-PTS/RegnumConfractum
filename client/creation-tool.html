@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regnum Confractum — Creation Rules</title>
+<style>
+  :root {
+    --ink: #0b0a0c; --panel: #16151a; --line: #2a2830;
+    --text: #b9b2a6; --dim: #6d6760; --warm: #c4703a; --bad: #c4553a; --good: #6f9a55;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif; overflow: hidden; font-size: 13px; }
+  #wrap { display: flex; flex-direction: column; height: 100%; }
+
+  /* The top row is the WORKFLOW — what you are doing — and the row under it is
+     what you are doing it to. Six tabs in one flat row gave no clue that
+     naming a torso and building a map are different jobs. */
+  #sections { display: flex; gap: 2px; background: #100f13; border-bottom: 1px solid var(--line);
+    padding: 0 10px; flex: none; }
+  #sections button { background: none; border: 0; color: var(--dim); font: inherit;
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    padding: 12px 16px; cursor: pointer; }
+  #sections button:hover { color: var(--text); }
+  #sections button.on { color: #e0d8c8; background: var(--panel); }
+  #sections .grow { flex: 1; }
+  #sections .status { color: var(--dim); font-size: 11px; align-self: center; padding-right: 6px; }
+
+  #tabs { display: flex; gap: 2px; background: var(--panel); border-bottom: 1px solid var(--line);
+    padding: 0 10px; flex: none; }
+  #tabs button { background: none; border: 0; border-bottom: 2px solid transparent;
+    color: var(--dim); font: inherit; font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; padding: 11px 14px; cursor: pointer; }
+  #tabs button:hover { color: var(--text); }
+  #tabs button.on { color: var(--warm); border-bottom-color: var(--warm); }
+  #tabs .grow { flex: 1; }
+  #tabs .status { color: var(--dim); font-size: 11px; align-self: center; padding-right: 6px; }
+
+  #body { flex: 1; display: flex; min-height: 0; }
+  .pane { overflow-y: auto; padding: 12px; }
+  #list { width: 380px; background: var(--panel); border-right: 1px solid var(--line); flex: none; }
+  #stage { flex: 1; position: relative; min-width: 0; cursor: grab; }
+  #stage.turning { cursor: grabbing; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+  #side { width: 300px; background: var(--panel); border-left: 1px solid var(--line); flex: none; }
+  /* The class editor is a form, not a property panel beside a 3D preview —
+     with the stage hidden it should have the room the stage was using. */
+  body.classes #side { width: auto; flex: 1; }
+  body.classes #list { width: 320px; }
+  .hidden { display: none !important; }
+  /* The map editor is a whole tool already (D-543/544) with its own server and
+     its own save validation. Embedding beats rebuilding: two editors writing
+     the same area files would eventually disagree about what a legal map is. */
+  #editor { flex: 1; border: 0; width: 100%; min-height: 0; background: var(--ink); }
+
+  h1 { font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--warm); margin: 0 0 10px; font-weight: 600; }
+  h2 { font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--dim); margin: 16px 0 6px; font-weight: 600; }
+  label { display: block; color: var(--dim); font-size: 10px;
+    text-transform: uppercase; letter-spacing: .1em; margin: 10px 0 3px; }
+  select, input, button, textarea {
+    width: 100%; background: #0f0e12; color: var(--text); border: 1px solid var(--line);
+    padding: 5px 7px; font: inherit; font-size: 12px; border-radius: 2px; outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--warm); }
+  button { cursor: pointer; margin-top: 6px; background: #211f26; }
+  button:hover:not(:disabled) { border-color: var(--warm); color: #e0d8c8; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: #2c2118; border-color: var(--warm); color: #e0d8c8; }
+  .row { display: flex; gap: 6px; align-items: center; }
+  .row > * { margin-top: 0; }
+  /* One kit line: item, how many, worn-or-carried, remove. */
+  .kitrow { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  .kitrow select { flex: 1 1 auto; min-width: 0; }
+  .hint { color: var(--dim); font-size: 11px; margin-top: 12px; line-height: 1.55;
+    border-top: 1px solid var(--line); padding-top: 10px; }
+  .warn { color: var(--warm); }
+  .bad { color: var(--bad); }
+  .good { color: var(--good); }
+
+  /* the naming table — one row per part, name field always ready to type in */
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 2px 4px 2px 0; vertical-align: middle; }
+  td.stem { color: var(--dim); font-size: 10.5px; font-family: ui-monospace, monospace;
+    white-space: nowrap; max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+  tr.on td.stem { color: var(--warm); }
+  tr:hover td.stem { color: var(--text); }
+  td.name input { padding: 3px 6px; }
+  tr.named td.name input { border-color: #37502f; }
+  .count { color: var(--dim); font-size: 11px; margin-bottom: 8px; }
+
+  .chip { display: inline-block; border: 1px solid var(--line); border-radius: 2px;
+    padding: 2px 6px; margin: 0 4px 4px 0; font-size: 11px; cursor: pointer; }
+  .chip.on { border-color: var(--warm); color: #e0d8c8; background: #2c2118; }
+  #banner { position: absolute; top: 10px; left: 14px; font-size: 11px; color: var(--dim);
+    letter-spacing: .1em; text-transform: uppercase; pointer-events: none; }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="sections">
+      <button data-section="core" class="on">Core definitions</button>
+      <button data-section="map">Map builder</button>
+      <button data-section="items">Item definitions</button>
+      <button data-section="classes">Class definitions</button>
+      <button data-section="progression">Skills, feats &amp; spells</button>
+      <button data-section="round">Round content</button>
+      <button data-section="world">Speech &amp; sound</button>
+      <button data-section="garments">Garments</button>
+      <button data-section="interactive">Interactive objects</button>
+      <span class="grow"></span>
+      <span class="status" id="status"></span>
+    </div>
+
+    <div id="tabs">
+      <button data-tab="parts" class="on">Body parts</button>
+      <button data-tab="races">Races</button>
+      <button data-tab="character-item">Weapon assets</button>
+      <button data-tab="environment">Environment assets</button>
+      <button data-tab="pickup">Pickups</button>
+      <button data-tab="animations">Animations</button>
+      <span class="grow"></span>
+    </div>
+
+    <div id="body">
+      <div id="list" class="pane"></div>
+      <div id="stage"><div id="banner"></div></div>
+      <div id="side" class="pane"></div>
+    </div>
+    <div id="soon" class="pane hidden"></div>
+    <iframe id="editor" class="hidden" title="Map builder"></iframe>
+  </div>
+  <script type="module" src="/src/creation-tool.ts"></script>
+</body>
+</html>

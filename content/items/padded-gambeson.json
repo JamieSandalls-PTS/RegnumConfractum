@@ -1,0 +1,14 @@
+{
+  "id": "padded-gambeson",
+  "name": "Padded Gambeson",
+  "description": "Twenty layers of quilted linen. It stops an edge, holds the rain, and never dries.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 18,
+  "equip": {
+    "slot": "chest",
+    "armour": 3,
+    "weight": 7,
+    "material": "cloth"
+  }
+}

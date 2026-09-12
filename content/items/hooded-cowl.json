@@ -1,0 +1,13 @@
+{
+  "id": "hooded-cowl",
+  "name": "Hooded Cowl",
+  "description": "Deep enough to lose a face in, which is why they cost more than the cloth.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 7,
+  "equip": {
+    "slot": "head",
+    "weight": 1,
+    "material": "cloth"
+  }
+}

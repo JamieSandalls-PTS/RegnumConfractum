@@ -1,0 +1,6162 @@
+{
+  "pack": "vikings",
+  "kind": "environment",
+  "assets": [
+    {
+      "id": "sm-bld-base-01",
+      "name": "Base",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-01-snow",
+      "name": "Base 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-02",
+      "name": "Base 2",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-02-snow",
+      "name": "Base 02 snow",
+      "pack": "vikings",
+      "mesh": "sm_bld_base_02_snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-door-01",
+      "name": "Base door",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Door_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-door-01-snow",
+      "name": "Base door 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Door_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-door-02",
+      "name": "Base door 2",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Door_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-door-02-snow",
+      "name": "Base door 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Door_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-01",
+      "name": "Long base",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-01-snow",
+      "name": "Base long 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-02",
+      "name": "Long base 2",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-02-snow",
+      "name": "Base long 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-door-01",
+      "name": "Base long door",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_Door_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-door-01-snow",
+      "name": "Base long door 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_Door_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-door-02",
+      "name": "Base long door 2",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_Door_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-base-long-door-02-snow",
+      "name": "Base long door 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Base_Long_Door_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-boathouse-01",
+      "name": "Boat house",
+      "pack": "vikings",
+      "mesh": "SM_Bld_BoatHouse_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        8,
+        11
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-boathouse-01-snow",
+      "name": "Boat house 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_BoatHouse_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        8,
+        11
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-boathouse-02",
+      "name": "Boat house 2",
+      "pack": "vikings",
+      "mesh": "SM_Bld_BoatHouse_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        8,
+        11
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-boathouse-02-snow",
+      "name": "Boat house 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_BoatHouse_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        8,
+        11
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-door-01",
+      "name": "Door",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Door_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-door-01-snow",
+      "name": "Door 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Door_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-guard-tower-01",
+      "name": "Guard tower",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Guard_Tower_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-guard-tower-01-snow",
+      "name": "Guard tower 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Guard_Tower_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-01",
+      "name": "Roof",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-01-snow",
+      "name": "Roof 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-02",
+      "name": "Roof 2",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-02-snow",
+      "name": "Roof 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-long-01",
+      "name": "Long roof",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_Long_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-long-01-snow",
+      "name": "Roof long 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_Long_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        5,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-window-01",
+      "name": "Roof window",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_Window_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-roof-window-01-snow",
+      "name": "Roof window 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Roof_Window_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stall-cover-01",
+      "name": "Stall cover",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Stall_Cover_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-stall-cover-01-snow",
+      "name": "Stall cover 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Stall_Cover_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tower-01",
+      "name": "Tower",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Tower_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tower-01-snow",
+      "name": "Tower 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Tower_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tower-stone-base-01",
+      "name": "Tower stone base",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Tower_Stone_Base_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-tower-stone-base-01-snow",
+      "name": "Tower stone base 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Tower_Stone_Base_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-wharf-01",
+      "name": "Wharf",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Wharf_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        9,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-wharf-01-snow",
+      "name": "Wharf 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Wharf_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        9,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-window-01",
+      "name": "Window",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Window_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-bld-window-01-snow",
+      "name": "Window 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Bld_Window_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-01",
+      "name": "Beach",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        19,
+        10
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-01-snow",
+      "name": "Beach 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        19,
+        10
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-02",
+      "name": "Beach 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        16,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-02-snow",
+      "name": "Beach 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        16,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-03",
+      "name": "Beach 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        19,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-03-snow",
+      "name": "Beach 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        19,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-04",
+      "name": "Beach 4",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        21
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-04-snow",
+      "name": "Beach 04 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        21
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-long-01",
+      "name": "Long beach",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_Long_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        11,
+        16
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-long-01-snow",
+      "name": "Beach long 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_Long_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        11,
+        16
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-long-02",
+      "name": "Long beach 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_Long_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        22,
+        22
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-beach-long-02-snow",
+      "name": "Beach long 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Beach_Long_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        22,
+        22
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-01",
+      "name": "Dirt mound 5",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        20,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-01-snow",
+      "name": "Dirt mound 01 snow 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        20,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-02",
+      "name": "Dirt mound 6",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-02-snow",
+      "name": "Dirt mound 02 snow 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-03",
+      "name": "Dirt mound 7",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-03-snow",
+      "name": "Dirt mound 03 snow 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-04",
+      "name": "Dirt mound 8",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-mound-04-snow",
+      "name": "Dirt mound 04 snow 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Mound_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        14,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-tile-large-01",
+      "name": "Large dirt tile",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Tile_Large_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-tile-large-02",
+      "name": "Large dirt tile 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Tile_Large_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirt-tile-large-02-snow",
+      "name": "Dirt tile large 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Dirt_Tile_Large_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-01",
+      "name": "Dirt mound",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        17,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-01-snow",
+      "name": "Dirt mound 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        17,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-02",
+      "name": "Dirt mound 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        16,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-02-snow",
+      "name": "Dirt mound 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        16,
+        17
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-03",
+      "name": "Dirt mound 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        16,
+        18
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-03-snow",
+      "name": "Dirt mound 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        16,
+        18
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-04",
+      "name": "Dirt mound 4",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-dirtmound-04-snow",
+      "name": "Dirt mound 04 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_DirtMound_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-flax-01",
+      "name": "Flax",
+      "pack": "vikings",
+      "mesh": "SM_Env_Flax_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-flax-02",
+      "name": "Flax 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Flax_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-flax-03",
+      "name": "Flax 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Flax_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-glacier-01",
+      "name": "Glacier",
+      "pack": "vikings",
+      "mesh": "SM_Env_Glacier_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        19
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-glacier-02",
+      "name": "Glacier 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Glacier_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-glacier-03",
+      "name": "Glacier 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Glacier_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        6,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-glacier-arch-01",
+      "name": "Glacier arch",
+      "pack": "vikings",
+      "mesh": "SM_Env_Glacier_Arch_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        24,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-01",
+      "name": "Grass",
+      "pack": "vikings",
+      "mesh": "SM_Env_Grass_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-02",
+      "name": "Grass 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Grass_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-03",
+      "name": "Grass 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Grass_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-large-01",
+      "name": "Large grass",
+      "pack": "vikings",
+      "mesh": "SM_Env_Grass_Large_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-large-01-snow",
+      "name": "Grass large 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Grass_Large_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-large-02",
+      "name": "Large grass 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Grass_Large_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grass-large-02-snow",
+      "name": "Grass large 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Grass_Large_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-01",
+      "name": "Grass patch",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-01-snow",
+      "name": "Grass patch 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-02",
+      "name": "Grass patch 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-02-snow",
+      "name": "Grass patch 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-03",
+      "name": "Grass patch 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-03-snow",
+      "name": "Grass patch 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-04",
+      "name": "Grass patch 4",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-grasspatch-04-snow",
+      "name": "Grass patch 04 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_GrassPatch_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-house-rocks-large-01",
+      "name": "Large house rocks",
+      "pack": "vikings",
+      "mesh": "SM_Env_House_Rocks_Large_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        6,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-house-rocks-large-01-snow",
+      "name": "House rocks large 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_House_Rocks_Large_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        6,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-house-rocks-small-01",
+      "name": "Small house rocks",
+      "pack": "vikings",
+      "mesh": "SM_Env_House_Rocks_Small_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        6,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-house-rocks-small-01-snow",
+      "name": "House rocks small 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_House_Rocks_Small_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        6,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-iceberg-01",
+      "name": "Iceberg",
+      "pack": "vikings",
+      "mesh": "SM_Env_Iceberg_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        8,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-iceberg-02",
+      "name": "Iceberg 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Iceberg_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-icechunk-01",
+      "name": "Ice chunk",
+      "pack": "vikings",
+      "mesh": "SM_Env_IceChunk_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        5,
+        6
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-icechunk-02",
+      "name": "Ice chunk 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_IceChunk_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-icechunk-03",
+      "name": "Ice chunk 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_IceChunk_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-icechunk-04",
+      "name": "Ice chunk 4",
+      "pack": "vikings",
+      "mesh": "SM_Env_IceChunk_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-icechunk-05",
+      "name": "Ice chunk 5",
+      "pack": "vikings",
+      "mesh": "SM_Env_IceChunk_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        9,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-icechunk-06",
+      "name": "Ice chunk 6",
+      "pack": "vikings",
+      "mesh": "SM_Env_IceChunk_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        16,
+        15
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-mountains-01",
+      "name": "Mountains",
+      "pack": "vikings",
+      "mesh": "SM_Env_Mountains_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-mountains-02",
+      "name": "Mountains 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Mountains_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-mountains-03",
+      "name": "Mountains 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Mountains_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        24,
+        24
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-rocks-side-01",
+      "name": "Path rocks side",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Rocks_Side_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-rocks-side-01-snow",
+      "name": "Path rocks side 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Rocks_Side_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-01",
+      "name": "Wood path",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-01-snow",
+      "name": "Path wood 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-02",
+      "name": "Wood path 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-02-snow",
+      "name": "Path wood 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-plank-01",
+      "name": "Path wood plank",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Plank_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-plank-01-snow",
+      "name": "Path wood plank 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Plank_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-plank-02",
+      "name": "Path wood plank 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Plank_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-plank-02-snow",
+      "name": "Path wood plank 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Plank_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-plank-03",
+      "name": "Path wood plank 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Plank_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-plank-03-snow",
+      "name": "Path wood plank 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Plank_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-side-01",
+      "name": "Path wood side",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Side_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        4,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-path-wood-side-01-snow",
+      "name": "Path wood side 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Path_Wood_Side_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        4,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-reeds-01",
+      "name": "Reeds",
+      "pack": "vikings",
+      "mesh": "SM_Env_Reeds_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-reeds-02",
+      "name": "Reeds 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Reeds_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-01",
+      "name": "Rock",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-01-snow",
+      "name": "Rock 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-02",
+      "name": "Rock 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-02-snow",
+      "name": "Rock 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-03",
+      "name": "Rock 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-03-snow",
+      "name": "Rock 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-04",
+      "name": "Rock 4",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-04-snow",
+      "name": "Rock 04 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-05",
+      "name": "Rock 5",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-05-snow",
+      "name": "Rock 05 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_05_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-06",
+      "name": "Rock 6",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-06-snow",
+      "name": "Rock 06 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_06_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-07",
+      "name": "Rock 7",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_07",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-rock-07-snow",
+      "name": "Rock 07 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Rock_07_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-stone-01",
+      "name": "Stone",
+      "pack": "vikings",
+      "mesh": "SM_Env_Stone_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-stone-01-snow",
+      "name": "Stone 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Stone_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-stone-02",
+      "name": "Stone 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Stone_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-stone-02-snow",
+      "name": "Stone 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Stone_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-01",
+      "name": "Tree pine",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-01-snow",
+      "name": "Tree pine 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-02",
+      "name": "Tree pine 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-02-snow",
+      "name": "Tree pine 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-03",
+      "name": "Tree pine 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-03-snow",
+      "name": "Tree pine 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-04",
+      "name": "Tree pine 4",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-04-snow",
+      "name": "Tree pine 04 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-large-01",
+      "name": "Large tree pine",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_Large_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-large-01-snow",
+      "name": "Tree pine large 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_Large_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-large-02",
+      "name": "Large tree pine 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_Large_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-large-02-snow",
+      "name": "Tree pine large 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_Large_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-large-03",
+      "name": "Large tree pine 3",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_Large_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-tree-pine-large-03-snow",
+      "name": "Tree pine large 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Tree_Pine_Large_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-01",
+      "name": "Trench",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-01-snow",
+      "name": "Trench 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-02",
+      "name": "Trench 2",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-02-snow",
+      "name": "Trench 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-bridge-01",
+      "name": "Trench bridge",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_Bridge_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-bridge-01-snow",
+      "name": "Trench bridge 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_Bridge_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-spikes-01",
+      "name": "Spikes trench",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_Spikes_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-env-trench-spikes-01-snow",
+      "name": "Trench spikes 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Env_Trench_Spikes_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-anvil-01",
+      "name": "Anvil",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Anvil_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-anvil-01-snow",
+      "name": "Anvil 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Anvil_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-anvil-stump-01",
+      "name": "Anvil stump",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Anvil_Stump_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-anvil-stump-01-snow",
+      "name": "Anvil stump 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Anvil_Stump_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-archway-01",
+      "name": "Archway",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Archway_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-archway-01-snow",
+      "name": "Archway 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Archway_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-barrel-half-01",
+      "name": "Barrel half",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Barrel_Half_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-barrel-half-01-snow",
+      "name": "Barrel half 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Barrel_Half_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-barrel-half-02",
+      "name": "Barrel half 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Barrel_Half_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-beer-mug-01",
+      "name": "Beer mug",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Beer_Mug_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-beer-mug-02",
+      "name": "Beer mug 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Beer_Mug_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-bench-01",
+      "name": "Bench",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Bench_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-bench-01-snow",
+      "name": "Bench 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Bench_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-boat-broken-01",
+      "name": "Broken boat",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Boat_Broken_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-boat-broken-01-snow",
+      "name": "Boat broken 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Boat_Broken_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-boat-broken-02",
+      "name": "Broken boat 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Boat_Broken_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        15
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-boat-build-01",
+      "name": "Boat build",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Boat_Build_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-boat-build-01-snow",
+      "name": "Boat build 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Boat_Build_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-boatramp-01",
+      "name": "Boat ramp",
+      "pack": "vikings",
+      "mesh": "SM_Prop_BoatRamp_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-boatramp-01-snow",
+      "name": "Boat ramp 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_BoatRamp_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-chest-01",
+      "name": "Chest",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Chest_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-chest-01-snow",
+      "name": "Chest 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Chest_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-chest-lid-01",
+      "name": "Chest lid",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Chest_Lid_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-chest-lid-01-snow",
+      "name": "Chest lid 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Chest_Lid_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-clay-pot-01",
+      "name": "Clay pot",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Clay_Pot_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-clay-pot-01-snow",
+      "name": "Clay pot 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Clay_Pot_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-clay-pot-02",
+      "name": "Clay pot 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Clay_Pot_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-clay-pot-02-snow",
+      "name": "Clay pot 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Clay_Pot_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-cow-skull-01",
+      "name": "Cow skull",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Cow_Skull_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-cow-skull-01-snow",
+      "name": "Cow skull 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Cow_Skull_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-base-01",
+      "name": "Crate base",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Crate_Base_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-base-01-snow",
+      "name": "Crate base 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Crate_Base_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-lid-01",
+      "name": "Crate lid",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Crate_Lid_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-lid-01-snow",
+      "name": "Crate lid 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Crate_Lid_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": true,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-open-01",
+      "name": "Crate open",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Crate_Open_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-crate-open-01-snow",
+      "name": "Crate open 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Crate_Open_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-cross-01",
+      "name": "Cross",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Cross_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-cross-02",
+      "name": "Cross 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Cross_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-01",
+      "name": "Dock",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-01-snow",
+      "name": "Dock 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-02",
+      "name": "Dock 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-02-snow",
+      "name": "Dock 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        4,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-03",
+      "name": "Dock 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-03-snow",
+      "name": "Dock 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-pole-01",
+      "name": "Dock pole",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_Pole_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-pole-01-snow",
+      "name": "Dock pole 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_Pole_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-pole-02",
+      "name": "Dock pole 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_Pole_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-dock-pole-02-snow",
+      "name": "Dock pole 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Dock_Pole_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-platform-01",
+      "name": "Fence platform",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Platform_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-platform-01-snow",
+      "name": "Fence platform 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Platform_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        5
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-stick-01",
+      "name": "Fence stick",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Stick_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-stick-01-snow",
+      "name": "Fence stick 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Stick_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-01",
+      "name": "Wood fence",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-01-snow",
+      "name": "Fence wood 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-02",
+      "name": "Wood fence 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-02-snow",
+      "name": "Fence wood 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-03",
+      "name": "Wood fence 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-03-snow",
+      "name": "Fence wood 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-large-01",
+      "name": "Wood large fence",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Large_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-large-01-snow",
+      "name": "Fence wood large 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Large_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        4
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-large-02",
+      "name": "Wood large fence 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Large_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-large-02-snow",
+      "name": "Fence wood large 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Large_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-01",
+      "name": "Fence wood pole",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-01-snow",
+      "name": "Fence wood pole 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-02",
+      "name": "Fence wood pole 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-02-snow",
+      "name": "Fence wood pole 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-03",
+      "name": "Fence wood pole 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-03-snow",
+      "name": "Fence wood pole 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-04",
+      "name": "Fence wood pole 4",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fence-wood-pole-04-snow",
+      "name": "Fence wood pole 04 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fence_Wood_Pole_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-01",
+      "name": "Fish",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-02",
+      "name": "Fish 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-dead-01",
+      "name": "Fish dead",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Dead_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-dead-02",
+      "name": "Fish dead 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Dead_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-dead-03",
+      "name": "Fish dead 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Dead_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-hanging-01",
+      "name": "Fish hanging",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Hanging_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-hanging-02",
+      "name": "Fish hanging 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Hanging_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-pile-01",
+      "name": "Fish pile",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Pile_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-rack-01",
+      "name": "Fish rack",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Rack_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-rack-02",
+      "name": "Fish rack 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Rack_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fish-rack-02-snow",
+      "name": "Fish rack 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fish_Rack_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-flag-01",
+      "name": "Flag",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Flag_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-flag-01-snow",
+      "name": "Flag 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Flag_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-flag-02",
+      "name": "Flag 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Flag_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-flag-02-snow",
+      "name": "Flag 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Flag_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fur-roll-01",
+      "name": "Fur roll",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fur_Roll_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fur-roll-02",
+      "name": "Fur roll 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fur_Roll_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-fur-roll-03",
+      "name": "Fur roll 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Fur_Roll_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-goblet-01",
+      "name": "Goblet",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Goblet_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-goldbar-01",
+      "name": "Gold bar",
+      "pack": "vikings",
+      "mesh": "SM_Prop_GoldBar_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-ladder-01",
+      "name": "Ladder",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Ladder_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-ladder-01-snow",
+      "name": "Ladder 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Ladder_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-ladder-02",
+      "name": "Ladder 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Ladder_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-ladder-02-snow",
+      "name": "Ladder 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Ladder_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-log-01",
+      "name": "Log",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Log_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-log-01-snow",
+      "name": "Log 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Log_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-logs-01",
+      "name": "Logs",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Logs_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-logs-01-snow",
+      "name": "Logs 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Logs_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-net-01",
+      "name": "Net",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Net_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-net-01-snow",
+      "name": "Net 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Net_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-net-02",
+      "name": "Net 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Net_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-net-02-snow",
+      "name": "Net 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Net_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-oar-01",
+      "name": "Oar",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Oar_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        5,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-pole-01",
+      "name": "Pole",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Pole_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-pole-01-snow",
+      "name": "Pole 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Pole_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-pole-02",
+      "name": "Pole 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Pole_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-pole-03",
+      "name": "Pole 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Pole_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-pole-03-snow",
+      "name": "Pole 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Pole_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rack-01",
+      "name": "Rack",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rack_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rack-01-snow",
+      "name": "Rack 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rack_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rock-circle-01",
+      "name": "Rock circle",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rock_Circle_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rock-circle-01-snow",
+      "name": "Rock circle 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rock_Circle_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rock-totem-01",
+      "name": "Rock totem",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rock_Totem_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rock-totem-01-snow",
+      "name": "Rock totem 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rock_Totem_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rope-01",
+      "name": "Rope",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rope_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rope-01-snow",
+      "name": "Rope 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rope_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        2,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rope-02",
+      "name": "Rope 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rope_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-rope-02-snow",
+      "name": "Rope 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Rope_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-seat-01",
+      "name": "Seat",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Seat_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-seat-01-snow",
+      "name": "Seat 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Seat_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-01",
+      "name": "Shield decor",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-01-snow",
+      "name": "Shield decor 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-02",
+      "name": "Shield decor 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-03",
+      "name": "Shield decor 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-04",
+      "name": "Shield decor 4",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-05",
+      "name": "Shield decor 5",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_05",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-06",
+      "name": "Shield decor 6",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_06",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-07",
+      "name": "Shield decor 7",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_07",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-shield-decor-08",
+      "name": "Shield decor 8",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Shield_Decor_08",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-skull-01",
+      "name": "Skull",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Skull_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-skull-02",
+      "name": "Skull 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Skull_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-skull-pole-01",
+      "name": "Skull pole",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Skull_Pole_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-skull-pole-01-snow",
+      "name": "Skull pole 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Skull_Pole_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-spikes-01",
+      "name": "Spikes",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Spikes_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-spikes-01-snow",
+      "name": "Spikes 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Spikes_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        3,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-table-01",
+      "name": "Table",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Table_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-table-01-snow",
+      "name": "Table 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Table_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-torchstick-01",
+      "name": "Torch stick",
+      "pack": "vikings",
+      "mesh": "SM_Prop_TorchStick_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-village-entrance-01",
+      "name": "Village entrance",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Village_Entrance_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-village-entrance-01-snow",
+      "name": "Village entrance 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Village_Entrance_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        3,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wagon-01",
+      "name": "Wagon",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wagon_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wagon-01-snow",
+      "name": "Wagon 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wagon_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        2,
+        3
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wheel-barrow-01",
+      "name": "Wheel barrow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wheel_Barrow_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wheel-barrow-01-snow",
+      "name": "Wheel barrow 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wheel_Barrow_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        2
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-sharp-01",
+      "name": "Wood sharp",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Sharp_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-sharp-01-snow",
+      "name": "Wood sharp 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Sharp_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-sharp-02",
+      "name": "Wood sharp 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Sharp_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-sharp-02-snow",
+      "name": "Wood sharp 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Sharp_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-01",
+      "name": "Wood spike",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-01-snow",
+      "name": "Wood spike 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-02",
+      "name": "Wood spike 2",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-02-snow",
+      "name": "Wood spike 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-03",
+      "name": "Wood spike 3",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-03-snow",
+      "name": "Wood spike 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-04",
+      "name": "Wood spike 4",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-prop-wood-spike-04-snow",
+      "name": "Wood spike 04 snow",
+      "pack": "vikings",
+      "mesh": "SM_Prop_Wood_Spike_04_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boat-01",
+      "name": "Boat",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Boat_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        15
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boat-01-snow",
+      "name": "Boat 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Boat_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        15
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boathead-01",
+      "name": "Boat head",
+      "pack": "vikings",
+      "mesh": "SM_Veh_BoatHead_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boathead-01-snow",
+      "name": "Boat head 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Veh_BoatHead_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boathead-02",
+      "name": "Boat head 2",
+      "pack": "vikings",
+      "mesh": "SM_Veh_BoatHead_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boathead-02-snow",
+      "name": "Boat head 02 snow",
+      "pack": "vikings",
+      "mesh": "SM_Veh_BoatHead_02_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boathead-03",
+      "name": "Boat head 3",
+      "pack": "vikings",
+      "mesh": "SM_Veh_BoatHead_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-boathead-03-snow",
+      "name": "Boat head 03 snow",
+      "pack": "vikings",
+      "mesh": "SM_Veh_BoatHead_03_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-fishingboat-01",
+      "name": "Fishing boat",
+      "pack": "vikings",
+      "mesh": "SM_Veh_FishingBoat_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-fishingboat-01-snow",
+      "name": "Fishing boat 01 snow",
+      "pack": "vikings",
+      "mesh": "SM_Veh_FishingBoat_01_Snow",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-funeralboat-01",
+      "name": "Funeral boat",
+      "pack": "vikings",
+      "mesh": "SM_Veh_FuneralBoat_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        2,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-oars-01",
+      "name": "Oars",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Oars_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        10,
+        8
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-closed-01",
+      "name": "Sail closed",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Closed_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-closed-02",
+      "name": "Sail closed 2",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Closed_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-closed-03",
+      "name": "Sail closed 3",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Closed_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-closed-04",
+      "name": "Sail closed 4",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Closed_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        7
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-open-01",
+      "name": "Sail open",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Open_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-open-02",
+      "name": "Sail open 2",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Open_02",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-open-03",
+      "name": "Sail open 3",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Open_03",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    },
+    {
+      "id": "sm-veh-sail-open-04",
+      "name": "Sail open 4",
+      "pack": "vikings",
+      "mesh": "SM_Veh_Sail_Open_04",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": true,
+      "opaque": true,
+      "footprint": [
+        7,
+        9
+      ],
+      "operable": false,
+      "clips": {}
+    }
+  ]
+}

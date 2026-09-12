@@ -1,0 +1,12 @@
+{
+  "id": "bone-ring",
+  "name": "Bone Ring",
+  "description": "Carved from a knuckle and polished by handling. It is warm before you put it on.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 13,
+  "equip": {
+    "slot": "ring",
+    "mana": 2
+  }
+}

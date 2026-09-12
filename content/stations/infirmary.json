@@ -1,0 +1,12 @@
+{
+  "id": "infirmary",
+  "name": "Infirmary",
+  "descriptor": "a scrubbed table of jars",
+  "art": {
+    "pack": "vikings",
+    "asset": "sm-prop-table-01",
+    "rotation": 0,
+    "scale": 1
+  },
+  "notes": "Treatment given here is worth more than the same bandage in a field (D-530)."
+}

@@ -8,7 +8,146 @@
   "affinities": [
     "arms",
     "athletics",
-    "intimidation"
+    "intimidation",
+    "craft"
   ],
-  "spellcasting": false
+  "spellcasting": false,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "athletics": 5,
+        "endurance": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The drill stops being something you remember and becomes something you are."
+    },
+    {
+      "level": 3,
+      "skills": {},
+      "feats": [
+        "porter",
+        "sworn-witness"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Rank of a sort: the sacks are yours to carry, and your word is taken in a room."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "craft": 5
+      },
+      "feats": [
+        "shield-of-the-line",
+        "master-of-the-bench"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You learn the position that keeps other people alive, and how to mend your own kit."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "intimidation": 10,
+        "craft": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have stopped having to raise your voice."
+    },
+    {
+      "level": 6,
+      "skills": {},
+      "feats": [
+        "deep-draught"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Campaign habits: you drink when there is water and do not complain when there is not."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "athletics": 10,
+        "persuasion": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Command is mostly logistics and being believed."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "endurance": 10,
+        "craft": 10
+      },
+      "feats": [
+        "second-blow"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You can march on nothing and repair what breaks on the way."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "intimidation": 10,
+        "lore": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You know whose banner that was, and what it means that it is here."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "athletics": 10,
+        "endurance": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The last of the old army, still standing where it was told to."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "arming-sword",
+      "equip": "main-hand"
+    },
+    {
+      "item": "banded-shield",
+      "equip": "off-hand"
+    },
+    {
+      "item": "mail-hauberk",
+      "equip": "chest"
+    },
+    {
+      "item": "open-helm",
+      "equip": "head"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ]
 }

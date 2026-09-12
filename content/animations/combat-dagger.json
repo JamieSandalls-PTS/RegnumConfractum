@@ -1,0 +1,11 @@
+{
+  "id": "combat-dagger",
+  "name": "Dagger — weapon up",
+  "layer": "readiness",
+  "applies": "dagger/combat",
+  "clips": {
+    "attack-1": "dagger-combat-attack-1",
+    "attack-2": "dagger-combat-attack-2"
+  },
+  "note": "Plays only with the weapon up: 2 of 61 actions. Sheathed, the character falls through to the stance and the rig."
+}

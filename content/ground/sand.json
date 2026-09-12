@@ -1,0 +1,9 @@
+{
+  "id": "sand",
+  "name": "Sand",
+  "texture": "sand.jpg",
+  "repeat": 0.5,
+  "tint": "#b3a375",
+  "walkable": true,
+  "notes": "Loose ground: a riverbank, a cellar spill."
+}

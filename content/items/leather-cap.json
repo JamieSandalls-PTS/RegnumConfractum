@@ -1,0 +1,14 @@
+{
+  "id": "leather-cap",
+  "name": "Leather Cap",
+  "description": "Boiled and shaped over a block. It will turn a branch, and it will not turn much else.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 6,
+  "equip": {
+    "slot": "head",
+    "armour": 1,
+    "weight": 1,
+    "material": "leather"
+  }
+}

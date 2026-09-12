@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regnum Confractum — Map Editor</title>
+<style>
+  :root {
+    --ink: #0b0a0c; --panel: #16151a; --line: #2a2830;
+    --text: #b9b2a6; --dim: #6d6760; --warm: #c4703a; --bad: #b4553f; --good: #7f9a5e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif; overflow: hidden;
+    -webkit-user-select: none; user-select: none; }
+  #stage { position: absolute; inset: 0 320px 0 0; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+
+  #panel {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 320px;
+    background: var(--panel); border-left: 1px solid var(--line);
+    padding: 12px; overflow-y: auto; font-size: 12.5px;
+  }
+  #panel h1 { font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--warm); margin: 0 0 2px; font-weight: 600; }
+  #panel .sub { color: var(--dim); font-size: 11px; margin-bottom: 8px; }
+  #panel h2 { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--warm); margin: 14px 0 5px; font-weight: 600;
+    border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+  #panel select, #panel input[type=text], #panel button {
+    width: 100%; background: #0f0e12; color: var(--text); border: 1px solid var(--line);
+    padding: 5px 8px; font: inherit; font-size: 12px; border-radius: 2px; outline: none;
+  }
+  #panel button { cursor: pointer; margin-top: 6px; background: #211f26; }
+  #panel button:hover { border-color: var(--warm); color: #e0d8c8; }
+  #panel button.primary { background: var(--warm); color: #140d07; border-color: var(--warm); }
+  #panel button.primary:hover { background: #d8854c; }
+  .row { display: flex; gap: 6px; }
+  .row button { margin-top: 6px; }
+  /* A label, a control and maybe a button on one line: the brush sliders and
+     the in-use material list (D-588). Declared HERE and not only in
+     index.html, which is where it was — the editor loaded none of it, so
+     every slider row stacked its label above a full-width control. */
+  .app-row { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+  .app-row input[type=range] { flex: 1; }
+  /* #panel button sets width:100% on an ID selector, so a class alone loses
+     to it — the same trap .chip below documents. */
+  #panel button.small {
+    width: auto; margin-top: 0; padding: 2px 7px; font-size: 11px;
+  }
+  #panel button.small:hover { border-color: #b4564a; color: #f0c6bd; }
+
+  /* Tool + palette chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  /* #panel button sets width:100%, and an id selector outranks a class —
+     so the override has to carry the id too or every palette renders as one
+     very long column. */
+  #panel .chip {
+    width: auto; margin-top: 0;
+    border: 1px solid var(--line); background: #0f0e12; color: var(--text);
+    border-radius: 2px; padding: 4px 7px; font-size: 11px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  #panel .chip:hover { border-color: #6a6270; }
+  #panel .chip.on { border-color: var(--warm); color: #e8dcc4; background: #1b1620; }
+  .chip .sw { width: 10px; height: 10px; border-radius: 1px; border: 1px solid #0008; }
+  .chip.solid::after { content: '■'; color: var(--dim); font-size: 8px; }
+
+  .grouphead { color: var(--dim); font-size: 9.5px; letter-spacing: .12em;
+    text-transform: uppercase; margin: 8px 0 2px; }
+  .hint { color: var(--dim); font-size: 11px; line-height: 1.5; margin-top: 8px; }
+  /* The inspector's rows. A label on the left, a scrollable number on the
+     right, so a column of them reads as a form rather than a paragraph. */
+  .fields { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; }
+  .numrow { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            font-size: 11px; color: var(--dim); }
+  .numrow input[type=text] { background: #14181d; color: #e8e2d6; border: 1px solid #2c3238;
+            border-radius: 3px; padding: 2px 5px; font: inherit; }
+  .numrow input[type=text]:hover { border-color: #4a5560; }
+  .warn { color: #d3a04e; font-size: 11px; line-height: 1.45; margin-top: 6px;
+    border-left: 2px solid #6b5326; padding-left: 7px; }
+  #status { margin-top: 8px; font-size: 11.5px; line-height: 1.45; min-height: 16px; }
+  #status.bad { color: var(--bad); }
+  #status.good { color: var(--good); }
+  #status ul { margin: 4px 0 0; padding-left: 16px; }
+
+  #hud {
+    position: absolute; left: 10px; top: 10px; z-index: 3; pointer-events: none;
+    background: rgba(11,10,12,.8); border: 1px solid var(--line); border-radius: 3px;
+    padding: 5px 10px; font-size: 12px; color: var(--text);
+  }
+  #hud b { color: var(--warm); font-weight: 400; }
+  #keys {
+    position: absolute; left: 10px; bottom: 10px; z-index: 3; pointer-events: none;
+    background: rgba(11,10,12,.8); border: 1px solid var(--line); border-radius: 3px;
+    padding: 6px 10px; font-size: 11px; color: var(--dim); line-height: 1.6;
+  }
+  #keys b { color: var(--text); font-weight: 400; }
+  .dirty { color: var(--warm); }
+</style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div id="hud"><b id="hud-area">—</b> <span id="hud-tile"></span> <span id="hud-dirty"></span></div>
+  <div id="keys">
+    <b>drag</b> orbit · <b>middle-drag</b> pan · <b>wheel</b> zoom<br>
+    <b>shift-drag</b> turn · <b>shift-wheel</b> raise · <b>X</b> select/paint<br>
+    <b>click</b> place · <b>drag</b> lay a run · <b>right-click</b> erase · <b>R</b> rotate<br>
+    <b>D</b> duplicate · <b>Del</b> remove · <b>Esc</b> deselect · <b>[ ]</b> brush<br>
+    <b>ctrl+Z</b> undo · <b>ctrl+shift+Z</b> redo · <b>ctrl+S</b> save
+  </div>
+
+  <div id="panel">
+    <h1>Map Editor</h1>
+    <div class="sub">walls, ground and objects — the game's own renderer</div>
+
+    <label style="display:block;color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">area</label>
+    <select id="area-select"></select>
+    <div id="area-warning" class="warn" style="display:none"></div>
+
+    <h2>Tool</h2>
+    <div class="chips" id="tools"></div>
+
+    <div id="tool-options"></div>
+
+    <h2>Map size</h2>
+    <div id="resize-panel"></div>
+
+    <h2>Save</h2>
+    <button id="btn-save" class="primary">Save to content/areas</button>
+    <div class="row">
+      <button id="btn-revert">Revert</button>
+      <button id="btn-recentre">Recentre view</button>
+    </div>
+    <div id="status"></div>
+
+    <div class="hint">
+      Every save is validated before it is written — schema, reachability with
+      scenery blocking, exits, and somewhere to stand at each facility. A save
+      that would fail the build is refused rather than written.
+    </div>
+  </div>
+
+  <script type="module" src="/src/editor.ts"></script>
+</body>
+</html>

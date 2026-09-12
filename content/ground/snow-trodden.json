@@ -1,0 +1,9 @@
+{
+  "id": "snow-trodden",
+  "name": "Trodden snow",
+  "texture": "snow-trodden.jpg",
+  "repeat": 0.5,
+  "tint": "#aab3bb",
+  "walkable": true,
+  "notes": "Snow somebody has already walked through."
+}

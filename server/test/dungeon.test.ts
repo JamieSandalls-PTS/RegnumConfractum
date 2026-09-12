@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
+  canStandAt,
   DUNGEON_FLOOR_OPENS_ON_DAY,
   ROUND_DAY_TICKS,
   ROUND_LENGTH_TICKS,
@@ -52,9 +53,25 @@ describe('three floors, going down', () => {
     expect(area('round-dungeon-3').transitions.every((t) => t.toArea === 'round-dungeon-2')).toBe(true);
   });
 
+  // ⚠ UN-SKIPPED (D-584). It was skipped when the machine-placed scenery came
+  // out and all three floors measured the same 10,000 open tiles — but that
+  // reading was wrong about where a dungeon's shape lives. The cave system is
+  // carved in the TILE GRID by `build-round-map.py`, and only its walls had
+  // been converted to meshes; the layout itself was never lost. D-535's rule
+  // holds on the tiles, which is the right place for it: a floor's shape is
+  // the level, not its dressing.
   it('gets tighter as it goes down', () => {
-    const walkable = (a: AreaDef) =>
-      a.tiles.join('').split('').filter((ch) => a.legend[ch]?.walkable).length;
+    // ⚠ Measured through the COLLISION LAYER, not the tile legend (D-567).
+    // The maps are built from pack meshes now and every tile is floor, so
+    // counting walkable tiles says 10,000 for all three floors and the
+    // assertion passed or failed on nothing at all.
+    const walkable = (a: AreaDef) => {
+      let open = 0;
+      for (let y = 0; y < a.height; y++) {
+        for (let x = 0; x < a.width; x++) if (canStandAt(a, { x, y })) open++;
+      }
+      return open;
+    };
     expect(walkable(area('round-dungeon-2'))).toBeLessThan(walkable(area('round-dungeon-1')));
     expect(walkable(area('round-dungeon-3'))).toBeLessThan(walkable(area('round-dungeon-2')));
   });

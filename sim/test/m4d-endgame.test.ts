@@ -4,6 +4,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { walkTo as pathWalkTo } from '../src/walk';
 
 /**
  * D-206 endgame zones played by bots: the unmissable two-step entry warning,
@@ -42,21 +43,14 @@ async function join(bot: BotClient, username: string, charName: string, seed: nu
   return { characterId, entityId: snap.you };
 }
 
-/** Greedy-walks the bot's own entity to (x, y) in its current area. */
+/**
+ * Walks by A* (D-542). This was a greedy walker until scenery arrived in the
+ * yard: a barrel standing in the column it pressed down through wedged it for
+ * four hundred ticks, and the failure read as "never reached (2,28)" rather
+ * than "there is a barrel there".
+ */
 async function walkTo(bot: BotClient, x: number, y: number): Promise<void> {
-  for (let i = 0; i < 400; i++) {
-    const me = bot.entities.get(bot.you!);
-    if (!me) throw new Error('walker has no self');
-    if (me.x === x && me.y === y) return;
-    const dx = x - me.x;
-    const dy = y - me.y;
-    const dir = dy < 0 ? (dx > 0 ? 'ne' : dx < 0 ? 'nw' : 'n')
-      : dy > 0 ? (dx > 0 ? 'se' : dx < 0 ? 'sw' : 's')
-      : dx > 0 ? 'e' : 'w';
-    bot.send({ t: 'move', dir });
-    await sleep(TICK * 4);
-  }
-  throw new Error(`never reached (${x},${y})`);
+  await pathWalkTo(bot, x, y, { stepMs: TICK * 4, timeoutMs: 20_000 });
 }
 
 /** Enters the crypt from the yard: warn on the marker, step off, step back. */

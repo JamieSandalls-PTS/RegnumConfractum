@@ -24,10 +24,11 @@ const ITEMS: CatalogueItem[] = [
   { id: 'bitterleaf', name: 'Bitterleaf', description: '', category: 'base_material', stackable: true },
 ];
 
-const item = (templateId: string, qty: number): WireItem => ({
+const item = (templateId: string, qty: number, equipped: WireItem['equipped'] = null): WireItem => ({
   id: `00000000-0000-4000-8000-${templateId.slice(0, 12).padEnd(12, '0')}`,
   templateId,
   qty,
+  equipped,
 });
 
 const HATCHET: CatalogueRecipe = {

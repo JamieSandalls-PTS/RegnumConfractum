@@ -1,0 +1,15 @@
+{
+  "id": "mail-hauberk",
+  "name": "Mail Hauberk",
+  "description": "Riveted rings to the knee, missing a handspan at the left hip where something got through.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 40,
+  "equip": {
+    "slot": "chest",
+    "armour": 4,
+    "weight": 12,
+    "material": "plate"
+  },
+  "garment": "gothic-plate"
+}

@@ -7,8 +7,152 @@
   "legacyLocked": false,
   "affinities": [
     "lore",
+    "attunement",
     "insight",
     "perception"
   ],
-  "spellcasting": true
+  "spellcasting": true,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "attunement": 5,
+        "lore": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The working stays steady while the room objects to it."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "insight": 5
+      },
+      "feats": [
+        "taproom-lawyer"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "An education is mostly useful for sounding entitled to be there."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "perception": 5
+      },
+      "feats": [
+        "master-of-the-bench"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You make your own instruments, because nobody sells them any more."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "insight": 10,
+        "perception": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have learned to read the room before the room reads you."
+    },
+    {
+      "level": 6,
+      "skills": {
+        "attunement": 10,
+        "lore": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The veils hold longer than they should, and you have stopped being surprised."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "perception": 10
+      },
+      "feats": [
+        "the-long-memory"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Names, seals and debts, none of it written down where it could be taken."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "lore": 10,
+        "persuasion": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You know what the empire actually was, which is not what is taught."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "attunement": 10,
+        "insight": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Working under pressure has become simply working."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "lore": 10,
+        "attunement": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "There are perhaps four people left who know what you know."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "apprentice-staff",
+      "equip": "main-hand"
+    },
+    {
+      "item": "scholars-robe",
+      "equip": "chest"
+    },
+    {
+      "item": "bone-ring",
+      "equip": "ring-left"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ],
+  "armour": [
+    "cloth",
+    "leather"
+  ],
+  "weapons": [
+    "staff",
+    "dagger"
+  ],
+  "notes": ""
 }

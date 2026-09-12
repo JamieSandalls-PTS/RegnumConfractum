@@ -4,5 +4,11 @@
   "description": "Boiled hide over a linen backing. It will stop a knife once, and lie to you about the second.",
   "category": "equipment",
   "stackable": false,
-  "value": 14
+  "value": 14,
+  "equip": {
+    "slot": "chest",
+    "armour": 2,
+    "weight": 4,
+    "material": "leather"
+  }
 }

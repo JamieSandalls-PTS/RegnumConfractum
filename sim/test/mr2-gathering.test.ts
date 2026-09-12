@@ -4,8 +4,8 @@ import { ObjectiveSchema, type ObjectiveDef } from '@rc/shared';
 import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
+import { closeOn, walkAdjacentTo as sharedWalkAdjacentTo } from '../src/walk';
 import { BotClient } from '../src/botClient';
-import { findPath } from '../../client/src/game/path';
 
 /**
  * Gathering and crafting (MR2), played by bots.
@@ -56,40 +56,30 @@ async function join(bot: BotClient, username: string, charName: string, seed: nu
 }
 
 /**
- * Walks by A* rather than greedily. The mine is dense with rock, and a greedy
- * walker wedges itself against the first outcrop — reusing the client's
- * pathfinder keeps the test about gathering instead of about navigation.
+ * Walks to the node, by the SERVER's route (D-567).
+ *
+ * ⚠ This test used to carry its own copy of the client's A*, because the mine
+ * is dense with rock and a greedy walker wedges against the first outcrop. The
+ * copy is gone: it indexed the tile grid with metre positions, found nothing
+ * walkable, and reported the whole mine impassable. One walker, in `sim/src`,
+ * asking the server — which is the only thing that knows where a body fits.
  */
 async function walkAdjacentTo(bot: BotClient, x: number, y: number): Promise<void> {
-  const area = bot.area!;
-  const grid = {
-    width: area.width,
-    height: area.height,
-    walkable: (gx: number, gy: number) => {
-      const ch = area.tiles[gy]?.[gx];
-      return ch !== undefined && (area.legend[ch]?.walkable ?? false);
-    },
-  };
-  for (let attempt = 0; attempt < 4; attempt++) {
+  await sharedWalkAdjacentTo(bot, x, y, { timeoutMs: 25_000 });
+}
+
+/** Wait until the bot has actually stopped moving. */
+async function settle(bot: BotClient, timeoutMs = 4000): Promise<void> {
+  bot.send({ t: 'move_stop' });
+  const deadline = Date.now() + timeoutMs;
+  let last = { x: NaN, y: NaN };
+  let still = 0;
+  while (Date.now() < deadline && still < 4) {
     const me = bot.entities.get(bot.you!)!;
-    if (Math.max(Math.abs(me.x - x), Math.abs(me.y - y)) <= 1) return;
-    // Aim for a walkable tile beside the node; the node's own tile is fine too.
-    const goals = [[x, y], [x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]];
-    let path: ReturnType<typeof findPath> = null;
-    for (const [gx, gy] of goals) {
-      path = findPath(grid, me.x, me.y, gx!, gy!);
-      if (path && path.length > 0) break;
-    }
-    if (!path) throw new Error(`no path to (${x},${y}) from (${me.x},${me.y})`);
-    for (const dir of path) {
-      bot.send({ t: 'move', dir });
-      await sleep(TICK * 4);
-      const now = bot.entities.get(bot.you!)!;
-      if (Math.max(Math.abs(now.x - x), Math.abs(now.y - y)) <= 1) return;
-    }
+    still = me.x === last.x && me.y === last.y ? still + 1 : 0;
+    last = { x: me.x, y: me.y };
+    await sleep(TICK * 4);
   }
-  const me = bot.entities.get(bot.you!)!;
-  throw new Error(`never reached (${x},${y}); stalled at (${me.x},${me.y})`);
 }
 
 /** The node nearest this bot, by its own mirror of the world. */
@@ -194,24 +184,44 @@ describe('harvesting', () => {
   it('CANCELS when the worker is struck — the buddy system in one assertion', async () => {
     const node = nearestNode(miner);
     await walkAdjacentTo(miner, node.x, node.y);
-    await walkAdjacentTo(thug, node.x, node.y);
-    // Get the thug adjacent to the miner.
-    await waitUntil(() => {
-      const a = miner.entities.get(miner.you!)!;
-      const b = thug.entities.get(thug.you!)!;
-      return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) <= 1;
-    }, 'the thug is within reach', 12_000).catch(() => undefined);
+    // ⚠ The thug closes on the MINER, not on the node, and the difference was
+    // a one-in-three flake. Both walking to the same point leaves each of them
+    // within a metre of IT and therefore up to two metres from each other —
+    // outside a 1.5m reach (D-567) about a third of the time. The old version
+    // waited for adjacency and swallowed the timeout with `.catch`, so when it
+    // never came the attack went out anyway and failed silently as "out of
+    // reach"; the report was "timed out waiting until the blow ends the work",
+    // which points at harvesting and not at where anybody is standing.
+    const closed = await closeOn(thug, miner.you!, 1);
+    expect(closed, 'the thug never got within reach of the miner').toBe(true);
 
+    // ⚠ Wait until the miner is genuinely STILL before starting work. A walk
+    // ends when the caller is close enough, and the server keeps moving for a
+    // tick or two after the stop reaches it — so the work began mid-glide and
+    // cancelled itself with "you moved" before the blow ever landed. The
+    // failure named harvesting and the cause was the walker.
+    await settle(miner);
     miner.send({ t: 'harvest', targetEntityId: node.id });
     await sleep(TICK * 4);
     // ONE blow. A loop of them interrupts on the first swing and then keeps
     // going until the miner is dead, which quietly breaks every test after
     // this one — the dead craft nothing.
     thug.send({ t: 'attack', targetEntityId: miner.you! });
-    await waitUntil(
-      () => miner.work.some((w) => w.interrupted === 'you were struck'),
-      'the blow ends the work',
-    );
+    try {
+      await waitUntil(
+        () => miner.work.some((w) => w.interrupted === 'you were struck'),
+        'the blow ends the work',
+      );
+    } catch (err) {
+      const a = miner.entities.get(miner.you!)!;
+      const b = thug.entities.get(thug.you!)!;
+      throw new Error(
+        `${String(err)} | gap=${Math.hypot(a.x - b.x, a.y - b.y).toFixed(2)}m` +
+          ` | thugErrors=${JSON.stringify(thug.errors.slice(-3))}` +
+          ` | attacks=${thug.attacks.length}` +
+          ` | work=${JSON.stringify(miner.work.slice(-3))}`,
+      );
+    }
     expect(miner.status?.ghost ?? false).toBe(false);
   });
 

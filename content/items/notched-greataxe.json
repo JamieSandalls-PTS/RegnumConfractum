@@ -1,0 +1,18 @@
+{
+  "id": "notched-greataxe",
+  "name": "Notched Greataxe",
+  "description": "Too much axe for one hand and not enough haft for two. It has been sharpened past its own shape.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 22,
+  "equip": {
+    "slot": "both-hands",
+    "damage": 4,
+    "weight": 7
+  },
+  "art": {
+    "pack": "vikings",
+    "asset": "wep-largeaxe-01",
+    "swaps": []
+  }
+}

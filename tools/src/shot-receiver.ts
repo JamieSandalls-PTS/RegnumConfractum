@@ -11,6 +11,9 @@ import path from 'node:path';
  */
 
 const outDir = process.argv[2] ?? path.join('docs', 'media', 'review');
+// Configurable, because 8123 collided with a dev game server once and the
+// two processes fought over the port in a way that looked like a dead client.
+const port = Number(process.env.SHOT_PORT ?? process.argv[3] ?? 8123);
 fs.mkdirSync(outDir, { recursive: true });
 
 http
@@ -31,6 +34,6 @@ http
       res.end();
     });
   })
-  .listen(8123, '127.0.0.1', () => {
-    console.log(`shot receiver on http://127.0.0.1:8123 -> ${outDir}`);
+  .listen(port, '127.0.0.1', () => {
+    console.log(`shot receiver on http://127.0.0.1:${port} -> ${outDir}`);
   });

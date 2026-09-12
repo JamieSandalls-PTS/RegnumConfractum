@@ -182,7 +182,21 @@ describe('the death loop (D-203)', () => {
 
   it('XP pays down the debt before it advances the character (D-203)', async () => {
     // The killer earned xp for the kill; their debt is zero so it advanced.
-    expect(killer.status?.xp).toBeGreaterThan(0);
+    //
+    // ⚠ WAITED for, not sampled. `status` is pushed when the number changes,
+    // so reading `killer.status` once races the award — the assertion passed
+    // whenever the message happened to have landed first and failed when it
+    // had not, which reads as "xp is broken" roughly one run in three.
+    try {
+      await waitUntil(() => (killer.status?.xp ?? 0) > 0, 'the kill pays xp');
+    } catch (err) {
+      const events = await store.listRecentEvents(60);
+      const deaths = events.filter((e) => e.type === 'died' || e.type === 'character_died');
+      throw new Error(
+        `${String(err)} | killerXp=${killer.status?.xp} ` +
+          `| deaths=${JSON.stringify(deaths.map((d) => d.data))}`,
+      );
+    }
     const record = await store.getCharacter(victimChar);
     expect(record!.deathDebt).toBe(100);
   });

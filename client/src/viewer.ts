@@ -190,12 +190,6 @@ $('in-light').addEventListener('change', () => {
   scene.applyLighting($<HTMLSelectElement>('in-light').value as LightingProfile);
 });
 scene.applyLighting('overcast');
-$('in-pixelscale').addEventListener('input', () => {
-  // Stakeholder control over the pixelation degree: internal resolution is
-  // stage-size / pixelScale, so 1 is near-native and 6 is very chunky.
-  scene.post.pixelScale = Number($<HTMLInputElement>('in-pixelscale').value);
-  scene.resize();
-});
 
 // Free-look: drag orbits (yaw AND pitch), shift-drag pans the focus point,
 // wheel zooms without the in-game clamp.
@@ -383,13 +377,10 @@ function stepViewer(dt: number): void {
   );
   scene.camera.lookAt(cam.target);
   const style = $<HTMLSelectElement>('in-style').value;
-  if (style === 'raw') {
-    scene.renderer.render(scene.scene, scene.camera);
-  } else if (style === 'split') {
-    scene.post.renderSplit(scene.renderer, scene.scene, scene.camera,
-      $<HTMLInputElement>('in-envpal').checked);
-  } else {
-    scene.render(); // uniform and palette-full (full-res via pixelScale 1)
+  {
+    // ⚠ One path (D-586). The style select used to choose between a palette
+    // quantiser, a split pass and a raw render; there is only a raw render now.
+    scene.render();
   }
 }
 
@@ -408,15 +399,7 @@ $('in-clothiter').addEventListener('input', () => {
   $('v-clothiter').textContent = String(v);
 });
 
-$('in-envscale').addEventListener('input', () => {
-  scene.post.envPixelScale = Number($<HTMLInputElement>('in-envscale').value);
-  scene.resize();
-});
 $('in-style').addEventListener('change', () => {
-  const style = $<HTMLSelectElement>('in-style').value;
-  scene.post.pixelScale = style === 'palette-full'
-    ? 1
-    : Number($<HTMLInputElement>('in-pixelscale').value);
   scene.resize();
 });
 
@@ -726,13 +709,13 @@ window.__viewer = {
   setAnim(mode) {
     $<HTMLSelectElement>('in-anim').value = mode;
   },
-  setPixel(on, scale) {
-    $<HTMLSelectElement>('in-style').value = on ? 'uniform' : 'raw';
-    if (scale) {
-      scene.post.pixelScale = scale;
-      scene.resize();
-    }
-  },
+  /**
+   * ⚠ A no-op since D-586 removed the quantiser, and KEPT rather than
+   * deleted: it is part of this page's verification hook, and a check calling
+   * a method that vanished fails with a type error somewhere unrelated. There
+   * is nothing left to set.
+   */
+  setPixel() {},
   view(azimuthRad, zoom, orbitHeight, targetY) {
     cam.az = azimuthRad;
     viewerZoom = zoom;

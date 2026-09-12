@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import type { LightingProfile } from '@rc/shared';
-import { PixelPost } from './palette';
 
 /**
  * Scene shell (D-401): orthographic camera at an isometric angle, physical
@@ -67,7 +66,6 @@ export class GameScene {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
   readonly camera: THREE.OrthographicCamera;
-  readonly post = new PixelPost();
   private key: THREE.DirectionalLight;
   private hemi: THREE.HemisphereLight;
   private rim: THREE.DirectionalLight;
@@ -131,12 +129,17 @@ export class GameScene {
     const h = this.stage.clientHeight || window.innerHeight;
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(w, h, false);
-    this.post.setSize(w, h);
     this.applyFrustum();
   }
 
   private applyFrustum(): void {
-    const aspect = this.post.internalWidth / this.post.internalHeight;
+    // ⚠ The REAL viewport's aspect (D-586). This used to be the quantiser's
+    // fixed 320x200 internal buffer, which was right while every frame was
+    // rendered into that buffer and upscaled — and is a stretched world now
+    // that the scene draws straight to the canvas.
+    const w = this.stage.clientWidth || window.innerWidth;
+    const h = this.stage.clientHeight || window.innerHeight;
+    const aspect = h > 0 ? w / h : 1.6;
     const f = FRUSTUM * this.zoom;
     this.camera.left = -f * aspect;
     this.camera.right = f * aspect;
@@ -150,6 +153,12 @@ export class GameScene {
     this.azimuthTarget += delta;
   }
 
+  /** The orbit's current angle. Sound placement needs it: panning is
+   * relative to where the camera is looking, not to the world axes. */
+  get azimuthAngle(): number {
+    return this.azimuth;
+  }
+
   /** Jump the orbit to an exact angle (viewer/automation use). */
   setAzimuth(angle: number): void {
     this.azimuth = angle;
@@ -159,7 +168,7 @@ export class GameScene {
   /** Jump zoom to an exact factor (viewer/automation use). Allows tighter
    * close-ups than the in-game wheel clamp — zoomBy() keeps the game limit. */
   setZoom(zoom: number): void {
-    this.zoom = Math.min(ZOOM_MAX, Math.max(0.02, zoom)); // near-macro for the editor
+    this.zoom = Math.min(this.zoomCeiling, Math.max(0.02, zoom)); // near-macro for the editor
     this.zoomTarget = this.zoom;
     this.applyFrustum();
   }
@@ -171,14 +180,44 @@ export class GameScene {
     this.orbitHeight = h;
   }
 
+  /**
+   * How far out the wheel may go. The GAME's limit is deliberate — pulling
+   * the camera back is scouting, and D-217's witness model assumes you see
+   * about as far as you are — but a map editor has no such stake and needs
+   * the whole area on screen. Only tools raise it.
+   */
+  private zoomCeiling = ZOOM_MAX;
+
+  raiseZoomCeiling(max: number): void {
+    this.zoomCeiling = Math.max(ZOOM_MAX, max);
+  }
+
   /** Multiplicative zoom (wheel): > 1 zooms out, < 1 zooms in. */
   zoomBy(factor: number): void {
-    this.zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, this.zoomTarget * factor));
+    this.zoomTarget = Math.min(this.zoomCeiling, Math.max(ZOOM_MIN, this.zoomTarget * factor));
   }
 
   /** Current azimuth — picking needs it to unproject cursor rays. */
   get cameraAzimuth(): number {
     return this.azimuth;
+  }
+
+  /**
+   * Where a world-XZ direction points ON SCREEN: +x right, +y up, in camera
+   * space (D-548). The compass needs it.
+   *
+   * Asking the camera rather than re-deriving it from the azimuth is the
+   * whole point. Working the angle out by hand means re-deciding which axis
+   * is screen-right and whether tile y runs north or south, and getting that
+   * subtly wrong yields a compass that is correct at one rotation and
+   * mirrored at another — a bug that survives every screenshot taken from the
+   * default angle.
+   */
+  screenDirection(dx: number, dz: number): { x: number; y: number } {
+    const v = new THREE.Vector3(dx, 0, dz);
+    this.camera.updateMatrixWorld();
+    v.transformDirection(this.camera.matrixWorldInverse);
+    return { x: v.x, y: v.y };
   }
 
   /** Eases azimuth/zoom toward their targets; call once per frame. */
@@ -203,18 +242,20 @@ export class GameScene {
     this.key.target.position.copy(point);
   }
 
-  render(): void {
-    this.post.render(this.renderer, this.scene, this.camera);
-  }
-
   /**
-   * Split render (D-404, stakeholder ruling reinstated 2026-08-18):
-   * characters go through the low-res palette quantiser while the world
-   * stays crisp. Requires characters on layer 1 (CharacterVisual
-   * .setRenderLayer) and lights/camera on all layers — see enableAllLayers.
+   * Draw the world (D-586).
+   *
+   * ⚠ Straight to the canvas at full resolution. This used to go through a
+   * palette quantiser — render small, dither, snap to 24 colours, upscale
+   * nearest-neighbour — which was the ratified art direction from D-401 and
+   * was removed at the stakeholder's request.
    */
-  renderSplit(envPalette: boolean): void {
-    this.post.renderSplit(this.renderer, this.scene, this.camera, envPalette);
+  render(): void {
+    // ⚠ The camera has to see EVERY layer. Characters and effects sit on
+    // layer 1 because the old split pass drew them separately, and a single
+    // pass with a default camera would render a world with nobody in it.
+    this.camera.layers.enableAll();
+    this.renderer.render(this.scene, this.camera);
   }
 
   /** Lights and camera must reach BOTH layers or the split pass goes dark.

@@ -1,0 +1,14 @@
+{
+  "id": "leather-gloves",
+  "name": "Leather Gloves",
+  "description": "Split at the knuckle of the right hand and stitched back by somebody in a hurry.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 6,
+  "equip": {
+    "slot": "hands",
+    "armour": 1,
+    "weight": 1,
+    "material": "leather"
+  }
+}

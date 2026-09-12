@@ -1,0 +1,9 @@
+{
+  "id": "dirt",
+  "name": "Dirt",
+  "repeat": 0.5,
+  "tint": "#7a6a4f",
+  "walkable": true,
+  "notes": "Worn earth: a yard, a track, a threshold.",
+  "texture": "dirt-01.png"
+}

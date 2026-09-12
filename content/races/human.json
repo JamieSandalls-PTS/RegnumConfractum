@@ -1,0 +1,197 @@
+{
+  "id": "human",
+  "name": "Human",
+  "description": "The most common race on the continent.",
+  "pack": "modular-fantasy-hero",
+  "sexes": [
+    "male",
+    "female"
+  ],
+  "height": {
+    "male": [
+      1.7,
+      1.85
+    ],
+    "female": [
+      1.6,
+      1.75
+    ]
+  },
+  "skinTones": [
+    {
+      "id": "pale",
+      "name": "Pale",
+      "rgb": "#ffccae"
+    }
+  ],
+  "markings": [],
+  "parts": {
+    "head": [
+      "SK_Chr_Head_Male_00",
+      "SK_Chr_Head_Male_01",
+      "SK_Chr_Head_Male_02",
+      "SK_Chr_Head_Male_03",
+      "SK_Chr_Head_Male_08",
+      "SK_Chr_Head_Male_07",
+      "SK_Chr_Head_Male_06",
+      "SK_Chr_Head_Male_04",
+      "SK_Chr_Head_Male_05",
+      "SK_Chr_Head_Female_00",
+      "SK_Chr_Head_Female_05",
+      "SK_Chr_Head_Female_01",
+      "SK_Chr_Head_Female_06",
+      "SK_Chr_Head_Female_07",
+      "SK_Chr_Head_Female_02",
+      "SK_Chr_Head_Female_03",
+      "SK_Chr_Head_Female_08",
+      "SK_Chr_Head_Female_04",
+      "SK_Chr_Head_Male_09",
+      "SK_Chr_Head_Male_10",
+      "SK_Chr_Head_Male_11",
+      "SK_Chr_Head_Male_12",
+      "SK_Chr_Head_Male_16",
+      "SK_Chr_Head_Male_15",
+      "SK_Chr_Head_Male_19",
+      "SK_Chr_Head_Male_20",
+      "SK_Chr_Head_Male_14",
+      "SK_Chr_Head_Male_18",
+      "SK_Chr_Head_Male_22",
+      "SK_Chr_Head_Male_21",
+      "SK_Chr_Head_Male_17",
+      "SK_Chr_Head_Male_13",
+      "SK_Chr_Head_Female_10",
+      "SK_Chr_Head_Female_09",
+      "SK_Chr_Head_Female_13",
+      "SK_Chr_Head_Female_12",
+      "SK_Chr_Head_Female_11",
+      "SK_Chr_Head_Female_15",
+      "SK_Chr_Head_Female_16",
+      "SK_Chr_Head_Female_17",
+      "SK_Chr_Head_Female_21",
+      "SK_Chr_Head_Female_20",
+      "SK_Chr_Head_Female_19",
+      "SK_Chr_Head_Female_22",
+      "SK_Chr_Head_Female_18",
+      "SK_Chr_Head_Female_14"
+    ],
+    "hair": [
+      "SK_Chr_Hair_01",
+      "SK_Chr_Hair_02",
+      "SK_Chr_Hair_03",
+      "SK_Chr_Hair_04",
+      "SK_Chr_Hair_05",
+      "SK_Chr_Hair_06",
+      "SK_Chr_Hair_07",
+      "SK_Chr_Hair_08",
+      "SK_Chr_Hair_09",
+      "SK_Chr_Hair_10",
+      "SK_Chr_Hair_11",
+      "SK_Chr_Hair_12",
+      "SK_Chr_Hair_13",
+      "SK_Chr_Hair_14",
+      "SK_Chr_Hair_16",
+      "SK_Chr_Hair_15",
+      "SK_Chr_Hair_17",
+      "SK_Chr_Hair_18",
+      "SK_Chr_Hair_19",
+      "SK_Chr_Hair_20",
+      "SK_Chr_Hair_21",
+      "SK_Chr_Hair_22",
+      "SK_Chr_Hair_23",
+      "SK_Chr_Hair_24",
+      "SK_Chr_Hair_25",
+      "SK_Chr_Hair_26",
+      "SK_Chr_Hair_27",
+      "SK_Chr_Hair_28",
+      "SK_Chr_Hair_29",
+      "SK_Chr_Hair_30",
+      "SK_Chr_Hair_31",
+      "SK_Chr_Hair_32",
+      "SK_Chr_Hair_33",
+      "SK_Chr_Hair_34",
+      "SK_Chr_Hair_35",
+      "SK_Chr_Hair_36",
+      "SK_Chr_Hair_37",
+      "SK_Chr_Hair_38"
+    ],
+    "eyebrows": [
+      "SK_Chr_Eyebrow_Male_01",
+      "SK_Chr_Eyebrow_Male_02",
+      "SK_Chr_Eyebrow_Male_03",
+      "SK_Chr_Eyebrow_Male_04",
+      "SK_Chr_Eyebrow_Male_05",
+      "SK_Chr_Eyebrow_Male_10",
+      "SK_Chr_Eyebrow_Male_09",
+      "SK_Chr_Eyebrow_Male_08",
+      "SK_Chr_Eyebrow_Male_07",
+      "SK_Chr_Eyebrow_Male_06",
+      "SK_Chr_Eyebrow_Female_01",
+      "SK_Chr_Eyebrow_Female_02",
+      "SK_Chr_Eyebrow_Female_03",
+      "SK_Chr_Eyebrow_Female_04",
+      "SK_Chr_Eyebrow_Female_05",
+      "SK_Chr_Eyebrow_Female_06",
+      "SK_Chr_Eyebrow_Female_07"
+    ],
+    "facialHair": [
+      "SK_Chr_FacialHair_Male_01",
+      "SK_Chr_FacialHair_Male_05",
+      "SK_Chr_FacialHair_Male_02",
+      "SK_Chr_FacialHair_Male_06",
+      "SK_Chr_FacialHair_Male_07",
+      "SK_Chr_FacialHair_Male_03",
+      "SK_Chr_FacialHair_Male_04",
+      "SK_Chr_FacialHair_Male_08",
+      "SK_Chr_FacialHair_Male_13",
+      "SK_Chr_FacialHair_Male_09",
+      "SK_Chr_FacialHair_Male_17",
+      "SK_Chr_FacialHair_Male_16",
+      "SK_Chr_FacialHair_Male_12",
+      "SK_Chr_FacialHair_Male_11",
+      "SK_Chr_FacialHair_Male_15",
+      "SK_Chr_FacialHair_Male_14",
+      "SK_Chr_FacialHair_Male_18",
+      "SK_Chr_FacialHair_Male_10"
+    ],
+    "hips": [
+      "SK_Chr_Hips_Male_00",
+      "SK_Chr_Hips_Female_00"
+    ],
+    "armUpperR": [
+      "SK_Chr_ArmUpperRight_Male_00",
+      "SK_Chr_ArmUpperRight_Female_00"
+    ],
+    "armLowerR": [
+      "SK_Chr_ArmLowerRight_Male_00",
+      "SK_Chr_ArmLowerRight_Female_00"
+    ],
+    "handR": [
+      "SK_Chr_HandRight_Male_00",
+      "SK_Chr_HandRight_Female_00"
+    ],
+    "handL": [
+      "SK_Chr_HandLeft_Male_00",
+      "SK_Chr_HandLeft_Female_00"
+    ],
+    "legR": [
+      "SK_Chr_LegRight_Male_00",
+      "SK_Chr_LegRight_Female_00"
+    ],
+    "armUpperL": [
+      "SK_Chr_ArmUpperLeft_Male_00",
+      "SK_Chr_ArmUpperLeft_Female_00"
+    ],
+    "armLowerL": [
+      "SK_Chr_ArmLowerLeft_Male_00",
+      "SK_Chr_ArmLowerLeft_Female_00"
+    ],
+    "legL": [
+      "SK_Chr_LegLeft_Male_00",
+      "SK_Chr_LegLeft_Female_00"
+    ],
+    "torso": [
+      "SK_Chr_Torso_Female_00"
+    ]
+  },
+  "tags": []
+}

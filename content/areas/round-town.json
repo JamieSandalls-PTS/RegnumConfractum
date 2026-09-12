@@ -1,12 +1,32 @@
 {
   "id": "round-town",
   "name": "Ashfold",
-  "width": 100,
-  "height": 100,
+  "width": 50,
+  "height": 50,
   "legend": {
     "#": {
       "walkable": false,
       "kind": "wall"
+    },
+    "W": {
+      "walkable": false,
+      "kind": "wall-timber"
+    },
+    "P": {
+      "walkable": false,
+      "kind": "wall-plaster"
+    },
+    "B": {
+      "walkable": false,
+      "kind": "wall-brick"
+    },
+    "p": {
+      "walkable": false,
+      "kind": "palisade"
+    },
+    "F": {
+      "walkable": false,
+      "kind": "wall-forest"
     },
     ".": {
       "walkable": true,
@@ -34,192 +54,5765 @@
     }
   },
   "tiles": [
-    "#################################################,,#################################################",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#...........##################........................................#################............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#########.########........................................########.########............#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    ",................................................~~................................................,",
-    ",................................................~~................................................,",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#...........#########.########........................................########.########............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........#................#........................................#...............#............#",
-    "#...........##################........................................#################............#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#..................................................................................................#",
-    "#################################################,,#################################################"
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggggggg.ggggggggggggg,,gggggggggggggg.ggggggggg",
+    "gggggggggg,ggggggggggggg,,gggggggggggggg,ggggggggg",
+    "gggggggggg,gggg,,,,,,,,,,,,,,,,,,,,gggg,,ggggggggg",
+    "ggggggggggggggg,,,,,,,,,,,,,,,,,,,,ggggggggggggggg",
+    "ggggggggggggggg,,gggggggg,ggggggg,,ggggggggggggggg",
+    "ggggggggggggggg,,gggggggg.ggggggg,,ggggggggggggggg",
+    "ggggggggggggggg,,ggg...........gg,,ggggggggggggggg",
+    "ggggggggggggggg,,ggg...........gg,,ggggggggggggggg",
+    "ggggggggggggggg,,ggg...........gg,,ggggggggggggggg",
+    "ggggggggggggggg,,ggg...........gg,,ggggggggggggggg",
+    "ggggggggggggggg,,ggg...........gg,,ggggggggggggggg",
+    "ggggggggggggggg,,ggg...........gg,,ggggggggggggggg",
+    ",,,,,,,,,,,,,,,,,ggg...........gg,,,,,,,,,,,,,,,,,",
+    ",,,,,,,,,,,,,,,,,ggg...........gg,,,,,,,,,,,,,,,,,",
+    "ggggggggggggggg,,ggg...........gg,,ggggggggggggggg",
+    "ggggggggggggggg,,gggggggg.ggggggg,,ggggggggggggggg",
+    "ggggggggggggggg,,................,,ggggggggggggggg",
+    "ggggggggggggggg,,................,,ggggggggggggggg",
+    "ggggggggggggggg,,................,,ggggggggggggggg",
+    "ggggggggggggggg,,................,,ggggggggggggggg",
+    "ggggggggggggggg,,.......~~.......,,ggggggggggggggg",
+    "ggggggggggggggg,,.......~~.......,,ggggggggggggggg",
+    "ggggggggggggggg,,................,,ggggggggggggggg",
+    "ggggggggggggggg,,................,,ggggggggggggggg",
+    "ggggggggggggggg,,,,,,,,,,,,,,,,,,,,ggggggggggggggg",
+    "gggggggggg,gggg,,,,,,,,,,,,,,,,,,,,gggg,,ggggggggg",
+    "gggggggggg,ggggggggggggg,,gggggggggggggg,ggggggggg",
+    "gggggggggg.ggggggggggggg,,gggggggggggggg.ggggggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggg........gggggggggg,,gggggggggg........gggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg,,gggggggggggggggggggggggg"
   ],
   "spawn": {
-    "x": 50,
-    "y": 53
+    "x": 25,
+    "y": 25
   },
   "lighting": "overcast",
   "zone": "settled",
   "outdoor": true,
   "stations": [
     {
-      "x": 78,
-      "y": 18,
+      "x": 10,
+      "y": 8,
       "type": "workshop"
     },
     {
-      "x": 20,
-      "y": 81,
+      "x": 40,
+      "y": 8,
       "type": "storehouse"
     },
     {
-      "x": 78,
-      "y": 81,
+      "x": 10,
+      "y": 43,
       "type": "infirmary"
     },
     {
-      "x": 50,
-      "y": 52,
+      "x": 24,
+      "y": 34,
       "type": "well"
     }
   ],
+  "roofs": [],
   "transitions": [
     {
-      "x": 50,
+      "x": 25,
       "y": 0,
       "toArea": "round-farm",
       "toX": 50,
       "toY": 98
     },
     {
-      "x": 49,
+      "x": 24,
       "y": 0,
       "toArea": "round-farm",
       "toX": 49,
       "toY": 98
     },
     {
-      "x": 99,
-      "y": 50,
+      "x": 49,
+      "y": 25,
       "toArea": "round-mine",
       "toX": 1,
       "toY": 50
     },
     {
-      "x": 99,
-      "y": 49,
+      "x": 49,
+      "y": 24,
       "toArea": "round-mine",
       "toX": 1,
       "toY": 49
     },
     {
       "x": 0,
-      "y": 50,
+      "y": 25,
       "toArea": "round-wood",
       "toX": 98,
       "toY": 50
     },
     {
       "x": 0,
-      "y": 49,
+      "y": 24,
       "toArea": "round-wood",
       "toX": 98,
       "toY": 49
     },
     {
-      "x": 50,
-      "y": 99,
+      "x": 25,
+      "y": 49,
       "toArea": "round-south",
       "toX": 50,
       "toY": 1
     },
     {
-      "x": 49,
-      "y": 99,
+      "x": 24,
+      "y": 49,
       "toArea": "round-south",
       "toX": 49,
       "toY": 1
     }
+  ],
+  "ambience": "ambience-town",
+  "assets": [
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 2.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 2.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 2.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 2.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 7.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 7.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 7.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 7.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 12.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 12.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 17.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 17.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 17.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 17.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 19.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 19.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 19.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 19.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 29.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 29.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 29.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 29.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 32.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 32.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 32.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 32.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 37.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 37.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 37.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 37.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 42.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 42.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 42.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 42.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 47.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 47.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 47.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 47.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-wall-gate-01",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": -2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        },
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-bld-castle-wall-gate-01",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": -2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        },
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-bld-castle-wall-gate-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": -2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        },
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-bld-castle-wall-gate-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": -2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        },
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 2.0,
+            "y": 0,
+            "w": 1.0,
+            "h": 2.0,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 4.0,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-bld-castle-tower-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-tower-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 1.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-tower-01",
+      "pack": "knights",
+      "x": 1.0,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-castle-tower-01",
+      "pack": "knights",
+      "x": 48.0,
+      "y": 48.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 18.5,
+      "y": 18.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 18.5,
+      "y": 21.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 18.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 18.5,
+      "y": 27.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 18.5,
+      "y": 30.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 21.5,
+      "y": 18.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 21.5,
+      "y": 21.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 21.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 21.5,
+      "y": 27.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 21.5,
+      "y": 30.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 18.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 21.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 27.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 30.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 27.5,
+      "y": 18.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 27.5,
+      "y": 21.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 27.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 27.5,
+      "y": 27.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 27.5,
+      "y": 30.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 30.5,
+      "y": 18.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 30.5,
+      "y": 21.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 30.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-01",
+      "pack": "knights",
+      "x": 30.5,
+      "y": 27.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 30.5,
+      "y": 30.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 3.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 3.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 6.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 6.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 9.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 9.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 12.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 15.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 15.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 33.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 33.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 36.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 36.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 39.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 39.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 42.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 42.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 24.5,
+      "y": 45.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-path-cobble-02",
+      "pack": "knights",
+      "x": 45.5,
+      "y": 24.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-house-room-03",
+      "pack": "knights",
+      "x": 25.0,
+      "y": 15.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 6,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-house-roomtall-02",
+      "pack": "knights",
+      "x": 21.0,
+      "y": 15.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-house-chimney-01",
+      "pack": "knights",
+      "x": 28.0,
+      "y": 14.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-shopsign-01",
+      "pack": "knights",
+      "x": 25.0,
+      "y": 18.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-lampost-01",
+      "pack": "knights",
+      "x": 22.5,
+      "y": 18.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-lampost-01",
+      "pack": "knights",
+      "x": 27.5,
+      "y": 18.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-house-room-01",
+      "pack": "knights",
+      "x": 10.0,
+      "y": 4.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 6,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-anvil-stump-01",
+      "pack": "vikings",
+      "x": 11.5,
+      "y": 9.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-house-room-05",
+      "pack": "knights",
+      "x": 40.0,
+      "y": 4.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 6,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-cart-01",
+      "pack": "knights",
+      "x": 38.0,
+      "y": 9.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-house-room-02",
+      "pack": "knights",
+      "x": 10.0,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 6,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-house-room-06",
+      "pack": "knights",
+      "x": 40.0,
+      "y": 43.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 6,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-banner-01",
+      "pack": "knights",
+      "x": 37.5,
+      "y": 41.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-brazier-01",
+      "pack": "knights",
+      "x": 42.5,
+      "y": 41.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-stall-cover-01",
+      "pack": "vikings",
+      "x": 19.0,
+      "y": 33.0,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-bld-stall-cover-01",
+      "pack": "vikings",
+      "x": 31.0,
+      "y": 33.0,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-crate-base-01",
+      "pack": "vikings",
+      "x": 18.0,
+      "y": 34.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-crate-01",
+      "pack": "knights",
+      "x": 31.0,
+      "y": 34.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 32.5,
+      "y": 34.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-brazier-01",
+      "pack": "knights",
+      "x": 21.5,
+      "y": 21.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-brazier-01",
+      "pack": "knights",
+      "x": 28.5,
+      "y": 21.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-lampost-01",
+      "pack": "knights",
+      "x": 21.0,
+      "y": 34.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-lampost-01",
+      "pack": "knights",
+      "x": 28.0,
+      "y": 34.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 8.0,
+      "y": 13.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 11.0,
+      "y": 16.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 7.0,
+      "y": 18.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 42.0,
+      "y": 13.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 39.0,
+      "y": 16.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 43.0,
+      "y": 18.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 8.0,
+      "y": 31.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 12.0,
+      "y": 34.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 7.0,
+      "y": 37.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 42.0,
+      "y": 31.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 38.0,
+      "y": 34.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 43.0,
+      "y": 37.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-table-01",
+      "pack": "vikings",
+      "x": 18.0,
+      "y": 32.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-crate-open-01",
+      "pack": "vikings",
+      "x": 17.5,
+      "y": 28.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-crate-base-01",
+      "pack": "vikings",
+      "x": 17.5,
+      "y": 32.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-clay-pot-01",
+      "pack": "vikings",
+      "x": 20.0,
+      "y": 32.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-clay-pot-02",
+      "pack": "vikings",
+      "x": 30.0,
+      "y": 32.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fish-hanging-01",
+      "pack": "vikings",
+      "x": 18.0,
+      "y": 28.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fur-roll-01",
+      "pack": "vikings",
+      "x": 17.5,
+      "y": 28.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-bench-01",
+      "pack": "vikings",
+      "x": 20.5,
+      "y": 32.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-bench-01",
+      "pack": "vikings",
+      "x": 28.5,
+      "y": 32.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-seat-01",
+      "pack": "vikings",
+      "x": 19.0,
+      "y": 34.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 19.0,
+      "y": 22.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-weathervane-01",
+      "pack": "knights",
+      "x": 30.5,
+      "y": 12.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 22.0,
+      "y": 20.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 28.0,
+      "y": 20.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-logs-01",
+      "pack": "vikings",
+      "x": 13.5,
+      "y": 7.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-log-01",
+      "pack": "vikings",
+      "x": 13.0,
+      "y": 12.0,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-cartwheel-01",
+      "pack": "knights",
+      "x": 7.0,
+      "y": 12.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-rack-01",
+      "pack": "vikings",
+      "x": 8.0,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-anvil-01",
+      "pack": "vikings",
+      "x": 8.0,
+      "y": 11.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-crate-base-01",
+      "pack": "vikings",
+      "x": 6.0,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-carthay-01",
+      "pack": "knights",
+      "x": 14.5,
+      "y": 8.0,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 3,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-crate-open-01",
+      "pack": "vikings",
+      "x": 36.0,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-crate-base-01",
+      "pack": "vikings",
+      "x": 37.0,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-barrel-half-01",
+      "pack": "vikings",
+      "x": 38.0,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-barrel-half-02",
+      "pack": "vikings",
+      "x": 42.5,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-wheel-barrow-01",
+      "pack": "vikings",
+      "x": 44.0,
+      "y": 9.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-net-01",
+      "pack": "vikings",
+      "x": 35.0,
+      "y": 9.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-chest-01",
+      "pack": "vikings",
+      "x": 43.5,
+      "y": 12.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-clay-pot-01",
+      "pack": "vikings",
+      "x": 7.0,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-clay-pot-02",
+      "pack": "vikings",
+      "x": 8.0,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-rack-01",
+      "pack": "vikings",
+      "x": 12.0,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-bench-01",
+      "pack": "vikings",
+      "x": 6.5,
+      "y": 46.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-table-01",
+      "pack": "vikings",
+      "x": 13.0,
+      "y": 46.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-rack-01",
+      "pack": "vikings",
+      "x": 36.0,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-shield-decor-01",
+      "pack": "vikings",
+      "x": 38.0,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-spikes-01",
+      "pack": "vikings",
+      "x": 44.0,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-banner-02",
+      "pack": "knights",
+      "x": 36.5,
+      "y": 46.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-flag-01",
+      "pack": "vikings",
+      "x": 43.5,
+      "y": 39.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 37.0,
+      "y": 46.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 43.0,
+      "y": 46.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 22.5,
+      "y": 3.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 26.5,
+      "y": 3.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 22.5,
+      "y": 46.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 26.5,
+      "y": 46.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 3.0,
+      "y": 22.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-torchstick-01",
+      "pack": "vikings",
+      "x": 46.0,
+      "y": 22.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-banner-03",
+      "pack": "knights",
+      "x": 21.0,
+      "y": 1.6,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-banner-03",
+      "pack": "knights",
+      "x": 28.0,
+      "y": 1.6,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-banner-03",
+      "pack": "knights",
+      "x": 21.0,
+      "y": 47.4,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-banner-03",
+      "pack": "knights",
+      "x": 28.0,
+      "y": 47.4,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 17.0,
+      "y": 8.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 19.0,
+      "y": 8.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 21.0,
+      "y": 8.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 30.0,
+      "y": 41.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 32.0,
+      "y": 41.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 34.0,
+      "y": 41.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-prop-fence-wood-01",
+      "pack": "vikings",
+      "x": 36.0,
+      "y": 41.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 12.0,
+      "y": 19.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.05,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-02",
+      "pack": "knights",
+      "x": 37.5,
+      "y": 19.0,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.05,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-03",
+      "pack": "knights",
+      "x": 12.0,
+      "y": 30.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.05,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-tree-01",
+      "pack": "knights",
+      "x": 37.5,
+      "y": 30.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.05,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-rock-01",
+      "pack": "vikings",
+      "x": 16.0,
+      "y": 8.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-rock-01",
+      "pack": "vikings",
+      "x": 33.5,
+      "y": 8.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-rock-02",
+      "pack": "vikings",
+      "x": 16.0,
+      "y": 41.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-rock-01",
+      "pack": "vikings",
+      "x": 19.5,
+      "y": 44.0,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-rock-02",
+      "pack": "vikings",
+      "x": 30.0,
+      "y": 5.5,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": false
+        }
+      ],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 14.502427751920857,
+      "y": 8.506637625635943,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 29.682227071018218,
+      "y": 1.664136919697462,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 22.347352221770343,
+      "y": 5.536502397135251,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 2.792033513933254,
+      "y": 20.286723858766994,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 10.261674108726764,
+      "y": 19.68598627554938,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 42.36919757804505,
+      "y": 19.970738021464484,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 47.44854993967018,
+      "y": 1.752455245530001,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 6.454722494883302,
+      "y": 36.54019312779335,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 21.0192778772593,
+      "y": 2.925947023804778,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 40.143607469377876,
+      "y": 1.7075864366932638,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 20.831634582155473,
+      "y": 9.028519484764725,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 7.631737648419705,
+      "y": 19.960687606020905,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 37.387644705243936,
+      "y": 21.488007664025325,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 9.877925315061365,
+      "y": 19.59736238976642,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 12.406627781985549,
+      "y": 16.725120886583177,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 4.732251807242933,
+      "y": 21.576341845765025,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 38.914286021496146,
+      "y": 34.02769996018392,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 15.964394137400134,
+      "y": 4.736079347400559,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 9.922758427559781,
+      "y": 31.39366762520808,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 16.576607551093343,
+      "y": 11.337426158235989,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 9.26693260729234,
+      "y": 38.48394786190685,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 23.088582516192652,
+      "y": 11.578758393438175,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 28.399020439707655,
+      "y": 41.6569523901031,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 14.703862501000595,
+      "y": 43.77557903551181,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 37.46017030182931,
+      "y": 31.744411992654722,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 44.115176334389666,
+      "y": 18.454249392522,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 46.538253514873524,
+      "y": 16.711949421591502,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 45.13872509904259,
+      "y": 42.47583527129717,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 29.54571217114381,
+      "y": 13.002956894479258,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 8.295153426522118,
+      "y": 34.743798228491,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 35.0874124775798,
+      "y": 40.382287786017095,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 12.436568930174428,
+      "y": 12.43507607744646,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 30.566936536016506,
+      "y": 46.598471949130186,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 21.231461617718374,
+      "y": 8.051764160033676,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 28.058853545520904,
+      "y": 39.98814895374778,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 40.066593217630334,
+      "y": 15.4665269096001,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 5.259980481313901,
+      "y": 29.072788591162798,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 35.4059060754024,
+      "y": 8.812136867848551,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 23.2959481093861,
+      "y": 46.275448187236535,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 6.91346847342352,
+      "y": 5.136598588348032,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 7.122846440266891,
+      "y": 47.459378512165934,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 44.9866433539039,
+      "y": 11.521992042187525,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 34.66348066611436,
+      "y": 16.114821990295713,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 10.322838536166337,
+      "y": 32.19065850875351,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 31.035267650881327,
+      "y": 38.022910928298586,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 2.766312084140995,
+      "y": 6.273540782037183,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 39.4246882088946,
+      "y": 30.470573486762554,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 46.65148703968757,
+      "y": 26.14820745704172,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 7.20063837027759,
+      "y": 45.54525508662056,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 27.72008212612082,
+      "y": 38.36306503627091,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 2.072976046461971,
+      "y": 46.91765751953975,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 19.796372393796243,
+      "y": 7.89734046315421,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 17.166424514667476,
+      "y": 37.97476179115357,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 6.408178701336817,
+      "y": 22.064703689643625,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 4.505697616987067,
+      "y": 36.11924783403861,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 1.8308293574392736,
+      "y": 20.885521122109346,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 13.758654601394564,
+      "y": 42.03926059228689,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 4.968913397999032,
+      "y": 34.08265043674705,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 47.267045641733894,
+      "y": 40.96582973527926,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 8.191519638872641,
+      "y": 38.19508417280992,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 40.16665535345408,
+      "y": 30.079717996832176,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 47.408455854561595,
+      "y": 17.65429335491259,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 44.654164794337,
+      "y": 36.459995107972205,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 29.830023747190832,
+      "y": 6.6954244284325375,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 34.77749494404087,
+      "y": 16.143997255387887,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 34.682018076646486,
+      "y": 31.382023870055697,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-02",
+      "pack": "vikings",
+      "x": 37.65754007008831,
+      "y": 36.7593897112882,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 42.63890576782801,
+      "y": 33.06961898681567,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 44.7210624404347,
+      "y": 21.953283032372994,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 32.47154734103968,
+      "y": 6.0712631516314195,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 13.963421816787706,
+      "y": 17.80706014887404,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grass-01",
+      "pack": "vikings",
+      "x": 4.808279712684524,
+      "y": 45.20045278648,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-grasspatch-01",
+      "pack": "vikings",
+      "x": 41.937171362369526,
+      "y": 4.002160369768988,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": false
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 4.232241199064622,
+      "y": 32.69612956508057,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 17.482469934111478,
+      "y": 44.63584779313368,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 9.849482719550018,
+      "y": 45.87208796965072,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 27.66195758667699,
+      "y": 46.01642201797466,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 28.254265626140615,
+      "y": 10.397620489808727,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 2.320804030253627,
+      "y": 2.935973385600739,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 8.23506069170097,
+      "y": 34.15675398859051,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 17.33363983849997,
+      "y": 44.83613298260899,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 10.036484281115895,
+      "y": 25.750020549507266,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 26.67900433367279,
+      "y": 42.7666412641491,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 37.989717553313646,
+      "y": 31.91558900241559,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 41.78183731688972,
+      "y": 11.905819863749109,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 26.92147557290306,
+      "y": 46.87818577214664,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 29.268184469410745,
+      "y": 9.272171938069848,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 34.45505106040749,
+      "y": 39.444321810861126,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 46.73211318422181,
+      "y": 42.07021556230372,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 27.026880499480438,
+      "y": 10.800199256407856,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 38.33938191247128,
+      "y": 16.21784478062967,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 40.18879720842719,
+      "y": 35.95160620357287,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 40.639598759877465,
+      "y": 21.173112746681927,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 4.233165233826255,
+      "y": 46.265031602216574,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 16.959279903396066,
+      "y": 39.4890131869229,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 6.910826998347535,
+      "y": 19.450052844703198,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 2.7552746327276423,
+      "y": 44.1056327158453,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 16.8258419405374,
+      "y": 17.96277052739625,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 36.5081315312971,
+      "y": 39.28478895729711,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 4.892774574290071,
+      "y": 6.838645960116379,
+      "z": 0.0,
+      "rotation": 0.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 3.3356884277644063,
+      "y": 44.88326328071641,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 5.239976902900906,
+      "y": 44.31348226812911,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 43.63324338947876,
+      "y": 37.60409790414276,
+      "z": 0.0,
+      "rotation": 270.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 7.096506341064524,
+      "y": 46.65284266493324,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-flower-01",
+      "pack": "knights",
+      "x": 34.10531792451604,
+      "y": 2.3297550309087516,
+      "z": 0.0,
+      "rotation": 180.0,
+      "scale": 1.0,
+      "collision": [],
+      "overrideCollision": true
+    },
+    {
+      "asset": "sm-env-statue-03",
+      "pack": "dungeon-pack",
+      "x": 25.0,
+      "y": 21.0,
+      "z": 0.0,
+      "rotation": 90.0,
+      "scale": 1.0,
+      "collision": [
+        {
+          "shape": {
+            "kind": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 1,
+            "rotation": 0
+          },
+          "base": 0,
+          "top": 3,
+          "walkable": false,
+          "opaque": true
+        }
+      ],
+      "overrideCollision": false
+    }
+  ],
+  "live": true,
+  "groundPaint": [
+    "round-town-0.png",
+    "round-town-1.png"
+  ],
+  "groundMaterials": [
+    "grass",
+    "dirt",
+    "cobble",
+    "boards",
+    "mud",
+    "leafmould"
   ]
 }

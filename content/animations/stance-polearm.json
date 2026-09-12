@@ -1,0 +1,11 @@
+{
+  "id": "stance-polearm",
+  "name": "Polearm — carried",
+  "layer": "stance",
+  "applies": "polearm",
+  "clips": {
+    "draw": "polearm-draw",
+    "sheathe": "polearm-sheathe"
+  },
+  "note": "How the weapon is carried when it is not up, and the draw and sheathe that move between the two. Everything else comes from the rig set."
+}

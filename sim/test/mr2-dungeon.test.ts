@@ -5,6 +5,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { closeOn } from '../src/walk';
 
 /**
  * The dungeon's contents (D-537).
@@ -158,20 +159,19 @@ async function killNearestCrawler(bot: BotClient): Promise<boolean> {
   // CLOSE ON IT rather than waiting for it to arrive: a test that depends on
   // how fast the machine runs the hunt is measuring the machine, and the
   // first version passed alone and timed out under full-suite load.
+  //
+  // The approach is by A* rather than by pressing a direction (D-542): the
+  // floors are full of stalagmites now, and a greedy walker spends the whole
+  // fight wedged against one.
   for (let i = 0; i < 220 && bot.entities.has(target.id); i++) {
     const now = bot.entities.get(target.id)!;
     const self = bot.entities.get(bot.you!)!;
-    const dx = now.x - self.x;
-    const dy = now.y - self.y;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) <= 1) {
+    if (Math.max(Math.abs(now.x - self.x), Math.abs(now.y - self.y)) <= 1) {
       bot.send({ t: 'attack', targetEntityId: target.id });
-    } else {
-      const dir = dy < 0 ? (dx > 0 ? 'ne' : dx < 0 ? 'nw' : 'n')
-        : dy > 0 ? (dx > 0 ? 'se' : dx < 0 ? 'sw' : 's')
-        : dx > 0 ? 'e' : 'w';
-      bot.send({ t: 'move', dir });
+      await sleep(TICK * 6);
+      continue;
     }
-    await sleep(TICK * 6);
+    if (!(await closeOn(bot, target.id, 1, 2_000))) break;
   }
   return !bot.entities.has(target.id);
 }
@@ -182,10 +182,20 @@ describe('killing them pays', () => {
 
     // Several kills, because loot is a CHANCE (half, for a crawler) and one
     // kill proving nothing dropped would prove nothing at all.
+    //
+    // ⚠ The haul now arrives on the BODY rather than in the pack (D-554,
+    // superseding D-537's "straight to the killer"). So the loop kills, then
+    // loots what it killed — which is the loop a player actually performs.
     let killed = 0;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       if (diver.status?.ghost) break;
       if (await killNearestCrawler(diver)) killed++;
+      // Empty every body within reach before deciding nothing dropped.
+      for (const e of [...diver.entities.values()]) {
+        if (e.kind !== 'corpse' || !e.lootable) continue;
+        diver.send({ t: 'loot', targetEntityId: e.id });
+        await sleep(120);
+      }
       if (diver.inventory.some((it) => it.templateId === 'iron-ore')) break;
       await sleep(200);
     }

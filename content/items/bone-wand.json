@@ -1,0 +1,19 @@
+{
+  "id": "bone-wand",
+  "name": "Bone Wand",
+  "description": "A finger of something that walked upright. It is not yours and it never stops being somebody\u2019s.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 19,
+  "equip": {
+    "slot": "main-hand",
+    "damage": 1,
+    "mana": 5,
+    "weight": 1
+  },
+  "art": {
+    "pack": "dungeon-pack",
+    "asset": "wep-goblin-staff-01",
+    "swaps": []
+  }
+}

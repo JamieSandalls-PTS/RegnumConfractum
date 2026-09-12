@@ -1,0 +1,18 @@
+{
+  "id": "surgeons-knife",
+  "name": "Surgeon\u2019s Knife",
+  "description": "Short, thin, and honed for one clean cut. It does the same work either way round.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 12,
+  "equip": {
+    "slot": "main-hand",
+    "damage": 1,
+    "weight": 1
+  },
+  "art": {
+    "pack": "modular-fantasy-hero",
+    "asset": "wep-dagger-01",
+    "swaps": []
+  }
+}

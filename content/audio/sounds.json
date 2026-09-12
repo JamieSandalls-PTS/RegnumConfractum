@@ -1,0 +1,115 @@
+[
+  {
+    "id": "ambience-town",
+    "kind": "ambience",
+    "files": ["areas/town.ogg"],
+    "description": "The settled centre: voices, work, animals. The sound of being where other people are."
+  },
+  {
+    "id": "ambience-farm",
+    "kind": "ambience",
+    "files": ["areas/farm.mp3"],
+    "description": "Open ground north of the town, where the grain is."
+  },
+  {
+    "id": "ambience-forest",
+    "kind": "ambience",
+    "files": ["areas/forest.ogg"],
+    "description": "The wood, and any open wilderness that is not farm or mine."
+  },
+  {
+    "id": "ambience-mine",
+    "kind": "ambience",
+    "files": ["areas/mine.ogg"],
+    "description": "Worked stone, still under the sky."
+  },
+  {
+    "id": "ambience-cave",
+    "kind": "ambience",
+    "files": ["areas/cave.ogg"],
+    "description": "Under the ground. Every floor of the dungeon and the crypt."
+  },
+  {
+    "id": "ambience-interior",
+    "kind": "ambience",
+    "files": ["areas/inside-building.ogg"],
+    "description": "Indoors: the tavern, and any roof the cast can get under."
+  },
+
+  {
+    "id": "menu-music",
+    "kind": "music",
+    "files": ["menu/menu-music.mp3"],
+    "trim": 0.7,
+    "description": "Plays over the login and character-creation screens; stops on entering the world."
+  },
+
+  {
+    "id": "attack-swing",
+    "kind": "effect",
+    "files": ["combat/swish-2.wav", "combat/swish-4.wav"],
+    "description": "A weapon going through the air. Played for a blow you can see."
+  },
+  {
+    "id": "attack-bolt",
+    "kind": "effect",
+    "files": ["combat/magic-missiles.wav", "combat/firespell.wav"],
+    "trim": 0.85,
+    "description": "A staff-wielder's bolt, released with the cast rather than on impact."
+  },
+  {
+    "id": "hurt-male",
+    "kind": "effect",
+    "files": [
+      "combat/malehurt1.wav",
+      "combat/malehurt2.wav",
+      "combat/malehurt3.wav",
+      "combat/malehurt4.wav",
+      "combat/malehurt5.wav"
+    ],
+    "description": "Taking a blow. Five takes, so a long fight does not become a loop."
+  },
+  {
+    "id": "hurt-female",
+    "kind": "effect",
+    "files": ["combat/hurtfemal.ogg"],
+    "split": true,
+    "description": "Taking a blow. One file of several takes, separated at load."
+  },
+  {
+    "id": "death-male",
+    "kind": "effect",
+    "files": ["combat/maledeath.wav"],
+    "split": true,
+    "description": "Falling. Nineteen takes in one file, separated at load."
+  },
+  {
+    "id": "death-female",
+    "kind": "effect",
+    "files": ["combat/femaledeath.ogg"],
+    "split": true,
+    "description": "Falling."
+  },
+  {
+    "id": "heal",
+    "kind": "effect",
+    "files": ["combat/healspell1.wav", "combat/healspell2.wav", "combat/healspell3.wav"],
+    "trim": 0.8,
+    "description": "A wound closed by someone else's hands (D-205). Plays on a successful treat."
+  },
+  {
+    "id": "spirit-rite",
+    "kind": "effect",
+    "files": ["combat/ghost-spell.flac"],
+    "trim": 0.9,
+    "description": "The one sanctioned crossing (D-204): a seance opening, or a corpse standing up."
+  },
+
+  {
+    "id": "attack-bow",
+    "kind": "effect",
+    "files": ["combat/bow.wav"],
+    "status": "planned",
+    "description": "PLANNED: there is no ranged weapon yet. Authored so the file has a home, and deliberately unwired rather than attached to a melee swing."
+  }
+]

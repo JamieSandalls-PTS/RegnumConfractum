@@ -1,0 +1,14 @@
+{
+  "id": "open-helm",
+  "name": "Open Helm",
+  "description": "A plain iron skull with a nasal bar. It is loud inside and you get used to that.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 17,
+  "equip": {
+    "slot": "head",
+    "armour": 1,
+    "weight": 3,
+    "material": "plate"
+  }
+}

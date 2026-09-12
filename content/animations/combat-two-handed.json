@@ -1,0 +1,24 @@
+{
+  "id": "combat-two-handed",
+  "name": "Greatsword — weapon up",
+  "layer": "readiness",
+  "applies": "two-handed/combat",
+  "clips": {
+    "idle": "two-handed-combat-idle",
+    "walk": "two-handed-combat-walk",
+    "run": "two-handed-combat-run",
+    "walk-back": "two-handed-combat-walk-back",
+    "strafe-left": "two-handed-combat-strafe-left",
+    "strafe-right": "two-handed-combat-strafe-right",
+    "turn-left": "two-handed-combat-turn-left",
+    "turn-right": "two-handed-combat-turn-right",
+    "jump": "two-handed-combat-jump",
+    "attack-1": "two-handed-combat-attack-1",
+    "attack-2": "two-handed-combat-attack-2",
+    "attack-3": "two-handed-combat-attack-3",
+    "attack-heavy": "two-handed-combat-attack-heavy",
+    "block": "two-handed-combat-block",
+    "hit-light": "two-handed-combat-hit-light"
+  },
+  "note": "Plays only with the weapon up: 15 of 61 actions. Sheathed, the character falls through to the stance and the rig."
+}

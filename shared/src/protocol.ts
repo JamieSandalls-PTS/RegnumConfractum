@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { DIRECTIONS } from './types';
+import { AttributeSchema } from './attributes';
+import { StanceSchema } from './actions';
+import { CharacterLookSchema, RaceSchema } from './creation';
+import { EquipSlotSchema, EquipStatsSchema } from './equipment';
 import {
+  CharacterAdvancesSchema,
   CharacterBuildSchema,
   ClassSchema,
   ContentIdSchema,
@@ -13,6 +18,16 @@ import {
 } from './content';
 import { RoundOutcomeSchema, RoundPhaseSchema } from './round';
 import { NeedStageSchema } from './needs';
+import {
+  ACCENT_COLORS,
+  APPEARANCE_LIMITS,
+  ARCHETYPE_NAMES,
+  CLOTH_COLORS,
+  HAIR_COLORS,
+  HAIR_STYLES,
+  SKIN_COLORS,
+  type AppearanceOverride,
+} from './appearance';
 
 /**
  * The wire protocol, defined once and consumed by both server and client
@@ -32,6 +47,35 @@ const CharacterNameSchema = z
   .max(32)
   .regex(/^[\p{L}][\p{L} '-]*[\p{L}]$/u, 'letters, spaces, apostrophes, hyphens');
 const UuidSchema = z.string().uuid();
+
+/**
+ * A player-authored appearance (D-539). Sparse: anything omitted comes from
+ * the seed, which is what keeps every pre-existing character, NPC and monster
+ * rendering exactly as before. The bounds mirror APPEARANCE_LIMITS so an
+ * illegal body is rejected at the schema rather than deep in the renderer.
+ */
+const range = (r: readonly [number, number]) => z.number().min(r[0]).max(r[1]);
+const swatch = (palette: readonly number[]) =>
+  z.number().int().refine((n) => palette.includes(n), "not one of the world's colours");
+
+export const AppearanceOverrideSchema = z.object({
+  archetype: z.enum(ARCHETYPE_NAMES as [string, ...string[]]).optional(),
+  sex: z.enum(['male', 'female']).optional(),
+  height: range(APPEARANCE_LIMITS.height).optional(),
+  bulk: range(APPEARANCE_LIMITS.bulk).optional(),
+  shoulder: range(APPEARANCE_LIMITS.shoulder).optional(),
+  limb: range(APPEARANCE_LIMITS.limb).optional(),
+  headScale: range(APPEARANCE_LIMITS.headScale).optional(),
+  bust: range(APPEARANCE_LIMITS.bust).optional(),
+  hairLen: range(APPEARANCE_LIMITS.hairLen).optional(),
+  hairStyle: z.enum(HAIR_STYLES as unknown as [string, ...string[]]).optional(),
+  hairColor: swatch(HAIR_COLORS).optional(),
+  skin: swatch(SKIN_COLORS).optional(),
+  cloth: swatch(CLOTH_COLORS).optional(),
+  accent: swatch(ACCENT_COLORS).optional(),
+  capeColor: swatch(ACCENT_COLORS).optional(),
+  hasCape: z.boolean().optional(),
+}) as unknown as z.ZodType<AppearanceOverride>;
 
 // ---------------------------------------------------------------------------
 // Client → server. The client sends intent only (D-102).
@@ -79,14 +123,42 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
     /** Playable class (D-208/D-511). Optional: bots and pre-class clients
      * still create without one. */
     classId: ContentIdSchema.optional(),
+    /**
+     * What this character IS (D-560, wired in D-572).
+     *
+     * ⚠ Optional for the same reason `classId` is, and it is the property the
+     * whole design rests on: every character made before races existed, every
+     * bot and every older client sends none and behaves exactly as before.
+     * A class that names no races admits all of them (D-566), so authoring a
+     * race narrows and never silently locks.
+     */
+    raceId: ContentIdSchema.optional(),
     /** Skills, feats and spells chosen at creation. The server re-validates
      * against content and rejects anything illegal (D-102). */
     build: CharacterBuildSchema.optional(),
+    /** What the player set by hand in the appearance step (D-539). Omitted
+     * entirely by bots and old clients, which then look exactly as before. */
+    appearance: AppearanceOverrideSchema.optional(),
+    /** The parts chosen from the race's curated lists (D-574). */
+    look: CharacterLookSchema.optional(),
   }),
   /** Asks for the creation catalogue (classes, skills, feats, spells). */
   z.object({ t: z.literal('get_creation_content') }),
   z.object({ t: z.literal('enter_world'), characterId: UuidSchema }),
   z.object({ t: z.literal('move'), dir: DirectionSchema }),
+  /**
+   * Walk to a point, in metres (D-567).
+   *
+   * ⚠ The server does the pathing, which is a change of ownership as much as
+   * of units. The client used to run its own A* and send one direction per
+   * tile — so the client decided the route and the server only checked each
+   * step. Around a continuous obstacle those two would disagree constantly.
+   * The client now says where; the server decides how, and remains the only
+   * thing that moves anybody (invariant 1).
+   */
+  z.object({ t: z.literal('move_to'), x: z.number(), y: z.number() }),
+  /** Stop where you are, abandoning any route. */
+  z.object({ t: z.literal('move_stop') }),
   z.object({ t: z.literal('give'), itemId: UuidSchema, toEntityId: z.number().int() }),
   z.object({ t: z.literal('pay'), toEntityId: z.number().int(), amount: z.number().int().positive() }),
   z.object({ t: z.literal('resync') }),
@@ -139,6 +211,79 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
    * thirst the leash back to town and the well worth poisoning (D-529).
    */
   z.object({ t: z.literal('drink') }),
+  /**
+   * Wear or wield something from the pack (D-547). `slot` is a REQUEST, not
+   * an instruction: the server picks when it is omitted and refuses when the
+   * named slot is wrong for the item. Rings are the reason it exists at all —
+   * there are two hands and the player has an opinion about which.
+   */
+  z.object({ t: z.literal('equip'), itemId: UuidSchema, slot: EquipSlotSchema.optional() }),
+  z.object({ t: z.literal('unequip'), itemId: UuidSchema }),
+  /**
+   * Spoil the well (D-529, built in D-552). The antagonist's one non-violent
+   * attack on a settled zone, and the reason the watch has something to watch
+   * for besides a stabbing.
+   *
+   * No target: you poison the well you are standing at. There is only ever
+   * one within reach, and naming it would let a client try to poison a well
+   * in another area.
+   */
+  z.object({ t: z.literal('poison_well') }),
+  /**
+   * Use one thing from the pack (D-554): eat it, drink it, or bind a wound
+   * with it. What it does is the ITEM's business — the client sends "use
+   * this" and the server reads the template, so a new consumable is a content
+   * change and never a protocol one.
+   */
+  z.object({ t: z.literal('use_item'), templateId: ContentIdSchema }),
+  /**
+   * Put something on the floor (D-554). It becomes a heap anyone can loot,
+   * which is what makes dropping a real decision rather than a delete: a
+   * bandage abandoned at the tavern door is a bandage somebody else finds.
+   */
+  z.object({ t: z.literal('drop_item'), itemId: UuidSchema, qty: z.number().int().min(1).optional() }),
+  /**
+   * Pool something in the town's common stores (D-530, built D-580).
+   *
+   * ⚠ Never required, which is the whole design: carrying your own is
+   * wasteful and redeemable anywhere, pooling is efficient and redeemable
+   * only in town, in daylight, when you are not the one bleeding in the wood.
+   * Neither dominates, and the cast builds its own single point of failure by
+   * cooperating.
+   */
+  /** Look at what the stores hold. Anybody within reach may (D-530). */
+  z.object({ t: z.literal('store_look') }),
+  z.object({ t: z.literal('store_deposit'), itemId: UuidSchema }),
+  /** Take something back out of the stores. Anybody may: they are common. */
+  z.object({ t: z.literal('store_withdraw'), itemId: UuidSchema }),
+  /**
+   * Ruin what the stores hold (D-526, D-529, D-530).
+   *
+   * ⚠ The antagonist's non-violent play at the one place everybody is. Town
+   * is `settled`, so murder there costs the antagonist its own game (D-531) —
+   * without this the hub gives it nothing to do. Deliberately a bare verb
+   * with no target: what it ruins is whatever is there.
+   */
+  z.object({ t: z.literal('store_spoil') }),
+  /**
+   * Save the hotbar to the character (D-553). Sent whole and debounced, for
+   * the same reason `advance` is sent whole: a resend has to be harmless.
+   *
+   * The server stores it and hands it back on the next login. It does not
+   * validate what the slots CONTAIN — an ability id the client no longer
+   * knows renders as an empty slot rather than an error, which is what should
+   * happen when a character is rebuilt and loses a rite.
+   */
+  z.object({
+    t: z.literal('set_hotbar'),
+    slots: z.array(z.string().max(40).nullable()).max(16),
+  }),
+  /**
+   * Spend a level (D-546). The WHOLE advancement record, not a delta, so a
+   * resend after a dropped connection is harmless — which matters because the
+   * level-up screen appears exactly when a round is tearing its sockets down.
+   */
+  z.object({ t: z.literal('advance'), advances: CharacterAdvancesSchema }),
 ]);
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
@@ -168,6 +313,13 @@ export const ErrorCodeSchema = z.enum([
   'bad_target',
   'not_adjacent',
   'no_such_item',
+  'not_equippable',
+  // What a calling may wear and wield (D-566). ACCESS, never power.
+  'not_for_your_calling',
+  'wrong_slot',
+  'too_heavy',
+  'illegal_advance',
+  'no_mana',
   'insufficient_funds',
   'not_hostile',
   'on_cooldown',
@@ -180,6 +332,12 @@ export const ErrorCodeSchema = z.enum([
   'node_spent',
   'not_hungry',
   'no_water_here',
+  'already_poisoned',
+  /** Nowhere within reach to pool goods (D-580). */
+  'no_store_here',
+  /** The stores hold nothing that could be ruined — refused BEFORE the
+   * bitterleaf is spent, since the room is deliberately hard to read. */
+  'nothing_to_spoil',
   'not_food',
   'grace_window',
   'too_soon',
@@ -206,18 +364,139 @@ export const WireEntitySchema = z.object({
   descriptor: z.string().min(1).max(120),
   /** 'corpse' lies where a player fell; 'pile' is gear left after decay. */
   kind: z.enum(['player', 'npc', 'corpse', 'pile', 'node', 'station']),
-  x: z.number().int(),
-  y: z.number().int(),
+  /**
+   * Where it is, in METRES (D-567).
+   *
+   * ⚠ These were integer tiles and are now free coordinates. Anything that
+   * rounds them is reintroducing the grid: a client that floors a position to
+   * draw it puts every character on a lattice, and a rule that compares them
+   * with `chebyshev` is measuring the wrong distance.
+   */
+  x: z.number(),
+  y: z.number(),
+  /**
+   * Metres above the area's ground plane — a bridge, a gallery, a stair.
+   * Presentation and reach only; the plan of the world is still read in x/y.
+   */
+  z: z.number().default(0),
   facing: DirectionSchema,
   posture: PostureSchema,
   presentation: PresentationSchema,
   /** Drives client-side procedural appearance (D-402). */
   appearanceSeed: z.number().int().nonnegative(),
+  /** Player-authored deviations from the seed (D-539). Absent for NPCs,
+   * roamers and every character made before the appearance step existed. */
+  appearance: AppearanceOverrideSchema.nullable().default(null),
+  /**
+   * The parts a player chose at creation (D-574), or null.
+   *
+   * ⚠ Null for every NPC, every roamer, every corpse and every character made
+   * before the face step existed — which is all of them today. A null look is
+   * not a blank face: it means the renderer falls back to exactly what it did
+   * before, picking a body from the seed (D-559).
+   *
+   * ⚠ Public, and it has to be: this is what everybody in the room sees when
+   * they look at you. It is NOT what they are told you are CALLED — the
+   * descriptor pipeline reads `appearance`, never this (D-201/D-219).
+   */
+  look: CharacterLookSchema.nullable().default(null),
+  /**
+   * Which node or station this is — 'iron-vein', 'well', 'workshop' (D-542).
+   * Public information about a public object, and the client needs it to draw
+   * the right thing: before this it guessed from the descriptor's prose, and
+   * stations fell through the guess and rendered as PEOPLE.
+   */
+  variant: z.string().optional(),
+  /**
+   * The mesh a station is drawn as (D-583), when its definition names one.
+   *
+   * ⚠ Resolved by the SERVER against `content/stations/`, not looked up by
+   * the client: a station's art is content the client has no copy of, and an
+   * id it could not resolve would fall back to built-in geometry — the well
+   * silently reverting to a grey cylinder, which is the bug that looks like a
+   * texture failing to load.
+   *
+   * ⚠ Absent means "draw the built-in geometry", which is what every
+   * station did before any art was authored. A facility must never fail to
+   * draw: the well has to be visible across the square or thirst does not
+   * work (D-529).
+   */
+  art: z
+    .object({
+      pack: z.string().min(1),
+      asset: z.string().min(1),
+      rotation: z.number().default(0),
+      scale: z.number().positive().default(1),
+    })
+    .optional(),
   /** In combat: weapon drawn and held ready. Server-owned so every
    * observer sees the same stance (D-102). */
   combat: z.boolean().default(false),
+  /**
+   * What this character is visibly WEARING (D-554). Public, like posture —
+   * everyone can see you are in mail with a blade out.
+   *
+   * ⚠ It never reaches the descriptor pipeline. What a stranger is CALLED
+   * (D-201/D-219) and what they are seen to be carrying are separate
+   * questions, and joining them would make a helm the permanent disguise
+   * D-539 refused to allow at creation.
+   */
+  worn: z
+    .object({
+      helm: z.boolean(),
+      pauldrons: z.boolean(),
+      cape: z.boolean(),
+      robe: z.boolean(),
+      weapon: z.enum(['none', 'sword', 'staff']),
+      /**
+       * The garments this character has on (D-571).
+       *
+       * ⚠ Exactly as public as the five flags beside it, and for the same
+       * reason: everyone in the room can see you are in mail. It is more
+       * PRECISE than the silhouette rather than more private — the flags are
+       * what the procedural cast draws approximate shapes from, and these are
+       * what the imported cast re-assembles a body out of.
+       *
+       * ⚠ Still never reaches the descriptor pipeline. What a stranger is
+       * CALLED (D-201/D-219) and what they are seen to be wearing stay
+       * separate questions; joining them would make a helm the permanent
+       * disguise D-539 refused at creation.
+       */
+      garments: z.array(z.string()).default([]),
+      /**
+       * How the weapon in hand is carried (D-565, wired D-578).
+       *
+       * ⚠ On the wire because the SERVER decides it (D-102): which stance an
+       * asset declares is content, and an observer who worked it out from the
+       * silhouette would animate a crossbow as a sword. Absent means
+       * empty-handed, which resolves to the rig's own clips — `unarmed` is the
+       * base layer, never a stance (D-564).
+       */
+      stance: StanceSchema.optional(),
+    })
+    .nullable()
+    .default(null),
+  /**
+   * Visibly a thing that attacks people (D-550): a roamer, a dungeon dweller,
+   * an animated corpse. Auto-attack keys off this and nothing else, so that
+   * clicking the tavern keeper — who is an NPC, and is somebody's objective —
+   * can never start a fight by accident.
+   *
+   * Public information about a public fact: a monster looks like a monster.
+   * It is never set for players, whatever they have done.
+   */
+  hostile: z.boolean().default(false),
   /** For corpses: the entity carrying this body, if any. */
   carriedBy: z.number().int().nullable().default(null),
+  /**
+   * This body or heap has something in it (D-554). Drawn as a pack beside
+   * the corpse, so "is that worth walking to" is answerable from where you
+   * are standing.
+   *
+   * Public and honest: a settled-zone corpse holds nothing (D-511) and says
+   * so, which saves the walk rather than hiding a disappointment behind it.
+   */
+  lootable: z.boolean().default(false),
 });
 export type WireEntity = z.infer<typeof WireEntitySchema>;
 
@@ -227,6 +506,13 @@ export const WireItemSchema = z.object({
   qty: z.number().int().positive(),
   /** Display label for written/inscribed items (the note's title). */
   label: z.string().optional(),
+  /**
+   * Which paperdoll slot this is worn in, or null for "in the pack" (D-547).
+   * Carried on the item rather than as a separate equipped-list so the two
+   * can never disagree about where a thing is — the bug that produces a sword
+   * both wielded and stacked.
+   */
+  equipped: EquipSlotSchema.nullable().default(null),
 });
 export type WireItem = z.infer<typeof WireItemSchema>;
 
@@ -234,11 +520,19 @@ export const CharacterSummarySchema = z.object({
   id: UuidSchema,
   name: CharacterNameSchema,
   areaId: z.string(),
-  x: z.number().int(),
-  y: z.number().int(),
+  /** Where they logged out, in metres (D-567). */
+  x: z.number(),
+  y: z.number(),
   appearanceSeed: z.number().int().nonnegative(),
+  appearance: AppearanceOverrideSchema.nullable().default(null),
+  /** The chosen face (D-574); null on everything made before it existed. */
+  look: CharacterLookSchema.nullable().default(null),
   /** Playable class id (D-208/D-511); absent on pre-class characters. */
   classId: z.string().optional(),
+  /** What it is (D-560/D-572); absent on every character made before races. */
+  raceId: z.string().optional(),
+  /** Derived from banked xp (D-538); shown on the roster screen. */
+  level: z.number().int().min(1).default(1),
 });
 export type CharacterSummary = z.infer<typeof CharacterSummarySchema>;
 
@@ -251,8 +545,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('entity_moved'),
     id: z.number().int(),
-    x: z.number().int(),
-    y: z.number().int(),
+    x: z.number(),
+    y: z.number(),
+    z: z.number().default(0),
     facing: DirectionSchema,
   }),
   z.object({ type: z.literal('entity_entered'), entity: WireEntitySchema }),
@@ -278,11 +573,81 @@ export const SimEventSchema = z.discriminatedUnion('type', [
      * clients would be a desync in the one place players are watching. */
     variant: z.number().int().min(0).default(0),
   }),
+  /**
+   * A visible/audible act at an entity that is not a blow (D-541): a wound
+   * mended, a rite performed. Broadcast to the area, because these are public
+   * acts — a corpse standing up is not a private matter, and a séance is a
+   * sanctioned crossing that the room can see (D-204).
+   *
+   * It carries WHAT happened and never WHO it was done to or why, so it
+   * cannot become a channel for information the observer had not already
+   * earned (D-217).
+   */
+  z.object({
+    type: z.literal('entity_effect'),
+    id: z.number().int(),
+    effect: z.enum(['heal', 'rite']),
+  }),
   /** Weapon drawn / sheathed, per D-206's combat state. */
   z.object({
     type: z.literal('entity_combat'),
     id: z.number().int(),
     inCombat: z.boolean(),
+  }),
+  /**
+   * Somebody put something on or took it off (D-554). Broadcast, because what
+   * you are wearing is visible — and it is a DELTA rather than a resync so
+   * that a room full of people changing kit does not cost a snapshot each.
+   */
+  z.object({
+    type: z.literal('entity_worn'),
+    id: z.number().int(),
+    worn: z.object({
+      helm: z.boolean(),
+      pauldrons: z.boolean(),
+      cape: z.boolean(),
+      robe: z.boolean(),
+      weapon: z.enum(['none', 'sword', 'staff']),
+      /**
+       * The garments this character has on (D-571).
+       *
+       * ⚠ Exactly as public as the five flags beside it, and for the same
+       * reason: everyone in the room can see you are in mail. It is more
+       * PRECISE than the silhouette rather than more private — the flags are
+       * what the procedural cast draws approximate shapes from, and these are
+       * what the imported cast re-assembles a body out of.
+       *
+       * ⚠ Still never reaches the descriptor pipeline. What a stranger is
+       * CALLED (D-201/D-219) and what they are seen to be wearing stay
+       * separate questions; joining them would make a helm the permanent
+       * disguise D-539 refused at creation.
+       */
+      garments: z.array(z.string()).default([]),
+      /**
+       * How the weapon in hand is carried (D-565, wired D-578).
+       *
+       * ⚠ On the wire because the SERVER decides it (D-102): which stance an
+       * asset declares is content, and an observer who worked it out from the
+       * silhouette would animate a crossbow as a sword. Absent means
+       * empty-handed, which resolves to the rig's own clips — `unarmed` is the
+       * base layer, never a stance (D-564).
+       */
+      stance: StanceSchema.optional(),
+    }),
+  }),
+  /**
+   * A body or heap changed what it holds (D-554) — emptied by a looter, most
+   * often. The pack drawn beside it comes and goes with this.
+   *
+   * A dedicated event rather than a re-sent `entity_entered`: the client
+   * ignores an arrival for an entity it already has (correctly — otherwise
+   * every resend would build a second visual), so re-broadcasting the entity
+   * looked like an update and did nothing at all.
+   */
+  z.object({
+    type: z.literal('entity_lootable'),
+    id: z.number().int(),
+    lootable: z.boolean(),
   }),
   /** A body picked up or set down; null carrier means it lies where it is. */
   z.object({
@@ -293,6 +658,17 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   /** The visible death. Observers drop the entity; the ghost lives on in a
    * world only other ghosts can see (D-203). */
   z.object({ type: z.literal('entity_died'), id: z.number().int() }),
+  /**
+   * Undone by daylight (D-551). What walks abroad at night does not walk away
+   * at dawn — it comes apart where it stands.
+   *
+   * A separate event from `entity_left` because the two mean different things
+   * and a player needs to be able to tell them apart: a thing that LEFT might
+   * be behind you, and a thing that came apart is gone. That distinction is
+   * worth a wire message on its own, and it is what lets the client play a
+   * dissolve instead of blinking the entity out of existence.
+   */
+  z.object({ type: z.literal('entity_dissolved'), id: z.number().int() }),
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
 
@@ -319,10 +695,43 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
   z.object({
     t: z.literal('creation_content'),
     classes: z.array(ClassSchema),
+    /**
+     * What a player may BE (D-560, offered at creation in D-573).
+     *
+     * ⚠ Sent WHOLE, not as a list of ids, because the creation screen needs
+     * what each race curates — its statures, its skin tones, its markings and
+     * which parts each slot offers. Sending ids would mean a second round
+     * trip per race, or the client shipping a copy of the content and going
+     * stale the moment somebody authors one.
+     *
+     * ⚠ EMPTY is the normal state for a server whose content has no races,
+     * and the screen must then skip the step rather than show an empty one —
+     * the same rule the spell step already follows for a calling that does
+     * not cast.
+     */
+    races: z.array(RaceSchema).default([]),
+    /**
+     * Part file stem → the name a player is told it is called (D-560, sent
+     * from D-576).
+     *
+     * ⚠ The screen cannot show a filename, and until now it did: the names
+     * lived in `content/parts/` where only the authoring tools read them, so
+     * a face the stakeholder had called "Scarred mouth" was offered to a
+     * player as `Head Female 05`.
+     *
+     * ⚠ Trimmed to what the races curate — 142 of the pack's 720 — because
+     * the rest are garment meshes creation never offers. Missing means
+     * UNNAMED, and the client falls back to the stem rather than to nothing.
+     */
+    partNames: z.record(z.string(), z.string()).default({}),
     skills: z.array(SkillSchema),
     feats: z.array(FeatSchema),
     spells: z.array(SpellSchema),
     budget: z.object({
+      /** Points placed on the attribute step, over a base of 10 (D-546). */
+      attributePoints: z.number().int().nonnegative(),
+      attributeBase: z.number().int().nonnegative(),
+      attributeMax: z.number().int().nonnegative(),
       skillPoints: z.number().int().nonnegative(),
       skillStep: z.number().int().positive(),
       skillMax: z.number().int().nonnegative(),
@@ -340,6 +749,57 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
       id: z.string(),
       name: z.string(),
       lighting: z.enum(['overcast', 'night', 'underground', 'interior']),
+      /** Which bed plays here (D-541). Absent means silence. */
+      ambience: ContentIdSchema.optional(),
+      /**
+       * Pack meshes standing on the map (D-566, D-567).
+       *
+       * ⚠ Deliberately SLIMMER than the authored `PlacedAsset`: where it
+       * stands, how it is turned and how big it is — and not its collision
+       * mask. The client used to be sent `props` because its own pathfinder
+       * read them; it no longer has one (D-567), the server owns every route,
+       * and shipping a few hundred collision volumes per area would be paying
+       * bandwidth for a question the client is no longer allowed to answer.
+       */
+      assets: z
+        .array(
+          z.object({
+            pack: z.string().min(1),
+            asset: z.string().min(1),
+            x: z.number(),
+            y: z.number(),
+            z: z.number().default(0),
+            rotation: z.number().default(0),
+            scale: z.number().positive().default(1),
+          }),
+        )
+        .default([]),
+      /** Roofed tiles (D-545). Presentation only — the server never reads
+       * them, and they change nothing about movement or sight. */
+      roofs: z
+        .array(z.object({ x: z.number().int(), y: z.number().int(), style: z.string() }))
+        .default([]),
+      /**
+       * The painted ground (D-585, D-587, D-588): the mask images, and which
+       * material owns each of their channels.
+       *
+       * ⚠ Presentation only, like `roofs` above, and for a stronger reason
+       * than convention: a ground material carries `walkable`, and the server
+       * has never read it. What a floor is made of is not allowed to decide
+       * where a body may stand — that is the tile grid and the collision
+       * volumes (D-542, D-584) — or painting a map would silently re-cut it.
+       *
+       * ⚠ The two travel TOGETHER or not at all. A mask without its material
+       * list is six unlabelled numbers per texel; the list without the mask is
+       * a set of materials covering nothing. The client draws bare ground
+       * unless it has both.
+       *
+       * ⚠ ORDER IS THE DATA. Mask 0's red channel means "this much of
+       * `groundMaterials[0]`", mask 1's red means `[3]`, and nothing in the
+       * pixels records which was which.
+       */
+      groundPaint: z.array(z.string().min(1)).default([]),
+      groundMaterials: z.array(ContentIdSchema).default([]),
       width: z.number().int(),
       height: z.number().int(),
       legend: z.record(
@@ -392,6 +852,28 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     t: z.literal('inventory'),
     items: z.array(WireItemSchema),
     coin: z.number().int().nonnegative(),
+  }),
+  /**
+   * What the common stores hold (D-580), sent to whoever is standing at them.
+   *
+   * ⚠ Public to anyone within reach, and that is the COST of pooling rather
+   * than an oversight (D-530): goods on your person are your loss alone,
+   * goods in the stores are one target everybody can see — including the
+   * antagonist, whose sabotage grows stronger exactly as the cast grows more
+   * trusting.
+   *
+   * ⚠ It carries NO "spoiled" flag, and that absence is the design. A
+   * ruined larder must look exactly like a full one — the same rule the
+   * poisoned well follows (D-552), where nothing looks different and you find
+   * out by drinking. A first draft did send one; the client could not render
+   * it without destroying the sabotage, which made it a wire field nothing
+   * may ever read. Whether the bread is good is a property of the BREAD, and
+   * it is discovered by eating it.
+   */
+  z.object({
+    t: z.literal('store_contents'),
+    station: z.string(),
+    items: z.array(WireItemSchema),
   }),
   z.object({ t: z.literal('pong'), nonce: z.number().int(), tick: z.number().int() }),
   /**
@@ -515,6 +997,15 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
         description: z.string(),
         category: z.string(),
         stackable: z.boolean(),
+        /** What eating or drinking this relieves (D-526); absent for
+         * everything that is not a meal. The pack needs it to know which
+         * items offer "eat", and so does anything playing headlessly. */
+        nourishes: z.enum(['hunger', 'thirst']).optional(),
+        /** Gear stats (D-547). Absent for anything that is not worn. */
+        equip: EquipStatsSchema.optional(),
+        /** What using it does (D-554); absent when it is not usable. The pack
+         * shows a "use" verb on exactly the rows that carry this. */
+        use: z.object({ kind: z.string(), value: z.number() }).optional(),
       }),
     ),
     recipes: z.array(
@@ -544,6 +1035,84 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
      */
     hunger: NeedStageSchema.default('sated'),
     thirst: NeedStageSchema.default('sated'),
+    /**
+     * Level and the EFFECTIVE sheet (D-538) — creation allocation plus every
+     * progression grant already paid out. The client renders a character
+     * sheet from this and never recomputes it: the server is the authority
+     * on what a character actually has (D-102).
+     */
+    /** Which calling, so the sheet and the level-up screen can filter by it. */
+    classId: z.string().nullable().default(null),
+    /** And what it is, for the sheet. Null on a character made before races. */
+    raceId: z.string().nullable().default(null),
+    level: z.number().int().min(1).default(1),
+    xpForNextLevel: z.number().int().nonnegative().nullable().default(null),
+    skills: z.record(z.string(), z.number().int()).default({}),
+    feats: z.array(z.string()).default([]),
+    spells: z.array(z.string()).default([]),
+    abilities: z.array(z.string()).default([]),
+    /**
+     * The reserve rites and spells are paid out of (D-546). A bar, unlike the
+     * needs above, because unlike hunger it is spent and refilled many times
+     * a minute and a player has to be able to time the next one.
+     */
+    mana: z.number().int().nonnegative().default(0),
+    maxMana: z.number().int().nonnegative().default(0),
+    /** Creation allocation plus level-up points, resolved (D-546). */
+    attributes: z.record(AttributeSchema, z.number().int()).default({}),
+    /** What the worn set is contributing right now (D-547). */
+    loadout: z
+      .object({
+        armour: z.number().int().nonnegative(),
+        /** Best weapon in hand, not the sum of both. */
+        damage: z.number().int().nonnegative(),
+        /** Carried weight against what this character can shift. */
+        weight: z.number().int().nonnegative(),
+        capacity: z.number().int().nonnegative(),
+      })
+      .default({ armour: 0, damage: 0, weight: 0, capacity: 0 }),
+    /**
+     * What is still unspent (D-546). The client shows the level-up screen
+     * when any of these is positive, which is also how a player who levelled
+     * twice while away gets both screens' worth rather than losing one.
+     */
+    unspent: z
+      .object({
+        attributePoints: z.number().int().nonnegative(),
+        skillPoints: z.number().int().nonnegative(),
+        feats: z.number().int().nonnegative(),
+        spells: z.number().int().nonnegative(),
+      })
+      .default({ attributePoints: 0, skillPoints: 0, feats: 0, spells: 0 }),
+    /** The player's own level-up spending so far, so the screen can edit it. */
+    advances: CharacterAdvancesSchema.nullable().default(null),
+    /**
+     * Swings in a four-second combat round (D-550), and the reach of whatever
+     * is in hand. The client needs both to pace auto-attack and to know when
+     * it is close enough to start — it never DECIDES either (D-102), it just
+     * stops sending attacks the server would refuse.
+     */
+    attacksPerRound: z.number().int().min(1).default(1),
+    /**
+     * How far this character can strike, in METRES (D-567).
+     *
+     * ⚠ It was `.int()`, and that one word cost an hour. Raising bare-handed
+     * reach to 1.5m — the honest conversion of "adjacent, diagonals included" —
+     * made the ENTIRE status message fail schema validation, so it was dropped
+     * on the floor: no error, no status, and six tests reporting a timeout
+     * waiting for a message that was being sent every time. Any `.int()` left
+     * on a distance is a trapdoor of exactly this shape.
+     */
+    reach: z.number().min(0).default(1),
+    /**
+     * How long a combat round is on THIS server, in ticks (D-550). Sent
+     * rather than assumed: the length is a pacing option, and a client that
+     * hardcoded the default would throttle its auto-attack wrongly against
+     * any server that shortened it.
+     */
+    roundTicks: z.number().int().min(1).default(40),
+    /** The character's saved hotbar (D-553); null means "use the defaults". */
+    hotbar: z.array(z.string().nullable()).nullable().default(null),
   }),
 ]);
 

@@ -30,10 +30,13 @@ describe('wire protocol schemas', () => {
   });
 
   it('round-trips server messages', () => {
+    // ⚠ Positions are METRES and free (D-567), so a round trip has to survive
+    // a fraction. An integer here would still pass while the schema quietly
+    // rounded, which is exactly how a continuous world snaps back to a grid.
     const delta = {
       t: 'delta',
       tick: 100,
-      events: [{ type: 'entity_moved', id: 1, x: 5, y: 6, facing: 's' }],
+      events: [{ type: 'entity_moved', id: 1, x: 5.25, y: 6.5, z: 1.2, facing: 's' }],
     };
     expect(parseServerMessage(JSON.parse(JSON.stringify(delta)))).toEqual(delta);
     expect(parseServerMessage({ t: 'delta', tick: 1, events: [{ type: 'exploded' }] })).toBeNull();

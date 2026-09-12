@@ -1,0 +1,84 @@
+{
+  "pack": "bow-crossbow",
+  "kind": "character-item",
+  "assets": [
+    {
+      "id": "wep-crossbow-01",
+      "name": "Crossbow",
+      "pack": "bow-crossbow",
+      "mesh": "Rigged_CrossBow_Testing",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          0.6149740142822266
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "crossbow",
+      "clips": {}
+    },
+    {
+      "id": "wep-longbow-01",
+      "name": "Longbow",
+      "pack": "bow-crossbow",
+      "mesh": "Rigged_Bow_Testing",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "bow",
+      "clips": {}
+    },
+    {
+      "id": "wep-recurve-bow-01",
+      "name": "Recurve bow",
+      "pack": "bow-crossbow",
+      "mesh": "Rigged_Bow_NativeAmerican_Testing",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "bow",
+      "clips": {}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "travelling-breeches",
+  "name": "Travelling Breeches",
+  "description": "Doubled at the knee and the seat. They have outlasted two owners already.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 8,
+  "equip": {
+    "slot": "legs",
+    "armour": 1,
+    "weight": 2,
+    "material": "cloth"
+  }
+}

@@ -249,17 +249,7 @@ $('in-weapon').addEventListener('change', () => {
 $('in-light').addEventListener('change', () => {
   scene.applyLighting($<HTMLSelectElement>('in-light').value as LightingProfile);
 });
-$('in-style').addEventListener('change', () => {
-  scene.post.pixelScale = Number($<HTMLInputElement>('in-pixelscale').value);
-  scene.resize();
-});
-$('in-pixelscale').addEventListener('input', () => {
-  const v = Number($<HTMLInputElement>('in-pixelscale').value);
-  $('v-pixelscale').textContent = String(v);
-  scene.post.pixelScale = v;
-  scene.resize();
-});
-$('v-pixelscale').textContent = $<HTMLInputElement>('in-pixelscale').value;
+// ⚠ The pixel-scale controls are gone with the quantiser they drove (D-586).
 
 $('btn-export').addEventListener('click', () => {
   const out = $<HTMLTextAreaElement>('export-out');

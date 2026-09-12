@@ -1,0 +1,15 @@
+{
+  "id": "town-guard",
+  "descriptor": "a watchman of Ashfold in a battered helm",
+  "hp": 22,
+  "damageMin": 3,
+  "damageMax": 6,
+  "aggroMetres": 20,
+  "attackCooldownTicks": 14,
+  "moveCooldownTicks": 4,
+  "perArea": 4,
+  "habitat": "guard",
+  "xp": 0,
+  "loot": [],
+  "notes": "The watch (D-552). Present all round in settled areas, day and night, and the ONLY roamer that does not hunt on sight - it walks its round until it witnesses something, and then it goes after whoever did it. xp is deliberately ZERO: paying for a guard kill would make murdering the watch a farming strategy, and at a cast of three that is a better xp rate than the dungeon. It carries no loot for the same reason. Tough enough that one player alone should not want the fight and two probably win it - which is the intended shape, because the answer to the watch is not to be seen. UNRATIFIED."
+}

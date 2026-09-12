@@ -6,6 +6,7 @@ import { EventEngine } from '@rc/server/dm/events';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { walkTo as pathWalkTo } from '../src/walk';
 
 /**
  * M3b: the DM event system runs the milestone's canonical chain, built as a
@@ -57,19 +58,47 @@ async function join(bot: BotClient, username: string, charName: string, seed: nu
   await bot.expect('snapshot');
 }
 
+/**
+ * Walks by A*, and stops the moment the area changes (D-544). This was a
+ * greedy walker until the tavern was rebuilt at half size and scenery
+ * arrived: pressing a direction wedges on the first barrel, and a walker that
+ * keeps going after a transition marches across the next map.
+ */
 async function walkTo(bot: BotClient, x: number, y: number): Promise<void> {
-  for (let i = 0; i < 120; i++) {
-    const you = bot.entities.get(bot.you!);
-    if (!you) break;
-    if (you.x === x && you.y === y) return;
-    const dx = Math.sign(x - you.x);
-    const dy = Math.sign(y - you.y);
-    const dir = dy < 0 ? (dx > 0 ? 'ne' : dx < 0 ? 'nw' : 'n')
-      : dy > 0 ? (dx > 0 ? 'se' : dx < 0 ? 'sw' : 's')
-      : dx > 0 ? 'e' : 'w';
-    bot.send({ t: 'move', dir });
-    await sleep(TICK * 4);
+  await pathWalkTo(bot, x, y, { stepMs: TICK * 4, timeoutMs: 15_000 });
+}
+
+/**
+ * A walkable tile in the bot's current area with nothing on it — no prop, no
+ * existing exit, not the spawn.
+ *
+ * The war-camp used to be linked at a hard-coded (33,53) in the tavern, which
+ * stopped existing the moment the tavern was resized. Content is editable now
+ * (there is a map editor), so a test that pins a coordinate in it is a test
+ * that breaks whenever somebody moves a wall — and reports it as a timeout
+ * rather than as "that tile is gone".
+ */
+function freeTile(bot: BotClient): { x: number; y: number } {
+  const area = bot.area!;
+  const taken = new Set([
+    ...area.transitions.map((t) => `${t.x}:${t.y}`),
+    ...area.assets.map((a) => `${Math.round(a.x)}:${Math.round(a.y)}`),
+  ]);
+  const me = bot.entities.get(bot.you!)!;
+  let best: { x: number; y: number; d: number } | null = null;
+  for (let y = 1; y < area.height - 1; y++) {
+    for (let x = 1; x < area.width - 1; x++) {
+      const ch = area.tiles[y]![x]!;
+      if (!area.legend[ch]!.walkable) continue;
+      if (taken.has(`${x}:${y}`)) continue;
+      const d = Math.hypot(x - me.x, y - me.y);
+      // Not right on top of the player: the test walks to it deliberately.
+      if (d < 3) continue;
+      if (!best || d < best.d) best = { x, y, d };
+    }
   }
+  if (!best) throw new Error('no free tile in ' + area.id);
+  return { x: best.x, y: best.y };
 }
 
 const WARCAMP_DOC = {
@@ -84,7 +113,7 @@ const WARCAMP_DOC = {
           from: 'broken-yard',
           alias: 'warcamp',
           name: 'The War-Camp',
-          link: { area: 'hanged-ferryman', x: 33, y: 53 },
+          link: { area: 'hanged-ferryman', x: 0, y: 0 },
         },
       ],
     },
@@ -141,11 +170,21 @@ describe('the DM event chain (M3 done-when, D-216)', () => {
   let eventId: string;
   let runId: string;
   let warcampId: string;
+  /** Chosen from the live map, not hard-coded (see `freeTile`). */
+  let link: { x: number; y: number };
 
   it('the editor document validates and saves; garbage is refused', async () => {
     const bad = await api('/api/dm/events/create', { doc: { name: 'x', stages: [] } });
     expect(bad.ok).toBe(false);
-    const good = await api('/api/dm/events/create', { doc: WARCAMP_DOC });
+    // The camp is linked to a tile that actually exists in whatever the
+    // tavern currently is, rather than to a coordinate frozen when it was
+    // twice the size.
+    link = freeTile(alpha);
+    const doc = structuredClone(WARCAMP_DOC);
+    const spawnArea = doc.stages[0]!.actions.find((a) => a.type === 'spawn_area')!;
+    (spawnArea as { link: { x: number; y: number } }).link.x = link.x;
+    (spawnArea as { link: { x: number; y: number } }).link.y = link.y;
+    const good = await api('/api/dm/events/create', { doc });
     expect(good.ok).toBe(true);
     eventId = good.id as string;
   });
@@ -157,22 +196,23 @@ describe('the DM event chain (M3 done-when, D-216)', () => {
     warcampId = `ev-${runId.slice(0, 8)}-warcamp`;
     const heard = await alpha.expect('narrate', 3000);
     expect(heard.text).toContain('fires on the old yard road');
-    // The host area re-snapshots with the new way-marker at (33,53).
+    // The host area re-snapshots with the new way-marker where the event
+    // put it.
     await waitUntil(
-      () => (alpha.area?.transitions ?? []).some((t) => t.x === 33 && t.y === 53),
+      () => (alpha.area?.transitions ?? []).some((t) => t.x === link.x && t.y === link.y),
       'way-marker appears',
     );
   });
 
   it('two players entering the camp springs the ambush (chained player_count)', async () => {
-    await walkTo(alpha, 33, 53);
+    await walkTo(alpha, link.x, link.y);
     await waitUntil(() => alpha.area?.id === warcampId, 'alpha crosses into the camp');
     expect(alpha.area?.name).toBe('The War-Camp');
     // One player is not enough — the stage waits.
     await sleep(300);
     expect([...alpha.entities.values()].filter((e) => e.kind === 'npc')).toHaveLength(0);
 
-    await walkTo(beta, 33, 53);
+    await walkTo(beta, link.x, link.y);
     await waitUntil(() => beta.area?.id === warcampId, 'beta crosses into the camp');
     await waitUntil(
       () => [...alpha.entities.values()].filter((e) => e.kind === 'npc').length === 3,

@@ -1,0 +1,9 @@
+{
+  "id": "leafmould",
+  "name": "Leaf mould",
+  "texture": "leafmould.jpg",
+  "repeat": 0.45,
+  "tint": "#6a5a42",
+  "walkable": true,
+  "notes": "Wet ground under trees, half made of last year's leaves."
+}

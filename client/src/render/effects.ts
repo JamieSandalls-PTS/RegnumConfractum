@@ -147,6 +147,43 @@ export class CombatEffects {
     }
   }
 
+  /**
+   * Undone by daylight (D-551): a slow sag of pale motes drifting DOWN rather
+   * than a burst flying out.
+   *
+   * Deliberately the opposite motion to `burst`. An impact throws things away
+   * from a point; a thing coming apart collapses toward the ground, and the
+   * difference is what lets a player tell "it died there" from "it stopped
+   * existing" without reading any text. Slow, too — a fast dissolve reads as
+   * another hit landing.
+   */
+  dissolve(at: THREE.Vector3, height = 1.6): void {
+    for (let i = 0; i < 26; i++) {
+      const mesh = new THREE.Mesh(this.sparkGeo, i % 4 === 0 ? this.matArcaneCore : this.matArcane);
+      mesh.layers.set(LAYER_CHARACTER);
+      // Spread over the body's whole height, so the shape comes apart rather
+      // than pouring out of its feet.
+      mesh.position.set(
+        at.x + (Math.random() - 0.5) * 0.55,
+        at.y + Math.random() * height,
+        at.z + (Math.random() - 0.5) * 0.55,
+      );
+      this.group.add(mesh);
+      this.sparks.push({
+        mesh,
+        vel: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.35,
+          -0.15 - Math.random() * 0.35,
+          (Math.random() - 0.5) * 0.35,
+        ),
+        life: 0.9 + Math.random() * 0.7,
+        maxLife: 1.6,
+        // Barely any: they should sink, not fall.
+        gravity: 0.55,
+      });
+    }
+  }
+
   update(dt: number): void {
     for (let i = this.bolts.length - 1; i >= 0; i--) {
       const b = this.bolts[i]!;

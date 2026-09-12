@@ -1,0 +1,25 @@
+{
+  "id": "ashfold-guard",
+  "name": "Ashfold guard",
+  "pack": "modular-fantasy-hero",
+  "sex": "male",
+  "parts": {
+    "helmet": "SK_Chr_Head_No_Elements_Male_04",
+    "helmetCrest": "SK_Chr_HelmetAttachment_03",
+    "torso": "SK_Chr_Torso_Male_04",
+    "hips": "SK_Chr_Hips_Male_04",
+    "armUpperL": "SK_Chr_ArmUpperLeft_Male_04",
+    "armUpperR": "SK_Chr_ArmUpperRight_Male_04",
+    "armLowerL": "SK_Chr_ArmLowerLeft_Male_04",
+    "armLowerR": "SK_Chr_ArmLowerRight_Male_04",
+    "handL": "SK_Chr_HandLeft_Male_04",
+    "handR": "SK_Chr_HandRight_Male_04",
+    "legL": "SK_Chr_LegLeft_Male_04",
+    "legR": "SK_Chr_LegRight_Male_04",
+    "shoulderL": "SK_Chr_ShoulderAttachLeft_04",
+    "shoulderR": "SK_Chr_ShoulderAttachRight_04",
+    "back": "SK_Chr_BackAttachment_03"
+  },
+  "texture": "PolygonFantasyHero_Texture_01_A",
+  "note": "The watch (D-552). Helmed on purpose: a guard should read as a uniform at a distance, not as a person."
+}

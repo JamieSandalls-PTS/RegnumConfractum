@@ -1,0 +1,12 @@
+{
+  "id": "storehouse",
+  "name": "Storehouse",
+  "descriptor": "a rack of barrels and sacks",
+  "art": {
+    "pack": "knights",
+    "asset": "sm-prop-crate-01",
+    "rotation": 0,
+    "scale": 1
+  },
+  "notes": "Eating here is a proper meal rather than bread on your feet (D-533)."
+}

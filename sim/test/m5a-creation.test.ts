@@ -77,6 +77,7 @@ describe('a legal build is accepted and persisted', () => {
       appearanceSeed: 4242,
       classId: 'physician',
       build: {
+        attributes: { vigor: 14, will: 16 },
         skills: { medicine: 40, insight: 30, lore: 20, perception: 20 },
         feats: ['steady-hands', 'hard-to-read'],
         spells: [],

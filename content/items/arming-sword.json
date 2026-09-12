@@ -1,0 +1,21 @@
+{
+  "id": "arming-sword",
+  "name": "Arming Sword",
+  "description": "Imperial pattern, kept oiled by somebody who was paid to. The grip is wrapped in a stranger’s cord.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 20,
+  "art": {
+    "pack": "knights",
+    "asset": "wep-broadsword-01",
+    "swaps": []
+  },
+  "equip": {
+    "slot": "main-hand",
+    "armour": 0,
+    "damage": 3,
+    "mana": 0,
+    "weight": 4,
+    "range": 1
+  }
+}

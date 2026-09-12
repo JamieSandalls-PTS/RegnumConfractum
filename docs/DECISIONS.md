@@ -3016,3 +3016,5363 @@ and for gravebright it is the only way.
 **⚠ Every number here is unratified**, and floor three's warden is the one
 most likely to be wrong: it opens with five minutes left, so it has never been
 fought in a real round.
+
+### D-538: Characters level — and a level may not buy power
+
+**Stakeholder, 2026-08-19:** "flesh out the classes with a moderate list of
+tuned skills and feats, and determine the levels they are received."
+
+D-522 ratified persistent characters that level across rounds and left the
+mechanism unbuilt: there was no level, no progression table, and no answer to
+what a level actually gives you. This is that mechanism, and it is built
+around the one constraint that everything else in the Round depends on.
+
+**The constraint, restated because it is load-bearing.** D-207 said Legacy
+Points buy access and flavour, never raw power. D-522 applied the same rule to
+levels. D-529 then showed what happens if it slips: the Round's betrayal
+geometry rests on "going out alone at night is death, so take a partner", and
+the partner may be the antagonist. A level that made a veteran able to walk
+the night alone would dissolve the buddy system *for exactly the players who
+have been here longest*. The rule is therefore not a preference; it is the
+thing that stops the mode decaying with experience.
+
+**So a level grants three things and never a fourth:**
+
+| Granted | Never granted |
+|---|---|
+| feats — verbs and permissions | hit points |
+| class abilities — the rites | damage |
+| points in non-combat skills | `arms`, or any `creationOnly` skill |
+
+**The fence is enforced in CI, not described.** A skill may be marked
+`creationOnly`; `arms` is, and a class progression that grants one fails
+`validate:content` with the decision quoted in the error. This is deliberate
+paranoia: a class file is exactly where somebody would one day add `arms: 10`
+at level five, and it would look reasonable in review. A second rule catches
+the other direction — a feat whose `minLevel` is above one and which no class
+ever grants is unreachable content, and fails the build. That is invariant 2's
+principle (D-210, every item has a consumer) applied to feats.
+
+**Grants are automatic and fixed, not chosen.** There is no level-up wizard.
+A physician has the full kit at five, and every physician does. Two reasons:
+a schedule is legible to other players in a way a grab-bag of per-character
+choices is not — "you are level four, you can mend that" is a thing a cast can
+plan around — and it means levelling needs no UI, no pending-choice state, and
+no way to be half-done.
+
+**Level is DERIVED from banked xp, never stored.** Storing both is the classic
+dual-write bug, and in a round it would be worse than usual: earnings sit in a
+pot and are banked only on survival (D-524), so a stored level could be
+credited for work the character is about to die and forfeit.
+
+**What was authored.** Fifteen skills (five new: endurance, craft, survival,
+persuasion, attunement), twenty-seven feats (thirteen new, most of them
+level-granted), and a nine-step table per class covering levels two to ten.
+Feats declare their mechanics from a **closed enum** — `carry`, `craft_speed`,
+`harvest_speed`, `hunger_rate`, `thirst_rate`, `treat_bonus`, `zombie_cap` —
+which the server implements in full. A feat with no `effect` is *declaring*
+itself flavour rather than hiding that it is. That distinction matters more
+than it looks: a content-driven game whose feat text implies mechanics that
+were never wired is lying to its players, and nothing in a schema catches it
+unless the schema is asked to.
+
+**Skills now do things that they did not.** `craft` and `survival` shorten
+work (capped at half — an instant harvest would delete the vulnerability that
+makes gathering a risk), `endurance` stretches the interval between need
+steps, `athletics` still sets carry, `necromancy` still sets the zombie cap,
+and **treatment now mends as well as closes**: `TREAT_BASE_HEAL` plus
+Medicine/20 plus feats, capped by the patient's own maximum. Medicine was
+previously a key that opened a door; a physician whose care is worth queuing
+for is what makes D-205's dependency social rather than procedural. Treating
+someone else pays xp and deeds — healing is a service and D-522 lists it —
+while treating yourself does not, or a physician would farm their own scrapes.
+
+**⚠ Unratified:** the xp curve (level 2 at 150, level 10 at 8000, calibrated
+against MR2's actual earnings of roughly 150–350 for a surviving round), every
+feat magnitude, and the treatment numbers. The tests assert SHAPE, so all of
+it retunes without an assertion going stale.
+
+**One thing deliberately not done:** casting classes gain no spells from
+levels, because nothing casts yet. Granting them would be exactly the lie the
+`effect` enum exists to prevent.
+
+---
+
+### D-539: A character's face is authored, and the authored face is what strangers see
+
+Creation had a class, skills, feats and a name, and for appearance it had a
+reroll button. That was always a placeholder — `creator.ts` was built in D-514
+as a standalone range-finding tool so the stakeholder could push every slider
+until the rig broke, on the understanding that the in-game flow would adopt
+the ratified ranges later. This is later.
+
+**The shape: seed first, player second.** The character's integer seed still
+generates a whole appearance (D-402); what is stored is a sparse **override**
+of the handful of fields the player set by hand. Three consequences, all of
+which were the reason for choosing it over storing a whole appearance:
+
+- every character, NPC, roamer and corpse made before this keeps rendering
+  exactly as before — no override at all is byte-identical to the old
+  behaviour, and there is a test that says so;
+- a field added to `Appearance` later is inherited from the seed by every
+  existing character, rather than defaulting to something wrong;
+- the wire carries a small object rather than a full body description.
+
+**The override reaches the observer, and that is the point of putting it on
+the wire at all.** Stranger-descriptors are the whole of D-201/D-219 identity:
+until a name is learned, a character IS "a towering, heavy-built figure". A
+descriptor computed from the raw seed would describe somebody else — so
+`resolveAppearance` is now the only way any code reads an appearance, on both
+sides, including `corpseBurden` (a player who built a heavy figure must be
+heavy to carry).
+
+**The server bounds the body.** `APPEARANCE_LIMITS` is checked by the wire
+schema and again in the handler; colours must come from the world's palettes,
+because off-palette colour survives the quantiser badly (D-404) and would make
+one character look wrong in a way nobody could explain. The panel's sliders
+are narrower than `creator.ts`'s on purpose: range-finding was that tool's
+job, and it is not this one's.
+
+**Equipment is not in the override, and that is a design decision rather than
+an omission.** Gear is stripped between rounds (D-522) and will be driven by
+the inventory. A helm chosen at creation would be a permanent disguise the
+recognition system never agreed to — silhouette is one of the few channels
+disguise cannot fully close (D-219), and it has to stay honest. The creation
+preview therefore dresses nobody, and describes the body undressed.
+
+**Also fixed while in here:** the wizard widened `document.querySelector('.panel')`,
+which matches the in-game settings panel — it appears earlier in the document
+— so the creation screen had been rendering at 300px in a 720px style. And
+the client built every in-world character from the seed alone, which would
+have discarded the authored body at the moment it mattered most.
+
+---
+
+### D-540: Bot AI — a round that runs without three people in it
+
+**Stakeholder, 2026-08-19:** "bot AI is needed for testing. The bots should be
+able to perform basic functions for each role, and if the bot is the traitor,
+a random trigger to go for the objective."
+
+The handoff after MR2 said the remaining risk was **entirely in numbers nobody
+has felt**: roamer strength, the floor-three warden, hunger rates, the dungeon
+gradient — two dozen of them, none judgeable except against a round that runs
+its length. A round needs three players. That is the bottleneck this removes.
+
+`BotClient` already spoke the protocol; `BotAgent` drives it. Three
+commitments, each of which changes what a bot round can prove:
+
+1. **They play through the wire and only the wire.** An agent sees what a
+   rendering client sees — its own area mirror, its own status, its own
+   `round_role`. No server handle, no reading another agent's role, no vision
+   into an area it is not standing in. A bot that finds the keeper found it by
+   walking there. This is what makes a bot round evidence about the game
+   rather than about the harness.
+2. **They learn the map by walking it.** Transition targets are server-side by
+   design (the snapshot says only where the exits ARE), so an agent discovers
+   where a door goes by going through it and remembers the edge. No test
+   encodes the shape of the cross, and the map (D-529) can be re-authored
+   without touching a bot.
+3. **The antagonist commits on its own clock** — a minimum delay, then a
+   per-decision roll on its **own** random stream. Before it commits it works
+   like everybody else, which is the whole point: the deception has to be
+   behavioural, or the bots would only ever exercise the combat code.
+
+Roles — gatherer, forager, woodsman, physician, delver, idler — each know
+which nodes to look for and which recipes to attempt. Needs are obeyed (hunger
+pushes out, thirst pulls in, D-533), work is done, blows are returned, and the
+truce is talked through.
+
+**Three things measurement changed, in the order they were found:**
+
+- **Re-deciding faster than you can act produces paralysis.** The first
+  version re-rolled which door to walk to on every decision, and the agents
+  stood between two exits shuffling for the length of a round, each tick
+  committing to a different one and taking one step. Anything that re-decides
+  faster than it acts does this. The chosen door is now held until reached or
+  abandoned.
+- **Aggression keyed on proximity kills the objective.** Bots originally hit
+  any NPC within reach — which meant the good half of the cast would kill the
+  tavern keeper by walking past it, and every kill_npc round would resolve for
+  the wrong reason. Aggression is now keyed on **having been struck**.
+- **A spent seam looks exactly like a full one on the wire.** Charges are
+  server-side, so an agent finds out by trying and remembers the refusal for
+  ninety seconds. Without it an agent stands at the first exhausted vein for
+  the rest of the round. Worth noting that **a human client has the same
+  blindness** and no such memory.
+
+**`npm run bots` fills a live round**, so one person can play the go/no-go
+gate. That was the actual reason to build this.
+
+**Two holes the bots found in the server, neither fixed here:**
+
+- **A player who joins a running round never receives `round_role`.** It is
+  sent once, at round start. A human joining late has the same hole, and would
+  be in a round with no idea whether they were the antagonist.
+- **`lastResyncDiffs` was comparing across doors.** A snapshot for a different
+  area is arrival, not a resync; diffing it reported every entity in the room
+  you left as a discrepancy, which turned the desync check into noise exactly
+  when a client starts using the map. Fixed in `BotClient` — worth knowing
+  that the check was quietly useless for any client that moved between areas.
+
+### D-541: The sound drop — normalised and split where the decoder is
+
+**Stakeholder, 2026-08-19:** a folder of sound files, "the actions/areas they
+relate to are in the name", then "they need to be normalized" and "some sounds
+are multiple in one file, and they need to be split".
+
+Twenty-four files: six area beds, a menu track, and seventeen combat sounds.
+Two of them named "(file needs to be split)".
+
+**What was already true and had to stay true.** The audio layer was entirely
+procedural (D-514's ambience, D-531's combat cue) precisely so the repo
+carried no assets. That is now over, and deliberately: the procedural layer
+survives untouched — hearth crackle, room tone, and the anonymous
+through-a-wall combat cue — and the sampled layer sits beside it on the same
+`AudioContext`. The two are not alternatives. The procedural cue is what a
+player hears when the server has told them a fight is happening *without*
+telling them who is in it (D-531), and a sampled death cry through a wall
+would hand back the identity the message withheld. **Samples play for what you
+can see; the synthesised cue plays for what you can only hear.**
+
+**Where normalisation and splitting happen, and why it is not offline.**
+
+Both were asked for as file preparation, and both run at LOAD instead. The
+reason is a hard constraint rather than a preference: half the drop is `.ogg`,
+`.mp3` and `.flac`, and this machine has no decoder for any of them — no
+ffmpeg, and Python's standard library decodes WAV and AIFF only. Doing the
+work offline would have normalised the twelve files that happen to be WAV and
+left the ambience beds, the menu music and one of the two "needs splitting"
+files untouched. That is worse than not doing it: the inconsistency would be
+invisible until somebody walked from the town into the mine.
+
+The browser already decodes every one of these formats, and has to decode them
+to play them. So the work happens on samples it holds anyway, it applies
+uniformly, and **whatever is dropped in next — in whatever format — is
+normalised and split without a build step anybody has to remember**.
+
+The logic is a pure module (`shared/src/audio.ts`) over `Float32Array`, so it
+is tested rather than trusted: `shared/test/audio.test.ts` runs it over the
+real `maledeath.wav`, and a Python port (`tools/src/probe-audio.py`) reports
+the same answer independently. Both find **nineteen takes**; the browser finds
+nineteen takes with gains matching the Python probe to two decimals, and finds
+**seven** in the ogg that no offline pass here could have opened at all.
+
+**Three details that are the difference between working and nearly working:**
+
+- **RMS, not peak, and silence excluded from the measurement.** `maledeath` is
+  fifty seconds of mostly silence around a handful of cries. Measured whole it
+  reads as nearly silent, and peak-normalising it would have amplified the
+  cries into distortion. Each take is measured and normalised on its own —
+  they differ by more than 5× within the one file.
+- **A gap must be long enough to be a gap.** A dip inside a scream is not the
+  end of a take; treating it as one turns four takes into forty. Takes are
+  padded either side so the attack transient survives the cut.
+- **A peak ceiling over the loudness target, and hard limits on gain.** A file
+  that appears to need 20× is not quiet, it is broken, and amplifying it would
+  raise its noise floor into a hiss.
+
+**Beds stream; effects are decoded.** The menu track is around twenty-six
+minutes and would decode to roughly half a gigabyte; the beds are tens of
+megabytes each. Those play through an `<audio>` element, which means their
+samples are never all in memory and therefore cannot be measured up front —
+so they are normalised by a slow automatic gain reading the signal through an
+analyser toward the same category targets. It converges in a second or two,
+which is acceptable for a bed and would not be for a death cry. Effects are
+short, so they get an exact measured gain and a precise split.
+
+**Ambience is area content, not derived.** Areas gained an `ambience` field
+naming a cue, for the same reason `outdoor` is not inferred from `lighting`
+(D-527): a render profile is not the same axis as what a place sounds like,
+and coupling them means the day somebody wants a quiet cave they have to
+change how it looks. The cue list is content (D-110), schema-validated, and
+**CI fails on a cue pointing at a file that is not there** — a silent cue and
+an unwired one are indistinguishable in play, so the build has to tell them
+apart.
+
+**One new wire event.** `entity_effect` (`heal` | `rite`) is broadcast when a
+wound is mended or a rite performed, because those had no observable trace and
+a corpse standing up is not a private matter. It carries what happened and
+never to whom or why.
+
+**`bow.wav` is authored and deliberately unwired**, marked `status: 'planned'`
+like a planned objective: there is no ranged weapon. Attaching it to a melee
+swing would be the audio version of a feat whose text implies a mechanic
+nobody built (D-538).
+
+**⚠ Unratified:** the loudness targets, and the split thresholds. Both are
+unusually easy to judge — getting them wrong is audible inside one round.
+
+**Note on the repo.** `Sounds/` is the raw drop and `client/public/audio/` is
+what the game loads, produced by `tools/src/build-audio.py` (AIFF → WAV,
+because no browser plays AIFF; everything else copied and renamed). The
+conversion is lossless and every other file is copied byte-for-byte, so the
+drop folder is redundant once the stakeholder is satisfied — about 49 MB of
+it.
+
+### D-542: The world gets objects, walls get their height back, and targeting stops hurting
+
+**Stakeholder, 2026-08-20:** "The maps are pretty bare, can you work on adding
+some objects to them. Including crates, barrels, actual walls (Not those tiny
+half walls). and allow walls to be semi transparent when the character/camera
+is behind them. I want you to make a load of objects of different types,
+including the well and other stations (They currently use players as the
+object)." And: "Targeting is painful. Make it so that you can left click an
+enemy/player to target them, and it shows them as targeted in the hud."
+
+Four faults, and the first one was not on the list because it was invisible
+from the outside.
+
+**1. Half the map had no renderer at all.** The round map (D-529's cross) uses
+tile kinds `grass`, `dirt`, `tree` and `rock`. `terrain.ts` knew seven kinds,
+none of them these, and fell back to `walkable ? floor : wall` — so nine
+tenths of every spoke was rendering as grey stone floor, and every tree and
+boulder as a knee-high grey stub. The farm, the wood and the mine were the
+same grey car park with different names. **This was the largest single cause
+of "the maps are pretty bare", and no amount of adding props would have fixed
+it.** Grass, dirt, trees (trunk and three crown tiers) and rock (boulders and
+chips) are now rendered as themselves.
+
+**2. Walls were knee-high on purpose, and the note said when to change it.**
+`terrain.ts` carried this comment: *"Ruined stubs, not full walls: at this
+camera elevation a wall of height h occludes ~1.5h tiles of floor behind it,
+and full-height walls swallowed characters standing beside them. Full-height
+walls need a camera-side cutaway — revisit with the area pipeline in M5."*
+The reasoning was right and the cutaway is now built, so walls are 2.5 units
+with a capstone course and an occasional ruined stub.
+
+**The cutaway is a dithered screen-space cutout**, not a fade. Every tall
+thing — walls, trees, rock, props over waist height — draws with a patched
+material that knows where the player is on screen and how deep. A fragment
+both nearer to the camera than the player and inside a soft radius of them is
+discarded on a 4×4 Bayer pattern. Three reasons for that shape:
+
+- **Instanced geometry has no per-wall object to fade.** The whole area is a
+  handful of draw calls, so there is nothing to make transparent one at a
+  time. A material patch handles every occluder by one rule at no CPU cost
+  and needs no list of what is in the way.
+- **Transparency would fight the palette quantiser (D-404)** by introducing
+  colours that are not in the palette, and would need sorting against
+  instanced geometry and itself. A discard introduces no new colours.
+- **Stippling is already the idiom.** The post pass dithers; this dithers with
+  the same matrix. It reads as "something is in front of you" rather than as
+  a hole in the world, which is why a few pixels are kept even at full
+  strength — an entirely erased wall reads as missing geometry.
+
+**3. Stations rendered as people.** Facilities are entities (they are used and
+targeted), and `addEntity` had a branch for nodes and piles and then fell
+through to `CharacterVisual` — so the well in the town square was a man
+standing very still, and so were the anvil, the storehouse and the infirmary.
+They are now built from the prop catalogue. The wire also gained `variant`,
+carrying the node or station id: the client had been *guessing shapes from
+the descriptor's prose*, which is how stations fell through in the first
+place.
+
+**4. Targeting measured to a magic pixel.** `entityAtScreen` projected one
+point at chest height and took anything within 30px, with no preference by
+kind. So clicking a person's legs, head or weapon missed; a resource node
+standing near someone stole the click; and zooming out made everything
+unclickable. Now each entity is a vertical *segment* from feet to head, the
+cursor is measured against the whole segment, the grab radius scales with how
+large the thing is drawn, and **people beat scenery** on a tie. Left-click
+already selected — what was missing was hitting what you aimed at.
+
+Around it: the target panel gained what it is and how far away it is (and
+turns warm within reach), the marker ring pulses so it is findable once there
+is clutter on the floor, **Tab cycles targets nearest-first**, Escape and a
+click on open ground clear.
+
+---
+
+**Props are area content, not entities.** A prop is a type, a tile and a
+rotation. They never move, never act and nobody interacts with them, so
+paying an entity id, a wire slot and a delta stream for each of two hundred
+crates would spend the netcode budget on scenery. They travel once with the
+snapshot.
+
+**The type list is a closed enum the client implements in full** — the same
+discipline feat effects follow (D-538) — and a test asserts every type builds
+geometry. The failure it prevents is specific and nasty: a type the schema
+accepts and the renderer ignores would be an *invisible solid obstacle*.
+
+**Solid props change walkability, and that is why the catalogue is shared
+rather than client-side.** A crate the server walks through and the client
+draws is the one kind of desync a player can see. `isTileWalkable` consults
+props, the client's pathfinder consults them, and **CI's reachability flood
+blocks on them** — a barrel authored into the only doorway now fails the
+build instead of sealing a spoke in play.
+
+**Placement is generated, not typed.** The map is generated, so two hundred
+hand-authored coordinates would be lost the next time a wall moved —
+`build-round-map.py` dresses the cross and `dress-areas.py` dresses the three
+hand-authored areas. Both place in small **clusters**: three barrels and a
+crate together read as somebody's stores, where the same four scattered read
+as noise. Both refuse a solid prop on any tile with fewer than five walkable
+neighbours (a corridor or a doorway), then run one flood fill and drop
+anything that still cut something off — on the tight dungeon floors that
+repair pass actually fires, which is the point of having it.
+
+⚠ **A caution learned immediately:** the generator rewrites its areas
+wholesale, so the `ambience` fields added by hand in D-541 were silently lost
+the first time the map was rebuilt. Anything that belongs on a generated area
+belongs in the generator.
+
+**Also here:** `entity_effect` gained nothing, but `shot-receiver.ts` gained a
+configurable port after defaulting to 8123 and fighting a dev server for it.
+
+**⚠ Unratified:** the see-through radius (110 device pixels) and how much of
+an occluder survives at full strength; wall height; and the dressing density,
+which is the number most worth arguing with — a map can be cluttered as
+easily as it can be bare.
+
+### D-543: The map editor — and why it writes through a server
+
+**Stakeholder, 2026-08-20:** "I need you to build in a tool that allows me to
+place the assets on the map. Can you do this? a map editor that allows me to
+place walls and objects."
+
+`/tools` has said **map editor** in the repository layout since the first
+commit. This is it, built at the point it was needed rather than up front —
+which is the right moment, because the thing it edits (tile kinds that render,
+a prop catalogue, walls with height) only became worth placing by hand in
+D-542.
+
+**It renders through the game's own `Terrain` and `PropVisual`.** Not a 2D
+grid of icons, not a schematic: the same instanced meshes, the same lighting
+profile, the same geometry. An editor that draws its own approximation is an
+editor that lies about what you are making, and the entire value of placing
+scenery by hand is judging how it looks. The one deliberate difference is that
+the editor renders **raw rather than through the palette pass** — the
+quantiser's ordered dither is the game's look, and it makes a single misplaced
+tile nearly impossible to see. You judge composition here and the look in the
+game.
+
+**Five tools:** ground and walls (the eleven kinds the renderer actually
+draws), props (all thirty-one, grouped, with solid ones marked), stations,
+resource nodes, and the spawn point. Brush sizes, rotation, undo/redo per
+stroke — a stroke, not a tile, because that is what a person thinks of as one
+action.
+
+**The tile palette is the renderer's list, not a free-text field.** D-542's
+worst bug was that `grass`, `dirt`, `tree` and `rock` had no renderer and fell
+back to grey floor across nine tenths of the map, invisibly. An editor that
+let you type a kind would reintroduce that failure one tile at a time.
+
+---
+
+**The design decision worth recording is where the file I/O lives.**
+
+A browser cannot write the repository. The obvious options were to download an
+edited JSON for the user to drop in by hand, or to talk to a small local
+server. The editor talks to a server, and the reason is not convenience:
+
+**A download cannot be refused.** Saving PUTs the area to
+`tools/src/editor-server.ts`, which parses it with the real `AreaSchema`,
+floods it for reachability **with solid props blocking** (D-542), and checks
+the specific ways a person seals their own map — a barrel in a doorway, a
+facility with nowhere to stand within D-530's two tiles, an exit off a
+walkable tile. **If anything fails, nothing is written.** The validator
+guarding CI is the validator guarding the save button, so the editor cannot
+produce content that fails the build. That was proved by accident during the
+first real save: three market stalls in a row sealed one tile behind them and
+the save was refused, naming the tile.
+
+After a successful write it runs the **full** content validation and returns
+what it finds, because a single area cannot know whether it just broke another
+area's transition.
+
+The check lives in `tools/src/editor-check.ts` rather than inside the server
+so it can be tested without booting an HTTP listener — the guard on the save
+button is the thing most worth testing about an editor, and a test that has to
+start a server is a test nobody runs.
+
+**Two smaller decisions:**
+
+- **GET returns the SCHEMA-PARSED area, not the file's bytes.** Half the
+  schema has defaults, and a hand-authored file may omit any of them; handing
+  the editor raw bytes gave it an area with no `lighting`, which the renderer
+  met as `undefined`. The editor works on the same resolved document the game
+  server loads. The cost is that saving writes those defaults back explicitly,
+  which makes content more verbose and more honest.
+- **A timestamped copy goes to `content/.editor-backups/` before every
+  write**, gitignored. Git is the real safety net; this is the belt, and it
+  earned itself immediately when a 3×3 eraser removed more than intended.
+
+**The editor warns on generated areas.** The whole cross is written by
+`build-round-map.py`, which rewrites those files wholesale — anything placed
+by hand in `round-*` is discarded the next time it runs. The editor says so in
+the panel rather than pretending otherwise. ⚠ This is the sharpest rough edge
+of the tool and the obvious next piece of work: either the generator learns to
+preserve hand-placed props, or the hand-edited areas need a marker it
+respects.
+
+**Run it:**
+
+    npm run dev:editor      # the file server, port 8140
+    npm run dev:client      # then open /editor.html
+
+### D-544: More editor, a smaller tavern, and props that light the room
+
+**Stakeholder, 2026-08-20:** "I need more controls in the editor. I need to be
+able to place/reposition area transition tiles, and change the map size. The
+map for the tavern is far too large for example, It needs to be 50% smaller.
+Also, can you add some props for doors/windows, foliage, and ensure props with
+lighting have a lighting effect."
+
+**Exits are now a tool.** Pick a target area and an arrival tile, click to
+place, click an existing one to repoint it, right-click to remove. The panel
+lists every exit in the area with a "go" button.
+
+It also says, in the panel, that **exits are one-way**. That is the single
+most common mistake this tool can produce: a transition is a door in ONE
+area's file, and the way back is a separate transition in the other. A door
+that only works in one direction is invisible in the data and obvious in play.
+
+**Map size is a panel, not a tool**, because it is one decision about the whole
+area and it can throw work away. It crops or grows from an offset, fills new
+ground with floor, drops what falls outside — and **says exactly what it
+dropped** ("dropped 31 props, 1 exits"). "Trim to content" finds the tightest
+rectangle that still holds everything, plus a one-tile border so the enclosing
+wall survives.
+
+**The important new guard is on the other side of the resize.** Shrinking an
+area orphans any door pointing INTO it: the tavern going from 64×64 to 32×32
+leaves the yard's door aimed at a tile that no longer exists, and the area on
+its own has no way to know. `checkAreaForSave` now takes every other area and
+refuses a save that would strand an inbound door, naming which area and which
+tile. Without this the editor's most attractive feature would also be its most
+destructive.
+
+---
+
+**The tavern: 64×64 → 32×32, and re-authored rather than cropped.**
+
+The stakeholder was right, and the measurement is worth recording: the old
+room's content filled 62×62 of its 64×64, so there was **nothing to crop**.
+Trimming would have thrown away three quarters of the tavern rather than
+tightening it. Halving a room means re-authoring it, so `build-tavern.py`
+joins `build-round-map.py` as a generator.
+
+The second pass went further than the first, because the first missed the
+point: it kept the taproom the full size of the new map. A tavern should be a
+room you cross in a few steps with an **outside to arrive from**, so the
+interior is now about 20×15 — roughly forty seats, a crowded night — inside a
+32×32 plot with an approach, a yard, a treeline and lanterns at the door.
+
+The keeper's spawn moved with it, and the yard's door was repointed in the
+same script: moving an entrance without moving what points at it is exactly
+the failure the new inbound check exists to catch.
+
+---
+
+**Doors, windows and foliage**, and one rule that made them possible:
+
+Props gained a **`mount`**: `floor` or `wall`. A window belongs IN a wall and a
+barrel does not, and before this the schema had one rule for everything ("a
+prop inside a wall is a mistake"), which made a window unexpressible. Each prop
+is now checked against its own rule, in the schema and in the editor, where
+placing on the wrong kind of tile simply does nothing rather than producing
+content the save would refuse.
+
+**A door is deliberately NOT solid.** There is no opening mechanic, so a solid
+door is a wall with a handle painted on it — and worse, a doorway that cannot
+be walked through would seal areas that the reachability check has no way to
+know were meant to connect. It is drawn hung ajar.
+
+---
+
+**Lights, and the arithmetic that shapes them.**
+
+Braziers, lantern posts, wall torches and lit windows declare a light in
+CONTENT — colour, intensity, radius, flicker, height — so "does this glow" is
+one fact in one place and the editor can know it without knowing how anything
+is drawn.
+
+They are **not** each a real light. The town carries around forty light-casting
+props, and every real light in a Three.js scene is compiled into every lit
+material's shader: forty point lights is not "a bit slower", it is a shader
+that loops forty times per fragment. So `LightRig` keeps a **fixed pool of
+eight** and hands them to the nearest sources each frame. A player sees the
+braziers near them lit and the ones two streets away dark, which is roughly
+what a real torch does, and anything dropped is too far to judge.
+
+Flicker is the hearth's — layered sines, seeded per source, no per-frame
+randomness — so two clients watching the same brazier see the same flame.
+
+⚠ Torch reach was raised from 9 to 15 after the first look: a taproom is wider
+than the old radius, so a room with five torches in it still read as unlit.
+
+### D-545: Walls become a family, and roofs are painted rather than drawn
+
+**Stakeholder, 2026-08-20:** "Can you also add different wall types, and a
+dynamic roof painter" — and, on materials: "Brick walls, cave walls, and
+forest/tree walls for outside."
+
+**Seven wall kinds**: stone, timber, plaster, brick, cave, palisade, and a
+**treeline** for closing open ground without a stone wall appearing in a
+field. They behave identically — unwalkable, opaque, full height — and differ
+in material and silhouette: the palisade is sharpened stakes, the cave wall is
+tall and ragged, the treeline is trunks and tiered crowns.
+
+**The dangerous part of this change was not the geometry.** `isTileOpaque`
+tested `kind === 'wall'`, so every material added after it would have been a
+wall you could **see straight through**. Line of sight is what makes a witness
+(D-217), so that would not have been a rendering bug — it would have been a
+silent hole in the crime system. Opacity now keys off the family, and a test
+asserts every member blocks sight.
+
+---
+
+**Roofs are painted as a footprint; the shape is derived.**
+
+You never draw a roof, you draw where one IS. Touching tiles flood into a
+region, the region's bounding box decides which way the ridge runs (along the
+longer side, the way a real roof sheds water over the shortest span), and the
+surface is a **heightfield sampled at tile corners**.
+
+That last word is the whole difference between the second attempt and the
+first, which the stakeholder correctly called awful. The first built one
+tilted slab per tile: every slab carried its own rotation, so every seam
+opened, the silhouette stepped, and it read as a woodpile. Sampling a
+continuous height function at **shared** corners makes neighbouring quads
+agree exactly, so each pitch is one unbroken plane — and the ridge, the eaves
+and the overhang fall out of the same function instead of being drawn on
+afterwards. A ridge beam and a fascia board finish it.
+
+Paint an L-shaped inn and you get an L-shaped roof. Extend a room by two tiles
+and the pitch re-derives; nothing needs re-authoring. That is what makes it a
+painter rather than a roof asset.
+
+⚠ Pitch was raised twice. At the original cap a roof over a wide building
+barely rose and read as a slightly domed field. **Pitch is most of what makes
+a roof legible from an isometric camera** — more than colour, more than
+texture — and the cap now sits where a hall still reads as a building.
+
+**A roof lifts away when you walk under it** — the whole region, faded out,
+not a dithered hole. A hole punched in a roof reads as damage; a roof that
+lifts reads as a cutaway, which is what isometric games have done since
+Ultima, and it is right here precisely because the roof is not hiding
+something dangerous. **Walls keep the dither (D-542)** because a wall is only
+ever partly in the way. Two different problems, two different idioms.
+
+**Roofs are presentation only.** They never block movement, they never block
+line of sight, and the server does not read them. There is deliberately no way
+to express "this roof blocks" — a rendering decision quietly editing who
+counts as a witness is exactly the coupling this project keeps refusing.
+
+**The editor keeps every roof up**, so you can see what you are painting;
+only the game lifts them.
+
+---
+
+**One small tooling ruling.** The editor may now zoom out four times further
+than the game. The game's zoom clamp is deliberate — pulling the camera back
+is scouting, and the witness model assumes you see about as far as you are —
+so the ceiling is raised by tools only, never globally.
+
+---
+
+## D-546 — Attributes, and a level-up screen that spends them
+
+**Date:** 2026-08-20 · **Status:** accepted · **Supersedes part of D-538**
+
+Every character now carries four attributes — **strength, dexterity, vigor,
+will** — starting at **10 apiece with 10 more to place** at creation. The
+baseline is identical for every calling: a class is a bundle of access and
+options (D-208, D-511), and giving the man-at-arms free strength would make
+the calling a stat block, which is the design this project has refused since
+D-303.
+
+Each attribute has exactly one job, so that "what does this do" has an answer
+rather than a paragraph:
+
+| attribute | what it does |
+|---|---|
+| **strength** | damage, and carrying capacity — including what a body weighs |
+| **dexterity** | the chance an incoming blow only glances |
+| **vigor** | maximum health, one point for one |
+| **will** | the size of the mana reserve, and how fast it returns |
+
+**Every derived number returns exactly the old value at the base of 10.**
+Health at vigor 10 is 20, which is `DEFAULT_MAX_HP`; the damage and carry
+bonuses are zero. That is the calibration that lets a character written before
+attributes existed read back as the character the old code produced — which is
+why migration 0010 backfills nothing, and why `resolveAttributes(null)` is the
+one reader everything goes through.
+
+**Mana is a real resource, not a decoration.** It is spent by the rites that
+already exist — Speak With Dead and Animate Dead (D-204/D-511) — and it
+regenerates **out of combat only**, because a caster who refills while
+standing in a fight is not making a decision about when to spend. Spells carry
+no cost yet because there is no cast verb yet; that is stated here rather than
+papered over with a bar that never moves.
+
+### The tension with D-538, stated plainly
+
+D-538 fenced levels off from raw power: *"a level never grants hit points,
+never grants damage."* **Attribute points at level-up cross that fence**,
+because strength is damage and vigor is hit points. The stakeholder asked for
+it directly, so it is built. What is not negotiable is the magnitude, and the
+reason is D-529: the Round's whole betrayal geometry rests on "going out alone
+at night is death, so take a partner". A level that made a veteran able to
+walk the night alone would evaporate the buddy system for exactly the players
+who have been here longest.
+
+So the fence moved, and it moved by **four points across nine levels** — at
+levels 3, 5, 7 and 9. At the ceiling that is **+4 health OR +1 damage OR +4
+carry**: visible on a character sheet, invisible in a fight. A point per level
+would have been +9, which is half a starting character's health, and that
+would decide fights.
+
+**Everything else about D-538 stands.** `arms` is still `creationOnly` and a
+level still cannot buy it — every character swings with what it bought at
+creation, and `validateAdvances` refuses otherwise. Class progression grants
+are still **automatic and fixed**, because "a physician has field surgery by
+four" is something the whole table can plan around and a grab-bag of
+per-character picks is not. Level is still **derived from banked xp**, never
+stored.
+
+### What the level-up screen actually is
+
+It sits *on top of* the automatic grants rather than replacing them. A level
+hands the player a small budget — skill points, an occasional feat, a caster's
+occasional spell, and the four attribute points above — and the screen spends
+it. The class deepens on its own schedule; the player decides what else they
+became.
+
+Three properties are deliberate:
+
+- **The budget is cumulative, not per-level.** A player who levelled twice
+  while away, or who closed the screen without spending, gets it all back.
+  Nothing is ever lost by ignoring the screen.
+- **The submission is the WHOLE advancement record**, not a delta. That makes
+  a resend harmless — which matters because the screen appears exactly when a
+  round is tearing its sockets down.
+- **Spent points cannot be un-spent.** The screen does not offer the button,
+  and the server would refuse the record anyway.
+
+`validateAdvances` is the single rule set: the client renders the screen from
+it and the server enforces it (D-102).
+
+⚠ **Every magnitude here is UNRATIFIED** — the four attribute points, the ten
+skill points a level, which levels carry a feat, the mana costs, the glance
+cap.
+
+---
+
+## D-547 — Equipment, the paperdoll, and a kit for every calling
+
+**Date:** 2026-08-20 · **Status:** accepted
+
+Items may now declare an `equip` block: a slot, and any of armour, weapon
+damage, mana and weight. Characters wear them in eleven slots — head, body,
+hands, legs, feet, cloak, two hands, an amulet and two rings — shown as a
+paperdoll in a new character panel that also holds the pack and the sheet.
+One panel, because "what am I wearing", "what am I carrying" and "what does
+that make me" are one question a player asks once, and answering it across
+three windows is how a player ends up not checking at all.
+
+**Gear is allowed to matter more than a level does**, and that is not an
+inconsistency with D-546. Everything here is stripped between rounds (D-522)
+and every calling is handed a kit at the start, so a sword that adds damage
+cannot compound across a career the way an attribute point can. Round-scoped
+power is safe in a way permanent power is not.
+
+Rulings that are consequences rather than opinions:
+
+- **`both-hands` is not a slot a character has.** It is what an item
+  *declares*, and equipping one fills main-hand and off-hand together.
+  Modelling it as a real slot was the first attempt and it immediately
+  produced a shield worn alongside a greatsword, because nothing owned the
+  contradiction.
+- **Damage takes the best weapon, never the sum.** Summing would make
+  dual-wielding strictly correct for everybody — a build decision nobody made
+  on purpose.
+- **Armour reduces and can never erase.** `MIN_DAMAGE` is 1. An unkillable
+  player in a 25-minute round with no respawn is not a tank, it is a
+  stalemate the antagonist has no answer to.
+- **The slot lives on the ITEM**, not in a list on the character, so the two
+  can never disagree about where a thing is — and **every move clears it**
+  (transfer, corpse, loot, strip), because an item that arrives in a new
+  owner's pack still claiming a slot is a sword worn by somebody who never
+  picked it up. A partial unique index in Postgres enforces one item per slot,
+  because the gateway is not the only writer of those rows.
+- **The paperdoll never feeds the descriptor pipeline** (D-201/D-219). D-539
+  already refused authored equipment at creation because a helm chosen once
+  would be a permanent disguise; equipping a hood must not silently become a
+  presentation change either. Presentation stays its own explicit verb.
+
+**Every calling starts a round with a kit** — a weapon, a body layer, legs,
+boots, a trinket or a helm, two loaves and two bandages. The kits are
+deliberately close in total worth: the round is a social game, and a calling
+that started two armour tiers ahead would make the antagonist's problem
+arithmetic instead of deception. It is granted **at most once per character
+per round, tracked rather than inferred from an empty pack** — "holds nothing"
+is also true of somebody who has just been robbed, and refilling a robbed
+player would delete the whole point of robbing them.
+
+Starting-kit items **count as consumers in the D-210 orphan graph**, and CI
+now checks kits properly: an unknown item, an unwearable one, a helm assigned
+to the feet, or a kit that fills one slot twice all fail the build.
+
+**Gold is not part of round mode** (stakeholder). Coin stays in the persistent
+world's economy (D-220/D-221) and is simply not shown while a round runs —
+there are no shops, no wages and nothing to spend it on. The mechanic is
+untouched, only hidden where it means nothing.
+
+---
+
+## D-548 — A HUD you can read at a glance
+
+**Date:** 2026-08-20 · **Status:** accepted
+
+Three additions, all presentation, none of them touching what the server
+decides.
+
+**Bars, not numbers.** Health and mana are bars with the figures inside them,
+because the question a player asks mid-fight is "am I nearly out" and nobody
+reads a fraction to answer it. Urgency is banded — fine, bad, nearly over —
+rather than a sliding gradient, which would signal change when nothing had
+changed.
+
+⚠ **Hunger gets a bar too, and that needs care.** D-526 made needs *coarse*
+precisely so a player watches the room instead of a draining number. The bar
+is a presentation of a stage: it moves in visible steps, it shows the stage's
+**name** beside it, and `starving` is drawn nearly empty rather than empty —
+an empty bar reads as "this mechanic has finished with you" at exactly the
+point starvation starts doing damage (D-534). Thirst shares the label rather
+than getting its own bar, because two bars side by side would read as one
+resource with two halves, which is exactly what D-533 made them not.
+
+**A compass that follows the camera.** The needle is fed the *camera-space
+direction of north* by the scene rather than deriving an angle from the
+azimuth. Working it out by hand means re-deciding which axis is screen-right
+and whether tile y runs north or south, and getting that subtly wrong yields a
+compass that is correct at the default rotation and mirrored elsewhere — a bug
+that survives every screenshot taken from the default angle.
+
+**A classic round clock.** Twelve-hour face, two hands, on the round's
+compressed cycle (D-527). A twelve-hour face cannot tell noon from midnight,
+so the *dial* says which: it shades at night and swaps a sun for a moon. That
+is the honest fix; squeezing twenty-four hours onto the face would be
+unambiguous and would stop it being a clock anybody recognises. The minute
+hand is interpolated client-side between the whole hours the server sends —
+cosmetic, bounded by one game hour, and the alternative is a hand that jumps
+in twelve-degree steps and reads as broken.
+
+---
+
+## D-549 — Ashfold halved, and built as a street plan
+
+**Date:** 2026-08-20 · **Status:** accepted · **Amends D-530's pacing band**
+
+The town is now **50×50, half its old size** (stakeholder). The old 100×100
+Ashfold was a field with five sheds in it: nine tenths of the walking a player
+did there was crossing empty ground between buildings that had no reason to be
+that far apart.
+
+**The shape is a ring, not a scatter.** A dirt road encloses the tavern and the
+well-square; the four working buildings sit just outside it in the four
+quadrants; four approaches run from the gates to the ring. A town is a street
+plan first and buildings second, and the plan does something mechanical as
+well as visual: **every route between two buildings passes the square**, so
+nothing important happens out of sight.
+
+**The tavern is at the middle, and the round starts inside it.** Putting the
+cast in one room at dawn is the whole of D-536's truce — the antagonist has to
+lie to everybody's face before anyone has anywhere to be. It has two doors, on
+purpose: a single exit would make the tavern the easiest room in the game to
+trap people in.
+
+**The well stays in the open**, between the tavern door and the south gate —
+the most overlooked tile in Ashfold, which is exactly what D-529 needs it to
+be. A poisoner has to do it where everyone walks.
+
+**There are four working buildings, and the fourth is a guardhouse.** Smithy,
+storehouse, infirmary, guardhouse, each in its own wall material with its own
+roof (D-545). The guardhouse exists so that "the guards saw you" has a place
+on the map rather than being an abstraction the server applies from nowhere.
+
+At this size the far corners are inside `COMBAT_NOISE_TILES` (30) of each
+other, which is what finally makes D-531's noise model bite in a settled zone:
+a scuffle behind the smithy is heard in the infirmary.
+
+Smaller things that are part of the same change:
+
+- The town is walled with a **palisade**, not an anonymous `wall`. Ashfold
+  expects trouble and the fence is the first thing that says so.
+- **Tree copses at the four corners** — cover, and the only place in a settled
+  zone where line of sight is genuinely broken (D-217). ⚠ The first version
+  alternated tiles in a checkerboard and left one-tile pockets, which
+  `seal_unreachable` turned to rock, so all four corners came out as rubble
+  heaps rather than copses. Solid clumps.
+- **The square's furniture is placed by hand** — stalls, lanterns down the
+  roads, braziers at the tavern door, a shrine at the well, a signpost at each
+  gate. A market whose stalls land wherever the RNG puts them is not a market,
+  and scattered lanterns light the back of the smithy instead of the road. The
+  scattered clutter is a quarter of what it was, because the area is.
+- Areas **no longer all share one size**, so the generator's `W`/`H` are now
+  rebound per area and the transition linker computes each edge against its
+  own dimensions. Getting that wrong put the town's gates at x=50 on a map 50
+  wide.
+
+### ⚠ What this costs, stated plainly
+
+**D-530's measured 30–45 second travel band no longer holds.** A quarter of
+every errand used to be crossing Ashfold; halving the town took about eight
+seconds off each leg. Measured on the new map, a mid-depth errand is **22s**
+and a deep one **37s**, against 30s and 45s before — roughly fifteen seconds
+cheaper per round trip.
+
+The obvious compensation would be to grow the spokes, and it is deliberately
+not taken: the stakeholder's instruction was that the other areas look right
+as they are. So the band in `server/test/round-map.test.ts` has been
+**re-measured rather than re-derived**, and what survives unchanged is the
+part that was actually about design — depth inside a spoke still costs
+meaningfully more than its mouth, or "how deep do I go" is not a decision.
+
+If the longer commitment turns out to matter in play, the lever is spoke size,
+not town size.
+
+---
+
+## D-550 — Combat runs in rounds, and reach comes from the weapon
+
+**Date:** 2026-08-20 · **Status:** accepted · **Amends D-538 and D-546 again**
+
+Combat now runs on a **four-second round**, on a global beat —
+`floor(tick / COMBAT_ROUND_TICKS)`. Global rather than per-character on
+purpose: a shared beat is what makes it a round in the sense the stakeholder
+meant, so that "I get one swing this round" is a statement two people can
+agree about. Per-character timers would just be the cooldown again with a
+longer name.
+
+**A basic character gets one attack in a round.** More comes from feats
+declaring `extra_attack`, which are gated behind `minLevel` and arrive through
+a class's progression table.
+
+Two gates enforce it and both are needed:
+
+- the **budget** caps how many swings a round is worth;
+- **`attackReadyAt` spaces them inside the round**, because without it two
+  attacks could land on consecutive ticks across a round boundary — four blows
+  in under a second, which is the twitch combat D-104 ruled out.
+
+### ⚠ This is a rebalance, not a restructure
+
+`ATTACK_COOLDOWN_TICKS` was 20: **two swings every four seconds, for
+everybody**. One attack per round halves that, and a single `extra_attack`
+feat restores today's rate. So the baseline is now half of what every existing
+number was tuned against, and a level-8 martial character is back at par.
+
+That is a bigger fence-crossing than D-546's four attribute points, and it is
+worth naming as such: **a second attack is double output**, where four
+attribute points is four health. It is confined entirely to the feat effect
+enum precisely so CI can see every source of it — D-538's argument applied to
+a mechanic D-538 would not itself have allowed.
+
+⚠ Both halves of this — the four-second round and where the extra attack sits
+— are UNRATIFIED and want the stakeholder's eye in play.
+
+### Reach
+
+Weapons declare a `range` in tiles, defaulting to **one**, so nothing that is
+not explicitly a missile weapon gains reach by omission. `handleAttack` reads
+the weapon instead of the `ATTACK_RANGE` constant.
+
+**Anything past arm's length requires line of sight**, or a bow would shoot
+through the tavern wall — and a witness model built on line of sight (D-217)
+cannot have a weapon that ignores it.
+
+Reach travels with the weapon that sets the damage, never separately: a bow in
+one hand and a dagger in the other must not give a dagger's damage at a bow's
+reach, or the correct build is always "hold a bow you never use".
+
+### Auto-attack
+
+A selected target that is **visibly hostile** is engaged without further
+clicking. Mages hit with the staff through the same path — a staff is a weapon
+with a damage value and nothing special-cases it — and a bow simply starts
+engaging six tiles out.
+
+The switch is a new `hostile` flag on the wire entity, set for roamers,
+dungeon dwellers and the animated dead. It is **never set for a player,
+whatever they have done**: a wire field saying "this player is hostile" would
+be the game making an accusation, which is exactly what D-217 leaves to
+players. A player becomes auto-attackable **client-side, by having swung at
+you first** — remembered locally and never sent.
+
+That distinction is not fussiness. Guards are NPCs and are deliberately not
+flagged hostile; nor is the tavern keeper, who is somebody's objective. If
+auto-attack keyed off "is an NPC", clicking the keeper would start a murder.
+
+---
+
+## D-551 — Daylight undoes what walks at night
+
+**Date:** 2026-08-20 · **Status:** accepted
+
+Night roamers no longer vanish at dawn — they **come apart where they stand**.
+A new `entity_dissolved` event precedes the `entity_left` that removes them,
+and the client plays a slow sag of pale motes drifting *down*.
+
+Deliberately the opposite motion to an impact burst, which throws motes *away*
+from a point. The difference is what lets a player tell "it died there" from
+"it stopped existing" without reading any text. Slow, too: a fast dissolve
+reads as another hit landing.
+
+It is a separate event from `entity_left` because the two mean different
+things and a player needs to tell them apart — **a thing that LEFT might be
+behind you; a thing that came apart is gone.** That is worth a wire message on
+its own.
+
+⚠ The event goes out *before* the entity is despawned. A client that has
+already dropped the entity has nothing to play the effect on, which is how the
+first version produced no effect at all.
+
+---
+
+## D-552 — The town watch, and something for it to witness
+
+**Date:** 2026-08-20 · **Status:** accepted
+
+Ashfold has **guards**, and D-549 gave them a guardhouse to muster from.
+
+A guard is a **roamer with `habitat: 'guard'`** — the same spawn, hunt,
+approach, strike and wander code as a night thing, with exactly one filter
+added: *who it is willing to hunt*. Giving the watch its own implementation
+would have meant two sets of bugs, which is the same argument D-537 made for
+dungeon dwellers.
+
+What differs, and why:
+
+- **They are on the map for the whole round, day and night.** A town whose
+  guards go off duty at dusk is a town with no guards on the two nights that
+  matter. Daylight does not undo them either (D-551 is for what walks at
+  night).
+- **They do not hunt on sight.** A guard walks its round until it has
+  *witnessed* something. This is the whole design: **the answer to the watch
+  is not to fight them, it is not to be seen.**
+- **They are not flagged `hostile`.** A watchman on its round is not something
+  you auto-attack by clicking on it (D-550) — it is a person, and attacking it
+  must stay a choice.
+- **They are worth zero xp and carry no loot.** Paying for a guard kill would
+  make murdering the watch a farming strategy, and at a cast of three that is
+  a better rate than the dungeon.
+
+**Witnessing is line of sight**, exactly as every other question about who saw
+what is decided (D-217). A crime round the back of the smithy is not
+witnessed; the same crime in the square is.
+
+**Only the culprit is told.** They learn a watchman has seen them; nobody else
+is told anything by the game. The rest of the cast has to be told by a person,
+which is the only kind of evidence this game recognises. The `wanted` memory
+lives on the server, decays after `WANTED_TICKS`, is never rendered, and is
+cleared at every round reset (D-525) — the moment "wanted" becomes visible,
+the cast can read the antagonist off the UI and the witness model is dead.
+
+Striking a guard is itself witnessed, which is what stops "kill the witness"
+being free.
+
+### The well can be spoiled
+
+D-529 named well-poisoning as the antagonist's non-violent attack surface and
+the `the-long-hunger` objective has sat at `status: 'planned'` ever since,
+because nothing implemented it. It is implemented now, and it is what gives
+the watch something to watch for besides a stabbing.
+
+A sprig of bitterleaf and a moment at the well spoils the water for
+`WELL_POISON_HOURS`. Drinking from it **deepens thirst instead of relieving
+it** and costs health — a poisoner who left everyone watered would have
+accomplished nothing.
+
+**Nothing announces it.** The well looks exactly the same; you find out by
+drinking, or because somebody watched it happen. It is deliberately cheap to
+*do* and impossible to do *unseen* — D-549 put the well in the open square for
+exactly this reason. The cost is not the materials, it is the witnesses.
+
+---
+
+## D-553 — The hotbar belongs to the character
+
+**Date:** 2026-08-20 · **Status:** accepted
+
+The hotbar lived in `localStorage`, which meant one bar shared by every
+character on the machine and none of it following the player to another
+browser. A physician's bar and a berserker's are not the same bar, so it now
+lives on the character beside the build, and comes back on the next login.
+
+Sent whole and debounced, for the same reason `advance` is sent whole: a
+resend has to be harmless, and dragging a slot around is not worth a message
+per gesture.
+
+**The contents are deliberately not validated.** An ability id the client no
+longer recognises renders as an empty slot, which is the right thing to happen
+when a character loses a rite — refusing the whole bar because one slot went
+stale would lose the other eight.
+
+**The character panel gains an Abilities tab**: what this character can
+actually do, and the place you drag those things onto the bar from. Dragging a
+slot off the bar clears it.
+
+Two lists, and the split is the honest one — things every character can do,
+and rites this calling was granted (filtered against the character's real
+`abilities`, so a man-at-arms is never shown Speak With Dead).
+
+⚠ **Spells appear, greyed, undraggable, and labelled "no casting yet."** A
+character that HAS a spell should be able to see it; a hotbar slot that
+silently does nothing is exactly the lie D-538 refused for feats. When a cast
+verb exists, the label comes off and nothing else changes.
+
+---
+
+## D-554 — Bodies, heaps, and using what you carry
+
+**Date:** 2026-08-21 · **Status:** accepted · **Supersedes part of D-537**
+
+Five things the stakeholder found by playing. Each is a promise the world was
+quietly failing to keep.
+
+### The skill sliders were 22 pixels wide
+
+Allocating skills at creation "did not work", and the reason was CSS. The
+description under each row declares `flex-basis: 100%` so it sits on its own
+line — but the row never wrapped, so the description stayed on the first line
+and squeezed the slider to its minimum width. A range input 22px wide with a
+step of 5 and a max of 40 has three reachable positions.
+
+Worth writing down because of how it presented: nothing threw, the value
+bound correctly, and the budget arithmetic was right. It was purely a layout
+failure, and the only way to find it was to measure the element.
+
+### Everything that dies leaves a body
+
+A roamer used to simply cease at the moment of the killing blow, which reads
+as the swing having deleted it. Now it leaves a corpse where it fell.
+
+**And the body holds what it was carrying**, which supersedes D-537's *"loot
+goes straight to the killer, never to the floor"*. That ruling was about a
+reward evaporating — a pile on a dungeon floor nobody can re-enter after dusk.
+A body you loot where it dropped does not evaporate: you are standing on it.
+What the change buys is that killing something leaves evidence in the world,
+which every other death in this game already does.
+
+Corpses now carry **no character** when nothing that died was a person.
+`corpses.character_id` is nullable, which serves three needs with one shape —
+a roamer's body, the loot on it, and a heap of dropped goods. `character_id IS
+NULL` reads as "this was never a person", and it is exactly what the rites
+refuse on: there is no spirit behind a dead dog and nothing to question in a
+sack of ore. The refusal is its own answer, distinct from `beyond_reach` — one
+means "not a spirit", the other "a spirit you cannot get".
+
+**A body worth looting looks like one.** A pack is drawn beside it, and the
+flag is honest in both directions: a settled-zone corpse holds nothing (D-511)
+and says so, which saves the walk rather than hiding the disappointment behind
+it. Emptying one sends `entity_lootable` and the pack goes.
+
+⚠ That event exists because the first attempt re-broadcast `entity_entered`,
+which the client correctly ignores for an entity it already has — so the
+"update" did nothing at all and looked like it worked.
+
+### A body you watched fall stays where it landed
+
+The server replaces a dying entity with a separate corpse entity. The client
+was playing the ragdoll on the first and building a fresh, pre-settled one for
+the second, so you watched a body drop and a different body appear on top of
+it in a tidy pose.
+
+The corpse now **adopts the ragdoll that is already falling**, matched by
+tile. Anything not witnessed still arrives settled — a corpse found later must
+not flop over as you walk up to it, which is what the pre-settle was for.
+
+### What you wear can be seen
+
+Equipping something changes the model. A compact `worn` silhouette rides on
+the wire entity — helm, pauldrons, cape, robe, and what is in hand — read off
+the SLOT and the stats rather than off item ids, so a new sword looks like a
+sword without being registered anywhere. The renderer's `setEquipment` API has
+existed since M1 waiting for exactly this.
+
+⚠ **It never reaches the descriptor pipeline** (D-201/D-219, restated in
+D-547). What a stranger is CALLED and what they are seen to be carrying are
+separate questions, and joining them would make a helm the permanent disguise
+D-539 refused to allow at creation. A test strips a character to the skin and
+dresses them again, asserting the watcher's descriptor does not move.
+
+Null means "as the seed draws you", which is what keeps every NPC, roamer and
+corpse looking exactly as it did rather than being stripped bare.
+
+### A bandage in your pack is a bandage you can use
+
+Two verbs the game did not have: `use_item` and `drop_item`.
+
+`use_item` **dispatches on the template** rather than making the client say
+what kind of use it is — eating a loaf and binding a wound arrive as the same
+message, so a new consumable is a content change. Items declare what using
+them does from a closed enum, for the same reason feats do (D-538): an item
+whose description implies a use nobody wired is the commonest way a
+content-driven game lies to its players.
+
+A bandage mends and closes **one minor wound**. Major ones stay the
+physician's (D-205) — a bandage that fixed them would delete the one
+mechanical dependency this game has on another player. It refuses *before*
+consuming: linen spent on a whole man is linen a bleeding one does not have.
+
+`drop_item` puts something on the floor as a heap anybody can loot, reusing
+the ground-pile machinery corpse decay already produces. **A dropped thing is
+moved, never destroyed** — the item row changes owner, which is what keeps the
+no-duplication and no-creation invariants (D-114) true of a verb that looks
+like a delete.
+
+Both get buttons on the pack row rather than more click-the-row behaviour: a
+row that does three different things depending on where you click is a row
+nobody trusts.
+
+---
+
+## D-555 — Imported characters, and a retarget nobody has to open Blender for
+
+**Status:** built (spike). Whether the imported look replaces the procedural
+one is the stakeholder's call and is not made here.
+
+**Context.** The stakeholder's verdict on the procedural characters
+(2026-09-08): *"the graphics for characters are really subpar, and the
+animations/models you created are not near to the level I would like."* That
+is a fair reading of what D-402's generated-from-a-seed approach produces —
+it makes an infinite cast of mannequins, and a mannequin is what it looks
+like. The proposal was to import authored art instead.
+
+One constraint decided everything: **"unless the retargeting can be done by
+you, automatically, then this won't work."** The stakeholder is hands-off,
+does not review code (D-114) and will not run a 3D tool. A pipeline whose
+first step is "open Blender and fix the arms" is not a pipeline here, it is
+a permanent dependency on somebody who is not in this project.
+
+**Decision: the whole import is a build script.** `npm run build:characters`
+reads a Synty Sidekick `.unitypackage` and a folder of Mixamo `.fbx` out of
+`assets/incoming/` and writes `.glb` files into `client/public/models/`.
+There is no manual step, no engine, no Blender. Dropping a new animation in
+the folder and running it again is the entire workflow.
+
+Everything it needs was already installed. `three` ships `FBXLoader`,
+`GLTFExporter` and `SkeletonUtils.retargetClip`, and — verified rather than
+hoped — **FBXLoader parses binary FBX under Node** with only three stubs
+(`tools/src/node-dom.ts`): an inert `<img>`, a blob URL and a `FileReader`,
+none of which decode anything. No new dependency was added.
+
+### The bone map is data, written once
+
+Sidekick's skeleton is the **Unreal humanoid** — `pelvis`, `spine_01..03`,
+`clavicle_l`, `thigh_r`, and sockets this game will want: `prop_l`/`prop_r`
+for a held weapon and a dozen `*Attach` points for worn gear. Mixamo's is
+its own naming. `shared/src/rig.ts` holds the dictionary between them, keyed
+target-first because that is the direction `retargetClip` reads.
+
+It is deliberately **partial**. Twist bones, the IK chain and the attachment
+sockets have no entry, and a bone with no entry keeps its rest orientation
+relative to a parent that did move — which is right for all three. Inventing
+a mapping for a twist bone is how an elbow comes to rotate twice.
+
+### The correction that made it work is arithmetic, not taste
+
+`retarget` copies each source bone's **world** rotation onto the target. That
+is only correct when both rigs agree which way a bone points at rest, and
+Mixamo and Unreal do not. Copied raw, the first build stood a 1.78m figure up
+and folded it into a **1.0m concertina** — spine, arms and legs all bunched at
+hip height. The build succeeded. The file loaded. Nothing said a word.
+
+The fix is per-bone: `sourceRest⁻¹ · targetRest`, rotation only, passed as
+`localOffsets`. `retarget` then applies the source's rotation *delta* to the
+target's own rest orientation, so a source at rest produces a target at rest —
+the property the naive version lacked. Nothing is tuned by eye, so it holds
+for any Mixamo clip rather than for the five that were tried. (`localOffsets`
+is in three r185 and missing from `@types/three`; the widening is commented
+at the call site.)
+
+The hip is the one bone whose **translation** is copied, scaled by the ratio
+of the two rigs' hip heights, or the feet skate.
+
+### What is in the files
+
+**Clips live in one file, not in every character.** They address bones by
+name, so `animations.glb` drives any outfit. Baking them per character made
+the first build 12MB apiece, nearly all of it the same keyframes again; it is
+now 318KB once. **Finger tracks are dropped** — thirty of fifty-three tracks,
+for joints well under a pixel at an orthographic camera nineteen units out.
+
+**Characters come from the pack's own `.sk` definitions**, not from a
+body-plus-outfit rule guessed off filenames. Each `.sk` names its exact parts
+and ships a colour map cut to that combination; guessing produced characters
+wearing somebody else's palette. Content is data (D-110), including somebody
+else's. A `manifest.json` says what was built, so nothing downstream
+hardcodes a list that only exists because of what was dropped in a folder.
+
+**The palette is a 32×32 PNG carried alongside the mesh**, not baked in.
+Sidekick colours a whole character with one: every UV island lands on a
+single texel, so skin, cloth, leather and metal are four *pixels*. That is
+why per-character recolouring is cheap — a copy of that image with a few
+pixels changed is a new set of clothes — and it is a natural fit for a game
+that already quantises to a palette (D-404). Two settings are not optional:
+NEAREST, or a bilinear tap invents colours on nobody's palette, and sRGB.
+
+**Body blendshapes are kept and facial ones dropped.** Every part ships
+morph targets; the head ships seventy-two of them, a full ARKit facial set
+costing 7MB to animate a lip curl nobody can see. The four that survive —
+`defaultBuff`, `defaultSkinny`, `defaultHeavy`, `masculineFeminine` — are the
+body-shape sliders, and they are how `bulk` and `height` in
+`shared/src/appearance.ts` could reach an imported mesh instead of being
+quietly dropped on the way in. Widening that list is the whole change if a
+close camera ever arrives.
+
+### Verified by measurement, because looking at it is not a test
+
+Two defects in this work were invisible in the build log, silent in the
+browser, and found only by measuring (`tools/test/imported-rig.test.ts`):
+
+- a `.glb` whose meshes were bound to joints **not in the file**, because
+  exporting the animations first had reparented the skeleton out of the
+  character. It loaded without complaint and moved nothing.
+- world matrices refreshed from the SkinnedMesh rather than from the top of
+  the hierarchy. Bones are *siblings* of the mesh, not children, so every
+  bone kept whatever the loader last computed. The hip scale came out 0.14
+  instead of 0.91 and the walk became a shuffle 12cm off the floor.
+
+So the suite asserts the shape of a walking figure, not the presence of
+bytes: head above hips throughout, neither foot ever at the waist, the two
+feet peaking at different times, and forward travel between 0.8 and 2.5 m/s.
+
+The split is: the built `.glb` are **checked in** (28MB for the eight
+characters this pack defines), the licensed `.unitypackage` and FBX drops are
+**not** (`assets/incoming/` is ignored). CI and a fresh clone therefore never
+need the source art, and nobody has to own a Synty licence to run the build.
+The suite skips itself when the models are absent rather than failing — a red
+suite meaning "you have not bought the art" teaches people to ignore red
+suites.
+
+### What this does NOT decide
+
+`/imported.html` puts the two side by side under the same light, camera and
+filter, with the palette filter as a dropdown — because it is a toggle, not
+a commitment, and if the imported models stand on their own then *raw* is
+what shipping looks like. **The art-direction verdict is the stakeholder's**
+(D-406, D-504) and this entry does not pre-empt it.
+
+Also undecided, and larger than it looks: the imported characters are one
+mesh set per authored combination, while D-539's appearance system and
+D-547's paperdoll assume a body that is generated and dressed. Reconciling
+them — Sidekick's parts are modular and its skeleton carries the sockets, so
+it is possible — is the work that follows a yes, not part of this spike.
+
+---
+
+## D-556 — The importer is not tied to one vendor's licence
+
+**Status:** built. Which art gets bought is still the stakeholder's call.
+
+**Context.** Two questions from the stakeholder on seeing D-555 working
+(2026-09-08): could I author models and animations of that quality myself,
+and — since apparently not — is Synty's subscription a problem, given
+*"I am not allowed to develop anything on the project if the subscription is
+cancelled."*
+
+The first answer is no, and it is worth being exact about why rather than
+vague. Generating geometry from code is precisely what D-402 does, and the
+result is the mannequin the stakeholder has already judged subpar. The
+missing thing is not effort or cleverness: authored character art is
+thousands of deliberate decisions about silhouette, proportion and edge flow
+made by somebody looking at the result, and this project's own doctrine
+(D-114) is that I do not get to judge how something looks. Writing more code
+raises the ceiling of "stylised primitives assembled well". It does not
+reach "somebody sculpted this". Animation is nearer the line — a walk cycle
+is keyframes on twenty bones, and now that clips can be retargeted, deriving
+variants from real ones (mirrored, retimed, blended, layered) is tractable —
+but authoring believable motion from nothing, unseen, is what Mixamo exists
+to avoid.
+
+So: art comes from outside. The question is only what happens when a
+supplier's terms change.
+
+**Decision: the pipeline takes any humanoid FBX, and the rig it is on is
+data.** `assets/incoming/characters/*.fbx` is a second, vendor-neutral
+source alongside the Synty `.unitypackage`, and both go through the same
+assemble → retarget → export. `shared/src/rig.ts` gained `detectRig`, which
+reads a skeleton's bone names and says which rig it is; an unrecognised rig
+**stops the build with its name** instead of being retargeted through the
+wrong dictionary and exported folded in half. Clips are written **one file
+per rig**, not one per character, and each character names its own in the
+manifest.
+
+Proven, not asserted: `mixamo-beta` in `client/public/models/` is built from
+a plain Mixamo FBX, with no Synty content anywhere in it, and it walks. A
+test asserts it (`builds a character that owes nothing to any one vendor`),
+so the escape hatch cannot rot quietly.
+
+### What that means for the licence question
+
+- **Animations already have no licence hook.** Mixamo is free, royalty-free,
+  and not a subscription. That half of the problem does not depend on
+  anybody's terms.
+- **Synty sells individual packs outright as well as by subscription.**
+  Buying the packs needed is a perpetual licence and sidesteps the "cannot
+  develop if I stop paying" trap entirely. ⚠ Terms change and I have not
+  read the current ones — this needs checking before money moves.
+- **CC0 sources exist** (Quaternius, KayKit and similar) and are genuinely
+  unencumbered. Lower ceiling than Synty, but they build through this same
+  path with no new code.
+
+The insurance is real either way: whatever is bought, the models are checked
+in as `.glb` (D-555), so a lapsed subscription cannot reach into the repo and
+remove work already done.
+
+### The bug this shook out
+
+Making the pipeline accept a second source immediately found a defect that
+the single-source version had hidden. **A Mixamo FBX exported with its skin
+contains TWO complete rigs with identical bone names, one nested inside the
+other** — `hips > hips > spine > spine`. The union-by-name assembly claimed
+each name only after recursing on the parent, so the inner copy was built a
+second time: 129 bones for a 65-bone skeleton, half of them orphaned, the
+character scattered over ten metres. The fix is to claim the name *before*
+recursing and to walk past any ancestor that is the bone's own duplicate,
+deriving the local transform from world matrices so it stays correct however
+many duplicates were skipped.
+
+Worth recording because of what it nearly cost: the first fix attempted was
+to stop calling `Skeleton.pose()`, which *looked* right — the Mixamo
+character improved — while quietly shortening every Synty character by 40cm.
+Only measuring both at once showed that `pose()` was never the problem. A
+change that fixes the case you are looking at and breaks the one you are
+not is the exact failure mode a hands-off stakeholder cannot catch.
+
+---
+
+## D-557 — A third rig, and what a vendor's shader does not bring with it
+
+**Status:** built (evaluation). No purchase is recommended or made here.
+
+**Context.** The stakeholder pointed at Polytope Studio's *Lowpoly Medieval
+Fantasy Series* and then supplied the free Modular Armors pack, already
+unpacked in a Unity project. Two questions were live: does D-556's
+"any humanoid FBX" claim survive contact with a rig nobody had seen, and is
+this series a cheaper answer than Synty at a $200 ceiling.
+
+**The rig went in with no argument.** `detectRig` correctly returned NULL and
+the build stopped rather than guessing — which is the behaviour D-556 was
+built for, and the first time it has fired in anger. The skeleton turned out
+to be **Mixamo's, renamed**: every bone is `mixamorigX` with the prefix
+swapped for `PT_`. So the dictionary is a transformation rather than a list,
+with four genuine exceptions spelled out (Polytope counts
+`Spine`/`Spine2`/`Spine3` where Mixamo counts `Spine`/`Spine1`/`Spine2`, and
+its toes are `PT_LeftToe` not `LeftToeBase`). Deriving the rest from
+`RIG_FROM_MIXAMO` means a bone added there cannot be forgotten here.
+
+The bones left unmapped are the ones that should be: the arm twists, the
+five-bone cape chains and the front/back cloth chains. No Mixamo clip drives
+them, and **the cape and skirt are exactly what D-519's cloth system already
+simulates** — an imported rig arriving with its own cloth bones is an
+opportunity, not a problem.
+
+### A character can be a FOLDER
+
+The Sidekick path reads the pack's `.sk` files. Polytope has no such thing:
+it ships one FBX per part. So `assets/incoming/characters/<name>/` is now a
+character, assembled from every FBX inside it, and a `.png` in that folder is
+its texture. **Which parts make a character is then which files you put in
+the folder** — choosing an outfit needs no new format and no code change
+(D-110). A single loose `.fbx` still means one character, as before.
+
+### The shape tests now run PER RIG, and that is the point
+
+The walking-shape checks previously ran on the first character only. A wrong
+bone dictionary does not fail — it produces a character that loads, animates
+and is folded in half — so checking one rig would have meant the second one
+shipped broken. `it.each(RIGS)` now walks a figure from every rig in the
+manifest and asserts head above hips, neither foot at the waist, and the two
+feet peaking at different times. All three rigs pass.
+
+### The finding that actually decides it
+
+**Polytope's colour lives in their shader, not in their texture.** Measured,
+not assumed: `PT_Armors_Base_Texture.png` is 256x256 with **six distinct
+colours, every one of them grey**. The companion `PT_texture.tga` is 249
+colours and still overwhelmingly luminance ramps. Colour comes from an
+Amplify Shader Editor material that tints regions selected by seven separate
+mask textures — Cloth, Metal, Leather, Gems, Skin/Eye/Hair, Lips/Scars,
+Feathers.
+
+Amplify is Unity-only. So the imported knight renders as a **white statue**,
+and the screenshot proving it is the honest deliverable of this spike.
+
+That is a real difference in kind from Synty, not degree:
+
+- **Synty**: colour is IN the texture — a 32x32 palette where each UV island
+  lands on one texel. Recolouring is editing pixels. Zero shader work, and it
+  suits D-404's quantisation for free.
+- **Polytope**: colour is in the SHADER. Recolouring means writing a
+  Three.js material that samples a greyscale base plus up to seven masks and
+  lerps between per-group tints, and then making that survive the palette
+  post-process.
+
+That is perhaps a day's work and would end up a **better** system than
+Synty's — real per-region faction colour, a coat-of-arms slot. But it is a
+day Synty costs zero of, and it is unbudgeted.
+
+### The conclusion: the machinery stays, the characters go
+
+The first draft of this entry recommended keeping the free Polytope pack as
+the modular character system alongside a Synty environment purchase. The
+stakeholder asked the obvious question — *why keep these when the Synty packs
+come with their own characters* — and was right. Three of the four arguments
+for keeping them do not survive contact:
+
+**The weight comparison was against the wrong pack.** 25,569 verts was
+measured against the Sidekick knight's 59,568 — but Sidekick is the modern,
+expensive line nobody is proposing to buy. The recommendation is the LEGACY
+POLYGON packs, which are a much lighter line, and no legacy character has
+been measured. Quoting a favourable number from a pack that is not in the
+basket is not a comparison, and it is the kind of error that is invisible
+once it is in a summary.
+
+**"Free" is free plus a day.** A Polytope character is a white statue until
+somebody writes the mask shader, and that shader then has to be maintained
+and has to survive D-404's quantisation. Synty's colour arrives in the
+texture.
+
+**And the stakeholder's actual brief was one look.** Mixing two character
+lines in one scene is worse than either alone — it fails the requirement
+that was stated first.
+
+The Synty basket already carries **26 characters** with colour and skin
+variants (Dungeon Pack 16 — knights, goblins, skeletons, ghosts, a rock
+golem; Knights 5; Vikings 5). What it does not carry is MODULARITY, and that
+is the one real loss: with fixed meshes, a character is chosen per class
+rather than dressed, and equipping found gear mid-round can attach a weapon
+to a hand socket but cannot show plate replacing leather without swapping the
+whole mesh. Bounded, because gear is stripped between rounds (D-522) and kits
+are per class (D-547) — but real, and it is the thing to re-open if the
+paperdoll ever needs to read on the body.
+
+**What is kept is the pipeline, not the art.** Rig detection stopping the
+build by name, folder-as-character, the per-rig shape tests and the Polytope
+dictionary all stay: they cost nothing, they are what made this evaluation
+take an afternoon instead of a week, and they are what makes the next pack —
+from any vendor — the same afternoon. The built `polytope-knight` is removed
+from `client/public/models/`; one command rebuilds it from the folder if the
+question is ever re-opened.
+
+The series has **no caves, no dungeons, no snow and no dark fantasy**, and
+D-523 makes the dungeon structural rather than decorative. That was always
+the decisive gap; the character argument was never going to bridge it.
+
+
+## D-558 — The character studio, and five defects only measurement found
+
+**Status:** built. The art verdict remains the stakeholder's (D-555).
+
+**Context.** D-555 gave the build a pipeline; it did not give anybody a way
+to look at what came out, and choosing an outfit still meant copying FBX
+files into a folder by hand. That is not reviewable, not diffable, and not
+something a stakeholder who does not open 3D tools can do at all (D-114).
+
+**Decision.** A character is CONTENT. `content/characters/<id>.json` names one
+part per slot plus a pack and a colour atlas; the art stays out of git and
+the decision goes in (D-110). `npm run dev:studio` + `/studio.html` picks the
+parts, animates the result and writes the document; the save endpoint refuses
+anything that would not build, using the same validator the build uses — the
+guarantee the map editor already gives (D-543).
+
+The slot vocabulary is OURS, not a vendor's, with a parser mapping their
+names onto it: 720 of 720 parts in the Modular Fantasy Hero pack file
+correctly, and a name the parser does not know is skipped rather than landing
+somewhere wrong.
+
+**One assembler, shared.** `client/src/render/assembly.ts` is imported by
+both the Node build and the browser studio, because a preview that assembles
+differently from the build is a preview that lies. Extracting it exposed four
+bugs in code that had been working by luck: it was ORDER-DEPENDENT (whichever
+part was processed first decided the rig root, so the same character built in
+one and threw "two rig roots" in the other); it MUTATED the caller's geometry,
+so a part used twice had its skin indices remapped twice; it refreshed world
+matrices from the MESH, which is detached in a clone; and it refused multiple
+roots, which a cape legitimately has.
+
+### The five defects, and why each needed measuring
+
+Every one of these loaded without an error, logged nothing, and produced a
+`.glb` that played. The stakeholder found three of them by looking; none
+would have been found by reading the code.
+
+**1. The bone list was not in hierarchy order.** `SkeletonUtils.retarget`
+walks `skeleton.bones` IN ARRAY ORDER and derives each bone's local matrix
+from `bone.parent.matrixWorld` — so a child listed before its parent is
+solved against a stale parent, and the error propagates into everything
+below. The assembler emitted bones in discovery order, which is leaf-first:
+`neck_01` at index 0 and `Pelvis` at index 4, the entire spine reversed. The
+damage was not uniform and that is what made it hard to see — the legs
+happened to interleave favourably and came out within 2 degrees, while the
+RIGHT FOREARM pointed **82 degrees** away from where the source clip put it.
+From the default three-quarter view that reads as an arm held a bit oddly.
+
+**2. Mixamo bakes root motion into the walk.** 155cm of forward hip travel
+per 1.03s cycle. The server owns position (invariant 1), so a clip that also
+moves the character makes the client the authority on where somebody is: on
+screen it slid a metre and a half ahead of itself and snapped back every loop.
+Net horizontal travel is now removed from any clip that ENDS AT THE HEIGHT IT
+STARTED — a cycle has returned to its own first pose, so the ground it covered
+is drift. It is removed as a ramp, which keeps the hips' side-to-side sway;
+zeroing the axes would flatten the walk into a glide. Clips that genuinely
+finish elsewhere are left alone: `death` ends on the floor and `stand-to-sit`
+on a stool. **Those two still travel, and where a corpse ends up relative to
+the tile the server put it on is an open question, not a settled one.**
+
+**3. One source file shipped a shadow rig.** `Neutral Idle.fbx` contains two
+skinned meshes: `Beta_Surface`, bound to the real 65-bone skeleton, and
+`Beta_Joints`, bound to 64 zero-offset LEAF stubs, one hung off each real
+bone. Taking the first skinned mesh took the stubs. A retarget reads world
+matrices, and a stub's world matrix is its real parent's REST transform times
+whatever the clip wrote to the stub — none of the rotation accumulated down a
+chain it does not have. The idle retargeted to a figure with its arms folded
+over its head, its legs crumpled under it and its hips at 172cm instead of
+85cm, while the other four clips, whose duplicate rig is a SIBLING rather than
+a shadow, were perfect. The rule is now structural, not a filename: the real
+rig is the one that is not a set of duplicates hanging off another rig's bones.
+
+**4. A bone's node transform is not where the bone goes; its BIND matrix is.**
+The assembler read node transforms. For every body part in the pack the two
+agree to the decimal, so this had never mattered. For a cape they disagree
+completely: `back_05` binds across the back at y=53.6 while its node sits at
+y=-80.1, BELOW THE FLOOR, because the exporter dropped the socket the chain
+hung from. The bind matrix is by definition the bone's transform in the pose
+the vertices were weighted against, so that is what is read now.
+
+**5. A cape is not a second root.** Thirteen of the 720 parts are a chain of
+their own — `Capes_00 > Capes_01 > back_02..back_06` — with not one body bone
+in the file, because the vendor's engine parents it to a socket on import.
+D-556's assembler was changed to ALLOW multiple roots, and the note it left
+said a cape "is placed in world space and simulated separately." That was
+wrong: placed correctly and parented to nothing, it never moved, and the
+character walked out from under their own cloak. An orphan chain is now hung
+off the body bone nearest to where its topmost weighted bone BINDS, which
+needs no table of part names and no socket these files do not ship — a cape
+resolves to `spine_03` because that is what it sits against. It stays RIGID
+relative to that bone: it travels and turns with the torso but does not yet
+flow, which is D-519's cloth system's job and not the importer's.
+
+### Two of the pack's categories are not what their filenames say
+
+Found by the stakeholder reading the studio's own lists, and confirmed by
+measuring the meshes rather than by argument:
+
+- **`SK_Chr_Head_No_Elements_*` are HELMETS**, not plain heads with the
+  trimmings left off — two to four times the vertices of a bare head, half
+  again as deep front to back, and carrying no `eyes` bone at all, because
+  the face is inside them. A helmed head IS the head, so it fills the head
+  slot and a bare head chosen as well would poke through the visor.
+- **`SK_Chr_HelmetAttachment_*` are CRESTS**, not helmets — plumes and horns
+  sitting at y=173-195, above the skull, with nothing to mount on unless a
+  helm is already there.
+
+Filed wrongly, the studio offered 72 "heads" of which a third were helmets
+and a "helmet" list made entirely of plumes. So parts now declare what they
+CONCEAL and what they REQUIRE, and the studio greys a slot out with the
+reason rather than refusing the save: a crest with no helm and hair under a
+closed helm both build perfectly well and are simply never seen, which is a
+wasted choice a person has no way of noticing. Concealment is a property of
+the PART, not the slot — this pack ships head coverings in three cuts
+(`Base_Hair` modelled around hair, `No_Hair` replacing it, `No_FacialHair`
+shaving the beard) that all sit in the same slot — so it is read off the file.
+
+### What the studio had to grow before any of this was visible
+
+The preview opened at a fixed zoom that framed a 1.8m figure so tightly the
+camera sat inside it; all that reached the screen was a shadow, and the first
+report was that the character did not render at all. It now frames from the
+measured bounding box. There was also no way to turn the model: the right
+forearm defect survived every screenshot taken from the default angle, and it
+took the stakeholder asking for another one to find it. Drag to orbit, an
+angle slider, three preset views and a speed control that reaches ZERO are
+all there because a bad limb is far easier to see stopped than moving.
+
+### The studio now feeds the build
+
+`build:characters` reads `content/characters/*.json` as a third source
+alongside the pack's own `.sk` files and `assets/incoming/characters/`, so a
+character authored in the studio becomes a `.glb` the game can load. Pack
+resolution — turning the NAME a definition stores into a folder of meshes —
+moved to `tools/src/packs.ts` and is shared with the studio server, for the
+same reason `assemble` is shared: two copies drift, and the failure is a
+character that previews and then will not build.
+
+A definition whose pack is not ingested, or which names a part the pack does
+not ship, **stops the build by name**. A character silently missing from
+`client/public/models/` is the failure that surfaces much later as a blank
+space where somebody expected a knight. Two characters claiming one id is
+also an error: the id is the output filename, so the second would overwrite
+the first and the character would load as somebody else.
+
+CI schema-checks the definitions (`validate:content`), which is not the same
+job as the studio's save endpoint — a definition can be hand-edited or
+arrive in a merge. What CI cannot check is whether the named parts exist:
+`assets/source/` is gitignored and absent there. So it checks everything
+that is a DECISION rather than a file — unique ids, id matching filename, a
+complete body, and combinations that would build something nobody can see.
+
+`ashfold-guard` and `ashfold-townsfolk` are the first two, and are drafts for
+the stakeholder to redo in the studio rather than a ratified roster.
+
+### Which body, and what a helmet rules out
+
+A definition now carries a required **`sex`**, and the studio filters every
+list by it. This is not a roleplaying statement and is never shown to
+players — it selects which MESHES fit together. The pack cuts most parts
+twice and the two do not meet: a female forearm bound to a male upper arm
+meets it at the wrong diameter and the seam is visible from three metres.
+Parts the pack cuts once — hair, a pauldron, a cape — are unisex and belong
+to both, so switching body keeps them rather than clearing the character.
+It is required rather than defaulted because a character whose sex is implied
+by whichever parts happened to be picked is one mismatched limb from being
+neither.
+
+**A helmet also rules out a head covering.** A hood is cut to sit on a skull,
+not over a great helm; the two intersect rather than stack.
+
+### A weighting fault in the art, and the discipline of not fixing too much
+
+The stakeholder watched the guard walk and saw the RIGHT wing of his helmet
+tear off the helm on every arm swing while the left one held.
+`SK_Chr_HelmetAttachment_03` is 98% weighted to the head and has **26
+vertices at the root of the right wing weighted, fully, to `clavicle_r` and
+`UpperArm_R`**. It is a weight painted onto the wrong bone at the vendor and
+would do the same in their own engine.
+
+The first rule written to catch it — "a part bound to a bone unrelated to its
+dominant one" — flagged 13 parts of 720, and **most were correct art**: a
+skirt legitimately spans both calves, and a hand's weight spreads across
+fingers that are siblings rather than ancestors. Repairing on that rule would
+have deformed good meshes to fix one bad one. Scanning before implementing is
+what caught it.
+
+The rule that survives is narrow and says something true: **a part anchored
+on the centre line must not touch exactly one side of the body.** Asymmetry
+alone is not a fault — this pack ships sashes over one shoulder and drapes
+over one hip, and six parts are deliberately lopsided, all of them binding
+BOTH sides unevenly. What no garment does is hang off one side and not the
+other, for under a twentieth of its weight, while anchored on the spine.
+Across 720 parts that describes exactly one, and it is the broken one.
+
+The correction repoints the influence rather than removing it, so per-vertex
+weights still sum to what they did and the part cannot lose volume. It is
+**printed by the build and shown in the studio**: the pipeline is allowed to
+fix somebody else's art, but not to do it quietly — a silent fix is a silent
+claim that the art was fine.
+
+**⚠ Still unreconciled with the rest of the game.** Imported characters do
+not go through D-539's appearance system or D-547's paperdoll, and nothing in
+the game renders them yet — the procedural `CharacterVisual` is still what
+`main.ts` draws. Deleting it first would leave the game with no characters at
+all.
+
+
+## D-559 — The imported cast in the game, behind a toggle
+
+**Status:** built. **The art verdict is still the stakeholder's** (D-555) —
+this is what makes it possible to give, not an attempt to pre-empt it.
+
+**Context.** D-555 built the importer, D-558 built the studio, and after both
+of them nothing in the GAME had changed: `main.ts` still drew D-402's
+procedural characters and the imported ones existed only on a slab in
+`/imported.html`. A verdict on art cannot be given from a viewer. Whether
+these characters are right for this game depends on how they read at
+isometric distance, through D-404's quantiser, in a lit tavern, next to
+somebody else — none of which a turntable shows.
+
+**Decision.** `ImportedVisual` is a drop-in for `CharacterVisual`: the same
+eighteen members `main.ts` drives, held in one union, so the world code does
+not know which cast it has. A **setting** picks between them, defaulting to
+`procedural` — the imported cast is the thing under evaluation, not the
+thing that ships.
+
+The interface between the two is enforced by the COMPILER rather than by a
+test. `main.ts` holds them in a union and calls eighteen members on it, so a
+member missing from either is a build failure — which is a better guarantee
+than any assertion, and it is why this was done as a union rather than as a
+second code path with an `if` at every call site.
+
+Models are loaded once and shared: a crowd is twenty entities over three
+models, each instance a skeleton clone over the same geometry, material and
+palette. `dispose()` therefore does NOT dispose them, or the first guard to
+die would blank every other guard in the room.
+
+### What it does not do, stated on the members that do not do it
+
+- **`setPresentation` is a no-op.** D-219's hooded silhouette is what the
+  recognition system depends on being visible — a hood dropping in view is
+  what merges two identity threads — and a fixed mesh has no hood to raise.
+  On the imported cast a hooded figure looks exactly like an unhooded one.
+- **`setEquipment` is a no-op.** D-554 put a `worn` silhouette on the wire so
+  equipping plate changed the model; these characters wear what they were
+  built wearing. A studio definition IS the outfit.
+- **No emotes.** The drop has five clips and none of them is a bow.
+- **Kneeling borrows the sit**, because there is no kneel. Better a figure on
+  the floor than one standing upright through a prayer.
+- **Only HEIGHT survives from D-539's appearance.** The server's descriptors
+  call people towering or slight (D-201) and a cast of identical statures
+  would make every one of those a lie, so instances are scaled from the
+  built height to the wire height. Build, shape and colouring are not
+  expressible on a fixed mesh.
+
+Those are the cost of a yes, and they are the work that follows one.
+
+### Which character an entity is drawn as is UNRESOLVED
+
+Chosen from the appearance seed. That much is defensible — the seed is the
+server's (D-102), so every client agrees and a person keeps the same body
+between sessions — but it is **arbitrary**: nothing connects the guard model
+to a guard. Saying which character an entity wears is a wire field and a
+decision about how a roster relates to classes and to D-522's persistent
+characters, and neither is made here.
+
+The seed is MIXED before the remainder is taken, and the test for it uses
+seeds that share their low bits rather than consecutive ones. Over
+consecutive seeds a plain `seed % 3` distributes perfectly well and proves
+nothing; over multiples of the cast size it collapses to a single model —
+300 seeds, one man, the whole tavern.
+
+### Two bugs worth recording, because neither threw
+
+**The rebuild hung the tab.** Switching cast has to rebuild the characters
+already in the world, or the change appears to do nothing until you walk
+through a door and the person judging the art concludes the toggle is
+broken. The first version deleted and re-added each entity while iterating
+the `entities` Map — and a Map iterator visits entries inserted DURING
+iteration, so re-adding under the same key moved it to the end and the loop
+found it again, forever. No exception, no error in the console: the page
+simply stopped painting. Snapshot the entries first.
+
+**The models loaded after the world was built.** `preload()` is kicked off
+in `applySnapshot`, but `addEntity` runs synchronously further down that same
+function, so on the first snapshot of a session `available()` was still false
+and every character was built procedural whatever the setting said. The
+manifest is now fetched at module load, and the world rebuilds if the models
+land after it. This is the same class of mistake as the Map one — an
+ordering, invisible until somebody looks at the result and says "the toggle
+does nothing".
+
+**And one that was visible but easy to misread:** the palette came out black
+and yellow, because the atlas was loaded with `flipY = false`. That is the
+right convention for textures glTF's own loader brings in, but this atlas is
+loaded separately and applied to UVs that came through the FBX exporter.
+Flipped, it samples the wrong row — which does not look like a bug, it looks
+like the artist chose black and yellow.
+
+⚠ **The procedural `CharacterVisual` is NOT deleted and must not be until
+the stakeholder says yes.** It is the cast that renders every appearance the
+server can describe, wears equipment and raises a hood; the imported one is
+three characters that do none of those. Deleting it on a maybe would leave
+the game with no way back.
+
+
+## D-560 — Creation rules as content, and what this art can actually vary
+
+**Status:** part built. Naming and races are in; classes, race-per-class and
+keyword gating are the next two pieces.
+
+**Context.** D-555 imported the art, D-558 built a studio to assemble a
+character from it, D-559 put the result in the world behind a toggle. None of
+that touched the thing that decides what a PLAYER looks like. The correction
+came from the stakeholder and is worth recording as the reason this decision
+exists: the imported art should reach the world THROUGH character creation,
+not by replacing the system that reads a player's choices. D-559's toggle
+swaps one cast for another wholesale; that is a way to look at the models in
+situ and is not the direction.
+
+### Two measured facts about the art, which bound everything below
+
+**Skin is four colours, so a tone is a colour and not a file.** The atlas
+suffix `_A/_B/_C` changes ONLY the skin pixels while the number `01`–`04`
+changes the clothing colourway. But going further and diffing every pixel of
+those variants shows skin in this art is exactly **four flat colours** out of
+a 1024² atlas:
+
+    #ffccae  235,306 px   the skin itself
+    #edaf97    6,935 px   a warmer shade - lips, the inside of an ear
+    #cdb3a1    5,700 px   a greyer shade
+    #433622    3,577 px   the deep shadow - eye sockets, an open mouth
+
+So any colour a person picks is reachable by four exact substitutions, and a
+race stores an **RGB** rather than a texture name. Three tones was a property
+of how many files somebody exported, and it should not have become a property
+of the game — the stakeholder asked for a picker, and the measurement is why
+one is not only possible but exact. The three shades are derived from the base
+by ratios measured as the mean across the vendor's own three tones, so a
+picked colour is shaded the way an artist shaded theirs. The same four colours
+appear in all four clothing colourways, so a tone composes with whatever a
+character is wearing instead of replacing it. NEAREST filtering is what makes
+the substitution safe: every UV island lands inside one flat region, so
+replacing a colour cannot bleed into its neighbour.
+
+**⚠ There is essentially no bare body.** Measuring which parts sample the
+skin band of the atlas, across all 720:
+
+| slot | parts | fully bare |
+|---|---|---|
+| head | 46 | 37 |
+| hair / eyebrows / facial hair | 38 / 17 / 18 | 36 / 17 / 18 |
+| arms, hands, legs | 36–42 each | **one per body** |
+| torso, hips | 58 each | **none** |
+
+This pack does not do "naked body, clothing on top" — a body and its clothes
+are the SAME MESH. Two consequences, and neither is negotiable by writing a
+different schema:
+
+1. A creation screen restricted to base body parts can offer a real choice of
+   **face, hair, ears, skin tone and stature**, and essentially no choice of
+   body. So that is what a race is here.
+2. Equipment must SWAP the torso and limb meshes rather than layer over them.
+   Anything that wants a visible body underneath needs different art.
+
+### Decision
+
+**Part names are content.** `SK_Chr_Head_Male_04` is the right name for a
+file and the wrong name for a person, and nothing downstream — a creation
+screen, a character sheet, a description — can show a filename. So
+`content/parts/<pack>.json` maps a part to what a player is told it is
+called. Only the DECISION is stored: which slot a part fills, which body it
+is cut for and whether it is bare are all derived from the file, and writing
+them down as well would create two sources that can disagree.
+
+**A race is a face, a stature and a set of skin tones.** `content/races/*.json`
+names which parts a player may choose per slot, the height range per body,
+and the tones. Curated, not "everything in the pack": a screen offering 46
+heads is a catalogue rather than a choice, and a race means nothing if every
+race offers the same faces.
+
+**One tool, `/creation-tool.html`**, served by the same authoring server as
+the studio — one process, because both read the same art and a second port is
+a second thing to remember. Naming is built for VOLUME: every part in a slot
+is a row with its field already there, so the job is look, type, Enter, and
+122 parts is 122 keystrokes rather than 122 clicks. Race curation is chips
+that preview on hover, because the job is comparing faces against each other
+and forty stems in a scrolling box is not a comparison. An unnamed part shows
+as its file stem in warning colour, so unfinished naming is visible rather
+than quietly indistinct.
+
+The preview looks a character in the EYE — `setOrbitHeight` at eye level
+rather than the game's overhead orbit, which is the one angle a face cannot
+be judged from. It shares `assemble()` with the build, so what is approved is
+what ships.
+
+### A bug this found in the assembler, which a whole character could not
+
+`Skeleton.pose()` restores each skinned bone's LOCAL matrix from its bind
+matrix relative to its PARENT'S WORLD matrix — and it only sets world
+matrices for bones that are in the skeleton. A bone nothing is weighted to is
+not in the skeleton, so on a freshly built hierarchy its world matrix is
+still identity, and every skinned child of one lands at its bind position
+measured from the ORIGIN instead of from its parent.
+
+A whole character never showed it, because almost every bone in that chain
+carries weights and `pose()` had already placed the parents it needed. A
+single head does: its `spine_03` is an unweighted ancestor, and the head
+assembled **1.6 metres behind the character** — exactly its own eye height,
+which is what "measured from the origin" means for a bone at eye level. The
+fix is one line, `group.updateMatrixWorld(true)` BEFORE `pose()`, and the
+test is a head assembled alone.
+
+This is the third time (D-558's bone ordering, D-558's bind matrices, this)
+that a defect in the assembler was invisible until something ASSEMBLED
+DIFFERENTLY. Sharing one assembler between the build, the studio and this
+tool is what keeps finding them.
+
+### Face markings, and the one atlas that hides them
+
+The stakeholder named nine of the twenty-three male heads and stopped,
+reporting that the rest had "no visible difference" and guessing they were
+tattooed faces whose colour was not being applied. That was exactly right,
+and finding it took four measurements rather than one guess:
+
+1. **The heads are all different.** Deduplicating vertex POSITIONS — the
+   shape, not the topology — gives 23 distinct shapes from 23 files. Vertex
+   counts differ too, but that alone proves nothing: extra vertices are
+   usually the same shape split at UV seams.
+2. **The tool was rendering them correctly.** Hashing the canvas pixels per
+   head gives a different hash for each, and the same hash again when a head
+   is revisited. My own reading of three screenshots as "identical" was
+   wrong; the eye is not an instrument.
+3. **A colour was missing.** Every head samples 3–5 flat colours, and heads
+   09+ sample one more: `#4566a9`, a saturated blue. Zero blue pixels reached
+   the canvas.
+4. **It is on the face, and only on faces.** Mapping each vertex's UV to its
+   atlas colour puts those 96 vertices at x ±8.9, y 160–174, **z +8.4..12.9**
+   — the front of the upper head, around and above the eyes. Across all 720
+   parts in the pack, exactly 28 sample that colour and all 28 are heads.
+
+**The cause was the atlas.** `PolygonFantasyHero_Texture_01` — the one with
+no colourway suffix, which I had chosen as the default precisely BECAUSE it
+looked like the neutral one — is the **markings-free cut**. Sampling one
+marked head against each atlas:
+
+    01.png    #ffccae x372  #cdb3a1 x312  #000000 x60          no blue at all
+    01_A.png  #ffccae x318  #cdb3a1 x270  #4566a9 x96  ...     96 verts of war paint
+    01_B/C    same 96                                          markings survive every tone
+
+So the marked heads sampled plain skin and became indistinguishable from the
+unmarked ones — and the nine heads the stakeholder could name were precisely
+the nine that carry no markings. `preferredAtlas()` now refuses the
+unlettered atlas, in the studio and the creation tool alike, and the two
+authored characters were re-textured.
+
+**Markings became a choice rather than an accident.** No other part touches
+that colour, so it is a channel of its own: a race now carries `markings`
+beside `skinTones`, both pickable, and recolouring one cannot disturb the
+other. On some heads the paint is the ONLY thing distinguishing two
+silhouettes, which makes its colour worth deciding rather than inheriting.
+
+⚠ **The duplicate-name warning had to learn the same lesson.** It first fired
+on a "Normal" head beside "Normal" eyebrows, then on a male "Angry" brow
+beside a female one — neither pair can ever appear in one list. Scoped to the
+same slot AND overlapping bodies it fires once, on two unisex hairstyles both
+called "Long", which is a real ambiguity. A warning that cries wolf is worse
+than no warning.
+
+⚠ **Still to build:** classes as an authored thing (starting stats and
+progression already exist as content; what does not is an editor for them),
+which races a class admits, and keyword tagging so equipment, spells and
+actions can be gated per class/race/body. The in-game creation screen is
+untouched — it still asks calling → appearance → attributes → skills → feats
+→ spells → name, with `appearance` driving the procedural rig. Wiring it to
+read races is the step after the tool is complete.
+
+
+## D-561 — Naming the rest of the packs, and where animation actually varies
+
+**Status:** built — body parts, worn items, environment and pickups are all
+nameable. Animation is DEFINED and not yet implemented: no clip is bound to
+an action anywhere.
+
+**Context.** D-560 named the face and stopped there, because the creation
+screen only asks about faces. Everything else in five packs — 1,456 character
+parts, 652 environment meshes, 477 props, 330 buildings, 163 weapons, 35
+items — still had only a filename, and a filename is the one thing that
+cannot be shown to a player.
+
+### Where animation belongs, which is not under race
+
+The stakeholder asked whether animations should hang under race and then
+gender. They should not, and the reason is the weapons.
+
+Three things want to change how somebody moves. **The rig**: clips bind to
+bones BY NAME (D-555), so a set belongs to a skeleton, and every character in
+this pack shares one. **What they are holding**: a greatsword changes idle,
+walk and every attack, and there are 163 weapons here across a handful of
+weapon classes. **Race and body**: real, but flavour — a heavier gait, a
+different idle.
+
+Nesting animation under race leaves the heaviest case with nowhere to live,
+and forces a set per race × body × weapon. So sets LAYER instead:
+
+    rig  <-  race + body  <-  stance
+
+Same shape at every layer, resolved in that order, anything unspecified
+falling through. A stance that names only `attack-1` changes the attack and
+inherits the walk, which is what makes 163 weapons expressible as a handful
+of stances. Resolution is by LAYER rather than by argument order, so a caller
+collecting sets from three files cannot change the answer by accident.
+
+**The action vocabulary is closed** — 62 actions across locomotion, combat,
+reaction, interaction and emote. A set naming an action nothing implements is
+a promise the renderer never keeps, which is the lie D-553 refused for hotbar
+spells. Only `idle` and `walk` are REQUIRED: everything else may be missing
+and simply not play, but a character with neither is a statue that slides.
+
+### Three tabs, one implementation
+
+Worn items, environment and pickups are the same job — a mesh with a name
+nobody can show and properties nothing can infer — so they share a list, a
+preview and a save, and differ only in the property panel. The vendor's own
+prefixes (`Wep_`, `Bld_`, `Env_`, `Prop_`, `Item_`) sort meshes into the
+three tabs, and `kindOfMesh` returns NULL rather than guessing: a mesh in the
+wrong tab is one somebody has to notice, a mesh in no tab is one they go
+looking for.
+
+Names are drafted from the filename as a PLACEHOLDER, never filled in. A
+hundred rows of accepted guesses look exactly like a hundred rows somebody
+read.
+
+Environment assets carry `solid` and `opaque` as SEPARATE flags. A fence
+stops a body and not an eye, and conflating them is how a witness sees
+through a wall or fails to see over a rail (D-217, D-545).
+
+### ⚠ The packs disagree about units, by a factor of a hundred
+
+Measured across the weapons in each pack:
+
+    dungeon-pack   longest dimension 0.75..2.38    METRES
+    knights        longest dimension 68..203       centimetres
+    vikings        longest dimension 56..169       centimetres
+
+Characters are centimetres. A pipeline that assumes one convention renders
+the dungeon pack's axes a centimetre long, or the knights' swords two metres
+across a room — and nothing in a file listing shows it. So a worn item stores
+its own `scale`, the tool guesses a starting value from the mesh's own extent,
+and the panel shows **what it would measure in centimetres once placed**. A
+guess that cannot be seen is the same defect as a unit that cannot be seen.
+
+### Smaller things this turn
+
+**Every slot is nameable, not only the face.** A torso still needs a name —
+it is what a player is told they are wearing — and the creation screen is
+only one of the readers. Creation slots are marked with a star rather than
+being the only ones listed.
+
+**A part is previewed where it is worn.** A pauldron floating in space says
+nothing about whether it is the right pauldron; on a shoulder it does. Body
+slots assemble onto the bare `_00` mannequin, which needs no table of names
+because the bare set sorts first in every slot. The camera pulls back for a
+body and returns to eye level for a face.
+
+**The preview looks at the middle of the thing.** `follow` aims 0.9m above
+the point it is given, so a barrel on the floor previewed at focus 0 put the
+camera's line through empty air above it — which reads as "nothing
+rendered" rather than as a framing mistake.
+
+⚠ **Still to build:** a class editor, which races a class admits, and the
+keyword gating that ties equipment, spells and actions to class and race —
+the `tags` field exists on every asset and nothing reads it yet. And no clip
+is bound to any action: the vocabulary is the foundation, not the wiring.
+
+
+## D-562 — Mirroring names, and what a "set" turns out to be
+
+**Status:** mirroring and base-part marking built. The garment editor is
+proposed, not built.
+
+**Context.** The stakeholder named all 29 male torsos and asked for a "set"
+system: define which parts belong to a set, name the set, have the members
+named automatically — expecting that female parts could be named from male
+ones by number. They then questioned whether it was worth it, since character
+creation only needs the NUDE parts and everything else is armour that only
+matters when worn.
+
+Two separate claims, and they do not have the same answer.
+
+### The male/female pairing is real, and measured
+
+Comparing which atlas islands each part samples, same number against a
+control of every other number in the same slot:
+
+| slot | same number | different number |
+|---|---|---|
+| Torso | **0.96** | 0.36 |
+| Hips | **0.97** | 0.23 |
+| LegLeft | **0.94** | 0.24 |
+| ArmUpperLeft | **0.89** | 0.14 |
+| HandLeft | **0.94** | 0.13 |
+
+`Torso_Female_12` is the same garment as `Torso_Male_12`, cut for a different
+body. So names carry across, and one button saves roughly three hundred
+entries. It **never overwrites**: somebody who has already named a part
+looked at it, and a bulk operation that silently replaces considered work is
+one nobody dares press twice. The body word inside a name is SWAPPED rather
+than copied — "Studded leather male" arriving on a woman is exactly the
+mistake that survives three hundred rows unnoticed — and whole-word only, so
+"Malevolent" keeps its middle.
+
+### A number does NOT group slots into an outfit
+
+Tested twice and neither test found a signal. UV-island overlap across slots
+sharing a number: 0.08–0.21, against 0.11–0.15 for different numbers — but
+that metric is void anyway, because an arm and a torso sample different parts
+of the atlas whether or not they belong together. Garment-COLOUR overlap,
+skin excluded, which does not have that flaw: **0.34 within a number against
+0.33 across**. No signal at all. The pack dresses every outfit from one small
+palette of greys, browns and leathers.
+
+So the tool does not offer cross-slot sets. An auto-name derived from an
+unverified premise is worse than a blank, because a wrong name looks finished.
+
+### What a set actually is, and it is not a naming device
+
+The stakeholder's own follow-up settles the design: *"just because an asset is
+in a set, it doesn't mean that set will always be present together — you could
+have gloves from one set mixed with a torso from another. Some armor items
+may have the arms bare, or with the set arms."*
+
+That rules out a set as a group that is worn whole. A set is a **wardrobe**,
+and the thing the game equips is a GARMENT: a list of slot → mesh swaps,
+which may cover one slot or five, and which mix freely with every other
+garment. This follows from D-560's finding that a body and its clothing are
+the same mesh in this art — equipment SWAPS meshes rather than layering over
+them — and a garment is precisely that swap list.
+
+⚠ **Not built.** It belongs in the Worn items tab beside the rigid props, and
+it is authored by LOOKING at the assembled result rather than inferred from a
+number, since the numbering has just been shown to mean nothing across slots.
+
+### Bare parts are measured and REPORTED, never decided
+
+The distinction that matters for creation: a character is built from a body,
+everything else is a garment. Skin occupies the bottom 0.31 of the atlas
+(measured as the only pixels that differ between the light and dark skin
+variants), so a part's bareness is its UVs and nothing else — not its number,
+because `_00` being the nude one is a convention this pack happens to follow.
+
+⚠ **A threshold would have been wrong, and the torso is why.** No torso in
+this pack is fully bare: the nude one still has a waistband and measures
+**71%**, while the next barest is "Straps" at 29% and everything else is
+under 10%. A cutoff strict enough to exclude a shirt excludes the nude torso
+too — which is the one slot where getting it wrong matters most. So the tool
+prints the percentage beside every part, marks only what is essentially all
+skin, and leaves the rest to a person. The gap between 71% and 29% is
+obvious to an eye and invisible to a threshold chosen in advance.
+
+The mark is stored as a `base` TAG rather than in the name, so it survives a
+rename.
+
+
+## D-563 — Attaching a weapon to a hand, and drafting six hundred names
+
+**Status:** built.
+
+**Context.** Three things the stakeholder found by using the tools: there was
+no visible way to set a worn item's attach point; the race tab offered only
+the face; and the weapon and item filenames are accurate enough that naming
+them by hand was needless.
+
+### The attach point existed and was unusable
+
+There WAS an "Attach to bone" field — it appeared only after an item was
+named, and it was a free text box expecting `Hand_R`. Nobody should have to
+know how a rig spells its right hand, and a typo in a free field is an item
+that silently hangs off nothing. It is now a list of the rig's 47 actual
+bones, with the likely ones first.
+
+**But the real defect was the preview.** A weapon was drawn floating on its
+own, so there was nothing to judge an attach point AGAINST. It now hangs off
+the chosen bone of an assembled body, live, so the offset fields are worth
+having. Four things had to be fixed to get there, and every one of them was
+silent:
+
+1. **The preview ran on FOCUS, before the item existed.** Naming a mesh is
+   what creates the asset, and naming re-rendered the property panel but not
+   the preview — so the body never appeared. The one path nobody tests is the
+   first time.
+2. **The body was wearing the wrong atlas.** A hero mesh painted from the
+   knights atlas samples whatever sits at its UVs, which comes out as a
+   bleached mannequin. The body wears the CHARACTER pack's texture; the item
+   wears its own.
+3. **The bone's world scale was ASSUMED.** The body is scaled 0.01 because
+   the art is centimetres, so 0.01 looked like the factor to divide by — but a
+   bone's bind matrix carries scale of its own, and the sword came out a dot
+   in a fist. It is measured with `getWorldScale` now, which also makes the
+   stored offsets mean metres whatever a future rig does.
+4. **The body is CACHED and shared**, so each preview parented another weapon
+   to the same hand without removing the last. A knight would have ended up
+   holding every weapon in the pack, each hidden inside the next.
+
+And the framing is measured from the assembled bounds rather than a fixed
+zoom: a T-posed body is wider than it is tall and a weapon sits past the end
+of an outstretched hand, so a zoom chosen for the torso cut off the very
+thing being judged.
+
+### Names drafted from filenames
+
+`npm run name:assets` drafts every weapon and pickup name from its filename
+and guesses how it is carried. 199 assets across four packs in one run. The
+stakeholder asked for it, the filenames are descriptive, and the alternative
+was six hundred lines of typing.
+
+It **never overwrites**: an asset already in the file was looked at by a
+person. Re-running after a new pack arrives adds only what is missing.
+
+Trailing modifiers move to the front, because `Axe_Nature` is a filing
+convention and not a name — "Nature axe", "Large hammer", "Large crystal
+axe". The `Chr_` infix in `Item_Chr_Bag_Large` is dropped: it says the vendor
+files the thing under characters, which is not part of what it is called.
+
+⚠ **The first version of that hung the build.** It rotated one word at a time
+and looped while the new last word was a modifier, so `Bone_Spikes` became
+`Spikes_Bone` became `Bone_Spikes` forever. It did not throw and it did not
+log — the command simply never returned. Moving the whole trailing block in
+one pass terminates by construction, and there is a test named for the case.
+
+Buildings and props are deliberately NOT drafted: 1,459 meshes whose names
+are mostly `Wall_01`-shaped, and filling the files with that is noise nobody
+asked for. The environment tab is there for the ones somebody wants.
+
+⚠ Stance and attach are GUESSES from the name — shield to the off hand, a
+spear to polearm, everything unrecognised to the right hand and one-handed.
+A wrong stance is one dropdown to fix; a wrong attach is a sword through a
+wrist, so the fallback is the safe one.
+
+### A race is not necessarily humanoid
+
+The race tab offered only the five face slots. The schema always allowed
+every slot; only the list did not. It now shows all of them, and below the
+neck it offers the parts marked `base` with a "show all N (garments)" escape
+— because listing 29 torsos as things a race can BE is offering a wardrobe as
+an ancestry, while a race whose body IS a garment (a skeleton, a suit of
+armour) needs the full list. A body part is previewed on a body there too,
+for the same reason it is in the naming tab.
+
+---
+
+## D-564 — An animation library, the sets that bind it, and 163 weapons placed by rule
+
+**Status:** built.
+
+**Context.** The stakeholder asked for the whole animation half of the
+character work in one go: fetch every relevant clip from Mixamo, build a
+system that turns clips into usable sets, and — since the sets are chosen by
+what a character is holding — get the 163 worn items into hands that can
+hold them. D-561 had already written the vocabulary and the layering and said
+plainly that **no clip was bound to any action yet**. This is the wiring.
+
+### Getting the clips out is not the interesting part, but it is where the time went
+
+The library's own API is what makes this automatable at all: search, export
+with `{ format: fbx7_2019, skin: false, fps: 30, reducekf: 0 }` and
+`inplace: true` wherever the motion supports it, poll the job, take the
+presigned URL. `inplace` matters more than it sounds — it is what stops the
+walk arriving with 155cm of root motion baked in, the defect D-558 had to
+strip out of the first five clips after the fact. Asking for the clip without
+its skin matters too: it is bones and curves and no 3MB character nobody is
+going to draw.
+
+⚠ **Three things blocked the obvious route, and the third is a rule rather
+than a workaround.**
+
+1. The presigned URL is **CORS-refused to the page** that produced it, so the
+   browser cannot fetch its own download.
+2. **Chrome stops honouring repeated automatic downloads.** The click-an-anchor
+   route worked for seventy-one files and then silently stopped: `a.click()`
+   returned, no error appeared, and the file never landed. Every batch after
+   that looked successful and claimed nothing, which is exactly the failure a
+   count check is for — `claim-downloads.ts` refuses to match names to files
+   by order when the counts disagree, because a shifted match names a walk
+   "death" and nothing about it looks wrong until somebody dies.
+3. The remaining route — Node fetching the presigned URL, which works, since
+   presigned means no session — needs the URL to reach Node, and every path
+   out of the page is closed by **the site's own Content-Security-Policy**
+   (`default-src 'self'`, and a `connect-src` naming only its own hosts). ⚠
+   **Engineering around a site's CSP is not something to do**, so the URLs
+   were carried out by hand instead: slower, noisier, and the correct choice.
+
+The architecture deliberately never carries the session token: the page holds
+it and Node only ever sees a presigned URL. That was a choice at the outset
+and it survived every one of the reroutes above.
+
+**84 of 85 wishes arrived.** The one gap is real and is left visible in the
+wishlist rather than filled: **there is no eating animation in the library**
+— "eating", "sandwich", "food" and "meal" all return nothing — so D-533's
+meals have no clip and `eat` currently plays nothing.
+
+⚠ **Three clips are SUBSTITUTES and say so where they are declared.** There is
+no woodcutting or mining motion (a downward two-handed melee swing stands in
+for `harvest-swing`), no smithing or carpentry (a bartender working with both
+hands at a counter stands in for `craft`), and no bandaging (kneeling and
+examining something on the ground stands in for `treat-wound`). A substitute
+that is written down is a decision; one that is not is a lie about what the
+library contains.
+
+⚠ **`two-handed__death` was REMOVED rather than substituted.** There is no
+greatsword death clip, and the layering already answers it: `two-handed` falls
+through to `unarmed__death`. Recorded so nobody adds the wish back and calls
+it a gap.
+
+### The wishlist is not a manifest, and a fallback to "first result" is a trap
+
+Search terms are guesses, and the searcher took the first result when no
+preferred title matched. That is how **the polearm stance shipped its idle as
+a crouch**: "spear idle" returns a page of unrelated motions, the first was a
+crouching one, and nothing in the filename, the build log or the browser said
+so. `unarmed__craft` shipped as a **squat** the same way.
+
+Both were caught by the SHAPE test — every clip's opening hip height, measured
+against the character's own height — which already existed from D-558 and had
+never fired before. It now names the actions that legitimately do not start on
+their feet (`climb`, `downed`, `sleep`, `get-up`, `revive`, `stand-up`,
+`sitting`, `kneel`, `treat-wound`, `harvest-gather`, `swim`) one at a time
+instead of widening its band, because widening the band is what would have let
+both of these through.
+
+### Sets: the layering from D-561, made real and made small
+
+`content/animations/*.json`, one file per set, drafted by
+`npm run draft:animations` from what actually built — nine sets: one **rig**
+set of 46 unarmed clips and eight **stance** sets of one to fourteen.
+
+⚠ **The unarmed clips go in the RIG layer, not in a stance called "unarmed",
+and that single choice is the whole design.** Drafted as a stance set it would
+look identical in the tool and mean the opposite: nothing would inherit
+anything and every stance would need all 62 actions filled in by hand. As it
+is, `two-handed` names seven clips and is a complete character.
+
+The tool tab therefore shows **inheritance, not just assignment**: a row left
+empty prints the clip it will actually play and where it comes from. An author
+who cannot see the difference between "empty" and "inherits the walk" will
+fill every row in every set and undo the layering by hand.
+
+CI schema-checks the sets, refuses a duplicate id, refuses a stance set that
+applies to something that is not a stance, refuses a set that names no clips —
+and then **resolves all of them together and fails if the result has no idle
+or no walk** (D-561's `REQUIRED_ACTIONS`). A complete-looking pile of stance
+sets with no rig set beneath them is legal data, parses cleanly, and renders a
+statue that slides.
+
+### 163 weapons, placed by measurement rather than by eye
+
+The stakeholder placed **one** weapon by hand — an arming sword — and asked
+for the rest. Positioning 163 by eye is not work anybody should do, and it
+does not have to be: a grip transform is three things, and only one of them
+varies per mesh.
+
+- **The units**, which are MEASURED, not configured: the dungeon pack is
+  metres and the other three are centimetres (D-561), taken from the median
+  mesh length so one outsized halberd cannot decide it for seventy others.
+- **The wrist-to-palm offset and the twist**, which belong to the HAND and are
+  therefore constant across a family. The right hand's local +X points back
+  toward the shoulder and the left hand's points away — measured, not assumed
+  — so mirroring a grip is a sign flip on x and nothing else.
+- **Which family it is**, decided by NAME rather than by shape: a round shield
+  and a war hammer have similar proportions, and a rule guessing from the box
+  would put one of them in the wrong hand, which looks like art rather than
+  like a bug.
+
+⚠ **The load-bearing measurement is that the mesh ORIGIN is the grip, in both
+families.** Weapons measure with their origin low on the haft (0.0–0.4 of the
+way up) and shields measure with theirs at the centre of the boss (0.44–0.71,
+or dead centre where the board is wider than it is tall) — which is exactly
+where each is held. So the offset does not scale with the weapon: a 2.1m spear
+and a 48cm knife take the same one.
+
+⚠ **A shield needs NO rotation, which is the opposite of what it looks like it
+needs.** The left hand's bone frame IS the world's in the rest pose, and the
+shields are modelled upright and facing forward, so identity already stands
+them up and points them where the character looks. The first guess was a
+quarter turn off the blade convention and laid the shield along the arm like a
+plank.
+
+**Re-running is safe because of one tag.** `fit:weapons` writes `auto-fit` on
+everything it places and will overwrite only what carries it; the creation
+tool **strips that tag the moment somebody edits an offset by hand**. Without
+it the tool could either never correct its own mistake or would silently
+overwrite the stakeholder's arming sword, and there is no third option.
+
+### Two ways to see it, because neither alone is enough
+
+**`tools/test/weapon-fit.test.ts`** places all 163 on an assembled body and
+measures: the bone exists, the item ends up between 15cm and 3m long, its grip
+lands within 30cm of the hand, its centre is not inside the ribs, a shield is
+in the off hand, and every auto-fitted item still carries its family's
+numbers. ⚠ The **size** assertion is the one that earns its place: a wrong
+`scale` is the easiest mistake to make here and the only one nothing else
+catches — a sword at scale 1 in a centimetre pack is 89 metres long and
+renders as a grey plane that reads as a broken shader. All six failure modes
+were checked by deliberately breaking an item and watching the test fail.
+
+⚠ **The consistency check exists because the geometric ones are not sufficient,
+and that is worth stating.** An un-rotated blade stands upright out of the
+fist: it hits nothing, sits in the hand, and measures the right length. It is
+wrong only compared to the other 162. Corrupting a rotation passed every
+geometric assertion and was caught by nothing until the family check was
+added.
+
+**A contact sheet** in the tool renders twelve characters at once, each
+holding a different item, so an outlier is obvious beside eleven that are
+right. One at a time it would be 163 loads and 163 looks. ⚠ Rows stack
+UPWARD rather than backward — a grid laid out in X and Z hides every row but
+the front one from an orbiting camera, which showed four bodies out of twelve
+and read as a bug in the cloning. The bodies are `SkeletonUtils.clone`s of the
+one assembled mannequin: `partMesh` caches its meshes and `assemble` binds
+them, so assembling twice from the cache would rebind the same geometry to a
+second skeleton and take the first body with it.
+
+### Defects found here that logged nothing
+
+⚠ **A skinless FBX has no skinned mesh, and the whole build stopped.** Asking
+the library for clips without skin — which is right — means `retargetClip` has
+no `source.skeleton` to read. A synthetic skeleton is now built from the file's
+bone hierarchy, PARENT BEFORE CHILD, because `SkeletonUtils` walks
+`skeleton.bones` as a flat array and solves each bone against its parent's
+world matrix (the defect that put a forearm 82 degrees out in D-558). The first
+fix reparented the bone root under the new mesh and made a cycle: the first
+`updateMatrixWorld` walked it until the stack ran out.
+
+⚠ **`let` is hoisted but not initialised, and the creation tool stopped
+painting.** `frame()` and `boot()` were called from the middle of the file and
+read state declared below them, so module evaluation threw a ReferenceError
+and aborted — the Animations tab highlighted and nothing rendered, with one
+line in the console as the only sign. Both entry points now sit as the last
+lines of the file, which makes it impossible rather than making it a rule.
+
+⚠ **The camera's zoom ceiling was 1**, set when the only thing on the stage was
+one character. A contact sheet six metres wide simply refused to zoom out and
+read as a broken camera rather than as a clamp.
+
+**What this does not do.** Nothing in the game reads a set yet:
+`resolveAnimations` is called by the tool and by CI and by no renderer.
+`ImportedVisual` still picks clips by name (D-559). Binding a character to a
+rig set, a race set and the stance its equipped weapon declares is the next
+piece, and it is the piece that makes the 163 stances mean something.
+
+---
+
+## D-565 — Weapon up or weapon away, and a number field you can scroll
+
+**Status:** built; 43 clips still to fetch.
+
+**Context.** Two asks from the stakeholder. Holstering needs animations, and
+"each action that is possible in combat should have a combat variation — for
+example, running (Combat), running (Peaceful)". Separately, positioning an
+attached weapon by typing numbers is the wrong shape of interaction and should
+be scrollable, with a choosable step.
+
+### Readiness is a fourth LAYER, not a doubled vocabulary
+
+The obvious reading of "every action gets a combat variation" is 62 more enum
+entries. That is the wrong answer twice over: most of them would never differ
+from their peaceful twin, and the ones that do would have to be kept in sync
+by hand across eleven stances.
+
+D-561 already had the machinery. Animation sets LAYER —
+`rig ← race ← stance` — and anything a layer is silent about falls through. So
+readiness is a fourth layer on the end:
+
+```
+rig  ←  race  ←  stance  ←  readiness
+```
+
+A readiness set applies to `<stance>/<readiness>`, e.g. `one-handed/combat`.
+One override per clip that actually changes; everything else is inherited.
+
+⚠ **The two readiness values are not symmetrical, and the asymmetry is the
+design.** `peaceful` is the ABSENCE of an override — a man with a sheathed
+sword walks like a man, so the renderer simply does not pass a combat set and
+resolution falls through to the rig. `combat` is where the guard idle, the
+sidestep, the shortened stride and every attack live. `peaceful` exists as a
+NAME so a caller can ask for one without a special case, not as a set anybody
+authors.
+
+⚠ **It is called `Readiness`, not `Posture`, and that is not cosmetic.**
+`Posture` already means sitting / standing / kneeling in this codebase
+(D-506), and `shared` re-exports everything through one index — the two types
+collided in eight files the moment the first name was tried. The compiler
+caught it; the rename is what stops it recurring.
+
+⚠ **`combat-idle` is REMOVED from the action vocabulary, superseding that part
+of D-561.** With three layers it was the only way to say "standing still,
+weapon up". With a readiness layer that is `idle` resolved through
+`<stance>/combat`, and keeping both would be two spellings of one thing
+waiting to disagree. Deleting it rather than leaving it unused is the rule
+D-538 applied to feats: a vocabulary entry nothing implements is a promise the
+renderer never keeps. Nothing outside this session's own generated files
+referenced it — the procedural `character.ts` has a `combat-idle` key of its
+own, in a different string space, and is untouched.
+
+### Holstering belongs to the stance, not to either readiness
+
+Draw and sheathe are the TRANSITION between the two states, so they cannot
+belong to either one. They sit in the `stance` layer alongside the only other
+genuinely readiness-free thing a weapon changes — how it is carried.
+
+That leaves the stance layer looking almost empty (`stance-one-handed` is two
+clips) and the readiness layer carrying the weight, which is correct and worth
+saying out loud: a sword changes almost nothing about a man until he raises
+it.
+
+⚠ **`carrying` is the one stance with no combat half**, and it is the case
+that proves the split is real: a man with a barrel in his arms has no guard.
+Its idle and walk sit in the stance layer, where a peaceful override belongs.
+
+### The clip names now say which they are
+
+`<stance>__<action>` becomes `<stance>__combat__<action>` for a weapon-up
+clip; the segment is absent otherwise. `one-handed__walk` was ambiguous —
+every existing stance clip in the library is in fact a guard walk — and
+`one-handed__combat__walk` is not, while leaving room for the peaceful one.
+The 34 clips already on disk were renamed to match.
+
+### Two ways this can be got wrong, both tested
+
+Resolution order is asserted directly: a combat walk beats a stance walk beats
+the rig walk, with the array deliberately in the wrong order so only the LAYER
+can be deciding it. Getting that wrong gives a sheathed man a guard stride,
+which renders perfectly and is wrong in every frame.
+
+And the drafter is asserted to put draw and sheathe in the STANCE set and the
+combat walk in the READINESS set — because putting holstering in the combat
+set would mean a sheathed character had no way to draw, which is a deadlock
+that no single screenshot would reveal.
+
+⚠ `resolveAnimations` now iterates `ANIMATION_LAYERS` rather than a private
+copy of the list. The copy was already there and already correct; a fifth
+layer added to the enum and forgotten in the function would resolve as if it
+did not exist, which looks exactly like a set nobody filled in.
+
+### A number field you can scroll
+
+Fitting a weapon is a dozen small corrections in a row, each judged by looking.
+Typing breaks that loop every time. The offset, rotation and scale fields now
+take the wheel; the arrow keys step by the same amount; shift multiplies the
+step by ten and alt divides it by ten for one gesture without changing the
+setting. The step itself is chosen from chips **per group**, because the three
+are not in the same units and never want the same granularity — a centimetre
+is a sensible offset step and a useless rotation step.
+
+⚠ **The wheel handler must `stopPropagation` as well as `preventDefault`.** The
+stage's own wheel handler zooms the camera, and a scroll that nudged the
+weapon and flew the camera backwards at the same time would be unusable.
+
+⚠ **A nudge must not rebuild the preview.** `showAsset` re-parses the FBX and
+reassembles the body — fine once per click, hopeless on a wheel. `nudgeAttached`
+writes the three fields straight onto the object already parented to the bone,
+so an adjustment is a matrix update. It divides by the bone's MEASURED world
+scale for the same reason `showAsset` does (D-563).
+
+There is also a **"Back to the fitted default"** button, which clears the
+transform rather than writing the rule's numbers here — a second copy of those
+numbers in the UI is a copy waiting to drift from `fit:weapons`.
+
+### The authoring server's port is overridable, for a reason worth recording
+
+`npm run dev:studio` runs under `tsx` with no reload, so a change to a shared
+SCHEMA means restarting it — and a schema the running process has never heard
+of comes back as a 500 that reads exactly like a broken route. It cost real
+time twice. `/creation-tool.html?api=8151` now points the tools at a second
+server started on another port, which is the fastest way to pick up a schema
+change without stopping the one already running.
+
+### The clips, fetched
+
+**126 of 127 wishes are on disk** — the one gap is still `eat`, which the
+library does not contain in any form. Fifteen sets now: the rig, seven
+`— carried` stance sets (a draw and a sheathe apiece) and seven `— weapon up`
+readiness sets, the largest being sword-and-shield at 18 clips and polearm at
+17. Sword-and-shield, greatsword, polearm and bow all have a full combat
+locomotion ring; the polearm's comes from the melee pack, which is the most
+complete combat set in the library.
+
+⚠ **Two download findings worth keeping.** The presigned URLs expire in five
+minutes and carrying them out by hand is slower than that — five of fourteen
+expired mid-transit. The click-to-download route works again in a fresh
+browser profile, so Chrome's automatic-download block is per-session state
+rather than permanent; it is still the route that dies silently after a few
+dozen files, which is why `claim-downloads.ts` refuses to match by order when
+the counts disagree.
+
+⚠ **And the download report disagreed with the filesystem.** Nine files were
+reported saved and the nine names I carried forward were not the nine on disk:
+two clips I believed had failed were there, and two I believed had landed were
+not. Rebuilding the queue from `missing-animations.ts` — which reads the disk —
+rather than from the previous step's report is what caught it. A report is a
+claim; the directory is the fact.
+
+⚠ **`find` no longer falls back to the first result.** It returns NULL when
+nothing preferred matches, and the caller reports the miss. That fallback is
+what shipped a crouch as the polearm idle in D-564, and with 42 new wishes
+going through in one pass it would have been worth several more. Resolving
+every wish to a product BEFORE exporting any of them turned one bad query
+(`great sword equip`, which matches nothing — the title is `Draw A Great
+Sword 1`) into one line instead of ten minutes of exports.
+
+⚠ **`bow__draw` is `Standing Equip Bow`, not `Standing Draw Arrow`.** The
+second is nocking an arrow, which is already `reload` and the combat idle.
+Taking the bow off your back is a different motion and the names do not say so.
+
+Verified by playing them on the mannequin: the sword draw reaches across to
+the left hip, the greatsword sheathe puts the blade away over the shoulder,
+and the polearm block is a proper two-handed guard with the weight back.
+
+Nothing in the game reads a set yet, unchanged from D-564.
+
+---
+
+## D-566 — The authoring tools grow up: materials, classes, items, and a map that can hold a pack
+
+**Status:** built; placing a pack mesh from the editor UI is the one piece left.
+
+**Context.** The stakeholder asked for the workflow to be legible from the menu
+and for the four tools behind it to exist, so that how the assets link together
+can be seen rather than argued about. The menu is now **Core definitions**
+(body parts, races, weapon assets, environment assets, pickups, animations),
+**Map builder**, **Item definitions**, **Class definitions**.
+
+⚠ **The rule the placeholders followed, and why it stayed:** an unbuilt section
+says so in plain words, names what it will read and write, and what must exist
+first — rather than opening an empty editor. A tab that looks like a tool and
+does nothing is the lie D-538 refused for feats and D-553 refused for hotbar
+spells. All four are now real, and `renderSoon` remains for the next one.
+
+### Armour material is measurable; the filenames are not
+
+The stakeholder asked to tag weapons and armour plate / cloth / leather "based
+on the filename". ⚠ **The filenames carry nothing.** Every part is
+`SK_Chr_Torso_Male_12` — slot, sex, number. Unlike `name:assets` (D-563), which
+had accurate weapon filenames to rearrange, there is no text here at all, and
+drafting from it would have invented data.
+
+⚠ **The stakeholder's own names did carry it.** Fifty-six parts they had typed
+contain a material word — "Heavy plate male", "Fine leather female", "Robe
+male" — which is ground truth nothing in this repo generated, and it became the
+test set.
+
+For the other 499, the pixels answer it. A part's UVs sample a handful of flat
+colours (three to seven — the same finding as skin in D-560 and weapons in
+D-564), and plate is desaturated grey, leather brown, cloth saturated. So
+`npm run name:parts` measures and classifies, agreeing with **50 of 56** of the
+stakeholder's labels.
+
+⚠ **A "fix" that RAISED accuracy made the result worse, and that is the lesson
+worth keeping.** Counting dark near-greys as steel scored 93% — higher than what
+shipped — while calling 381 parts plate and 38 cloth. The human-named set is
+mostly plate torsos, so a plate-biased classifier wins on it. The real finding
+was that `#2d3237` and `#3b4348` are 133,000 pixels of that atlas and they are
+SHADOW: a robe measures 24% `#2d3237` and so does a harness. Excluding colours
+below a brightness floor fixed it. **Accuracy on an unbalanced set is not
+sufficient evidence**, so there is now a test asserting no material runs away
+with the pack — the check accuracy could not make.
+
+⚠ **A face is not made of cloth.** Classifying every slot tagged 128 faces and
+hairstyles, which reads as a decision and is noise. Only armour-capable slots
+are classified.
+
+⚠ **Plate/cloth/leather does not apply to weapons.** A sword is not cloth. What
+a class actually needs for weapons is `stance`, which all 163 already declare.
+
+### A PNG decoder, because measuring should not need another language
+
+Every measurement that has decided something about this art needed pixels, and
+until now that meant the browser or a Python script beside the TypeScript.
+`tools/src/png.ts` is ~120 lines of zlib and unfiltering, no dependency, and
+deliberately NOT a general library: 8-bit RGB/RGBA non-interlaced, and it
+THROWS on anything else rather than returning plausible wrong pixels. Verified
+200/200 against Pillow before anything trusted it.
+
+### Classes: the first tool that consumes the tagging
+
+`content/classes/*.json` gains `armour`, `weapons`, `races`, `items` and
+`startingAttributes`, and the editor covers identity, progression and
+permissions with **+ New calling**.
+
+⚠ **Empty means UNRESTRICTED, one rule for all four lists.** That is what made
+these safe to add: the nine classes authored before they existed carry none of
+them, parse to `[]`, and behave exactly as before. Authoring is narrowing from
+everything, so a half-finished class is permissive rather than unplayable.
+
+⚠ **Gating is ACCESS, never power** (D-207 → D-522). Telling a magus they may
+not wear plate removes an option; it does not make the man-at-arms hit harder.
+A gate that granted something for obeying it would be the mechanical reward for
+virtue D-303 forbids.
+
+⚠ **Feats and spells are edited from the OTHER side.** A feat declares
+`classes: []` meaning open to everyone (17 of 28 already restrict), so the
+class page writes into `feats.json`. And unticking a feat that is open to
+everyone **cannot** just remove one class from an empty list — it names every
+other calling explicitly, or the feat stays open to all and the click did
+nothing. Getting that backwards silently opens a restricted feat to the roster.
+
+⚠ **`startingAttributes` CROSSES D-546, which is ratified**, so nothing reads
+it. That decision gives every calling the same start — 10 apiece with 10 to
+place — because a class is access and options and not a stat block, and because
+a class starting three points of vigor ahead makes the round's social problem
+arithmetic instead of deception. Two readings are open and very different: a
+SUGGESTION the creation screen pre-fills (compatible, the role `affinities`
+plays for skills) or a RULE that supersedes D-546. **Flagged for the
+stakeholder, in the panel and in the schema; not decided here.**
+
+### Items point at assets; that is the whole split
+
+`ItemTemplate` gains `art: { pack, asset, swaps }`. The ASSET owns how a thing
+is held, which bone and which animation stance — decided once, for 163 weapons.
+The ITEM owns which asset, what colour, what it weighs and what it is worth. A
+rusted shortsword and a fine one are one mesh, two colourways and two stat
+blocks, and the art work is not repeated per item. The panel says so on the
+row: *"Held at Hand_R · stance one-handed — from the asset, not the item."*
+
+Colours are exact substitutions against the pack atlas, the mechanism
+`skinPalette` already uses (D-560) and safe for the same measured reason: every
+UV island sits inside one flat region, so NEAREST filtering keeps a
+substitution clean. The server measures which colours a mesh actually samples
+and offers exactly those as swatches, so recolouring is never a texture editor.
+
+⚠ **Four silent bugs stood between that design and it working, all the same
+family — two things that had to agree and did not.**
+
+1. **`POLYGON_Knights_Texture_01.png` sits in `Source_Files/`, not
+   `Source_Files/Textures/`**, and `texturesIn()` read only the folder called
+   "Textures". The one atlas covering that pack's weapons was invisible to the
+   studio, the creation tool and every measurement. Textures are now FOUND
+   under the pack, the way `findDir` already finds meshes.
+2. **The client and the server chose different atlases for the same pack.** The
+   tool measured a sword's colours off one image and painted it from another,
+   so every swatch named a colour the mesh did not contain and recolouring did
+   nothing, with no error anywhere. One shared `assetAtlas()` now — the D-558
+   "one assembler" lesson in a different place.
+3. **The texture endpoint only served CHARACTER packs**, so the weapon atlas
+   404'd and a `catch` swallowed it; the preview silently kept whatever was
+   loaded last and painted a sword from the character sheet, skin tones and
+   all. There is an assetpacks texture route now, and the catch logs.
+4. **The item preview loaded the asset FILE without the pack CATALOGUE**, so
+   the texture list still belonged to whichever pack was opened last.
+
+None of the four threw. Each produced a confident wrong answer.
+
+### The environment library is classified, and the simulation reads it
+
+`npm run name:environment` measures all **1,402** environment meshes and writes
+`solid`, `opaque`, `footprint` and a drafted name.
+
+⚠ **Environment filenames ARE descriptive**, unlike character parts — a wall is
+`SM_Bld_Wall_01`. D-563 declined to draft names for them ("1,459 `Wall_01`-shaped
+names is noise") and that judgement was right about NAMES and wrong about
+everything else: what stops a body, what stops an eye, and how many tiles it
+covers are all derivable, and they are the fields a map actually needs.
+
+⚠ **`solid` and `opaque` stay SEPARATE.** A fence stops a body and not an eye,
+and conflating them is how a witness sees through a wall or fails to see over a
+rail (D-217, D-545). The decision leans on measured HEIGHT as well as the name:
+nothing knee-high blocks sight, whatever it is called. A "wall" 40cm tall is a
+garden border.
+
+**Placed pack meshes** are a new thing on the grid, beside the 44 code-built
+prop types. ⚠ `footprint`, `solid` and `opaque` are **baked in at placement**
+rather than looked up: looking them up would thread the asset catalogue through
+`isTileWalkable`, the client pathfinder and CI's reachability flood — every
+caller changed, for a value that must never differ between them. Baking keeps
+an area self-describing, exactly as it is for props. ⚠ The cost is drift, so
+`placedAssetDrift` reports it and **CI fails on it**: a wall that quietly became
+walkable months after somebody edited a tag is precisely the failure nobody
+would look for.
+
+⚠ **A quarter turn SWAPS the footprint.** A 4×1 wall laid east-west covers four
+tiles across; turned, four down. Forgetting that leaves three tiles of a wall
+walkable and the reachability flood passes happily.
+
+⚠ **Line of sight now reads placed assets.** Before this a building put down by
+the editor was invisible to sight — a killing behind a house was witnessed
+through it, and a witness is what makes a crime register at all (D-217).
+
+### The map builder embeds the editor rather than replacing it
+
+The editor already exists, has its own server, and refuses any save that would
+fail the build (D-543/544). Two editors writing the same area files would
+eventually disagree about what a legal map is, so the section embeds it.
+
+**What is left:** the editor UI cannot yet PLACE a pack mesh — the schema, the
+walkability, the line of sight, the reachability flood and the drift check are
+all in and tested, but the palette in the editor still offers only the 44
+code-built props. That is the next piece and it is now mechanical.
+
+---
+
+## D-567 — The world is measured in metres: tiles superseded by a continuous coordinate system
+
+**Status:** decided by the stakeholder, 2026-09-10. **Supersedes the tile-movement
+half of D-104.** In progress — this entry is written before the code moves,
+because a decision this size must not be discovered later by reading a diff.
+
+**What D-104 said, and what survives.** D-104 bundled three rulings: a **10Hz
+server tick**, **tile-to-tile movement with client interpolation**, and
+**cooldown/round-based combat**. The tick and the non-twitch combat model are
+UNCHANGED and remain in force — latency must never decide a fight (D-104's real
+argument), and D-550's four-second combat round is untouched. Only the middle
+ruling is replaced: **position is no longer an integer tile, it is a coordinate
+in metres.**
+
+⚠ D-104 rated its own reversibility LOW and said changing it later is a rewrite.
+That assessment was correct and is being accepted, not disputed.
+
+### Why it changed
+
+The map editor is what forced it, and the evidence is measured rather than felt.
+`solid` was one boolean over a bounding rectangle, so:
+
+```
+sm-env-door-frame-02        footprint 3×1   solid ✓   ← blocks its own opening
+sm-env-ceiling-arch-01      footprint 5×5   solid ✓   ← blocks 25 tiles you walk under
+sm-bld-castle-wall-gate-01  footprint 5×2   solid ✓   ← a gate nobody can pass
+sm-env-glacier-arch-01      footprint 24×9  solid ✓
+```
+
+**1,157 of 1,402 environment assets are marked solid; 395 of those block nine or
+more tiles as a solid rectangle.** No interior can be authored that anybody can
+enter, and CI's reachability flood correctly refuses one. Patching the
+rectangles would not fix it: a door is passable in a strip narrower than a tile,
+an arch is passable because of its HEIGHT, and neither fact is expressible on a
+one-metre grid with a boolean.
+
+The stakeholder's ruling: *"For the world, ditch the tile system completely in
+favour of a coordinate system. Anything measured or located by tiles previously,
+should now rely on coordinates and distance."*
+
+### The model: one rule, four behaviours
+
+A collision layer is a list of **volumes**. A volume is a footprint (rect,
+circle or polygon, freely rotated) plus a vertical extent `base → top`, a
+`walkable` top surface, an `opaque` flag, and an optional linear `ramp` across
+that surface.
+
+⚠ **"Blocks passage" is NOT a flag.** It is what happens when a volume's top is
+higher than a character can step onto and its body overlaps theirs. That single
+rule produces all four things the stakeholder asked for:
+
+| Authored as | Behaviour | Why |
+|---|---|---|
+| kerb, rug, root — top 0.15m | **walk over** | within `STEP_UP`, so you simply stand on it |
+| stair, ramp — `ramp` 0 → 2.4m | **walk up** | every step along it is within `STEP_UP` |
+| wall — top 3m | **blocked** | too high to step onto, body overlaps |
+| arch, bridge — base 2.4m, top 4m | **walk under** | body `[0, 1.8]` never overlaps `[2.4, 4]` |
+
+⚠ **`opaque` stays SEPARATE from geometry, exactly as it did on tiles** (D-545,
+D-217). A rail stops nothing and hides nothing; a glass wall would stop a body
+and not an eye. Line of sight is what makes a witness, and deriving it from
+height would silently decide who saw a murder.
+
+### The map edge is now authored, not implied
+
+An area's extent was `width × height` and anything outside it was refused by
+arithmetic. It is now a **`bounds` polygon** on the collision layer — which is
+what makes a non-rectangular area possible at all (a cave mouth, a river bank,
+a road leaving town at an angle).
+
+### Masks are per-asset, overridable per placement
+
+Ratified by the stakeholder alongside the coordinate ruling. An environment
+asset carries its collision volumes in its OWN local frame, authored once; every
+placement inherits them transformed by its position, rotation and scale. A
+single placed object may override its own — so one wall in one map can have a
+gap knocked in it without forking the asset that 684 others share.
+
+⚠ This is the same baking trade-off D-566 recorded and it keeps the same guard:
+an inherited mask is copied at placement so an area stays self-describing, and
+drift between the copy and the asset is reported by CI.
+
+### The nav grid is an INDEX, not a return of tiles
+
+Continuous pathfinding needs an acceleration structure, and this one is a grid
+baked from the volumes at ~0.25m. ⚠ **Saying so plainly because it would
+otherwise look like the tile system creeping back in.** The distinction is
+real and load-bearing: nothing in content, the wire protocol, the rules or the
+editor sees it; no distance is measured in it; it is rebuilt from the collision
+layer at load and never authored. If a future change wants a true navmesh,
+nothing outside the pathfinder is affected.
+
+### What this costs, measured before starting
+
+Every one of these reads integer tiles today and has to be converted:
+
+- **The wire protocol** — entity `x`/`y` are `z.number().int()`
+- **Movement** — step validation and the corner-cutting rule in `world.ts`
+- **19 `chebyshev()` calls in `gateway.ts`** — weapon reach, speech channels,
+  station use, looting, revive, `COMBAT_NOISE_TILES`
+- **Line of sight** — `los.ts` walks tiles
+- **Pathfinding** — the client's `path.ts` and `sim/walk.ts`
+- **CI** — the reachability flood in `validate-content.ts` and `editor-check.ts`
+- **Eleven authored areas**, plus the generators that write four of them
+- **The determinism harness and every bot test**
+
+⚠ **Chebyshev distance is not Euclidean distance, and swapping them silently
+re-tunes the game.** On a grid, a diagonal neighbour was distance 1; in metres
+it is 1.41. Every range constant is therefore RE-MEASURED against play, not
+converted by arithmetic — the same discipline D-549 applied when Ashfold
+halved in size and the travel band was re-measured rather than re-derived.
+
+⚠ **Determinism is the risk that matters** (D-114). Tile positions could not
+drift; float positions can. The mitigation is that the server remains the only
+computer of position (invariant 1), that its arithmetic is fixed-order, and
+that the determinism harness compares whole runs — but this is the thing most
+likely to fail quietly and it is called out here so it is watched.
+
+### What has landed, and what it cost
+
+**Built:** the collision model (`shared/src/collision.ts`), the navigation index
+(`shared/src/navigation.ts`), per-asset collision masks with free placement, the
+editor's select/manipulate/mask tools, continuous server movement, and
+server-owned pathing on the wire (`move_to` / `move_stop`).
+
+⚠ **`walkable` defaults to FALSE, and finding out why cost three failures at
+once.** It defaulted to true — "of course you can stand on the top of a thing" —
+and that made every 3m wall a standable platform at 3m and every archway a floor
+at 4m. The navigation index filled with floating open ground nothing could reach
+and routes detoured around thin air. A volume is an obstacle unless somebody
+says otherwise; standing on something is an authoring act and it is one tick box.
+
+⚠ **A body has WIDTH, and the first collision rule forgot it.** "Anything within
+arm's reach whose surface is above my feet blocks me" is unwalkable in a way
+that looks like geometry working: approaching a platform up a ramp, the
+platform's side is within a body radius while the feet are still centimetres
+below its top, so the rule blocked the last 30cm of every ramp, every kerb and
+every doorstep in the world. The clearance is now a STEP, not any amount at all.
+
+⚠ **The overlay's legend was lying, and only a sweep found it.** Every colour is
+now asserted against what `stepTo` and `sightBlocked` actually do across
+thirty-six volumes. Three of five were wrong: a 10cm lip you cannot stand on
+does not stop you (`walkable` decides where your feet END UP, not whether you
+may pass); a 4m arch is not somewhere you stand just because it has a top; and
+"you walk under it" needed a colour of its own. A cage drawn red that the
+simulation walks through means a whole map authored confidently against the
+wrong picture.
+
+### Four things that survived the tile era as float bugs
+
+None of these threw. Each is the same shape: integer arithmetic fed continuous
+coordinates.
+
+1. **Line of sight HUNG.** `hasLineOfSight` ran Bresenham with
+   `while (x !== to.x || y !== to.y)`, stepping by whole numbers — from 45.05
+   towards 39 it stepped 44.05, 43.05, 42.05, and never once hit the target. A
+   pinned server thread, and every test that reached it reported a timeout
+   somewhere else entirely. It is now a segment against opaque volumes at eye
+   height, which is also the version that lets a witness see over a chest-high
+   wall (D-217).
+2. **Every door in the world stopped working.** A transition fired on
+   `t.x === event.x`, an equality that was true on a grid and is essentially
+   never true again. Matched by nearness now, with the radius set larger than
+   one tick of walking — or a fast walker steps clean over the doorway between
+   two ticks.
+3. **The endgame confirmation could not be given.** It keyed the pending
+   confirm on the position at the moment of crossing, so "step off the marker
+   and step on again" compared two different floats and warned forever. Keyed
+   on the transition's authored point now.
+4. **The bots reported eighty-eight protocol violations, all false.** Their
+   invariant check indexed `tiles[59.6]`, got `undefined`, and read it as "the
+   server put me inside a wall".
+
+⚠ **Three A* implementations were deleted, and that is the real change.** The
+client's, the bot agent's, and a copy inside a test each ran over the tile grid
+and each silently concluded the whole map was impassable. But the deeper point
+is D-102: the route was never the client's to choose. It only ever was because
+the server could not path. The client now says WHERE and the server decides
+HOW — `move_to` and `move_stop` — which is also what makes walking around a
+continuous obstacle possible at all, since a client route and a server
+collision test disagree constantly once obstacles stop being tile-shaped.
+
+⚠ **A caller has to say when it has ARRIVED.** A walk finishes when it is close
+enough, which is before the route's last waypoint; the server does not know
+that and keeps walking. So a test started harvesting, the character strolled
+on, and the work cancelled because the worker moved (D-529) — reported as
+"timed out waiting for the work to complete", which points at gathering and not
+at the walker.
+
+⚠ **`WALK_SPEED` is inherited, not chosen.** It is exactly the old cadence — one
+metre every three ticks — so that converting movement to metres did not silently
+re-tune the pace of the whole game in the same change. Likewise a direction
+still carries the direction vector's OWN length, so a diagonal covers 1.41m and
+a caller counting in whole steps still lands where it did. It does now take
+longer than a cardinal step, which is correct and which the grid gave away free.
+
+⚠ **Still on chebyshev: nineteen range checks in `gateway.ts`** — weapon reach,
+speech channels, station use, looting, revive, `COMBAT_NOISE_TILES`. They work,
+because chebyshev on metres is a defensible approximation at these distances,
+and they are wrong: a diagonal neighbour was 1 and is 1.41. Converting them is
+a re-measure against play, not an edit.
+
+⚠ **Areas are still authored as tiles.** `areaCollision` derives a layer from
+the grid for any area without one, so the continuous rules run everywhere today
+and re-cutting an area by hand is an improvement rather than a prerequisite.
+Until that happens, every wall in the world is still a metre thick and on a
+lattice.
+
+### Every distance is now measured in metres
+
+The nineteen `chebyshev` calls are gone. The conversion followed one rule,
+applied twice, and neither half is a re-measure against play:
+
+- **Short ranges, where the semantic is "adjacent"** — raised to **1.5m**
+  (attack, interact, whisper) and **2.5m** (station reach). Chebyshev called a
+  diagonal neighbour 1 away when it is 1.41, so changing the metric without
+  moving the number would have dropped every diagonal neighbour out of reach.
+  Handing something to the person beside you would have worked north and failed
+  north-east, with nothing in the UI to explain it.
+- **Long ranges, where the semantic is "about this far"** — left alone (say 10,
+  shout 40, combat proximity 20, noise 30/12, aggro 9), so the straight-line
+  reach that was actually tuned is preserved and the square's corners go. ⚠ This
+  SHRINKS the ground each covers by about a third. Speech range decides who
+  witnesses a declaration (D-218), so that is a rules change and not a cosmetic
+  one.
+
+Every `*_TILES` constant is renamed `*_METRES`, including `aggroTiles` →
+`aggroMetres` in the six authored roamers. The rename is the point: a unit that
+is not in the name is a unit nobody checks.
+
+⚠ **One word cost an hour: `reach: z.number().int()`.** Raising bare-handed
+reach to 1.5m made the ENTIRE status message fail schema validation, so it was
+dropped on the floor — no error, no status, six tests reporting a timeout
+waiting for a message that was being sent correctly every time. **Any `.int()`
+left on a distance is a trapdoor of exactly this shape**, which is why
+`CharacterSummary.x/y` went the same way and why migration 0013 widens the
+stored positions to `double precision`: left as `integer`, Postgres rounds on
+write, and a character logs out at 12.4 and wakes at 12.
+
+### CI asks whether a BODY can get there
+
+`unreachableTiles` floods the navigation index from the spawn instead of
+flooding tiles, so the question is the one the server asks at runtime.
+
+⚠ **The obvious claim about this is wrong, and the test says so.** The tile
+flood already tested `canStandAt` at each tile CENTRE, so a doorway narrow
+enough to block a centre was caught either way. What the navigation flood adds
+is routes that do not run through tile centres at all: a passage at an angle, a
+gap offset half a metre from the lattice, anything rotated. Those the tile flood
+declared unreachable — a FALSE failure. There is now a test where both tile
+centres in a doorway are provably unstandable (asserted, not asserted in a
+comment) and a body walks straight through.
+
+So it is stronger in both directions: it refuses what a body cannot fit
+through, and it stops refusing what a body plainly can.
+
+### The areas themselves are still tiles, and you can now see it
+
+⚠ Ten of the eleven authored areas carry no `collision` block, so what the
+server collides against is derived from their tile grids — every wall a metre
+thick and on the old lattice. That is the last real remnant, and it is not
+something to convert automatically: a machine-derived layer baked into content
+would freeze the approximation and then drift from the tiles the editor still
+edits.
+
+What is built instead is the means to judge it: the map editor draws the whole
+area's collision layer on demand. Re-cutting a map is now a thing a person can
+see, do and check, which is where D-567 always had to end.
+
+---
+
+## D-568 — The bow pack, and two dead branches it exposed
+
+**Status:** implemented.
+**Supersedes:** nothing. Extends D-561 (naming packs), D-563 (attaching a
+weapon), D-564 (grips by measurement).
+
+The stakeholder supplied `POLYGON_BowAndCrossbow_SourceFiles_v3.zip` — six
+meshes: three rigged bows and three projectiles. It is ingested as
+`assets/source/bow-crossbow`.
+
+⚠ **The first zip delivered under that name was the Generic pack renamed.**
+Byte-identical to `POLYGON_Generic_SourceFiles_v3.zip` — same size, same
+SHA-256, `MaterialList_PolygonGeneric.txt` inside, and zero meshes matching
+bow, crossbow, quiver or bolt. It was not extracted. The lesson is cheap and
+worth keeping: **inspect an archive before extracting it**, because the second
+copy of an already-ingested pack under a misleading name is a mess that only
+shows up much later, as duplicate assets nobody can account for.
+
+### What is in it, measured
+
+| mesh | long axis | length | origin along it |
+|---|---|---|---|
+| `Rigged_Bow_Testing` | Y | 145.6 | 0.50 |
+| `Rigged_Bow_NativeAmerican_Testing` | Y | 142.3 | 0.50 |
+| `Rigged_CrossBow_Testing` | Z | 112.1 | **0.92** |
+| `SM_Arrow_01` | Z | 93.0 | 0.50 |
+| `SM_Prop_Arrow_NativeAmerican_01` | Z | 100.5 | 0.43 |
+| `SM_Wep_Crossbow_Bolt_01` | Z | 46.3 | 0.50 |
+
+The pack is **centimetres** (scale 0.01), like the characters and the knights,
+not metres like the dungeon pack — D-561's 100× disagreement holding for a
+sixth pack.
+
+The bows are **skinned**, with an eight-bone draw rig (`Root`, `bowString`,
+three upper and three lower limb bones) and one 1.67s clip each. Nothing reads
+that yet; it is a bow that *could* visibly draw, which is worth knowing before
+somebody writes an aim animation that fights it.
+
+### Two dead branches, both found by running the code rather than reading it
+
+⚠ **`carry()` could never return the `bow` stance.** The test was
+`/bow\b|longbow|shortbow/`, and `_` is a **word character** — so `\b` does not
+match in `rigged_bow_testing`, which wants a non-word character after "bow" and
+finds an underscore. The branch matched no filename in any pack and had never
+fired. Nothing failed: a bow was simply drafted as a one-handed weapon in the
+right fist, which reads as a clumsy name rather than as a dead branch. The
+boundary is now `_`.
+
+⚠ **`kindOfMesh` filed four of the six nowhere and two wrongly.** The vendor
+breaks their own prefix convention here: the bows carry no `Wep_`, and the
+three projectiles are filed under three different conventions (`SM_Arrow_01`,
+`SM_Prop_Arrow_...`, `SM_Wep_Crossbow_Bolt_...`). `Rigged_` is now read as a
+weapon — a rigged weapon is still a weapon, and without it these are the only
+weapons in the repository no tool would list.
+
+⚠ **An ammunition rule was tried here and REVERTED, and that is the entry.**
+Matching the words Arrow/Bolt/Quiver filed the three projectiles correctly and
+broke three other meshes doing it: `SM_Env_Basement_Support_Beam_Bolt_01` and
+`SM_Prop_Bolt_01` (a bolt is a fastener as often as it is ammunition) and
+`SM_Bld_Castle_Arrow_Slit_01` (an "arrow" modifying a "slit"). Three meshes
+broken to fix three. **English is not a classifier.** The three oddities are
+filed by hand instead.
+
+### Which required making a hand correction survive the generator
+
+⚠ `nameAssets` skipped a mesh already present **in the file being written**, so
+moving a mis-filed mesh to the right kind was undone on the next run — a second
+copy under a second id, silently. It now skips a mesh catalogued **anywhere in
+the pack**, across kinds. A generator is only safe to re-run if a person's
+correction survives it, and this is the same non-idempotency the wall converter
+shipped once. Proven by re-running and hashing: byte-identical.
+
+### The grip
+
+Two new families. ⚠ **A bow needs no rotation**, for the shield's reason
+(D-564): it goes in the left hand, whose bone frame is the world's at rest, and
+the bows are modelled standing on Y with the string toward the archer — so
+identity already *is* the pose. And the origin is the exact mesh centre, which
+on a bow is the riser, so D-564's "the origin is the grip" holds for a third
+family.
+
+⚠ **The crossbow is the one weapon in any pack whose origin is not its grip** —
+92% of it sits behind the origin. `HELD_AT` shifts it along its own long axis
+(0.35 from the butt, **unratified**), which puts the origin 62cm ahead of the
+fist *by construction*. That tripped the grip-distance test, whose allowance
+(`0.3 + 0.25 × length`) was tuned on weapons where the origin *is* the grip;
+the crossbow now carries the real rule underneath instead — you cannot hold a
+thing further from you than the thing is long.
+
+### The stance goes live
+
+`hunting-bow` had deliberately carried **no art** since D-566, because giving
+it a sword's asset to satisfy the hunter's gate "would be a lie the animation
+system would then act on". It now points at `bow-crossbow/wep-longbow-01`, which
+activates the gate (hunter and shade both admit `bow`) and connects the **ten
+authored clips** in `stance-bow.json` and `combat-bow.json` to something to hold.
+
+⚠ **There is no `crossbow` animation set.** The stance is a legal value with no
+clips behind it, so a crossbow falls through to the rig set and is carried like
+nothing at all. The meshes are in; the movement is not.
+
+---
+
+## D-569 — The last content gets an editor, and the rules move to one place
+
+**Status:** implemented.
+**Extends:** D-543 (the editor refuses a save that would fail the build),
+D-558/D-560 (the authoring server), D-566 (the tools grow up).
+
+Recipes, roamers, objectives, sound cues, the emote lexicon and the languages
+were the last content with a schema, a CI validator and **no way to author
+them**. Two new sections on the creation tool — **Round content** and
+**Speech & sound** — close that.
+
+### The rules are now written once
+
+The per-entity checks lived inside `validate-content.ts`'s single long pass,
+where the authoring server could not reach them. They are now pure functions in
+`shared/` — `recipeProblems`, `roamerProblems`, `objectiveProblems`,
+`castCoverageProblem` — and `validate-content.ts` **calls them**. D-543's
+promise that the editor refuses anything the build would refuse is only true
+while both read the same code; two copies drift, and the direction that hurts
+is the tool being the more permissive of the pair.
+
+⚠ **A `null` reference set means "I cannot check this" and must stay a skipped
+check, never a fabricated pass.** The server sometimes knows the item list and
+CI always does. A validator that read "I don't know the items" as "the item
+exists" would be worse than one that said nothing.
+
+### What a per-document form cannot check, and therefore what this is for
+
+⚠ **The orphan graph is the reason recipes needed an editor rather than better
+discipline.** Invariant 2 (D-210) says every item has a consumer, and the
+commonest way to break it is to repoint or delete the only recipe that ate a
+material. *The document you edited stays perfectly valid.* The build fails
+somewhere else, about a different item, an hour later. So every recipe and
+roamer save runs `findOrphans` over the graph **as it would stand afterwards**,
+and a delete is refused by name — deleting `coarse-bread` reports
+`item 'field-grain' is a base material that no recipe consumes`.
+
+⚠ **`validateContent` is NOT what runs on save.** It takes 3.6–6 seconds,
+because it floods every area for reachability. That is not a save button. What
+runs is the part a round-content edit can actually break.
+
+⚠ **Objectives have the same shape of trap one level up.** Shelving the last
+live objective playable at the minimum cast is a legal edit to a legal
+document; the failure is that the lobby fills and the round never starts, with
+no error message anywhere. `castCoverageProblem` refuses it, and CI now uses
+the same function.
+
+⚠ **CI's orphan exemption list is exported and shared**, and
+`tarnished-signet` was removed from it — it is exempt *because an objective
+steals it*, so the exemption is now derived from the objectives themselves.
+Retargeting that objective used to leave a stale literal behind, quietly
+excusing the signet from the check for no reason.
+
+### Rules the forms enforce because they are rules, not tuning
+
+**A guard that pays is a farming strategy, not a watch (D-552).** The form
+removes the xp and loot fields entirely when habitat is `guard` — gone rather
+than greyed — and the save refuses a guard worth anything. Paying for a guard
+kill would make murdering the watch the safest income in the game.
+
+**A cue pointing at a file that is not on disk is refused, not warned about
+(D-541)** — it is silent in play and indistinguishable from a cue nobody wired.
+Files are picked from what is actually on disk rather than typed, and a whole-file
+save also refuses to remove a cue an area still names as its ambience (the area
+is not open in this editor and nothing else would catch it until the build).
+
+**`common` cannot be removed** — without it every line of speech in the world
+scrambles for every listener.
+
+**The lexicon's keys are closed on both sides.** A posture the client cannot
+hold and a gesture it cannot play are dropdowns. The synonyms are the open
+half, and are the half worth authoring — "genuflects" reaching `kneeling` is
+the point of the system. ⚠ They are edited as one comma-separated box rather
+than a row of chips with plus buttons: these are lists of thirty words typed in
+one sitting, and a control costing a click per word is a control nobody fills
+in, which shows up as a lexicon that matches "kneels" and not "genuflects".
+
+### The one check the tool refuses to pretend it can make
+
+⚠ **`kill_npc` matches the descriptor of whatever died with an exact
+`Set.has`** — and NPCs are not declared on an area, they are spawned by
+`spawn_npc{...}` inside sandboxed Lua (D-507). So the only complete list of
+descriptors requires running the scripts. The tool reads the Lua for
+`descriptor = "..."`, offers what it finds as **suggestions**, warns when the
+typed target matches none of them, and **passes `null` to the validator so
+nothing is refused**. Treating a partial scan as complete would reject every
+objective aimed at an NPC spawned by a DM event.
+
+⚠ **That warning found a real bug on the first objective opened.**
+`silence-the-keeper` is `status: "live"` and targets the descriptor
+`"the keeper"`. The only NPC any script spawns is
+`"a heavyset keeper with scarred knuckles"`, in `hanged-ferryman` — and
+`round-town` runs no scripts and does not link to the ferryman, so **there is
+no keeper in the round map at all.** D-526 calls this objective the low-cast
+workhorse; as authored, an antagonist dealt it cannot win. It is two problems,
+not a typo, and the second is a design gap. **Left unfixed and flagged for the
+stakeholder** — repointing the descriptor would make it *look* fixed while
+still being unwinnable, which is worse than a known gap. The tests never caught
+it because their fixtures spawn an NPC with the fixture's own descriptor: they
+prove the mechanism, not the content.
+
+---
+
+## D-570 — The wardrobe: a garment is a list of swaps, and it is authored by looking
+
+**Status:** implemented.
+**Implements:** D-562's finding, which had been recorded and unbuilt since.
+**Extends:** D-560 (equipment swaps meshes, never layers), D-566 (the armour
+gate), D-569 (one implementation of every content rule).
+
+This was the last content type with no editor. `content/garments/` and a
+**Garments** section on the creation tool close it.
+
+### What a garment is, and why it could not be an outfit
+
+⚠ **A "set" is a WARDROBE, not a costume** — the stakeholder's correction in
+D-562. Gloves from one set mix with a torso from another, and some armours
+leave the arms bare. So the equippable thing is a **list of slot swaps**
+covering one slot or five, not "plate armour #12".
+
+⚠ It has to be **swaps rather than layers** because of what D-560 measured:
+there is essentially no bare body in this pack. Of 720 parts, arms and hands
+have ONE bare option each and torso and hips have **none** — a body and its
+clothes are the same mesh. Layering a breastplate over a torso would put it
+over a shirt nobody can take off.
+
+⚠ And it has to be authored **by looking**, which is a measured conclusion and
+not a preference. D-562 tried twice to derive outfits from the numbering: UV
+overlap across slots is void as a metric, and garment-colour overlap gives
+**0.34 within a number against 0.33 across** — no signal, because the pack
+dresses everything from one palette. A machine cannot tell which torso goes
+with which gloves. So every change previews on a body immediately, framed on
+the whole figure rather than by `frameFor`'s per-slot distance: a suit
+inspected through a shot of somebody's chin is not inspected.
+
+### The check that earns the file
+
+⚠ **Both bodies, or half the cast cannot wear it.** A garment that dresses a
+male torso and not a female one is refused by name. Nothing downstream would
+have said so — the other half would simply render in whatever was underneath,
+which reads as an art glitch rather than as missing content.
+
+The other half of that is one button: `mirrorGarmentParts` fills the opposite
+body **by number**, which is safe because the pairing was measured —
+`Torso_Female_12` shares **0.96** of its atlas islands with `Torso_Male_12`
+and 0.36 with any other female torso, and every twice-cut slot runs 0.89 to
+0.97 against controls of 0.13 to 0.36. Unisex parts (a cape, a pauldron) are
+carried across unchanged rather than given an invented `_Female_` spelling
+that would name a file which does not exist.
+
+Also refused: a part filed under the wrong slot (the mistake a dropdown makes
+easiest, and invisible in the JSON afterwards because both halves read as
+plausible strings), a part cut for the other body (a female forearm on a male
+upper arm meets it at the wrong diameter — the seam is visible from three
+metres), and a garment that dresses nothing.
+
+### Material is DERIVED, which is why this was worth building
+
+⚠ D-566 put `material` on the ITEM under protest and said so in the code:
+*"declared on the ITEM, which is a compromise and should not outlive the
+garment editor... its material will be derivable from those parts rather than
+repeated here."* It now is. 568 of the pack's 720 parts carry a material tag
+measured from their pixels (D-563), so `garmentMaterial` asks them.
+
+⚠ **The heaviest part decides.** A mail hauberk with leather gloves is plate: a
+calling barred from plate must not get around the gate because the gloves are
+soft, and taking the lightest would make every suit gateable by its least
+protected inch. `base` is bare skin and never votes — folding it in would let
+a class "admit bare" as though it were a kind of protection.
+
+⚠ **An untagged garment returns null, not cloth.** Empty means UNRESTRICTED
+everywhere else in this codebase and a silent default here would be the one
+place it did not.
+
+`ItemTemplate` gains `garment`, and **CI refuses an item whose declared
+material disagrees with the garment it names** — proven by deliberately
+pointing `hide-jerkin` (leather) at a plate garment and watching the build
+fail. Two sources that can differ will differ, and that particular
+disagreement is silent: a class gate letting a magus wear plate because the
+item said cloth. The declared field can be dropped once every armour item
+names a garment.
+
+### What a garment may not dress
+
+⚠ Everything a person IS rather than wears — face, hair, brows, beard, ears —
+is excluded from `GARMENT_SLOTS`. A garment is stripped between rounds
+(D-522), so one that replaced your face would change who you looked like when
+you took it off; and gear must never reach the descriptor pipeline, which is
+the permanent disguise D-539 and D-547 both refused.
+
+`helmet` IS included and is not an exception. In this pack a closed helm is
+modelled as the head mesh — it has no `eyes` bone, because the face is inside
+it — so wearing one necessarily swaps the head. It conceals rather than
+rewrites: take it off and the authored face is underneath.
+
+### Three UI defects, all found by driving the tool rather than reading it
+
+⚠ **`textField` reached into another screen.** It hard-coded
+`renderRoundList()` on change, and the garment editor reuses it for the name
+field — so renaming a garment redrew the LIST pane as the recipe list while
+the side pane still showed the garment. Nothing threw; the tool displayed two
+different editors at once, which reads as a rendering glitch rather than as
+one function calling into a screen it knows nothing about. The refresh is now
+a parameter.
+
+⚠ **The list row lied about the garment.** It carries the slot count, and
+changing a slot re-rendered only the side pane — leaving a row reading "0
+slots" beside a body visibly wearing three.
+
+⚠ **Selecting a garment did not show it.** The row handler rendered the form
+and left whatever was last on the stage: a bare head from the boot sequence,
+beside a form describing a suit of plate. In an editor whose entire premise is
+that a garment can only be judged by looking, that is the defect that matters
+most, and no test would have caught it.
+
+### Still to build
+
+⚠ **Nothing renders a garment in the GAME yet.** The content is authorable and
+validated; `ImportedVisual.setEquipment` still does nothing (D-559), so a worn
+garment is invisible in play. Wiring it is the next piece, and it is the same
+piece D-559 already named as the cost of a yes to this art.
+
+⚠ **No garment is authored.** One was built end to end to prove the path — a
+gothic plate torso with pauldroned upper arms and bare forearms, which is
+exactly D-562's "some armours leave the arms bare" — and then deleted, because
+the ask was the editor and a roster of garments is the stakeholder's to author
+by looking.
+
+---
+
+## D-571 — A garment reaches the world: dressing is re-assembly, not grafting
+
+**Status:** implemented.
+**Completes:** D-570 (the garment editor), D-559's named regression
+(`setEquipment` did nothing).
+**Extends:** D-554 (the `worn` silhouette), D-555/D-558 (the assembler).
+
+`ImportedVisual.setEquipment` was a no-op with a comment saying so. It now
+re-assembles the character out of part files with the garment's slots swapped,
+and the plate a player equips is the plate that renders.
+
+### Grafting was ruled out by measurement, not by taste
+
+The obvious implementation is to keep the built `.glb` and graft the garment's
+meshes onto its skeleton. Measuring the three built characters killed it:
+
+| | bones | notes |
+|---|---|---|
+| `ashfold-guard` | 53 | carries `Capes_01`, `back_02`…`back_05` |
+| `ashfold-townsfolk` | 47 | no cape bones at all; has `toes_l` and no `toes_r` |
+| `polygon-hero-male` | 47 | different ORDER again; meshes named `SK_Chr_Torso_Male_04`, not `torso` |
+
+A character's skeleton is the union of ITS parts' weighted bones, so the three
+disagree in count, in order and in membership. ⚠ Grafting a caped garment onto
+the townsfolk would remap every cape vertex through a bone that is not there —
+`indexOf.get(name)!` yields `undefined`, which becomes index 0 — and pool the
+cape at the pelvis. Silently.
+
+Re-assembling has none of those problems, because `assemble()` computes the
+union for whatever combination it is handed. It is the same call the build
+makes, which is what makes the claim "what renders is what the build would have
+written" checkable rather than hopeful.
+
+### Which needed a part to survive glTF, and that is the load-bearing measurement
+
+`build:characters` now writes a `.glb` per PART that any character definition
+or garment names — 29 files, 1.7 MB, only what content references, the rule
+`build:environment` already follows.
+
+⚠ **A part file is NOT scaled to metres**, unlike a finished outfit. It is an
+ingredient: the browser feeds it back through the same `assemble()`, and that
+call does the conversion. Baking it in would apply it twice and produce a
+1.8-centimetre knight, which renders perfectly, at the wrong size, with nothing
+in any log.
+
+Proven rather than assumed — a re-assembly from part files against the build's
+own monolith:
+
+- **bounding box identical to three decimal places** on both characters;
+- **same bone set**;
+- **skinned vertices 90 NANOMETRES apart** under an identical name-based pose.
+
+That last one is the real assertion. The box only says the bind pose matches;
+posing both by bone name exactly as a clip does, and comparing
+`applyBoneTransform` output vertex by vertex, is what says the skinIndex remap
+is sound — and a wrong remap is a limb following the wrong joint, which reads
+as bad art rather than as a bug.
+
+### ⚠ The bone ORDER differs, and chasing that down was worth it
+
+`ashfold-guard` re-assembles with the build's exact bone order and
+`ashfold-townsfolk` does not (`neck_01` against `clavicle_l` at index 4). The
+first version of the test asserted exact order and failed, and the temptation
+was to weaken it to a set comparison and move on.
+
+The cause: in the monolith each part arrived from FBX carrying the vendor's
+whole rig, so a branch point like `spine_03` lists its children in the FBX's
+order. A part FILE carries only the ancestors that part needs, so whichever
+part introduced a child first decides. It does not matter — skinIndex is
+remapped into whatever order results and clips bind by name — and the
+90-nanometre test is what establishes that, instead of an argument.
+
+⚠ What DOES matter is that the order parts arrive in is pinned. Feeding one
+character's parts in JSON key order rather than slot-vocabulary order produces
+the same 53 bones in a completely different arrangement. Both are correct;
+having two is what makes any future comparison between build and browser
+meaningless. The client iterates `CHARACTER_SLOTS`, as the build does.
+
+### What travels, and what deliberately does not
+
+`WornLook` gains `garments: string[]`, beside the five silhouette flags.
+⚠ Exactly as public as those flags and for the same reason — everyone in the
+room can see you are in mail — and still never reaching the descriptor
+pipeline, or a helm becomes the permanent disguise D-539 refused.
+
+⚠ **Order is a rule, not an accident of iteration.** Two garments can claim one
+body slot; the later one is seen. `lookOf` sorts by the equip-slot vocabulary
+so every observer resolves the collision identically — otherwise two clients
+draw the same person in two different coats.
+
+⚠ **Sex is NOT on the wire.** A garment is cut for a BODY, not chosen by a
+player: the pack cuts most parts twice and a female forearm on a male upper arm
+meets it at the wrong diameter (D-558). Which cut to wear is therefore a
+property of the assembled character, and the manifest carries it. Putting it on
+the wire would be asking the wrong system.
+
+⚠ `EquippedItem` gains `garment`, because `lookOf` is deliberately keyed off
+the slot and the stats "so a new sword looks like a sword without anybody
+registering it anywhere" — and a garment is the one piece of appearance that
+cannot be inferred from numbers. Which mesh replaces which slot is a decision
+somebody made by looking (D-562).
+
+### What it costs, and what it does not
+
+⚠ **The common case costs nothing.** `loadDressed` falls straight through to
+`load` when there is nothing worn, so an undressed character is one download,
+one parse, one shared scene, exactly as before. Assembling is paid for only by
+somebody actually dressed, and cached by combination — a crowd in the same kit
+shares one assembly (asserted).
+
+⚠ **A character with no slot vocabulary cannot be dressed**, and says so. One
+discovered from a `.unitypackage` or a folder of loose FBX (D-556, D-557) has
+meshes named after whatever file they came from, so a swap has nothing to
+replace. The manifest carries `parts: null` to make that checkable rather than
+guessable, and CI asserts the two agree.
+
+⚠ **The old model is removed, never disposed.** Geometry, material and palette
+are shared across every instance in the same kit, so disposing on a change of
+coat would blank every other character wearing it — the trap `dispose()`
+already documents.
+
+⚠ **The animation is carried across, not restarted.** Putting on a cloak
+mid-stride must not reset the walk to frame zero, and a corpse being looted must
+not sit up and die again. `play()` now returns its action so the new one can be
+seeked to where the old one was.
+
+⚠ **A token guards the constructor's own load.** `setEquipment` can land before
+the bare model resolves; without the check the bare model would arrive second
+and silently undress somebody.
+
+### What is authored
+
+`gothic-plate` is a real garment — eight slots, both bodies — and
+`mail-hauberk` names it. That is deliberate: the ask was to wire this up, so
+one item genuinely wearing one garment is the deliverable rather than a
+fixture. It is a first example to change, not a ratified roster.
+
+⚠ **The PROCEDURAL cast ignores `garments` entirely**, and that is correct
+rather than unfinished. It generates approximate armour geometry from the five
+flags — that is what it is for — and reading the garments as well would draw
+the same pauldrons twice. Both casts still take one `setEquipment`, so
+`main.ts` still does not know which it is holding (D-559).
+
+### Three defects the headless pass found, none of which would have thrown
+
+Proving the SERVER half — a second player seeing the garment on the wire —
+turned up three things the browser check could not have:
+
+⚠ **`publishWorn` compared five fields and not the sixth.** The change test
+was helm/pauldrons/cape/robe/weapon, which is a SILHOUETTE and not an
+identity: two different suits of plate produce identical flags. Changing from
+one to another was therefore judged "no visible change" and never broadcast —
+the wearer would see it and nobody else would. `garments` is now part of the
+comparison.
+
+⚠ **The client told only the procedural cast.** `main.ts` handled
+`entity_worn` with `if (e.visual instanceof CharacterVisual)`, so the imported
+cast never heard about a change of kit and a garment would appear only on the
+next full snapshot — in practice, on the next area change. `applyWorn` takes
+the union precisely so the caller need not know which cast it holds (D-559);
+testing for one of them was undoing that. The guard now excludes what is not a
+person — a pile wears nothing — rather than picking a cast, which the compiler
+insisted on and was right to.
+
+⚠ **`BotClient` never handled `entity_worn` at all.** D-554 put the event on
+the wire and nothing headless ever read it, so a bot's view of what anybody
+wore froze at the snapshot and every assertion about equipment was silently
+testing the starting kit.
+
+⚠ An unknown-entity `entity_worn` is deliberately NOT a violation, unlike
+every neighbour in that switch. Entering the world grants the kit and
+publishes the silhouette before the new entity has been broadcast, so
+observers legitimately get one delta about somebody they cannot see yet — and
+the `entity_entered` that follows carries the authoritative `worn`. The real
+client drops it on the same `if`. Treating it as a violation failed ten honest
+tests to flag a redundant message.
+
+⚠ **Still missing on the imported cast:** `setPresentation` (D-219's hood) and
+emotes. Equipment is no longer on that list.
+
+---
+
+## D-572 — A character has a race, and the race bounds it
+
+**Status:** implemented.
+**Completes:** D-560 (races as content), and the half of D-566 that could never
+fire.
+
+⚠ **A character had no race at all.** `content/races/` has been authored since
+D-560, curated in the creation tool, and every calling has carried a `races`
+list since D-566 — and there was nowhere to record which race a character
+actually *is*. So the gate could not fire, the authored height ranges bounded
+nothing, and the skin tones and curated part lists reached no player. This is
+the join between "races are content" and "the game reads them".
+
+The server did not even load `content/races/`.
+
+### What was added
+
+A `raceId` on `create_character`, on the character record (migration 0015), on
+the summary and on `status`; `races` in the server's content; and one pure rule,
+`creationRaceProblems`, that the gateway enforces at creation.
+
+⚠ **Optional, exactly as `classId` is**, and that property is the whole design.
+Every character made before this, every bot and every older client sends none
+and behaves identically. A calling that names no races admits all of them
+(D-566), and all nine name none today. Authoring a race NARROWS; nothing is
+silently locked by adding a field. The migration is `NULL` and nullable for the
+same reason — giving existing characters a race would be inventing a fact about
+somebody else's character.
+
+⚠ **But a race that IS sent must resolve.** Writing an id nothing can look up
+makes a character whose race is a string rather than a thing, and that survives
+into the renderer and the descriptor pipeline before anybody notices. An
+unknown race reports ONE problem and stops: nothing below the lookup can be
+checked against a race that does not exist, and guessing would bury the real
+error under two invented ones.
+
+### The height bound, and the honest limit on it
+
+A race's `height` range now bounds what a client may submit. ⚠ This is the
+SERVER's limit, not the UI's (D-102): `APPEARANCE_LIMITS` allows 2.1m for
+anybody, and the race is what says an elf is not that.
+
+⚠ **It takes the UNION of the race's per-body ranges, not the matching one** —
+because a character does not have a body sex to match against. `sex` in this
+codebase selects which MESHES fit together (D-558) and is a property of an
+assembled outfit; nobody has ever asked a player for one. Until creation does,
+the honest bound is "a height this race can be at all". Narrowing per body
+would be enforcing a fact nobody has stated. A race declaring no heights bounds
+nothing, because empty means unrestricted here as everywhere.
+
+### What was already there
+
+⚠ **The class editor has had "Races it admits" since D-566.** The claim in
+`CLAUDE.md` that it was still to build was stale — the AUTHORING existed and
+only the enforcement was missing. The gate now carries a note saying it refuses
+a character at creation, because narrowing it is the one edit on that page that
+can stop somebody making the character they wanted.
+
+### Verified
+
+- The pure rules, including every "empty means unrestricted" path.
+- End to end against a live gateway: recorded, refused when unknown, refused
+  when too tall, accepted at the ends of the range.
+- ⚠ **Against the REAL Postgres store**, not only `MemoryStore` — created with
+  a race, read back with it. The fake being more permissive than the real one
+  has cost this repo a login before (D-547), and a column added to the type but
+  not to the INSERT would pass every in-memory test.
+- Proven by deliberate break: removing the persist line fails two tests.
+
+---
+
+## D-573 — The creation screen asks what you are
+
+**Status:** implemented.
+**Completes:** D-560's course correction — *"the imported art must reach the
+world THROUGH character creation, not by replacing the system that reads a
+player's choices."*
+**Builds on:** D-572 (a character has a race).
+
+D-572 gave a character a race and the server the rules to judge it. Nothing
+asked. The wizard was calling → face → body → skills → feats → name, and
+`content/races/` — curated faces, statures, skin tones, markings — reached no
+player at all.
+
+It is now **calling → race → face → …**, and the order is the design: a calling
+may admit only some races (D-566), so the choice has to be narrowed by one
+already made; and a race curates which faces and statures exist (D-560), so it
+has to be made before the face is.
+
+### The step exists only when there is something to choose
+
+⚠ A server whose content has no races skips it entirely — the same rule the
+spell step already follows for a calling that does not cast. An empty step is a
+question with no answers and a player has to click past it anyway. Verified
+both ways by driving the wizard: six steps without races, seven with.
+
+⚠ `creation_content` carries races **whole**, not as ids, because the screen
+needs what each race curates. Ids would mean a round trip per race, or the
+client shipping a copy of the content and going stale the moment somebody
+authors one.
+
+### The face step is bounded by the race, and that is the point
+
+⚠ The server refuses a height the race cannot be (D-572). A panel that offered
+the world's full 1.5–2.1m would be letting somebody build a character that is
+rejected **at the last step, after they had named it**. `AppearancePanel` now
+takes the race's range: measured in the browser, an elf's slider reads
+1.60–1.85 and a human's 1.60–1.90.
+
+⚠ Changing race **throws the panel away and rebuilds it** rather than clamping
+what is there. Losing a tuned face is worse than annoying — but silently moving
+a slider somebody set is the game editing their choice without saying so, and
+showing them a character the server will refuse is worse than both.
+
+⚠ A fresh ROLL is clamped, and that is not the same silent edit. The seed
+generates from an archetype (D-402) whose ranges are the world's, so a roll can
+legitimately land outside the race; nobody has chosen that number yet, and
+leaving it out of range would show a slider whose handle sits past its own end.
+Measured: seed 12345 rolls 1.703m, and inside a 1.62–1.64 race starts at 1.64.
+
+### Two ways to strand a player, both closed
+
+⚠ **Changing the calling drops a race it does not admit**, along with the feats
+and spells that were already dropped for the same reason. Carrying one forward
+would build a character the server rejects after it has been named.
+
+⚠ **A calling can admit only races nobody has authored** — a content error, not
+a bug, reachable by deleting a race a class still names. The step says which
+calling and what it admits, and sends the player back, rather than presenting
+an empty grid.
+
+### The rule lives in `shared`, not in the screen
+
+`racesForClass` was extracted rather than left in the wizard, because the
+testing doctrine forbids logic that can only be exercised through a browser —
+and this is the rule that decides what a player may be. Getting it backwards
+offers exactly the races a calling refuses, with no symptom until the refusal.
+⚠ Empty `classRaces` means ALL; all nine callings declare none today, so
+inverting it would offer nobody anything.
+
+⚠ **The review summary names the race.** It is chosen five steps before the
+end and was never mentioned again — a summary that omits a whole step's choice
+is the one place a wrong pick survives into a character you then live with. It
+now reads "Elven Man-at-arms".
+
+### Verified
+
+By driving the real wizard in the browser, not by reading it: the step appears
+and disappears with content, an unrestricted calling offers both races and a
+gated one offers a single race, the slider takes the chosen race's range and
+changes with it, a roll clamps, and the submitted message carries
+`raceId: 'human'` with a height inside the human range.
+
+---
+
+## D-574 — A race is a face, and the face a player chose is the one the world draws
+
+**Status:** implemented.
+**Completes:** D-560's course correction, and answers the question D-559 left
+open.
+**Builds on:** D-572 (a character has a race), D-573 (creation asks), D-571
+(re-assembly in the browser).
+
+D-573 let a player choose a race and D-572 made the server enforce it, but a
+race still only changed how tall you were. Its curated `parts`, `skinTones` and
+`markings` — the whole reason a race is content — were sent to the client and
+read by nothing.
+
+Now the face step offers exactly what the race curates, the server refuses
+anything else, and the world draws it.
+
+### ⚠ This answers D-559's open question
+
+D-559 recorded: *"which character an entity is drawn as is UNRESOLVED — picked
+from the seed, which is deterministic and agreed across clients but arbitrary:
+nothing connects the guard model to a guard. That needs a wire field and a
+decision about how a roster relates to classes."*
+
+Nothing needs to connect it. **The player said.** A look names a part per slot
+and those parts are what gets assembled. The seed remains the answer for every
+NPC, roamer, corpse and pre-face-step character — which is almost everything —
+and that is a fallback rather than a failure.
+
+### A look is not an appearance, and both survive
+
+⚠ `CharacterLook` is deliberately SEPARATE from `AppearanceOverride`. The
+latter is the procedural parameter set, and it is what the descriptor pipeline
+reads to call a stranger "a towering, heavy-built figure" (D-201/D-539). Those
+numbers must outlive whatever art renders them, so a look is an ADDITIONAL
+layer: a character with no look renders exactly as before, which is every
+character that exists.
+
+⚠ Skin is stored as an **RGB, not a tone id**. D-560 measured why — skin is
+four flat colours in the whole atlas, which the vendor's `_A/_B/_C` variants
+merely remap — and storing the colour means a race can rename or reorder its
+tones without silently changing somebody's face.
+
+⚠ `look` is one JSONB column, not a column per slot. The slot vocabulary
+belongs to content and grows with the art (D-561); a migration per hat is not
+something anybody should have to write.
+
+### Curation is a rule, not a menu
+
+Every part must be one the race offers **for that slot**. A race that offers
+the same faces as every other race is not a race (D-560), and a hand-rolled
+client that could send any stem would have made the curation decorative. The
+server refuses by name, and `lookProblems` is the one implementation the screen
+and the server both read.
+
+⚠ A look with NO race is refused outright rather than treated as a smaller
+valid look — there is nothing to check it against, and accepting it would let a
+raceless character carry any part in the pack.
+
+⚠ "Wrong markings" and "this race wears none" are separate messages. "Pick a
+different one" reads as advice when there is none to pick.
+
+### The preview is the character, not a stand-in for it
+
+⚠ Once a look names parts, the creation preview swaps from `CharacterVisual` to
+`ImportedVisual` — the same class the world builds, from the same part files. A
+creation screen that previewed a different cast from the world is the exact lie
+this screen exists to avoid: tune a face, accept it, walk into the tavern as
+somebody else. The panel holds the pair as a union for the same reason
+`main.ts` does (D-559): the code driving a character must not know which it has.
+
+⚠ The procedural sliders do not stop mattering when it swaps. They are what
+the descriptors read, and those words are what other players see before they
+are told a name.
+
+### Two things the player is deliberately not asked
+
+⚠ **The body.** A race curates one bare option per body for each of the eleven
+body slots (D-563), so offering them would be eleven rows of a single button.
+What matters is that the cut MATCHES the face — a female forearm on a male
+upper arm meets it at the wrong diameter (D-558) — so the body is filled from
+the face's own cut and refilled whenever that changes.
+
+⚠ **Their sex.** It selects which meshes fit and is never shown (D-558); the
+chosen head already contains the answer in its own filename. Storing it as well
+would be a second source that can disagree with the parts it describes.
+
+Changing the face also drops hair and brows cut for the other body. Dropping
+them is visible; leaving them is a seam nobody chose.
+
+### The skin recolour, measured rather than claimed
+
+`skinPalette` substitutes four exact colours on the ATLAS — safe because each
+UV island sits inside one flat region under NEAREST filtering (D-560).
+Pixel-counted in the browser on a real character:
+
+| | `#ffccae` (skin) | `#49667e` (garment) | `#2d3237` (garment) |
+|---|---|---|---|
+| untinted | 235,306 | 449,857 | 77,958 |
+| ivory `#efe3d1` | **0** → 235,306 as `#efe3d1` | 449,857 | 77,958 |
+| pale `#ffccae` | 235,306 | 449,857 | 77,958 |
+
+The skin count moves exactly and the garment counts do not move at all.
+
+⚠ Tinted palettes are cached **per colour**, not per character — a cast of
+twenty in three tones is three textures. And the colours are part of the model
+cache key: two characters in the same parts and different skin are two models,
+and leaving the tone out of the key would hand the second one the first one's
+face.
+
+⚠ A palette that has not decoded yet returns UNTINTED rather than caching a
+blank canvas under that key. A wrong skin for one frame beats painting
+everybody in that tone permanently.
+
+### The build has to run first
+
+`build:characters` now exports a `.glb` for every part a RACE curates —
+**183 files, 8.6 MB**, against the 29 a definition and a garment named. Without
+it a player picks a face and the client asks for a file that was never written.
+A client still downloads only the face it is looking at.
+
+### Verified
+
+By driving the real wizard: the race's four face rows and its skin swatches
+render from the authored `content/races/elven.json`; picking a face fetches its
+`.glb` and auto-fills all eleven body slots in the matching cut; the submitted
+message carries twelve parts and the chosen tone. Server-side, against a live
+gateway: recorded and persisted, refused for an unoffered part, refused for a
+face with no race, refused for an off-palette skin, and a character with no
+face still creates. Proven by deliberate break.
+
+---
+
+## D-575 — The head is the slot that decides the cut, so it cannot be filtered by it
+
+**Status:** implemented. A defect fix on D-574, recorded because the failure
+mode is worth remembering.
+
+The stakeholder asked for female heads and brows to be added to both races.
+⚠ **They were already there** — `elven` and `human` each curate all 23 male and
+all 23 female heads, and 10 male and 7 female brows. The claim that they were
+male-only came from reading the first four entries of a list, which happen to
+be male. Measuring the file before acting on the request is what found that.
+
+**But the symptom was real.** `renderFace` filtered every slot by the cut of
+the chosen face, including `head`. So:
+
+- with nothing chosen, all 46 faces showed;
+- pick a male one, and the head row re-rendered filtered to male;
+- **the 23 female faces were gone and could not be reached again.**
+
+A one-way door. Nothing errored and nothing was logged — the options simply
+stopped being drawn — so the only symptom available to a player is "I cannot
+make a woman", which is exactly what was reported.
+
+⚠ **The head is the slot that DECIDES the cut. Filtering it by that cut is
+circular.** Every other slot must be filtered: a female brow on a male head
+meets it at the wrong diameter and the seam is visible from three metres
+(D-558). Parts the pack cuts once — hair, ears — carry no body word and belong
+to both.
+
+The rule moved to `partsForSlot` in `shared` and is tested, for the reason the
+testing doctrine gives: this decides what a player can reach, it got it wrong,
+and it cannot be exercised through a browser where it lived.
+
+### ⚠ And the labels hid the only distinction on screen
+
+`partLabel` stripped the body word, so the six faces read "Head 00" … "Head 08"
+with no clue which cut each was — and "Eyebrow 01" appeared in both the male
+and the female list meaning two different meshes. A fallback label exists to be
+legible until somebody names the part properly (D-560); one that hides the only
+distinction on screen is worse than the filename it came from. It now reads
+"Head Female 05".
+
+**Verified** by driving the wizard on the real authored race: all six faces
+stay after picking either cut, brows swap from male 01/06/07 to female 01/02/03
+with the face, and switching to a female face refetches the female head and
+refills all ten body slots in the female cut.
+
+---
+
+## D-576 — The names were authored, and only the authoring tools could read them
+
+**Status:** implemented.
+**Completes:** D-560 (parts have player-facing names).
+
+⚠ **Reported by the stakeholder as "I already named the heads/faces. How did
+you lose it?" Nothing was lost.** `content/parts/modular-fantasy-hero.json`
+holds **720 names**, written through the creation tool, valid, and
+schema-checked in CI the whole time.
+
+⚠ **The file was read by `name-parts.ts`, `studio-server.ts` and
+`validate-content.ts` — the naming tool, the studio and the validator. Every
+one of them is an authoring tool. The game server never loaded it**, so
+`creation_content` never carried a name, and the creation screen derived a
+label from the file stem for every part. A face the stakeholder had called
+"Scarred mouth" was offered to a player as `Head Female 05`.
+
+That is precisely what D-560 said must never happen — "nothing downstream can
+show a filename" — and it was true of the tool that wrote the names and false
+of the only screen that shows them.
+
+### What changed
+
+`Content.partNames` is loaded from `content/parts/` beside the races, and
+`creation_content` carries `partNames`. The client's `partLabel` looks the stem
+up and falls back to the stem, **keeping the body word** for the reason D-575
+gives.
+
+⚠ **Trimmed to what the races curate** — 142 of 720, 5.2 KB — because the other
+578 are garment meshes creation never offers. Every part any race offers is
+named today, and a server test asserts that rather than assuming it: an unnamed
+curated part is a part nobody has named, never a name that failed to load.
+
+### ⚠ Naming the parts CREATED a collision the file stems had hidden
+
+**20 of the 23 head names are shared across the two cuts.** "Burnt", "Cut eye"
+and "Markings 10" are each a male face *and* a female face — and D-575 requires
+all 46 to be on screen at once, so switching to names put twenty pairs of
+identically-labelled chips in one row. That is a worse row than the stems were.
+
+So a row that shows **both** cuts is grouped under `male` / `female` headings.
+⚠ Keyed on what the row actually contains, not on `head`: until a face is
+picked nothing is filtered, and the brows row was offering "Flared", "Scruffy",
+"Stylish", "Normal" and "Angry" twice each. Once a face is chosen every other
+row holds one cut and no heading appears.
+
+⚠ **Grouping rather than suffixing the name with its cut.** The head is the
+slot that decides the cut — every other slot is filtered by it (D-558) and the
+body is filled from it (D-574) — so a player choosing a face is already
+choosing that, and a heading says so plainly. It is a label on an ambiguity
+that is genuinely on screen, not a question about the player.
+
+### ⚠ The same defect, one layer down: the chips were never styled
+
+`.chip` and `.chip.on` are defined in `creation-tool.html` and `editor.html`.
+**They have never existed in `client/index.html`.** The face picker borrowed the
+class name from the authoring tools without the rule, so 46 faces rendered as a
+run of unstyled text — no border, no background, no pointer cursor — and
+`.chip.on` meant **the chosen face carried no mark at all**. Nothing threw;
+the screen simply looked like prose. Styling now lives in the game's own sheet.
+
+⚠ Both halves of this are one mistake with two symptoms: **the tool had it and
+the game never asked.** Worth checking wherever else the two share a vocabulary.
+
+**Verified** by driving the real wizard against the real content: 142 names on
+the wire, "Normal | Scarred nose | Scarred eye | Scarred mouth | Dark eyes |
+Burnt" where stems used to be, zero raw stems on screen, 46 faces under two
+headings, brows grouped before a face is picked and flat (7, distinct) after,
+and the chosen chip drawn in `--warm`. Proven by deliberate break: dropping the
+loader line fails all three server tests.
+
+---
+
+## D-577 — One screen owns the overlay, and a model is scaled by its own height
+
+**Status:** implemented.
+**Found by:** the stakeholder looking at a screenshot and asking why character
+creation was on the login page.
+
+### The overlay had three forms and no owner
+
+`#overlay .panel` holds `login-form`, `char-form` and `create-form` as
+siblings. `CreationWizard.open()` hid `char-form` and showed `create-form`, and
+**never touched `login-form`** — it relied on `showCharacters()` having hidden
+it when you logged in. True on the one real path, and silently false for any
+other caller.
+
+⚠ **The screenshot was my own harness**, which opened the wizard without
+logging in — so the reported symptom was not reachable in play. The fragility
+it exposed was real, and is the part worth fixing: a screen that is correct
+only because of what ran before it is one edit away from being wrong.
+
+`open()` now hides all three of its siblings' worth of state — it owns the
+panel while it is up. And `close()` no longer un-hides `char-form`: that is
+right for cancelling and wrong for a dropped connection, which must land on the
+login fields, and the disconnect path was correct only because it hid the
+character list on the NEXT LINE. Each caller now names its own destination.
+
+### ⚠ And then the preview showed a flat field of skin
+
+Measuring instead of squinting: the assembled figure was **190 units tall and
+217 wide** with the camera 4.5 units out. The camera was inside its shin.
+
+`attach()` did `model.scale.setScalar(appearanceHeight / outfit.height)`. That
+is wrong twice, in the same direction:
+
+1. ⚠ **It SETS rather than multiplies**, wiping the centimetre-to-metre
+   conversion the re-assembly loaders apply. Part files are exported unscaled
+   by design (D-571) precisely so that conversion happens once, in the loader —
+   so **every garment and every player-chosen face rendered one hundred times
+   too large.** This was never only a preview bug: `attach` is shared with the
+   world.
+2. ⚠ **It divided by the MONOLITH's height** from the manifest (1.667m) while
+   drawing a different assembly of different meshes (1.90m). A body a player
+   authored is not the outfit it borrowed its rig from.
+
+Loaders now report the height of the model **actually built**, and `attach`
+multiplies by `appearanceHeight / loaded.height`.
+
+### ⚠ The measurement that had to match the build
+
+The obvious implementation — `Box3.setFromObject` — is wrong here and looks
+tidier. `build:characters` measures stature from **bone extent**, lowest bone
+to highest, which is where every manifest `height` comes from. Mesh bounds
+include a helmet crest and a hair mesh: the authored guard measures **1.92m by
+geometry against 1.70m by skeleton**. Normalising by geometry would make him a
+short man wearing a tall hat, and would have **silently resized the existing
+cast by up to 13%** while every test still passed.
+
+`heightOf` measures bones, and the browser now reproduces the build's own
+number to the millimetre on all three outfits — 0cm delta, measured, not
+assumed.
+
+**Verified:** asked for 1.6584m, renders 1.6584m (bind stature × final scale),
+final scale 0.009951 — the loader's 0.01 preserved and normalised rather than
+destroyed. Four headless tests on a synthetic figure, three of which fail when
+the bone loop is emptied.
+
+---
+
+## D-578 — What a character is holding decides how they move
+
+**Status:** implemented.
+**Completes:** D-564 and D-565, which built the animation library and the layer
+design and recorded that **"nothing in the game reads a set yet"**.
+
+⚠ **The third thing this session found authored, validated and read only by
+the authoring tools** (D-576 is the pattern). 126 clips, fifteen sets, a closed
+action vocabulary, CI resolving every set together — and the renderer picked
+clips by hard-coded NAME. So eleven stances animated identically, a man with a
+bow swung it like a sword, and the three authored attack variants for every
+melee stance showed as one.
+
+### The chain that was missing
+
+**The stance travels with the item**, beside `garment` and for the reason
+already written there: `lookOf` is keyed off slot and stats so a new sword
+looks like a sword without anybody registering it anywhere, and a stance is the
+other fact numbers cannot give you. A bow and an arming sword have the same
+shape of damage and reach.
+
+⚠ **Resolved SERVER-side** against loaded content and sent on `worn` (D-102).
+A client working it out from the silhouette would animate a crossbow as a
+sword; a client handed an asset id would need the whole worn-item catalogue,
+and an id it could not resolve would silently become "unarmed" — a man swinging
+a greatsword like his fists. The existing `stanceOf` (D-566's weapon gate)
+already did this lookup and is now shared rather than duplicated.
+
+⚠ **Silent rather than defaulted.** `CharacterItem.stance` carries a schema
+default of `one-handed`, right for a thing somebody filed as a weapon and wrong
+for an item with no art at all — defaulting here would put a character holding
+bread into a swordsman's guard.
+
+### ⚠ The same broadcast bug as D-571, one field later, found the same way
+
+`publishWorn` compares the silhouette to decide whether anything visible
+changed, and `stance` was in the payload and not in the comparison. A bow and a
+sword produce identical flags and identical garments — swapping one for the
+other changes no mesh — so **drawing a bow was judged "no visible change" and
+never broadcast**: the archer nocked an arrow and the room watched him swing.
+
+The comment directly above the comparison already described this failure mode
+for `garments`. It was found by the sim test, not by reading the code beneath
+that comment.
+
+### ⚠ Resolved up front, or it would apply to almost nobody
+
+Building the table lazily on the first change of kit passed every test and left
+the defect intact for the common case: roamers, the watch, the keeper and every
+corpse never equip anything and never draw, so the authored rig set would have
+applied to almost no one while the old hard-coded names still ran the world.
+Caught by measuring a freshly constructed visual — `neutral-idle` where it
+should have said `unarmed-idle`.
+
+### What this turns on that was already paid for
+
+- **Kneeling is its own motion.** D-559 recorded "kneeling borrows the sit,
+  because there is no kneel". There is: `unarmed-kneel` shipped in D-564 and
+  nothing read it.
+- **The attack variant is read.** D-516 has sent which swing it asked for since
+  combat was built and the renderer threw it away.
+- **A bow shoots.** `combat-bow` names no `attack-1` — you do not swing a bow —
+  so the chain is `attack-1 ?? shoot`, and asserting the raw key would have
+  called correct content a failure.
+- **Readiness is the absence of an override.** A man with a sheathed bow walks
+  like a man; only `combat` has sets (D-565). Verified live: `unarmed-idle`
+  sheathed, `bow-combat-idle` drawn, `bow-combat-walk` moving.
+
+### ⚠ Gaps this exposes rather than fixes
+
+- **The RACE layer is unreachable.** A race set applies to `race/sex`; the sex
+  is derivable from the chosen parts but `raceId` is on the character record
+  (D-572) and **not on the wire entity**. No race set is authored today so
+  nothing is currently lost — the day one is, the wire is what needs feeding,
+  not the resolver.
+- **Two stances have no set at all**: `crossbow` (already flagged in D-568) and
+  `one-handed-shield`. Both fall through to the rig, so a character holding
+  only a shield stands as though empty-handed.
+- **`dagger` and `thrown` have no combat idle** — the library holds two clips
+  each, which their own notes say. Their fighters stand like unarmed men and
+  strike like knife-fighters. That is the fall-through working correctly and a
+  gap in the CLIP LIBRARY, not in the content; the fix is fetching two clips.
+
+⚠ **Sets are loaded at BUILD time**, the channel `content/audio/sounds.json`
+already uses. The cost, stated: authoring a set needs a client rebuild rather
+than a server restart. Sets bind actions to clips in a `.glb` the same build
+produces, so the two move together anyway — but if content must outpace
+deploys, that import is the line to change.
+
+---
+
+## D-579 — Everyone who arrives in a round is told what they are
+
+**Status:** implemented.
+**Fixes:** the hole recorded in `CLAUDE.md` as "a player who joins a RUNNING
+round never receives `round_role`", which turned out to have a second and much
+worse face.
+
+`round_role` was sent once, in a loop over the connections present when the
+round STARTED. Two people it never reached:
+
+1. **Anyone joining mid-round**, told nothing at all.
+2. ⚠ **The antagonist reconnecting after a dropped connection.** `secretRole`
+   is keyed on the CHARACTER, so the role survived the disconnect perfectly
+   well on the server — the objective simply was never sent again. **A round is
+   one player having a secret task**, and a dropped wifi connection silently
+   disarmed it while the round carried on around them.
+
+⚠ **`round_state` already reached them**, which is what made this so quiet: the
+HUD showed a running round with a live clock and a cast count. The player could
+see the round. They just had no idea what they were in it.
+
+### The fix, and the rule it must not break
+
+One `sendRoundRole(conn)` serves both the start of the round and every arrival
+after it. ⚠ **Sent to EVERY arrival, never only to an antagonist** — the rule
+the mode rests on is that everybody gets the message and only one carries an
+objective, so its arrival is not itself a tell, and two places building that
+payload is two places for it to stop being true.
+
+⚠ **The same objective, not a fresh draw.** Re-rolling on reconnect would
+change the round's win condition halfway through because somebody's connection
+dropped.
+
+### ⚠ What this exposes and does not fix — for the stakeholder
+
+**A latecomer can never be the antagonist.** The assignment is made once, from
+the cast present at the start, so anyone arriving later is truthfully told
+`antagonist: false` — and everybody else can deduce it. At a cast of three to
+five, "he wasn't here when it started, so he's clean" is a free elimination and
+the mode's central deduction is that much cheaper.
+
+This is a design question, not a bug, and the obvious fixes are worse:
+reassigning mid-round changes the win condition under everyone; barring late
+joiners shrinks an already small cast. Left as it is, stated plainly.
+
+⚠ Note also that `roundCast()` is computed live from connections, so a
+latecomer DOES count toward the cast size and toward "the good cast is wiped".
+Only the role assignment is frozen at the start.
+
+**Verified** by a test written before the fix and watched to fail on both
+counts: the latecomer times out waiting for a role, and so does the
+reconnecting antagonist. `round_state` passed throughout, which is the detail
+that dates the bug.
+
+---
+
+## D-580 — The common stores are a real place, and they can be ruined
+
+**Status:** implemented.
+**Completes:** D-530's ruling on facility potency, and closes D-529's hard
+constraint that **the stores must run out**.
+
+⚠ **D-530 has been half-built since it was written.** The ruling was that
+pooling goods at a facility is more potent than carrying them and never
+required — "it should not be *required* to store items there... Items placed
+there, and 'used' from there should be more potent." What existed was a TIME
+bonus for eating beside the storehouse **out of your own pack**. That is the
+flavour of the rule without its substance: nothing was ever pooled, so nothing
+could be hoarded, denied, or spoiled, and the table of trade-offs D-530 drew
+had only one row that could actually happen.
+
+### A store is the third owner an item can have
+
+Beside a character and a corpse. Modelling it as an OWNER rather than as a list
+hanging off the station is what keeps D-114's no-duplication invariant for
+free: an item is in exactly one place, depositing is a move, and Postgres
+enforces exactly-one-owner with a check constraint that was EXTENDED rather
+than dropped — the gateway is not the only writer (D-547).
+
+Keyed `<areaId>:<stationType>` — the TOWN's stores, not one particular sack.
+
+⚠ **Anybody may take what anybody pooled.** No owner is recorded and no
+permission is checked. That is the exposure half of D-530's trade, and a lock
+would quietly delete the dilemma the facility exists to create.
+
+⚠ **The stores are emptied at a round reset**, and this is not tidying. Gear
+is stripped between rounds (D-522); stores that survived would let the cast
+accumulate a permanent larder across rounds, defeating D-529's hard constraint
+in a way that gets worse every round and reads as generosity.
+
+### Spoiling rides on the ITEMS, not on the station
+
+The well is a SOURCE and is rightly modelled as a timed window (D-552).
+Provisions are things, and things go off: a timed flag on the station would let
+a victim carry the loaf clear of the sabotage and eat it safely, which is not
+what spoiling stores means. So `ItemData.spoiled` travels with the loaf.
+
+⚠ **Nothing announces it, and the WIRE carries no flag either.** A first draft
+sent `spoiled` on `store_contents`; the client could not render it without
+destroying the sabotage, which made it a wire field nothing may ever read — the
+exact anti-pattern three other decisions this session were written to remove.
+It is gone. Whether the bread is good is a property of the BREAD, discovered by
+eating it, and the test asserts it against the store rather than the wire.
+
+⚠ **A spoiled loaf looks like a loaf.** You find out by
+eating it — it costs you the meal AND deepens the hunger, exactly as poisoned
+water does for thirst, because a saboteur who left everybody fed would have
+accomplished nothing.
+
+⚠ **Eating prefers an unspoiled loaf where there is a choice.** Given a good
+one and a ruined one a person eats the good one, so sabotage bites once the
+good food has run out — which is the pressure D-529 wants, and the opposite of
+making every meal a coin toss.
+
+⚠ **Refused BEFORE the bitterleaf is spent** when there is nothing
+perishable there. The room is deliberately hard to read; destroying the one
+thing that makes this possible for misreading it is a trap rather than a risk.
+
+⚠ Its bite is exactly proportional to how much the cast pooled — the property
+D-530 called the best thing in the design. The antagonist's non-violent play
+grows stronger as the cast grows more trusting, and the hoarder is insulated
+from the sabotage they refused to be part of.
+
+### The UI says what is there and never who put it there
+
+No "contributed by" line. Inventing one would turn generosity into a
+scoreboard, which is exactly what D-303 forbids: the only reward for stocking
+the larder is that other players saw you do it.
+
+⚠ The `stock` button is drawn ONLY beside the stores. An affordance that is
+always present and usually refused teaches players to ignore refusals. And
+"there are no stores here" is treated as an ANSWER rather than an error — the
+panel asks whenever it opens, the server is the authority on reach, and the
+refusal is what empties the section.
+
+### ⚠ Three things the tests caught that reading did not
+
+1. **Stations exist only while a round runs.** They are spawned with the round
+   (D-534) and torn down at reset, so the first fixture — a server with no
+   round — produced four `no_store_here` refusals that looked like a broken
+   feature and were a broken fixture.
+2. **An objective needing a bigger cast than `minCast` means the lobby fills
+   and never starts** — the trap D-569 named when the objective editor was
+   built, hit here for real. Worth recording how it PRESENTED: the `beforeAll`
+   timed out and vitest reported its tests as **SKIPPED rather than failed**,
+   which reads as green in the summary line. Only `--reporter=verbose` showed
+   three tests that never ran.
+3. **`MemoryStore.grantItem` accepts a template content does not have.** The
+   suite spent three tests pooling `ration-bread`, which does not exist; the
+   real item is `coarse-bread`. Item rows do not reference templates, so
+   Postgres would accept it too — consistent, not a divergence, but it means a
+   typo'd item id is silently a real object.
+
+**Verified** by eight bot-driven assertions through the wire, including the
+no-duplication invariant (`countItems` unchanged across a deposit), a second
+player taking what the first pooled, spoiled food deepening hunger, the good
+loaf being eaten first, and the stores being empty after a real round reset.
+Proven by deliberate break: removing the reset's `clearStores()` fails exactly
+the reset test.
+
+⚠ **Still unbuilt from D-530:** potency beyond meals — being treated at the
+infirmary is not yet better than bandaging in the field, and the workshop is
+not yet better than improvising. The multiplier band (1.5x-2x) remains
+**unratified**, and D-530 flags it as the number to watch when the mode is
+first played.
+
+---
+
+## D-581 — The editor shows you what you are about to place, and a map says whether it is real
+
+**Status:** implemented.
+**Asked for by the stakeholder**, ahead of authoring maps in earnest.
+
+### What it is like to place something now
+
+A **ghost** of the picked asset stands under the cursor, snapped exactly as the
+click will snap, turned to the current angle and lifted to the current height.
+⚠ It is a real `AssetVisual`, not a box: the whole reason to preview is to
+judge whether THIS mesh sits right against the one beside it, and a stand-in of
+the right size and the wrong shape answers a different question. Hidden rather
+than parked when the cursor leaves the map — a preview left where it was last
+valid reads as something already placed, which is the one thing it must not
+look like.
+
+**Shift + left-drag turns it. Shift + wheel raises it.** Both act on whichever
+thing is live: the ghost while the asset tool is up, otherwise the selection.
+⚠ Keyed on what is ON SCREEN rather than "the selection if there is one" —
+preferring a stale selection while a preview is being steered would turn a wall
+somewhere off-screen and look like nothing happened.
+
+**X** swaps to selection and back to the SAME brush. Remembered rather than
+assumed: the point of the key is to glance at what is already placed and carry
+on, and snapping back to the tile tool would lose an asset picked out of 1,402.
+
+⚠ **Shift-drag used to PAN, and this takes that binding.** Panning is still
+on middle-drag, where it also already was. The trade is deliberate: panning had
+two bindings and turning a wall to meet another had none but a 15° key, and
+lining two meshes up by eye is the motion a map is actually built out of.
+
+Height is a new field on the paint side (`assetZ`), deliberately SEPARATE from
+a selected object's `z`. They are two different things a person adjusts, and
+sharing one number means raising a lantern silently re-heights the next fifty
+walls.
+
+### ⚠ Two defects this turned up, one of them mine
+
+**A wheel gesture was one undo step per notch.** `raiseBy` snapshotted on every
+event, so Ctrl+Z would step back through a lift one notch at a time — exactly
+what the painting path already refuses ("one snapshot per stroke, not per
+tile"). Now one snapshot per gesture, with an idle gap deciding where a gesture
+ends. Measured: five notches lift 1.25m and **one undo puts it back**.
+
+**Undo left a DANGLING SELECTION, and that one predates this work.** `undo`
+restores `area` by parsing a snapshot, so every `PlacedAsset` in it is a new
+object — while `selected` went on pointing at the old, detached one. The
+inspector, the mask view and now shift-turn would all be editing something no
+longer on the map: the numbers move and nothing happens. Undo and redo now
+clear the selection. Re-pointing it at whatever occupies that slot instead
+would silently select a different object.
+
+### A map now says whether it is real
+
+`AreaDef.live` — is this part of a game loop, or a place to test things?
+Nothing in a file said which, so `proving-ground` and `round-town` parsed
+identically and every question that mattered was answered by recognising the
+name. The editor shows it in front of the map's name in the list (● / ○) and
+lets you set it.
+
+⚠ **Defaults to FALSE**, the same direction as `outdoor` and for the same
+reason: a map opts IN to being real. Forgetting it on a live map understates
+what is shipping, which somebody notices the moment they look for their map and
+it says test; the opposite default quietly promotes every scratch map to part
+of the game, which is the failure nobody sees.
+
+⚠ **It gates nothing**, on purpose. A flag that silently changed how an area
+played would make a test map stop testing the thing it was built to test.
+
+⚠ **The eleven/one split contains a judgement call the stakeholder should
+check.** The eight `round-*` areas are unambiguously live (D-521 makes the
+Round the shipping target) and `proving-ground` is unambiguously not. The other
+three — `hanged-ferryman`, `broken-yard`, `sunken-crypt` — are the PERSISTENT
+WORLD's authored areas, real content for a milestone resequenced behind MR
+rather than cancelled, and the tavern even runs a scripted keeper. They are
+marked live because calling them "for testing" would be untrue, not because
+they are in the loop today. One word per file flips any of them.
+
+**Verified** by driving the real editor through real events and reading the
+numbers rather than the screen (the D-559 rule, in a second tool): the ghost
+lands at the snapped point with the current angle and height; five wheel
+notches lift 1.25m and one undo restores it; a selection turns 30° while the
+paint defaults stay where they were; X round-trips and keeps the brush. The
+editor grew `window.__ed` for this, which is what `window.__rc` is for the
+game — the things worth checking here cannot be read off a screenshot.
+
+---
+
+## D-582 — The machine-placed scenery comes out, and the generator stops eating hand work
+
+**Status:** implemented.
+**Stakeholder:** "remove all procedurally generated assets completely from the
+maps", ahead of designing them by hand.
+
+### What was actually in the maps
+
+Every one of the **6,130 placements across eleven areas came from one pack**,
+`dungeon-pack`, and not one was put there by a person. They were produced by
+`walls-to-assets.py`, which converts runs of wall TILES into rows of pack
+meshes — a mechanical conversion, which is why the farm, the wood and the
+tavern were all built out of dungeon masonry. That tool's own docstring said
+where it ended: *"a person tidying a map by hand in the editor is the eventual
+answer."* This is the other half of that sentence.
+
+`tools/src/strip-procedural.py` clears them. It also clears **799 roof tiles**,
+which were painted by the same generation: a roof is presentation that lifts
+when you walk under it (D-545), so a roof left standing over removed walls is a
+lid hanging in the air above bare ground.
+
+⚠ **`proving-ground` is kept WHOLE**, and the rule that spares it is a named
+list rather than a heuristic. It is the one map built by hand as a collision
+fixture, and `mr6-proving-ground.test.ts` walks an actor through it — the only
+test that covers the joins between the model, the index, the server, the wire
+and the client. Clearing it would have deleted the test that catches exactly
+the class of bug that map-building produces. A rule that inferred "fixture"
+from `live` would quietly strip the next one somebody adds.
+
+⚠ What is NOT touched is the map's SKELETON: tiles, legend, spawn, stations,
+nodes, transitions, zone, outdoor, live. Where the doors are and what an area
+IS were decisions; only the scenery was machine-placed.
+
+### ⚠ The trap this exposed, which would have cost a day of design
+
+`build-round-map.py` writes each `round-*` file **wholesale** and knows nothing
+about `assets`. It was safe while those files held nothing but generated
+geometry. It stopped being safe the moment a person opened the editor: one run
+would have erased an afternoon of placement without a word, and the editor's
+"this area is generated" warning understates it — the warning says your edits
+are lost, the behaviour was that everything was.
+
+The generator now carries `assets`, `roofs` and `live` across from whatever is
+on disk. The division is stated where it is enforced: **this script owns the
+skeleton of a round area, and a person owns what stands on it.**
+
+Proven by running it: a marker asset, a roof tile and the `live` flag planted
+in `round-town` all survived a full regeneration, while stations and
+transitions were still rewritten by the generator.
+
+### ⚠ Three tests failed, and each got a different answer
+
+Blanket-skipping all three would have been the easy read. They are not the same
+kind of failure:
+
+1. **"roofs do not change what anybody can walk on"** — FIXED, and improved.
+   Its own comment says it "asserts the shape of the data rather than
+   behaviour", so depending on somebody having painted a roof was incidental.
+   It now builds its own 8x8 roofed fixture and additionally asserts the thing
+   that cannot be authored: that a roof has no field in which to say it blocks.
+2. **"every map has walls you can bump into"** — SKIPPED, with the restore
+   condition in its name. It is true again the moment the maps are designed,
+   and it is false right now BY INSTRUCTION rather than by accident.
+3. **"the dungeon gets tighter as it goes down"** — SKIPPED likewise. This is
+   D-535's design property measured off the collision layer; with the scenery
+   gone all three floors measure the same 10,000 open tiles. It is the
+   assertion that stops floor 3 being floor 1 with different lighting, so it
+   must come back when the floors are designed.
+
+⚠ Skipping rather than deleting, and naming the restore condition in the test
+title, is the compromise: deleting loses the rule, and leaving the suite red
+trains people to ignore a red suite — which is the one thing D-114 cannot
+afford, since the tests are the only thing reading this code for correctness.
+
+**The maps are now bare walkable ground with their doors, spawns, stations and
+nodes intact** — 12 assets left in the whole project, all of them in the
+fixture. Content validates; 599 tests pass with the two skips.
+
+---
+
+## D-583 — Interactive objects are content, and they have a tab
+
+**Status:** implemented.
+**Stakeholder:** "there should be a tab in the creator for Interactive Objects
+and here we would define stations, mining/food nodes etc. anything that is an
+interactive part of the environment."
+
+### What was wrong underneath it
+
+⚠ **`content/stations/*.json` was read by CI and by nothing else.** The
+gateway spawned facilities from a hardcoded `STATION_DESCRIPTORS` table of
+four, so the authored `descriptor` never reached a player and a fifth station
+type would have spawned with its raw id for a description ("forge"). The
+`art` field had been in `StationDefSchema` since D-530 and nothing read it at
+all. Resource nodes had no `art` field to read.
+
+So both were drawn as built-in procedural geometry with no way to say
+otherwise — the last procedural geometry in the game, which
+`placement.ts` had already flagged as "a known residue [that] should become
+pack assets like everything else".
+
+### The chain, end to end
+
+The server resolves a station's definition and sends its art on the entity;
+the client draws it through **the same loader a placed asset uses**
+(`loadOneAsset`), and `build:environment` now scans stations and nodes as well
+as areas so the mesh actually ships.
+
+⚠ **Resolved server-side, never looked up by the client** (D-102): which mesh
+a facility wears is content the client has no copy of, and an id it could not
+resolve would fall back to built-in geometry — the well silently reverting to a
+grey cylinder, which reads as a texture failing to load rather than as a
+mistake.
+
+⚠ **The built-in shape is drawn FIRST and replaced only when a mesh arrives.**
+Waiting for the fetch would leave a hole where the well is for as long as the
+download takes, and thirst is a leash to a PLACE (D-529) — the place has to be
+visible from the first frame. The fallback is also what answers for a
+definition nobody has given art to, which is most of them.
+
+⚠ `build:environment` ships only what the world uses, so **a station wearing
+a mesh no area places would otherwise not be built** — scanning areas alone
+would produce a map whose walls are right and whose well is a cylinder, with
+nothing erroring.
+
+### The tab
+
+Stations and nodes together, because they are the same kind of thing to the
+person making them: an object standing in the world that a player walks up to
+and uses. What differs is what they DO — one gates a recipe, the other yields
+an item and runs out — not how they are made, placed or drawn. Two tabs would
+teach the art picker twice and hide that a forge and an ore vein are siblings.
+
+The art picker runs over the **ingested catalogue**, not a text box, and the
+save is refused when a mesh does not exist — checked on the authoring server
+because `assets/source/` is gitignored and CI cannot see it. The list shows
+which station types **the rules name by id**, because deleting one of those
+breaks crafting rather than removing a building, and how many recipes gate on
+each: a station nothing crafts at is an orphan in D-210's sense.
+
+### What was authored
+
+well → `knights/sm-bld-village-well-01`, workshop → `vikings/sm-prop-anvil-01`,
+storehouse → `knights/sm-prop-crate-01`, infirmary → `vikings/sm-prop-table-01`,
+timber-stand → `knights/sm-env-tree-01`, herb-patch →
+`knights/sm-env-flower-01`, iron-vein → `vikings/sm-env-rock-02`.
+
+⚠ Town facilities are kept to the village packs rather than `dungeon-pack`.
+The packs carry different atlases and D-557's one-look rule applies to a square
+as much as to a cast.
+
+⚠ **`grain-row` and `game-trail` were deliberately left with no art.** The
+packs ship no crop row and no game trail, and a hay cart or a fence standing in
+for them would be a lie about what the object is — the same refusal D-568 made
+when it would not give `hunting-bow` a sword's mesh to satisfy a gate.
+
+---
+
+## D-584 — Ashfold, designed; and where a map's shape actually lives
+
+**Status:** implemented. The first hand-designed area.
+
+A walled town of **129 placed meshes**: a cobbled square where every round
+opens, the tavern on its north side, the four working buildings set BEHIND
+their stations so the facilities stay in the open, the well alone on the road
+south, a market flanking that road, four gates aligned to the four spokes, and
+copses in the corners. Town furniture is from the village packs only —
+`dungeon-pack` is a different atlas and D-557's one-look rule applies to a
+square as much as to a cast.
+
+### ⚠ The correction to D-582: a map's shape is in the TILES
+
+D-582 skipped "the dungeon gets tighter as it goes down" on the grounds that
+clearing the machine-placed scenery had erased the floors' shape. **That was
+wrong.** A dungeon's cave system is carved in the tile grid by
+`build-round-map.py`; only its WALL DRESSING had been converted to meshes. The
+layout was never lost, and the rule is restored and passing — measured on the
+tiles, which is the right place for it: a floor's shape is the level, not its
+dressing.
+
+⚠ The same finding bites the other way for the town. Running the generator
+brings its tile walls BACK — 386 unwalkable tiles of palisade, timber and
+brick — so a hand-designed town has two towns in it: the generator's boxes
+standing invisibly inside the buildings a person placed. Ashfold's ground is
+therefore FLATTENED as part of designing it, leaving structure to the meshes,
+which is what D-567 asked for. Water is left alone: it is a feature, not a wall.
+
+### ⚠ Four errors, each caught by a different check, none by looking
+
+1. **Empty collision arrays.** The placements were written with `collision:
+   []`, which means NO COLLISION — every wall and building in the town would
+   have been walk-through. CI's drift check caught it, because an empty array
+   disagrees with the catalogue's own mask. The mask is BAKED at placement, and
+   an empty array is a statement rather than a default.
+2. **A ring of orphaned ground.** The wall set back three from the border left
+   45 walkable tiles between it and the map edge that no gate reached. The wall
+   now sits ON the edge: the only way out is a gate, and a gate opens straight
+   onto the tile that carries you to the next area.
+3. **Gates that did not line up with their roads.** A blind 5-metre wall grid
+   skipped one segment covering x 20–25 and then centred a 5-metre gate at
+   24.5, covering 22–27. The result had a hole in the wall at 20–22 that
+   nothing filled and a gatepost standing on one of the two road tiles.
+4. **⚠ A gate opening sized by eye.** Posts 0.5m from the centre of a road
+   tile leave no room for a body of `BODY_RADIUS` 0.3. The map validated, the
+   gate looked open, and one of the two tiles carrying players to the farm was
+   unusable — the flood tests TILES and a player is a circle.
+
+### ⚠ The walk test is the assertion that matters
+
+`mr7-ashfold.test.ts` sends an actor on the errands the round is made of: to
+all four facilities, out through **both road tiles of every gate**, and across
+the square corner to corner. It is the proving-ground treatment applied to the
+town people actually play in, and it found something CI could not — a market
+stall standing on the corner of the square, so the cast could not cross the
+place where the dawn truce happens (D-536). The stalls now flank the road
+south, where everybody walking to the water passes them, which is what a market
+wants anyway.
+
+**Validated, looked at from four angles, and walked.** The layout lives in
+`tools/src/design-ashfold.py` — a transcription of a composition, not a
+generator: every building, gate and piece of furniture is named and placed, and
+the only loops are straight runs of identical wall, which is the gesture the
+editor's own drag-to-lay-a-run makes.
+
+---
+
+## D-585 — The ground is painted, not tiled
+
+**Status:** implemented.
+**Stakeholder:** a texture painter for the bare floor — and, when the first cut
+arrived tile-based: "I do not want the painting to be tile based, I need a
+brush that paints where I choose, with smoothing/blending."
+
+### ⚠ The first cut was wrong, and the correction is the decision
+
+Ground materials were hung off the tile LEGEND, so painting was "assign a
+character to a square" — cheap to store, diffable, and unable to do the one
+thing a ground painter is for. A tile-based floor can only ever have square
+edges. What a person laying out ground wants is a brush that goes where they
+put it and blends where two surfaces meet.
+
+So the ground is **one image over the area** (`AreaDef.groundPaint`), painted
+with a soft round brush.
+
+⚠ Baking the blend into an image rather than mixing N materials in a splat
+SHADER is the right trade here specifically: this renderer draws at a low
+internal resolution and ends in palette quantisation (D-404), so the detail a
+splat shader buys is quantised away — and one image means one plane, one
+material, and nothing to keep in sync between the editor and the game.
+
+### What a material is
+
+`content/ground/*.json`: a name, an optional texture file, a repeat, and a
+tint. Eight ship — grass, dirt, cobble, flag, boards, sand, mud, stone.
+
+⚠ **The tint is the fallback as well as the tint**, and that is what makes
+the whole thing usable before any art exists: a material with no texture paints
+as flat colour, so ground can be laid out now and gain its surface when the art
+lands, without being repainted. Every one of the eight ships that way.
+
+⚠ A material naming a texture that is not on disk **fails the build**, the
+rule a sound cue follows (D-541) and for the same reason: it renders as the
+tint and looks exactly like a material nobody finished.
+
+### The brush
+
+Paints the material's texture tiled in WORLD space — anchored to the world and
+not to the stroke, or every dab restarts the tiling and a field of grass
+becomes a mosaic of overlapping circles.
+
+⚠ The soft edge is done by CLIPPING the material's own pixels to a
+radial-gradient alpha, not by drawing a gradient of its colour. Drawing the
+colour fades towards transparent black and leaves a dark rim where two
+materials meet, which is the opposite of blending.
+
+⚠ Strokes are INTERPOLATED. A pointer reports a handful of positions a
+second and a fast drag jumps metres between them, so dabbing only where events
+land draws a string of discs with gaps — a broken brush rather than a fast
+stroke. The stroke ends on pointer-up, or the next click paints a line from
+wherever the last one finished.
+
+Radius is in METRES, not pixels: the thing being judged is how big the stroke
+is on the map, and a pixel radius means a different brush at every zoom — the
+same mistake as sizing a gate opening by eye (D-584).
+
+### ⚠ The editor draws the ground now, reversing part of D-567
+
+D-567 replaced the editor's terrain with an empty plane on the grounds that
+"the ground has to get out of the way". That was right while the ground was not
+authored. It stops being right the moment somebody is painting a surface,
+because you cannot judge one you cannot see. The editor draws the painted image
+through the GAME's own code — a painter whose floor is not the floor that ships
+is a painter that lies (the D-558 rule for the character assembler).
+
+⚠ The image is written BEFORE the area's reference to it. The other way
+round, a save that failed halfway leaves an area naming a picture that is not
+there — which CI refuses, so the map stops building until somebody works out
+why.
+
+**Textures:** `client/public/textures/ground/` for materials,
+`client/public/textures/painted/` for the painted images. ambientCG and Poly
+Haven are both CC0 — verified against their own licence pages, commercial use
+allowed, attribution not required.
+
+---
+
+## D-586 — The palette quantiser is removed
+
+**Status:** implemented. **Supersedes D-401 and D-404**, and the split-render
+ruling of 2026-08-18.
+**Stakeholder:** "remove the pixelization effect/layer from the game. It is no
+longer needed."
+
+The world is drawn straight to the canvas at full resolution. Gone with it: the
+320x200 internal buffer, the ordered dither, the 24-colour palette snap, the
+nearest-neighbour upscale, the split pass that ran characters through the
+quantiser while the world stayed crisp, and every control that tuned them
+(`PixelPost`, 263 lines, deleted).
+
+⚠ **This is a decision reversal, and it is the stakeholder's to make.** The
+pixelation was ratified art direction validated by prototype (D-401) and
+reinstated once already. It is recorded as a supersession rather than an edit,
+per this project's ADR convention, so the reasoning that produced it stays
+readable.
+
+### ⚠ Three things were tuned AGAINST the quantiser and are now wrong
+
+Each was a correct decision whose premise has gone:
+
+1. **The camera's aspect came from the 320x200 buffer.** Right while every
+   frame was rendered into that buffer and upscaled; a stretched world now. It
+   reads the real viewport.
+2. **The painted ground was 8 pixels per metre**, chosen because anything
+   finer was quantised away. At full resolution that is simply blocky — a soft
+   brush edge became a staircase. Raised to 32.
+3. **Ground textures filtered NEAREST**, because bilinear mush before a hard
+   colour snap helps nothing. Now LINEAR: a soft brush edge is the whole point
+   of the painter (D-585), and nearest turns it back into a staircase.
+
+⚠ Characters and effects still sit on **layer 1** — the split pass drew them
+separately — so the single render explicitly enables every layer on the camera.
+Without that the world draws with nobody in it.
+
+⚠ The Graphics settings panel keeps only what still decides something: which
+cast the world is drawn with, and whether walls between you and the camera go
+stippled. A slider that tunes a pass that no longer exists is worse than no
+slider.
+
+---
+
+## D-587 — The ground paints a mask, not a picture
+
+**Status:** implemented. **Corrects D-585.**
+**Stakeholder:** "The detail I am seeing in the render window is very poor. Why
+is this the case?"
+
+### The answer, measured
+
+D-585 baked the material's own pixels into the painted image. A 1024px forest
+texture covering 2.5 metres, baked at 32 pixels per metre, occupies **80
+pixels** — a **thirteenfold downsample**, before a frame is drawn. Ninety-nine
+per cent of the art was thrown away at paint time, and no amount of better
+source art would have changed it.
+
+⚠ **The reasoning that produced it was sound and its premise had been
+removed.** D-585 argued the bake from the palette quantiser: "the detail a
+splat shader buys is quantised away". D-586 deleted the quantiser at the
+stakeholder's request. I corrected two things that dependended on it — the
+camera's aspect, the texture filtering — and did not follow the same thread to
+the decision that rested on it hardest. A removed premise does not announce
+which conclusions it was holding up.
+
+### What it does now
+
+The painted image carries WEIGHTS, one material per channel, and the shader
+samples each material's texture tiled in world space and mixes them. The mask
+can be coarse — a soft brush edge is a gradient, not fine detail — while the
+surface stays exactly as sharp as the source art.
+
+⚠ **THREE materials per area, not four, and the reason is a canvas trap.** An
+RGBA mask looks like four weight channels. It is not: a 2D canvas stores
+premultiplied pixels, so a weight written into ALPHA reads back as zero for red,
+green and blue. The first cut painted happily and measured an entirely empty
+mask — nothing on screen, no error, every channel zero. Alpha now carries
+COVERAGE and the three colour channels carry weights. The editor names the three
+an area is using and refuses a fourth rather than dropping it.
+
+⚠ The channel ORDER is data. Red means "this much of `groundMaterials[0]`";
+reorder that list and a map repaints itself with gravel where the grass was,
+silently and everywhere. It is written beside the image and read by the renderer.
+
+⚠ Painting a material takes weight AWAY from the others at that texel, or two
+materials at full strength wash to their average forever and nothing can be
+painted over.
+
+⚠ Layer textures are mipmapped and anisotropic. Ground runs away from an
+isometric camera, and a tiled texture without mipmaps shimmers violently at
+distance — the artefact that reads as a broken renderer.
+
+### ⚠ A splat mask cannot be judged by looking
+
+"The ground is blank" has at least three causes that are identical on screen:
+nothing painted, the shader discarding, and the channels being zeroed on
+upload. It was the third, and only a hook that counts non-zero texels per
+channel could tell them apart. `window.__ed.mask()` exists for that reason.
+
+---
+
+## D-588 — Six ground materials, a way to take one off a map, and the alpha that was eating the blend
+
+**2026-09-12. Supersedes D-587's channel budget and its coverage rule; the rest
+of D-587 stands.**
+
+The stakeholder asked for two things: a second splat layer, and controls to
+remove a material from a map — "Deleting it does not work, and it tells me I
+have used all materials."
+
+### ⚠ The report was a real bug of mine, and my own error text was false advice
+
+`channelFor()` added a layer the first time a material was painted and **never
+removed one**. So a material rubbed out to nothing still held its channel, and
+the message I had written for the full case —
+
+> Rub one out completely to free its channel, or paint with one of those four.
+
+— described something the code could not do, however hard anybody rubbed. There
+was no way to free a channel at all. Erasing PAINT and removing a MATERIAL are
+different acts and only one of them existed.
+
+### Two masks, six materials
+
+`SPLAT_MASKS = 2`, three weights each. Three was one image's worth and ran out
+immediately: a town is grass, dirt and cobble before anybody has laid a gravel
+yard or a patch of mud. The cost is one more texture fetch per fragment, which
+is the cheapest thing in this shader.
+
+`groundPaint` is now a LIST of image names, one per mask, paired with
+`groundMaterials` three at a time. `GROUND_MASKS` lives in `shared/` because
+three things must agree — the schema, the renderer and the editor server that
+writes the files — and three separate constants is three chances for a map to
+name a mask nobody wrote.
+
+### Removing a material COMPACTS the channels
+
+Clearing a channel alone would leave a hole nothing could use. `removeMaterial`
+clears it and slides every later material down, **moving its painted weights
+with it** — including across the mask boundary, where channel 3 lives in the
+second image and lands in the first.
+
+⚠ That arithmetic is pulled out of the canvas into `compactChannels` and tested
+headlessly, because it is the half that cannot be judged by looking: a
+compaction that moves the materials but not their weights renders a perfectly
+plausible town with grass where the gravel was, and nothing in the picture says
+so. Six tests, and a deliberate break to prove they bite.
+
+### ⚠ ALPHA-AS-COVERAGE WAS EATING THE BLEND, and that is D-587 corrected
+
+Found while verifying this, not by reading. D-587 made alpha the coverage,
+derived as the largest weight in its own mask. That puts a SMALL number in alpha
+exactly where the weights are small, and a premultiplied canvas loses precision
+in proportion to how small alpha is. Measured in the browser, one write and one
+read of a single canvas:
+
+```
+wrote 255,128, 64,255  ->  read 255,128, 64,255   lossless
+wrote 100, 50,  0,100  ->  read  99, 51,  0,100   ±1
+wrote  10,  0,  0, 10  ->  read   0,  0,  0, 10   GONE
+wrote   3,  0,  0,  3  ->  read   0,  0,  0,  3   GONE
+```
+
+The smallest weights are the soft RIM of every stroke — the blending the brush
+exists for, and the thing the stakeholder asked for in those words. On one
+stroke at radius 4m, the old rule **destroyed 784 of 12,825 painted texels
+outright (6.1%) and drifted 6,292 more (49%)**, and it compounded on every
+read, every save and every reload.
+
+So alpha is now **binary**: 255 where anything is painted, 0 where nothing is —
+the two values a premultiplied store round-trips exactly. Coverage is computed
+in the shader from the weight TOTAL, which is both lossless and a better edge:
+the rim carries a small total, so paint fades into the ground under it instead
+of ending on a rim that is faint and fully opaque.
+
+⚠ The three-weights-per-mask limit is UNCHANGED and the reason is now stated
+better: alpha cannot carry a weight because a small alpha destroys the weights
+beside it, not merely because the channel reads back empty.
+
+### What the editor shows
+
+An "In use on this map (n/6)" list under the material palette: each material,
+the share of the map it actually covers, and a remove button. The share is
+MEASURED from the masks rather than counted from strokes — a material painted
+and then covered over reads as 0% and is exactly the one worth removing, and
+nothing but the pixels knows that. Removing is confirmed, and the confirmation
+says what it costs.
+
+`window.__ed` gains `dab`, `remove` and `coverage`. Six materials and a removal
+is a dozen strokes and a dialog, and what has to be checked afterwards is which
+channel holds what — a number, not a picture.
+
+⚠ **The game still does not render painted ground.** `buildPaintedGround` is
+updated to the splat form and has no caller: the wire's area has no
+`groundPaint` field, so putting the painted floor in front of a player is a
+protocol change and a separate piece of work. The editor paints what the editor
+shows.
+
+### ⚠ An unrelated test was failing, and its fixture was the liar
+
+`mr2-grace.test.ts` put two bots at `width/2` and `width/2 + 1` on the south
+road. Ashfold's gate opening is two tiles wide and centred on x=24.5, so the
+right-hand bot was standing in the palisade — whose TILE is walkable grass,
+because the wall is an asset with a collision volume (D-584) rather than a wall
+kind. Nothing in the map data looked wrong. The bot was quietly relocated to the
+area spawn twenty-two tiles away and the truce test failed claiming the server
+had allowed an attack it had actually refused for being out of reach. The tiles
+are now DERIVED with `canStandAt`, and the fixture asserts the two bots ended up
+adjacent before asserting anything about the truce.
+
+---
+
+## D-589 — The painted ground reaches a player
+
+**2026-09-12. Completes D-585/D-587/D-588.**
+
+Three decisions built a ground painter and **the wire carried nothing**.
+`buildPaintedGround` sat with no caller, the snapshot's area had no field for
+it, and the editor painted a floor the game had no way to be told about. This
+is the half that closes it.
+
+### The masks ride on the snapshot, beside `roofs`
+
+`groundPaint` (the mask images) and `groundMaterials` (which material owns each
+channel) are added to the wire area. Presentation only, like `roofs` — and for
+a stronger reason than convention.
+
+⚠ **A ground material carries `walkable`, and the server does not read it.**
+What a floor is made of must never decide where a body may stand; that is the
+tile grid and the collision volumes (D-542, D-584). If paint could re-cut a
+map, laying a patch of mud would silently move a wall and the person painting
+would have no way to know. `mr8-painted-ground.test.ts` asserts two areas
+differing *only* in their paint send identical tiles, legend and size.
+
+⚠ **The two fields travel together or not at all.** A mask without its material
+list is six unlabelled numbers per texel; the list without the mask is a set of
+materials covering nothing. Both default to `[]` — empty, never absent, because
+the client asks for a length and the common case is every map in the game.
+
+⚠ **Order is the data**, as it is in the file: mask 0's red means
+`groundMaterials[0]`, mask 1's red means `[3]`, and nothing in the pixels
+records which was which.
+
+### One implementation, both sides
+
+The client builds the plane through the same `ground.ts` the editor uses, for
+the reason D-558 gives for sharing the character assembler: a floor that draws
+differently in the painter from the way it draws in the world is a painter that
+lies. `buildPaintedGround` is updated from D-585's single baked image to the
+splat form — a list of masks, layers resolved from ids against the client's own
+`content/ground/`.
+
+⚠ **A material the content no longer defines keeps its place and renders
+nothing.** Dropping the entry would slide every later material onto somebody
+else's paint — a map that renders perfectly and is the wrong map.
+
+⚠ **The masks load as `NoColorSpace`.** They are weights, not pictures; an sRGB
+decode would bend every blend in a way that still looks like ground.
+
+### ⚠ The test fixture had to be synthesised, and the first cut proved why
+
+The unpainted case originally used `proving-ground` itself and passed until the
+moment that map was painted — which is exactly the point. What is painted in
+`content/` is a decision somebody may remake any day, so a test that reads it is
+testing the map rather than the wire. Both fixtures are now built in memory and
+differ in one thing.
+
+### What is verified, and what is not
+
+- The server sends the pair, and paint changes nothing about the map: four
+  headless tests.
+- `buildPaintedGround` loads both masks from PNG, resolves six material ids,
+  fetches six textures (all 200) and renders **six patches in six distinct
+  colours**: measured in the browser by flood-filling the rendered pixels,
+  against the map saved by the editor.
+- ⚠ **NOT verified: the three lines in `main.ts`** that build the mesh on a
+  snapshot and dispose it on an area change. That path needs a logged-in player,
+  which is the stakeholder's half of D-114. Both halves around it are covered.
+- ⚠ **No live map is painted**, so this ships as a no-op for players until
+  somebody paints one. `proving-ground` carries test paint, nothing else does.
+
+---
+
+## D-590 — Ashfold has a ground, and the tint was eating it
+
+**2026-09-12.** Supersedes D-585's single `tint` field.
+
+`tools/src/paint-round-town.py` paints the town: six materials — grass, dirt,
+cobble, boards, mud, leaf mould — over the whole 50×50, written as the two
+splat masks D-588 defined.
+
+### ⚠ The tile grid is a guide, not a stencil
+
+The stakeholder's requirement was explicit and is the whole constraint: *"I do
+not want the painting to be tilebased, I need a brush that paints where I
+choose, with smoothing/blending"*. A mask rasterised straight off a 50×50 grid
+is a tile-based floor wearing a splat shader — every boundary a perfect
+axis-aligned staircase at exactly one-metre intervals.
+
+So each boundary is **blurred into a soft edge and then domain-warped**, sampled
+through low-frequency noise that carries the finished gradient off the grid by
+up to most of a tile.
+
+⚠ **That order is the way round it is because the other way was tried and looked
+at.** Warping a hard 0/1 edge and blurring afterwards only works while the warp
+is WIDER than the blur; at a 0.38m warp under a blur with about a metre of
+support, the wander was averaged away completely and every boundary came back
+perfectly straight — soft, and unmistakably a grid.
+
+⚠ **One displacement field, shared by every material.** Warping each through its
+own noise moves neighbours independently, opening gaps that the normalisation
+fills with whatever is nearby — a thin wrong-coloured seam down the side of
+every road.
+
+⚠ **A building is where its BUILDING is, not where the grid changes character.**
+The tavern's meshes stand across the north ring road, so the tiles beneath it
+say `dirt` and the first pass painted the road straight through the taproom.
+
+⚠ **Wear is broken HARD, not shaded.** The churned ground at the gates, the
+junctions, the well and the tavern door started as discs multiplied by noise
+ranging 0.55–1.2 — which left every stamp a complete circle that merely varied
+in strength: six identical circles, read as six identical circles. Taking the
+noise down THROUGH zero cuts each into patches instead.
+
+### ⚠ A material was being multiplied by its own average colour
+
+Found by looking at the first painted town, which came out nearly black and
+read as bad lighting. `tint` was doing two jobs — the flat colour a material
+shows when it has no art, AND a multiply over the art when it has some — and
+those cannot be one number, because a material's tint IS roughly the average
+colour of its own texture. Multiplying them squares it. Measured across the
+shipped materials:
+
+```
+mud      texture 0.302,0.267,0.216   x tint  ->  0.107,0.080,0.051
+grass    texture 0.366,0.417,0.253   x tint  ->  0.153,0.199,0.084
+boards   texture 0.489,0.381,0.256   x tint  ->  0.213,0.130,0.065
+```
+
+An albedo of 0.08 is about as dark as coal. So the two jobs are two fields:
+**`tint` stands in for art that is missing** (never multiplied into a texture,
+which is what keeps D-585's promise that a map can be laid out before its art
+exists), and **`wash` modifies art that is there**, defaulting to white.
+
+### ⚠ The generator put Ashfold's walls back, for the second time
+
+Running `build-round-map.py` to prove the paint survives it also rewrote 386
+palisade and wall TILES into a town whose walls became placed assets with
+collision volumes (D-584) — an invisible second palisade standing inside the
+real one, which parses, validates and floods as reachable. The record already
+noted this happening once; it happened again, to somebody who had just read
+that note.
+
+A warning that has been read and not acted on is not a control. The generator
+now carries `SHAPE_IS_AUTHORED = {'round-town'}`: for those areas it preserves
+the shape as well as the contents, prints that it did, and is idempotent —
+proven by running it twice and diffing.
+
+⚠ `groundPaint`/`groundMaterials` are in `PRESERVED` for the related reason:
+without them the next generator run would have silently unpainted the town and
+left two orphan masks on disk, looking exactly like a map nobody had painted.
+
+### What is verified
+
+- The editor reads the masks back at the shares the script reported (64.7% vs
+  64.8% grass, and so on down the list): the PNG round trip is lossless and the
+  channel order is right.
+- Content validates; the generator is idempotent over the whole `content/areas`
+  directory.
+- ⚠ **Whether it LOOKS right is the stakeholder's call** (D-114). It has been
+  looked at from three angles and top-down, and the numbers above are the only
+  part of "does the town have a ground" that a machine can answer.
+
+---
+
+## D-591 — A blue road, a statue that could only ever be one colour, and a town with things in it
+
+**2026-09-12.** Three faults, two of them invisible to the eye that looked at
+them, plus the dressing pass Ashfold needed.
+
+### ⚠ Every piece of world scenery had its V axis inverted
+
+`world-assets.ts` set `flipY = false` on the environment atlas, citing D-559.
+D-559 is about the CHARACTER palette — and `imported-models.ts` says, in
+terms, **"NOT flipY = false"** and gives the reason. The line here copied the
+decision's citation and the opposite of its conclusion.
+
+It survived because the miss is nearly invisible on most of the pack: the atlas
+is roughly symmetric in tone about v=0.5, so walls landed on other greys and
+houses on other reds and looked completely right. Measured by rendering each
+mesh under both conventions and counting pixels:
+
+```
+path   false #394171 (blue)          ->  true #7c817d (grey cobble)
+tree   false #717171 #daa3a5         ->  true #5d6a36 #6b573f
+cart   false #caae86 #555558         ->  true #6b573f (brown)
+```
+
+⚠ **And it was misread twice before it was measured.** A top-down render was
+read as "grey rocks scattered in the corners"; those were the TREES, and the
+green around them was the painted ground. D-560's rule again: reading a render
+is not measuring one.
+
+⚠ **The editor had been right the whole time** — it never set `flipY` — so the
+tool and the game disagreed, which is the exact failure D-543 exists to
+prevent. It was not caught because nobody had put the two side by side on a
+mesh that differs.
+
+### ⚠ Two meshes have a CORNER origin, and the paths missed their own gates
+
+A placed asset's `x,y` is the centre of the thing: the editor shows it there,
+the collision mask is baked around it, every generator assumes it. Measured
+across three packs, walls, gates, houses and stalls all sit within a centimetre
+of centred. `SM_Env_Path_Cobble_01` and `_02` span 0…3 in x and −3…0 in z, so
+**every cobble path in Ashfold was drawn 1.5m east and 1.5m north of the road
+it was laid on** — a paved way missing the gate it leads to, in a town whose
+gates and walkable corridor are aligned to the centimetre.
+
+`originCorrection` lives in `shared/` and is read by BOTH the build and the
+editor, because both had the same bug in the same way and therefore agreed with
+each other.
+
+⚠ **The rule is narrow on purpose.** Centring every mesh on its bounding box
+fixes the two that are broken and moves a dozen that are right: a tree's origin
+is its TRUNK and its box centre is out in the canopy. An axis is corrected only
+when the mesh lies entirely to one side of the origin, which is what a corner
+origin means and nothing else does. Four meshes qualify, and the build PRINTS
+each one — D-558's rule that a silent repair is a silent claim the art was fine.
+
+⚠ The gate itself was never misaligned: its arch measures 2.11m centred on its
+origin against a 2.0m walkable corridor at the same centre. Measuring that
+first is what stopped the "fix" landing on the gates.
+
+### ⚠ The statue could not be re-textured, because it has ONE uv
+
+`SM_Prop_Statue_01` gives all **11,598** of its vertices the same texture
+coordinate, in the vendor's own FBX — the source and the built `.glb` are
+identical, so the pipeline is faithful and the mesh can only ever be one flat
+colour. Sampling every one of the knights pack's ten atlases at that
+coordinate gives a brown in all ten; there is no atlas that makes it stone.
+
+So it is REPLACED, not repaired: `dungeon-pack/sm-env-statue-03` carries 19
+distinct uvs on weathered greys. Turned 90° so its 2×1 footprint is the 1×2 the
+old one had — the same three tiles, not one more — and the 2×2 plinth prop is
+deliberately left off, because a plinth is not worth two tiles of the one square
+the whole cast crosses.
+
+### Ashfold is dressed: 172 objects
+
+Market stalls with goods beside them, benches at the well, a woodpile at the
+smithy, crates at the storehouse, a weapon rack and banners at the guardhouse,
+torches at the gates, roadside fence runs, and grass and flowers over the green.
+
+⚠ **Every solid placement is refused if it would stand in a route**, and
+refusals are printed. Fifteen were. The keep-clear set is derived from the map
+— the road a body walks, the ring, two tiles around every facility, the spawn —
+**plus the four corners of the square, because `mr7-ashfold.test.ts` walks a
+body to each of them and that test is the contract for this map.** The first
+pass put a barrel on one, a crate on another and a stall on the other two; all
+four were reachable, so the flood was happy, and the walk test said "no route to
+(20,20)". A tile a test stands on is as load-bearing as a road.
+
+⚠ **A flower is not a wall.** Almost everything in these packs is `solid: true`,
+`sm-env-flower-01` included, so anything scattered for looks carries an explicit
+empty mask — a statement that you may walk through it rather than an oversight.
+
+⚠ **The copses stayed thin, and the number of attempts is the finding.** Random
+scatter, minimum-spacing rules, quarter-turns only, and hand-transcribed
+positions each left a different set of unreachable tiles: a canopy is two to
+three metres, a body is sixty centimetres, and the green between the ring road
+and the palisade is narrow enough that one tree in the wrong metre makes a dead
+end along the wall. Four trees, one per copse, on the inner edge. Thickening
+them properly means moving the existing trees, which is a map decision rather
+than a dressing one.
+
+⚠ **The 6×5 rockpiles are set pieces, not scatter.** One at the north-west
+corner filled the gap between the palisade and the smithy and sealed 26 tiles
+off. Nothing about a rock pile looks like a wall.
+
+### `tools/src/why-unreachable.ts`
+
+"5 walkable tiles unreachable, e.g. (7,14)" is not something you can act on.
+This names the assets standing around each one. ⚠ Its first cut wrote its own
+flood — tile centres, four directions — and reported every tile reachable while
+`validate:content` refused the same map. It now imports `unreachableTiles`: a
+diagnostic that disagrees with the thing it is diagnosing is worse than none.
+
+⚠ The placer's own guard is in Python and the authority is in TypeScript, so it
+can only approximate (it grows each blocker by `BODY_RADIUS` and floods tile
+centres). It catches gross pockets. `validate:content` remains the authority and
+the walk test remains the contract.
+
+---
+
+## D-592 — The whole world has a ground and things standing on it
+
+**2026-09-12.** Extends D-590/D-591 from Ashfold to every area. Supersedes
+`paint-round-town.py` (now one entry in a table) and the D-542 `dress-areas.py`
+(which wrote the dead `props` array).
+
+### ⚠ Three areas had been flattened to empty rooms, and that was found by surveying
+
+Before anything could be dressed, a survey of all twelve areas turned up that
+`hanged-ferryman`, `broken-yard` and `sunken-crypt` were **100% floor with a
+one-entry legend** — no walls, no water, no furniture. At HEAD they had 473,
+252 and 55 wall tiles respectively.
+
+The cause is a pair of tools run in sequence: `walls-to-assets.py` (D-567)
+turns wall TILES into pack meshes and floors the tiles underneath, and then
+`strip-procedural.py` (D-582) deleted every asset in eleven areas — including
+the walls that had just become assets. **The first-slice tavern, which is the
+persistent world's default starting area, was an empty 32×32 hall.**
+
+Recovered: the yard's and the crypt's tile grids lifted back out of the last
+commit (same dimensions, so the grid transplants cleanly), and the tavern
+rebuilt by `build-tavern.py`, which is what D-544 wrote it for.
+
+⚠ **Their walls are left as TILES, not converted to pack meshes.** D-545 renders
+seven wall families at full height, so tile walls are not a defect; and
+re-running the converter is half of what caused this.
+
+### Painting is a table, not twelve scripts
+
+`paint-areas.py` maps a TILE KIND to a material per area, and everything else
+follows. The mechanics are D-590's unchanged — blur then domain warp, six
+materials in two masks, alpha binary.
+
+⚠ **`patches` exists because a legend is not a surface.** The crypt is 89 tiles
+of one kind, the yard 744, the mine 9,388 — a recipe driven only by the legend
+paints those a single flat colour and the painter has bought nothing. A patch
+throws a second material across the first in blobs: not where the grid says,
+where nothing says.
+
+⚠ **The patch threshold is taken as a QUANTILE of the noise, not guessed.** fbm
+is normalised to 0..1 and is nowhere near uniform, so "> 0.7" was 8% cover on
+one map and 41% on another. Taking the quantile makes the number on the recipe
+mean what it says.
+
+⚠ **Wear is derived from the area's own data** — transitions, facilities,
+resource nodes, the spawn — because those are where a cast actually stands, and
+that is the half a tile grid cannot express. Only two spots in the whole world
+are named by hand.
+
+⚠ **`round-wood` had to be repainted after looking at it.** The first recipe put
+the ingested forest-floor photograph under the entire map; its mean colour is
+(0.57, 0.53, 0.37), a dry olive-tan, so from above the wood read as a sand flat
+with trees standing on it. Grass is the base and bare needle floor is a patch —
+which is also what a wood is.
+
+### Dressing, and who gets the last word on it
+
+`dress-areas.py` scatters by layer: what, how many, on which tile kinds, how far
+apart. Roughly one solid thing per forty square metres on a 100×100, plus
+walk-through decoration on top. 2,800 objects across eleven areas.
+
+⚠ **The minimum GAP is the load-bearing rule**, learned on Ashfold's copses: a
+body is 60cm across and a canopy is two to three metres, so two solid things a
+metre apart are a wall with a gap nobody can use.
+
+⚠ **THE GUARD AND THE AUTHORITY CANNOT BE THE SAME CODE, so the authority gets
+the last word.** The placer is Python and `unreachableTiles` is TypeScript, so
+the placer can only approximate — it grows blockers by `BODY_RADIUS` and floods
+tile centres. It caught gross pockets and then passed **eight areas the build
+refused**. Rather than tighten the approximation a fifth time,
+`prune-unreachable.ts` runs the real check and deletes scatter until the map is
+whole: 196 objects removed across the world, one round each.
+
+⚠ **It removes only placements marked `dressed`.** That flag is in the SCHEMA,
+not a stray key, because zod strips what it does not know — a flag the editor
+silently dropped on the next save would turn every scattered rock into a hand
+placement and the next dressing run would double the map.
+
+⚠ **A bug in the pruner, found by the build refusing one tile it claimed to have
+fixed.** After the first round it looked up culprits by their index in the
+FILTERED list and recorded them against the ORIGINAL array, so from round two
+onwards it deleted a different asset from the one it had blamed. The only
+symptom was one unreachable tile on the one map that needed two rounds. The
+index now travels on the placement.
+
+### ⚠ A test asserted something that had become wrong
+
+`mr6-proving-ground` demanded a collision mask on every placed asset — written
+when an empty mask could only mean a forgotten bake (D-584 shipped a town of
+walk-through walls that way). Maps now carry deliberate walk-through
+decoration, and a tuft of grass you cannot step past is worse than no tuft of
+grass. `overrideCollision` is exactly the difference between a statement and an
+oversight, which is what it was added for, so that is what the test checks now.
+
+### Cost
+
+24 masks, 8.9 MB on disk; a client fetches the two for the area it is in, at
+most 1.4 MB for a 100×100. 137 environment meshes, 13 MB. ⚠ Unratified and
+worth watching in play: whether ~500 scattered objects on a spoke is atmosphere
+or clutter, and whether the dungeon's vast open middle wants dressing at all or
+wants a different LAYOUT — that is a map decision, not a dressing one.

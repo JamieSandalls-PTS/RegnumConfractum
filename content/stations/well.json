@@ -1,0 +1,12 @@
+{
+  "id": "well",
+  "name": "Well",
+  "descriptor": "a stone well",
+  "art": {
+    "pack": "knights",
+    "asset": "sm-bld-village-well-01",
+    "rotation": 0,
+    "scale": 1
+  },
+  "notes": "Thirst is the leash back to town, so the well stands in the open where poisoning it cannot be done unseen (D-529, D-549)."
+}

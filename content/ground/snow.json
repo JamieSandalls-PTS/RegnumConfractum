@@ -1,0 +1,9 @@
+{
+  "id": "snow",
+  "name": "Snow",
+  "texture": "snow.jpg",
+  "repeat": 0.5,
+  "tint": "#c9d0d6",
+  "walkable": true,
+  "notes": "Fresh snow, unbroken."
+}

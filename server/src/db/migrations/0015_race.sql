@@ -1,0 +1,12 @@
+-- D-572: a character has a race.
+--
+-- `content/races/` has been authored since D-560 and curated in the creation
+-- tool, `ClassSchema` has carried a `races` list since D-566, and there was
+-- nowhere to record which race a character actually is — so the gate could
+-- never fire and the authored height ranges bounded nothing.
+--
+-- NULL, and nullable on purpose. Every character that exists was made before
+-- races did; giving them one here would be inventing a fact about somebody
+-- else's character. A class that names no races admits all of them (D-566),
+-- so a null race stays exactly as playable as it was.
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS race_id TEXT;

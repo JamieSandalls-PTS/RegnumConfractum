@@ -1,0 +1,13 @@
+{
+  "id": "combat-staff",
+  "name": "Staff — weapon up",
+  "layer": "readiness",
+  "applies": "staff/combat",
+  "clips": {
+    "idle": "staff-combat-idle",
+    "cast": "staff-combat-cast",
+    "channel": "staff-combat-channel",
+    "attack-1": "staff-combat-attack-1"
+  },
+  "note": "Plays only with the weapon up: 4 of 61 actions. Sheathed, the character falls through to the stance and the rig."
+}

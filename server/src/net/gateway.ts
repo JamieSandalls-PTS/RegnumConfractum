@@ -18,20 +18,66 @@ import {
   SEANCE_QUESTIONS,
   SESSION_TTL_MS,
   TICK_MS,
+  TICK_RATE,
   ZOMBIE_DURATION_TICKS,
+  SEANCE_MANA_COST,
+  ANIMATE_MANA_COST,
   ATTACK_VARIANTS,
   CARRY_BASE_CAPACITY,
+  TREAT_BASE_HEAL,
   COMBAT_LEAVE_TICKS,
-  COMBAT_PROXIMITY_TILES,
+  COMBAT_PROXIMITY_METRES,
   CREATION_FEAT_PICKS,
   CREATION_SKILL_MAX,
   CREATION_SKILL_POINTS,
   CREATION_SKILL_STEP,
   CREATION_SPELL_PICKS,
-  chebyshev,
+  BASE_ATTACKS_PER_ROUND,
+  COMBAT_ROUND_TICKS,
+  attackSpacingTicks,
+  combatRoundOf,
+  ATTRIBUTE_BASE,
+  ATTRIBUTE_CREATION_MAX,
+  ATTRIBUTE_CREATION_POINTS,
+  EQUIP_SLOTS,
+  MIN_DAMAGE,
+  advancementUnspent,
+  carryBonusFor,
+  damageBonusFor,
+  emptyAdvances,
+  glanceChanceFor,
+  isTwoHanded,
+  loadoutTotals,
+  manaRegenPerSecond,
+  maxHpFor,
+  maxManaFor,
+  slotsOccupied,
+  lookOf,
+  type WornLook,
+  totalAttributes,
+  validateAdvances,
+  type AttributeSet,
+  type CharacterAdvances,
+  type EquipSlot,
+  type EquippedItem,
+  type LoadoutTotals,
+  distance,
+  itemGateProblem,
+  creationRaceProblems,
+  curatedPartNames,
+  type Stance,
+  lookProblems,
+  type ItemTemplate,
   describeAppearance,
   describeHooded,
-  generateAppearance,
+  resolveAppearance,
+  validateAppearanceOverride,
+  type AppearanceOverride,
+  type FeatEffectKind,
+  effectiveSheet,
+  levelForXp,
+  xpForNextLevel,
+  type EffectiveSheet,
   parseClientMessage,
   validateBuild,
   type AreaDef,
@@ -42,8 +88,8 @@ import {
   type Direction,
   type ErrorCode,
   type ServerMessage,
-  COMBAT_NOISE_NEAR_TILES,
-  COMBAT_NOISE_TILES,
+  COMBAT_NOISE_NEAR_METRES,
+  COMBAT_NOISE_METRES,
   type Vec2,
   applyNightBonus,
   isNight,
@@ -52,6 +98,7 @@ import {
   type RecipeDef,
   type RoamerDef,
   ROAMER_SPAWN_CLEARANCE,
+  WANTED_TICKS,
   ROUND_DAY_TICKS,
   ROUND_GRACE_TICKS,
   DIRECTIONS,
@@ -62,6 +109,8 @@ import {
   deepen,
   needNotice,
   relieve,
+  WELL_POISON_DAMAGE,
+  WELL_POISON_HOURS,
   stepHoursFor,
   STARVATION_DAMAGE_PER_HOUR,
   type NeedStage,
@@ -69,7 +118,7 @@ import {
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
-import type { CharacterRecord, InjuryRecord, Store } from '../store/types';
+import type { CharacterRecord, InjuryRecord, ItemRecord, Store } from '../store/types';
 import { World, toWireEntity, type WorldEntity } from '../game/world';
 import { RoundEngine, type RoundResolution } from '../game/round';
 
@@ -95,10 +144,45 @@ function bearingFrom(dx: number, dy: number): 'n' | 'ne' | 'e' | 'se' | 's' | 's
 const DUNGEON_RESPAWN_INTERVAL_TICKS = 900; // 90s
 
 /** How close you must stand to use a facility (D-530). */
-const STATION_REACH_TILES = 2;
+/**
+ * How near you must stand to use a facility, in METRES (D-567).
+ *
+ * WARNING: 2.5, from a chebyshev 2 that reached 2.83m diagonally. Somewhere
+ * between the old straight reach and the old diagonal one, because "usable
+ * from two tiles away" (D-530) was never about the shape -- it was about not
+ * having to stand exactly on the well. A station is a metre or two wide
+ * itself, so this is measured to its centre and is tighter than it reads.
+ */
+const STATION_REACH_METRES = 2.5;
+/**
+ * How near a transition point counts as standing on it, in metres (D-567).
+ *
+ * ⚠ Must exceed one tick of movement or a fast walker steps clean over the
+ * doorway between two ticks and never crosses. At walking pace one tick is
+ * 0.33m, so half a metre is the smallest honest value.
+ */
+const TRANSITION_REACH = 0.5;
+/**
+ * How far you may drift and still be working, in metres (D-529, D-567).
+ *
+ * Under a stride, so walking away plainly abandons the job, and over the
+ * settling wobble at the end of a route, so arriving and starting work does
+ * not cancel itself.
+ */
+const WORK_ANCHOR_METRES = 0.4;
 
 /** What each facility looks like to an observer. */
-const STATION_DESCRIPTORS: Record<string, string> = {
+/**
+ * ⚠ FALLBACK ONLY, and it used to be the whole story (D-583).
+ *
+ * `content/stations/*.json` carries a `descriptor` and has since D-530, and
+ * this table was consulted instead — so the authored text reached CI and
+ * nothing else, and a fifth station type spawned with its raw id for a
+ * descriptor ("forge"). These four stay as the answer for a station whose
+ * definition is missing, because a facility with no description at all is
+ * worse than a generic one.
+ */
+const STATION_DESCRIPTOR_FALLBACK: Record<string, string> = {
   workshop: 'a scarred anvil and a bench of tools',
   storehouse: 'a rack of barrels and sacks, part-full',
   infirmary: 'a scrubbed table and a shelf of stoppered jars',
@@ -113,9 +197,17 @@ import { resolveNameContest } from '../game/contest';
 import { scrambleSpeech } from '../game/language';
 import { computeLegacyAward } from '../game/legacy';
 
-/** Earshot per channel, chebyshev tiles. Whisper and speech need line of
+/** Earshot per channel, in metres (D-567). Whisper and speech need line of
  * sight; a shout carries around walls — you hear it without seeing who. */
-const CHANNEL_RANGE: Record<Channel, number> = { whisper: 1, say: 10, shout: 40 };
+/**
+ * How far speech carries, in METRES (D-567).
+ *
+ * WARNING: whisper is raised to 1.5 so the person beside you still hears it in
+ * every direction; say and shout keep their straight-line reach and lose the
+ * square's corners. Speech range decides who WITNESSES a declaration (D-218),
+ * so a shrink here is a rules change and not a cosmetic one.
+ */
+const CHANNEL_RANGE: Record<Channel, number> = { whisper: 1.5, say: 10, shout: 40 };
 
 /**
  * The WebSocket gateway: owns the World, the tick loop, and all connections.
@@ -137,6 +229,17 @@ export interface GameServerOptions {
   /** Combat/death pacing overrides — tests shrink these (logic is tick-based). */
   hostilityWindowTicks?: number;
   ghostMinTicks?: number;
+  /**
+   * Length of a combat round in ticks (D-550). Defaults to
+   * COMBAT_ROUND_TICKS; tests shorten it so a kill does not take a real
+   * minute, exactly as corpse and round pacing are options (D-114).
+   *
+   * `attackCooldownTicks` is accepted as an alias because that is what it
+   * always meant: for a basic character with one swing a round, the round
+   * length IS the cooldown. Every pre-D-550 test that set it keeps working
+   * and keeps meaning the same thing.
+   */
+  combatRoundTicks?: number;
   attackCooldownTicks?: number;
   bleedIntervalTicks?: number;
   /** Spirit-interaction pacing (D-511) — tests shrink these too. */
@@ -147,7 +250,7 @@ export interface GameServerOptions {
   reviveWindowTicks?: number;
   /** Combat-state pacing — tests shrink these; the rule is tick-based. */
   combatLeaveTicks?: number;
-  combatProximityTiles?: number;
+  combatProximityMetres?: number;
   /**
    * The Round (D-521). Off by default: without it this is the persistent
    * world, with respawn, death debt and enduring recognition. Turning it on
@@ -180,15 +283,27 @@ export interface GameServerOptions {
  * genuinely harder to shift than a slight one and the number is stable
  * for a given corpse.
  */
-export function corpseBurden(appearanceSeed: number): number {
-  const a = generateAppearance(appearanceSeed);
+export function corpseBurden(
+  appearanceSeed: number,
+  appearance: AppearanceOverride | null = null,
+): number {
+  // Resolved, not generated: a player who built a heavy figure must BE heavy
+  // to carry (D-539). Reading the raw seed here would have made an authored
+  // body weigh whatever the seed happened to roll, which is the kind of
+  // divergence nobody notices until two systems disagree in front of a player.
+  const a = resolveAppearance(appearanceSeed, appearance);
   return Math.round(a.bulk * 90 + (a.height - 1.6) * 30);
 }
 
 /** A live corpse or gear-pile world object, mirrored from the corpses table. */
 interface CorpseRuntime {
   corpseId: string;
-  characterId: string;
+  /**
+   * Null when what lies here was never a person (D-554): a roamer's body, or
+   * a heap somebody dropped. The rites read this and refuse — there is no
+   * spirit behind a dead dog and nothing to question in a sack of ore.
+   */
+  characterId: string | null;
   state: 'corpse' | 'ground';
   expiresAtTick: number;
 }
@@ -219,8 +334,29 @@ interface ConnState {
   entityId: number | null;
   areaId: string | null;
   /** Live vitals cache; persisted immediately on death/logout (D-106). */
-  vitals: { hp: number; maxHp: number; xp: number; deathDebt: number } | null;
+  vitals: {
+    hp: number;
+    maxHp: number;
+    xp: number;
+    deathDebt: number;
+    /**
+     * The reserve rites are paid out of (D-546). Held as a FLOAT and reported
+     * rounded: regeneration is a fraction of a point per tick, and rounding
+     * on every tick instead of on report would either regenerate nothing at
+     * all or round a fraction up to a whole point ten times a second.
+     */
+    mana: number;
+    maxMana: number;
+  } | null;
   injuries: InjuryRecord[];
+  /**
+   * What the worn set contributes (D-547), cached so a swing does not need a
+   * database read. `refreshLoadout` is the only writer; every path that can
+   * change what somebody holds calls it.
+   */
+  loadout: LoadoutTotals | null;
+  /** Total weight of everything held, worn or packed. */
+  carried: number;
   /** Endgame zones (D-206): fallen but revivable until the window closes.
    * Null everywhere else — ordinary deaths ghost immediately. */
   downed: { expiresAtTick: number } | null;
@@ -289,6 +425,7 @@ export class GameServer {
   private hostilityWindowTicks = HOSTILITY_WINDOW_TICKS;
   private ghostMinTicks = GHOST_MIN_TICKS;
   private attackCooldownTicks = ATTACK_COOLDOWN_TICKS;
+  private combatRoundTicks = COMBAT_ROUND_TICKS;
   private bleedIntervalTicks = BLEED_INTERVAL_TICKS;
   private corpseDecayTicks = CORPSE_DECAY_TICKS;
   private groundLootTicks = GROUND_LOOT_TICKS;
@@ -306,7 +443,7 @@ export class GameServer {
   private endgameConfirms = new Map<ConnState, { areaId: string; x: number; y: number; expiresAtTick: number }>();
   private reviveWindowTicks = REVIVE_WINDOW_TICKS;
   private combatLeaveTicks = COMBAT_LEAVE_TICKS;
-  private combatProximityTiles = COMBAT_PROXIMITY_TILES;
+  private combatProximityMetres = COMBAT_PROXIMITY_METRES;
 
   // --- The Round (D-521). Null in the persistent world. -------------------
   private round: RoundEngine | null = null;
@@ -338,6 +475,22 @@ export class GameServer {
   private roundXp = new Map<ConnState, number>();
   /** Characters who have died this round — no respawn, so this only grows. */
   private roundDead = new Set<string>();
+  /**
+   * Who has already been handed their kit this round (D-547). Tracked rather
+   * than inferred from an empty pack, because "holds nothing" is also true of
+   * somebody who has just been looted — and refilling a robbed player would
+   * delete the whole point of robbing them.
+   */
+  private kittedThisRound = new Set<string>();
+  /**
+   * Who the watch is currently after, and until when (D-552).
+   *
+   * A MEMORY held by the server on the guards' behalf, not a status on the
+   * character. Nothing tells other players about it, nothing renders it, and
+   * it decays — because the moment "wanted" is visible, the cast can read the
+   * antagonist off the UI and D-217's whole witness model is dead.
+   */
+  private wanted = new Map<string, number>();
   /** Cast size we last complained about being unable to start, if any. */
   private lobbyStuckAt: number | null = null;
   /** Night roamers abroad right now (D-527/D-529), by entity id. */
@@ -366,13 +519,15 @@ export class GameServer {
     this.hostilityWindowTicks = opts.hostilityWindowTicks ?? HOSTILITY_WINDOW_TICKS;
     this.ghostMinTicks = opts.ghostMinTicks ?? GHOST_MIN_TICKS;
     this.attackCooldownTicks = opts.attackCooldownTicks ?? ATTACK_COOLDOWN_TICKS;
+    this.combatRoundTicks =
+      opts.combatRoundTicks ?? opts.attackCooldownTicks ?? COMBAT_ROUND_TICKS;
     this.bleedIntervalTicks = opts.bleedIntervalTicks ?? BLEED_INTERVAL_TICKS;
     this.corpseDecayTicks = Math.max(opts.corpseDecayTicks ?? CORPSE_DECAY_TICKS, this.ghostMinTicks);
     this.groundLootTicks = opts.groundLootTicks ?? GROUND_LOOT_TICKS;
     this.zombieDurationTicks = opts.zombieDurationTicks ?? ZOMBIE_DURATION_TICKS;
     this.reviveWindowTicks = opts.reviveWindowTicks ?? REVIVE_WINDOW_TICKS;
     this.combatLeaveTicks = opts.combatLeaveTicks ?? COMBAT_LEAVE_TICKS;
-    this.combatProximityTiles = opts.combatProximityTiles ?? COMBAT_PROXIMITY_TILES;
+    this.combatProximityMetres = opts.combatProximityMetres ?? COMBAT_PROXIMITY_METRES;
     if (opts.round?.enabled) {
       this.round = new RoundEngine({
         objectives: opts.round.objectives ?? opts.content.objectives,
@@ -395,7 +550,7 @@ export class GameServer {
       );
       if (Number.isFinite(smallest) && this.round.minimumCast < smallest) {
         this.log(
-          `round: WARNING — minimum cast is ${this.round.minimumCast} but the smallest ` +
+          `round: ⚠ — minimum cast is ${this.round.minimumCast} but the smallest ` +
           `live objective needs ${smallest}. No round can start until enough players join.`,
         );
       }
@@ -448,6 +603,9 @@ export class GameServer {
   // -------------------------------------------------------------------------
 
   private async onTick(): Promise<void> {
+    // Out of combat only (D-546): a caster who refills while standing in a
+    // fight is not making a decision about when to spend.
+    this.regenMana();
     const eventsByArea = this.world.step();
     const transfers: { conn: ConnState; toArea: string; toX: number; toY: number }[] = [];
     for (const [areaId, events] of eventsByArea) {
@@ -458,8 +616,17 @@ export class GameServer {
           if (characterId) {
             this.dirtyCharacters.set(characterId, { areaId, x: event.x, y: event.y });
           }
-          // Stepping onto a transition tile crosses to the linked area (D-103).
-          const tr = this.transitionsFor(areaId).find((t) => t.x === event.x && t.y === event.y);
+          // Stepping onto a transition crosses to the linked area (D-103).
+          //
+          // ⚠ Matched by NEARNESS, not equality (D-567). A transition is
+          // authored at a point and a body now walks through metres: exact
+          // equality was true on a grid and is essentially never true again,
+          // so every door in the world silently stopped working. Half a metre
+          // is the radius of a doorway and cannot be stepped over in one tick
+          // at walking pace.
+          const tr = this.transitionsFor(areaId).find(
+            (t) => Math.hypot(t.x - event.x, t.y - event.y) <= TRANSITION_REACH,
+          );
           if (tr) {
             const conn = [...(this.connsByArea.get(areaId) ?? [])].find(
               (c) => c.entityId === event.id,
@@ -467,7 +634,7 @@ export class GameServer {
             if (
               conn &&
               this.dungeonGateAllows(conn, areaId, tr.toArea) &&
-              this.confirmEndgameEntry(conn, areaId, event.x, event.y, tr.toArea)
+              this.confirmEndgameEntry(conn, areaId, tr.x, tr.y, tr.toArea)
             ) {
               transfers.push({ conn, toArea: tr.toArea, toX: tr.toX, toY: tr.toY });
             }
@@ -609,19 +776,20 @@ export class GameServer {
     this.roundLastNight = null;
     this.roundXp.clear();
     this.roundDead.clear();
+    // Gear was stripped at the last reset (D-522), so the kit is granted
+    // here, before anybody has had a chance to do anything with an empty
+    // pack. Anyone who joined the lobby already has theirs and is skipped.
+    for (const conn of this.conns) {
+      if (!conn.character) continue;
+      await this.grantStartingKit(conn);
+      await this.sendInventory(conn);
+    }
     // EVERY player receives a role message. Only one carries an objective, so
     // the arrival of the message is not itself a tell - which it would be if
     // only the antagonist were told anything.
     for (const conn of this.conns) {
       if (!conn.character) continue;
-      const secret = this.round!.secretRole(conn.character.id);
-      this.send(conn, {
-        t: 'round_role',
-        antagonist: secret !== null,
-        objective: secret
-          ? { id: secret.objective.id, name: secret.objective.name, brief: secret.objective.brief }
-          : null,
-      });
+      this.sendRoundRole(conn);
     }
     // Logged for moderation (invariant 10). This is the one place the
     // antagonist's identity is written down while the round is live, and it
@@ -642,6 +810,7 @@ export class GameServer {
     this.spawnStations();
     this.despawnRoamers(); // a new round opens at dawn, whatever the last one left
     this.spawnDungeon();
+    this.spawnGuards();
     this.beginGrace('You have all woken in the same place. Say what needs saying.');
     return true;
   }
@@ -661,7 +830,8 @@ export class GameServer {
     if (night) {
       this.spawnRoamers();
     } else {
-      this.despawnRoamers();
+      // Daylight undoes them where they stand (D-551).
+      this.despawnRoamers(true);
       // Dawn: the survivors get a minute before the day starts (D-536).
       if (announce) {
         this.beginGrace(
@@ -703,6 +873,32 @@ export class GameServer {
     for (const conn of this.conns) {
       if (conn.character) this.send(conn, { t: 'narrate', text });
     }
+  }
+
+  /**
+   * Tell one connection what they are this round (D-521, D-579).
+   *
+   * ⚠ One implementation for both the start of the round and every arrival
+   * after it. The rule that makes the mode work is that EVERY player gets
+   * this message and only one carries an objective — so the arrival of the
+   * message is not itself a tell — and two places building that payload is
+   * two places for it to stop being true.
+   *
+   * ⚠ Read from `secretRole`, which is keyed on the CHARACTER rather than the
+   * connection. That is what lets the antagonist reconnect and be handed the
+   * SAME objective rather than a fresh draw: re-rolling it would change the
+   * round's win condition halfway through because somebody's wifi dropped.
+   */
+  private sendRoundRole(conn: ConnState): void {
+    if (!conn.character || !this.round) return;
+    const secret = this.round.secretRole(conn.character.id);
+    this.send(conn, {
+      t: 'round_role',
+      antagonist: secret !== null,
+      objective: secret
+        ? { id: secret.objective.id, name: secret.objective.name, brief: secret.objective.brief }
+        : null,
+    });
   }
 
   private broadcastRoundState(): void {
@@ -783,6 +979,17 @@ export class GameServer {
     this.despawnNodes();
     this.despawnStations();
     this.despawnRoamers();
+    this.despawnGuards();
+    // The watch forgets between rounds, like everyone else (D-525), and the
+    // well runs clean again.
+    this.wanted.clear();
+    this.wellPoisonedUntil = -1;
+    // ⚠ And the common stores are emptied (D-580). Not tidying: gear is
+    // stripped between rounds (D-522), and stores that survived would let the
+    // cast accumulate a permanent larder across rounds — which defeats
+    // D-529's hard constraint that the stores must RUN OUT, gets worse every
+    // round, and would read as generosity rather than as a broken mode.
+    await this.store.clearStores();
     for (const conn of this.conns) this.interruptWork(conn, 'the round ended');
     this.round!.reset();
     this.roundResetAtTick = null;
@@ -792,6 +999,14 @@ export class GameServer {
     this.roundLastNight = null;
     this.roundXp.clear();
     this.roundDead.clear();
+    // Cleared AFTER the strip above, so the next round re-kits everybody.
+    // ⚠ Both halves: the process's own memory AND the persisted flag, or a
+    // reset would strip the gear and then refuse to replace it.
+    this.kittedThisRound.clear();
+    await this.store.clearAllKitGranted();
+    for (const conn of this.conns) {
+      if (conn.character) conn.character.kitGranted = false;
+    }
     for (const conn of this.conns) {
       conn.needs = {
         hunger: 'sated',
@@ -836,8 +1051,8 @@ export class GameServer {
       const dx = at.x - listener.pos.x;
       const dy = at.y - listener.pos.y;
       const range = Math.max(Math.abs(dx), Math.abs(dy));
-      if (range > COMBAT_NOISE_TILES) continue;
-      const near = range <= COMBAT_NOISE_NEAR_TILES;
+      if (range > COMBAT_NOISE_METRES) continue;
+      const near = range <= COMBAT_NOISE_NEAR_METRES;
       const bearing = bearingFrom(dx, dy);
       const where = bearing === 'here' ? 'right beside you' : `to the ${COMPASS_WORDS[bearing]}`;
       this.send(other, {
@@ -893,7 +1108,7 @@ export class GameServer {
       }
       for (const need of ['hunger', 'thirst'] as const) {
         const key = need === 'hunger' ? 'hungerAtHour' : 'thirstAtHour';
-        const due = conn.needs[key] + stepHoursFor(need, false);
+        const due = conn.needs[key] + this.needStepHours(conn, need, false);
         if (hours < due) continue;
         conn.needs[key] = hours;
         const before = conn.needs[need];
@@ -919,15 +1134,149 @@ export class GameServer {
    * never below one — the need itself must not be the thing that kills.
    */
   private applyThirstToVitals(conn: ConnState): void {
-    if (!conn.vitals || !conn.character) return;
-    const full = conn.character.maxHp;
-    conn.vitals.maxHp = Math.max(1, Math.round(full * THIRST_MAX_HP_FRACTION[conn.needs.thirst]));
-    conn.vitals.hp = Math.max(1, Math.min(conn.vitals.hp, conn.vitals.maxHp));
+    // Delegated to the single writer (D-546): thirst is one of three inputs
+    // to the health ceiling, alongside vigor and worn gear, and three
+    // functions each clamping the same number is how they end up disagreeing.
+    this.applyDerivedCeilings(conn);
   }
 
   /** Hunger makes work slower — the economic half of the pressure. */
   private hungerWorkMultiplier(conn: ConnState): number {
     return HUNGER_WORK_MULTIPLIER[conn.needs.hunger];
+  }
+
+  /**
+   * Uses one thing from the pack (D-554).
+   *
+   * It DISPATCHES on the template rather than making the client say what
+   * kind of use it is: eating a loaf and binding a wound arrive as the same
+   * message, and a new consumable is a content change. `eat` is still its own
+   * verb because bots and older clients send it; this is the one the pack's
+   * button uses, and it routes food straight through the same handler so
+   * there is one implementation of being fed.
+   */
+  private async handleUseItem(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'use_item' }>,
+  ): Promise<void> {
+    if (!conn.character || !conn.vitals) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const template = this.content.itemTemplates.get(msg.templateId);
+    if (!template) return this.fail(conn, 'no_such_item', 'no such thing');
+    // Food and drink are what `nourishes` already says they are.
+    if (template.nourishes) return this.handleEat(conn, { t: 'eat', templateId: msg.templateId });
+    if (!template.use) return this.fail(conn, 'not_food', 'that is not something you use');
+
+    if (template.use.kind === 'mend') {
+      // Refuse BEFORE consuming. A bandage spent on a whole man is a bandage
+      // a bleeding one does not have.
+      const hurt = conn.vitals.hp < conn.vitals.maxHp;
+      const minor = conn.injuries.find((i) => i.severity === 'minor');
+      if (!hurt && !minor) {
+        return this.fail(conn, 'no_injury', 'there is nothing on you to bind');
+      }
+      if (!(await this.store.consumeOneItem(conn.character.id, msg.templateId))) {
+        return this.fail(conn, 'missing_materials', 'you have none');
+      }
+      const before = conn.vitals.hp;
+      conn.vitals.hp = Math.min(conn.vitals.maxHp, conn.vitals.hp + template.use.value);
+      // One MINOR wound closes. Major ones are the physician's, and always
+      // have been (D-205) — a bandage that fixed them would delete the one
+      // mechanical dependency this game has on another player.
+      if (minor) {
+        await this.store.removeInjury(minor.id);
+        conn.injuries = conn.injuries.filter((i) => i.id !== minor.id);
+      }
+      this.broadcastEffect(conn.areaId!, conn.entityId!, 'heal');
+      this.send(conn, {
+        t: 'narrate',
+        text: minor
+          ? 'You bind it as best you can, one-handed, and the bleeding stops.'
+          : 'You pack the wound and pull the linen tight.',
+      });
+      await this.store.appendEvent('item_used', {
+        characterId: conn.character.id,
+        templateId: msg.templateId,
+        healed: conn.vitals.hp - before,
+      });
+      await this.sendInventory(conn);
+    }
+  }
+
+  /**
+   * Puts something on the floor (D-554), where it becomes a heap anybody can
+   * loot. Reuses the ground-pile machinery corpse decay already produces, so
+   * dropped goods decay, get looted and get cleaned up by the same code.
+   *
+   * A dropped thing is NOT destroyed. That matters for the no-duplication and
+   * no-creation invariants (D-114): the item row moves owner, it is never
+   * deleted and re-made.
+   */
+  private async handleDropItem(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'drop_item' }>,
+  ): Promise<void> {
+    if (!conn.character || conn.entityId === null || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const item = await this.store.getItem(msg.itemId);
+    if (!item || item.ownerCharacterId !== conn.character.id) {
+      return this.fail(conn, 'no_such_item', 'you are not holding that');
+    }
+    const self = this.world.getEntity(conn.entityId)!;
+    const pos = { ...self.pos };
+    // Onto a heap already at your feet if there is one, so a tidy pile does
+    // not become nine separate sacks on the same tile.
+    let target = [...this.corpsesByEntity].find(([entityId, info]) => {
+      if (info.state !== 'ground') return false;
+      const e = this.world.getEntity(entityId);
+      return !!e && e.pos.x === pos.x && e.pos.y === pos.y
+        && this.world.getEntityAreaId(entityId) === conn.areaId;
+    })?.[1];
+    if (!target) {
+      const rec = await this.store.createCorpse({
+        characterId: null,
+        areaId: conn.areaId,
+        x: pos.x,
+        y: pos.y,
+        state: 'ground',
+        ticksLeft: this.groundLootTicks,
+      });
+      const { entity: pile } = this.world.spawn(conn.areaId, {
+        characterId: null,
+        name: 'a heap of goods',
+        npcDescriptor: 'a heap of goods',
+        objectKind: 'pile',
+        appearanceSeed: 1,
+        pos,
+      });
+      pile.lootable = true;
+      target = {
+        corpseId: rec.id,
+        characterId: null,
+        state: 'ground' as const,
+        expiresAtTick: this.world.tick + this.groundLootTicks,
+      };
+      this.corpsesByEntity.set(pile.id, target);
+      this.broadcastPlane(conn.areaId, false, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_entered', entity: toWireEntity(pile, 'a heap of goods') }],
+      });
+    }
+    if (!(await this.store.moveItemToCorpse(msg.itemId, conn.character.id, target.corpseId))) {
+      return this.fail(conn, 'no_such_item', 'you are not holding that');
+    }
+    await this.store.appendEvent('item_dropped', {
+      characterId: conn.character.id,
+      itemId: msg.itemId,
+      templateId: item.templateId,
+      areaId: conn.areaId,
+      x: pos.x,
+      y: pos.y,
+    });
+    await this.sendInventory(conn);
   }
 
   private async handleEat(
@@ -942,8 +1291,32 @@ export class GameServer {
     if (conn.needs[template.nourishes] === 'sated') {
       return this.fail(conn, 'not_hungry', 'you have no appetite for it');
     }
-    if (!(await this.store.consumeOneItem(conn.character.id, msg.templateId))) {
+    const eaten = await this.store.consumeOneItem(conn.character.id, msg.templateId);
+    if (!eaten) {
       return this.fail(conn, 'missing_materials', 'you have none');
+    }
+    // ⚠ Food somebody got at (D-580) does not feed you — it costs you the
+    // meal AND deepens the need, exactly as poisoned water does for thirst
+    // (D-552). A saboteur who left everybody fed would have accomplished
+    // nothing at all.
+    //
+    // ⚠ Nothing warned them. It rides on the item, so bread carried out of
+    // a ruined larder is still bad bread — you find out by eating it, or
+    // because somebody watched it happen.
+    if (eaten.data?.spoiled === true) {
+      conn.needs[template.nourishes] = deepen(conn.needs[template.nourishes], template.nourishes);
+      this.applyThirstToVitals(conn);
+      this.send(conn, {
+        t: 'narrate',
+        text: 'It is sour going down, and worse coming back up. Somebody has been at the stores.',
+      });
+      await this.sendInventory(conn);
+      this.sendStatus(conn);
+      await this.store.appendEvent('ate_spoiled', {
+        characterId: conn.character.id,
+        item: msg.templateId,
+      });
+      return;
     }
     // A meal taken at the stores holds you longer than one taken in a ditch
     // (D-530) — the bonus is TIME, not quantity, so there is no bookkeeping.
@@ -952,7 +1325,10 @@ export class GameServer {
     const key = template.nourishes === 'hunger' ? 'hungerAtHour' : 'thirstAtHour';
     conn.needs[key] =
       this.roundElapsedHours() +
-      (atFacility ? stepHoursFor(template.nourishes, true) - stepHoursFor(template.nourishes, false) : 0);
+      (atFacility
+        ? this.needStepHours(conn, template.nourishes, true)
+          - this.needStepHours(conn, template.nourishes, false)
+        : 0);
     this.applyThirstToVitals(conn);
     this.send(conn, {
       t: 'narrate',
@@ -978,14 +1354,273 @@ export class GameServer {
     if (!this.atWell(conn)) {
       return this.fail(conn, 'no_water_here', 'there is no water within reach');
     }
+    // The well may have been spoiled (D-529). Nothing about it looks
+    // different, and nobody was told — you find out by drinking, or because
+    // somebody who watched it happen tells you.
+    if (this.wellPoisonedUntil > this.roundElapsedHours()) {
+      conn.vitals.hp = Math.max(1, conn.vitals.hp - WELL_POISON_DAMAGE);
+      // It does NOT relieve thirst: a poisoner who left everyone watered
+      // would have accomplished nothing at all.
+      conn.needs.thirst = deepen(conn.needs.thirst, 'thirst');
+      this.applyThirstToVitals(conn);
+      this.send(conn, {
+        t: 'narrate',
+        text: 'The water is wrong — brackish, and it burns going down. You bring most of it back up.',
+      });
+      this.sendStatus(conn);
+      await this.store.appendEvent('drank_poison', {
+        characterId: conn.character.id,
+        areaId: conn.areaId,
+      });
+      return;
+    }
     if (conn.needs.thirst === 'sated') return this.fail(conn, 'not_hungry', 'you are not thirsty');
     conn.needs.thirst = relieve();
     conn.needs.thirstAtHour =
-      this.roundElapsedHours() + (stepHoursFor('thirst', true) - stepHoursFor('thirst', false));
+      this.roundElapsedHours()
+      + (this.needStepHours(conn, 'thirst', true) - this.needStepHours(conn, 'thirst', false));
     this.applyThirstToVitals(conn);
     this.send(conn, { t: 'narrate', text: 'You drink deep. The water is cold and tastes of stone.' });
     this.sendStatus(conn);
     await this.store.appendEvent('drank', { characterId: conn.character.id, areaId: conn.areaId });
+  }
+
+  /**
+   * Round-game hour at which the well runs clean again. Round-scoped like
+   * everything else the round holds, and cleared at reset.
+   */
+  private wellPoisonedUntil = -1;
+
+  /**
+   * Spoil the well (D-529). The antagonist's one non-violent attack on a
+   * settled zone — denial that requires no fight and leaves no body.
+   *
+   * It is deliberately CHEAP to do and impossible to do unseen: it takes a
+   * sprig of bitterleaf and a moment at the most overlooked tile in Ashfold
+   * (D-549 put the well in the open square for exactly this reason). The cost
+   * is not the materials, it is the witnesses.
+   */
+  private async handlePoisonWell(conn: ConnState): Promise<void> {
+    if (!conn.character || !conn.vitals || conn.entityId === null || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    if (!this.atWell(conn)) {
+      return this.fail(conn, 'no_water_here', 'there is no well within reach');
+    }
+    if (this.wellPoisonedUntil > this.roundElapsedHours()) {
+      return this.fail(conn, 'already_poisoned', 'it is already spoiled');
+    }
+    if (!(await this.store.consumeOneItem(conn.character.id, 'bitterleaf'))) {
+      return this.fail(conn, 'missing_materials', 'you have nothing to put in it');
+    }
+    this.wellPoisonedUntil = this.roundElapsedHours() + WELL_POISON_HOURS;
+    // Logged for moderation (invariant 10) before anything else can go wrong.
+    await this.store.appendEvent('well_poisoned', {
+      characterId: conn.character.id,
+      areaId: conn.areaId,
+    });
+    this.send(conn, {
+      t: 'narrate',
+      text: 'You crush the leaf into the bucket and let it down. The water takes it without a sound.',
+    });
+    // Seen, or not. The watch decides, on line of sight, exactly as it does
+    // for a stabbing (D-552) — and if nobody was looking, nobody knows.
+    this.witnessCrime(conn.areaId, this.world.getEntity(conn.entityId)!, 'well_poisoned');
+    await this.sendInventory(conn);
+  }
+
+  // ------------------------------------------------------------- the stores
+
+  /**
+   * Which facilities hold goods (D-530).
+   *
+   * The storehouse and the infirmary, because those are the two the ruling
+   * names: "Players can keep food on their person, hog the medicine etc."
+   * The well is a source rather than a container, and the workshop is a place
+   * to work rather than a cupboard — a station that accepts deposits is one
+   * whose goods somebody could be denied.
+   */
+  private static readonly STORAGE_STATIONS = ['storehouse', 'infirmary'] as const;
+
+  /**
+   * The store a character is standing at, or null.
+   *
+   * ⚠ Keyed `<areaId>:<stationType>` — the TOWN's stores rather than one
+   * particular sack. Two storehouses in one area share a pool, which is the
+   * right reading of "the common stores" and stops a cast accidentally
+   * splitting its goods across furniture.
+   */
+  private storeWithinReach(conn: ConnState): string | null {
+    if (!conn.areaId) return null;
+    for (const type of GameServer.STORAGE_STATIONS) {
+      if (this.stationWithinReach(conn, type)) return `${conn.areaId}:${type}`;
+    }
+    return null;
+  }
+
+  /**
+   * Show one connection what the stores hold.
+   *
+   * ⚠ Sent to anybody within reach, which is the COST of pooling rather
+   * than a leak (D-530). Goods on your person are your loss alone; goods in
+   * the stores are one target everybody — including the antagonist — can see
+   * and count. That asymmetry is the dilemma, not a bug in it.
+   */
+  private async sendStoreContents(conn: ConnState, storeId: string): Promise<void> {
+    const items = await this.store.getItemsByStore(storeId);
+    this.send(conn, {
+      t: 'store_contents',
+      station: storeId,
+      // ⚠ What is there, and nothing about whether it is any good. A
+      // ruined larder looks exactly like a full one (D-552's rule for the
+      // well), so there is no flag to send and deliberately nothing for a
+      // client to draw.
+      items: items.map(toWireItem),
+    });
+  }
+
+  /** Everybody standing at these stores sees them change. */
+  private async refreshStoreWatchers(storeId: string): Promise<void> {
+    const areaId = storeId.slice(0, storeId.lastIndexOf(':'));
+    for (const other of this.connsByArea.get(areaId) ?? []) {
+      if (!other.character) continue;
+      if (this.storeWithinReach(other) !== storeId) continue;
+      await this.sendStoreContents(other, storeId);
+    }
+  }
+
+  private async handleStoreLook(conn: ConnState): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    const storeId = this.storeWithinReach(conn);
+    if (!storeId) return this.fail(conn, 'no_store_here', 'there are no stores within reach');
+    await this.sendStoreContents(conn, storeId);
+  }
+
+  /**
+   * Pool one item (D-530).
+   *
+   * ⚠ A MOVE, never a copy — the item keeps its row and its identity,
+   * so D-114's no-duplication invariant holds without anybody thinking about
+   * it, and the atomicity contract is the same conditional update dropping
+   * and trading already use.
+   */
+  private async handleStoreDeposit(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'store_deposit' }>,
+  ): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    const storeId = this.storeWithinReach(conn);
+    if (!storeId) return this.fail(conn, 'no_store_here', 'there are no stores within reach');
+    if (!(await this.store.moveItemToStore(msg.itemId, conn.character.id, storeId))) {
+      return this.fail(conn, 'no_such_item', 'you do not have that');
+    }
+    await this.store.appendEvent('store_deposit', {
+      characterId: conn.character.id,
+      store: storeId,
+      item: msg.itemId,
+    });
+    await this.sendInventory(conn);
+    await this.refreshStoreWatchers(storeId);
+  }
+
+  /**
+   * Take one item back out.
+   *
+   * ⚠ ANYBODY may, and that is deliberate. The stores are common: no
+   * owner is recorded and no permission is checked, so a player can take what
+   * somebody else pooled. That is the exposure half of D-530's trade, and a
+   * lock would quietly delete the dilemma the facility exists to create.
+   */
+  private async handleStoreWithdraw(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'store_withdraw' }>,
+  ): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    const storeId = this.storeWithinReach(conn);
+    if (!storeId) return this.fail(conn, 'no_store_here', 'there are no stores within reach');
+    if (!(await this.store.moveItemFromStore(msg.itemId, storeId, conn.character.id))) {
+      return this.fail(conn, 'no_such_item', 'the stores do not hold that');
+    }
+    await this.store.appendEvent('store_withdraw', {
+      characterId: conn.character.id,
+      store: storeId,
+      item: msg.itemId,
+    });
+    await this.sendInventory(conn);
+    await this.refreshStoreWatchers(storeId);
+  }
+
+  /**
+   * Ruin what the stores hold (D-526, D-529, D-530).
+   *
+   * The counterpart to poisoning the well, built the same way: cheap to do,
+   * impossible to do unseen, announced to nobody. Town is `settled`, so the
+   * antagonist cannot murder there without ending its own game (D-531) —
+   * without this the hub gives it nothing to do at the one place everybody is.
+   *
+   * ⚠ It ruins the PROVISIONS, not the building. Bread carried out of a
+   * spoiled larder is still bad bread, which is what sabotaging stores means;
+   * a timed flag on the station would let a victim walk the loaf clear of it.
+   *
+   * ⚠ Its bite is exactly proportional to how much the cast pooled —
+   * the property D-530 called the best thing in the design. The antagonist's
+   * non-violent play grows stronger as the cast grows more trusting, and the
+   * hoarder is insulated from the sabotage they refused to be part of.
+   */
+  private async handleStoreSpoil(conn: ConnState): Promise<void> {
+    if (!conn.character || conn.entityId === null || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const storeId = this.storeWithinReach(conn);
+    if (!storeId) return this.fail(conn, 'no_store_here', 'there are no stores within reach');
+    const held = await this.store.getItemsByStore(storeId);
+    // Only what can be eaten or drunk goes off. A spoiled hammer is nothing.
+    const perishable = held.filter(
+      (i) => this.content.itemTemplates.get(i.templateId)?.nourishes && !i.data?.spoiled,
+    );
+    if (perishable.length === 0) {
+      // ⚠ Refused BEFORE the bitterleaf is consumed. Spending the one
+      // thing that makes this possible on an empty larder punishes misreading
+      // a room, and the room is deliberately hard to read.
+      return this.fail(conn, 'nothing_to_spoil', 'there is nothing here worth ruining');
+    }
+    if (!(await this.store.consumeOneItem(conn.character.id, 'bitterleaf'))) {
+      return this.fail(conn, 'missing_materials', 'you have nothing to put in it');
+    }
+    await this.store.spoilItems(perishable.map((i) => i.id));
+    // Logged for moderation (invariant 10) before anything else can go wrong.
+    await this.store.appendEvent('stores_spoiled', {
+      characterId: conn.character.id,
+      store: storeId,
+      items: perishable.length,
+    });
+    this.send(conn, {
+      t: 'narrate',
+      text: 'You work the crushed leaf through the sacks and the open barrels. '
+        + 'Nothing about them looks any different.',
+    });
+    // Seen, or not. The watch decides on line of sight, exactly as it does for
+    // a stabbing (D-552) — and if nobody was looking, nobody knows.
+    this.witnessCrime(conn.areaId, this.world.getEntity(conn.entityId)!, 'stores_spoiled');
+    await this.sendInventory(conn);
+    await this.refreshStoreWatchers(storeId);
+  }
+
+  /**
+   * Saves the hotbar to the character (D-553).
+   *
+   * The contents are deliberately NOT validated. An ability id the client no
+   * longer recognises renders as an empty slot, which is the right thing to
+   * happen when a character loses a rite — refusing the whole bar because one
+   * slot went stale would lose the other eight.
+   */
+  private async handleSetHotbar(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'set_hotbar' }>,
+  ): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    conn.character.hotbar = [...msg.slots];
+    await this.store.saveCharacterHotbar(conn.character.id, conn.character.hotbar);
   }
 
   /** Whether the player stands at the well — a placed object like any other. */
@@ -1018,6 +1653,118 @@ export class GameServer {
     });
   }
 
+  /** Settled areas — where the watch walks (D-552). */
+  private guardAreas(): string[] {
+    return this.world.areaIds().filter((id) => this.world.getAreaDef(id).zone === 'settled');
+  }
+
+  /**
+   * Posts the watch (D-552). Unlike the night's roamers these arrive with the
+   * round and stay through both dawns: a town whose guards go off duty at
+   * dusk is a town with no guards on the two nights that matter.
+   */
+  private spawnGuards(): void {
+    const kinds = this.content.roamers.filter((r) => r.habitat === 'guard');
+    if (kinds.length === 0) return;
+    for (const areaId of this.guardAreas()) {
+      const def = this.world.getAreaDef(areaId);
+      for (const kind of kinds) {
+        for (let i = 0; i < kind.perArea; i++) {
+          // No spawn clearance for the watch: they belong here, and a
+          // guard appearing across the square from you is a guard, not an
+          // ambush.
+          const at = this.findRoamerTile(def, []);
+          if (!at) continue;
+          const { entity } = this.world.spawn(areaId, {
+            characterId: null,
+            name: kind.descriptor,
+            npcDescriptor: kind.descriptor,
+            appearanceSeed: this.roamerRng.int(1, 1_000_000),
+            pos: at,
+            hp: kind.hp,
+            // Deliberately NOT `hostile`. A guard on its round is not a thing
+            // you auto-attack by clicking on it (D-550) — it is a person, and
+            // the whole point of the watch is that attacking it is a choice.
+          });
+          this.roamers.set(entity.id, kind);
+          this.broadcastPlane(areaId, false, {
+            t: 'delta',
+            tick: this.world.tick,
+            events: [{ type: 'entity_entered', entity: toWireEntity(entity, kind.descriptor) }],
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Somebody did something in front of the watch (D-552).
+   *
+   * Line of sight decides it, exactly as it decides every other question about
+   * who saw what (D-217). A crime committed round the back of the smithy is
+   * not witnessed; the same crime in the square is. That is the whole design:
+   * the answer to the watch is not to fight them, it is not to be seen.
+   */
+  private witnessCrime(areaId: string, culprit: WorldEntity, what: string): void {
+    if (culprit.characterId === null) return;
+    const def = this.world.getAreaDef(areaId);
+    if (def.zone !== 'settled') return;
+    let seen = false;
+    for (const [entityId, kind] of this.roamers) {
+      if (kind.habitat !== 'guard') continue;
+      if (this.world.getEntityAreaId(entityId) !== areaId) continue;
+      const guard = this.world.getEntity(entityId);
+      if (!guard) continue;
+      if (distance(guard.pos, culprit.pos) > kind.aggroMetres) continue;
+      if (!hasLineOfSight(def, guard.pos, culprit.pos)) continue;
+      seen = true;
+      break;
+    }
+    if (!seen) return;
+    this.wanted.set(culprit.characterId, this.world.tick + WANTED_TICKS);
+    // The culprit is told, and NOBODY else is. Whoever did it knows they were
+    // seen; the rest of the cast has to be told by a person, which is the
+    // only kind of evidence this game recognises.
+    const conn = this.findConnByCharacter(culprit.characterId);
+    if (conn) {
+      this.send(conn, {
+        t: 'narrate',
+        text: 'A watchman has seen you, and is coming.',
+      });
+    }
+    void this.store.appendEvent('crime_witnessed', {
+      characterId: culprit.characterId,
+      areaId,
+      what,
+    });
+  }
+
+  /** Has the watch not forgotten about this one yet? */
+  private isWanted(characterId: string | null): boolean {
+    if (characterId === null) return false;
+    const until = this.wanted.get(characterId);
+    if (until === undefined) return false;
+    if (this.world.tick >= until) {
+      this.wanted.delete(characterId);
+      return false;
+    }
+    return true;
+  }
+
+  /** Stands the watch down. Only a round reset does this. */
+  private despawnGuards(): void {
+    for (const [entityId, kind] of [...this.roamers]) {
+      if (kind.habitat !== 'guard') continue;
+      const areaId = this.world.getEntityAreaId(entityId);
+      const event = this.world.despawn(entityId);
+      if (event && areaId) {
+        this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [event] });
+      }
+      this.roamers.delete(entityId);
+      this.roamerHeadings.delete(entityId);
+    }
+  }
+
   private spawnRoamers(): void {
     if (this.content.roamers.length === 0) return;
     for (const areaId of this.roamerAreas()) {
@@ -1037,6 +1784,9 @@ export class GameServer {
             appearanceSeed: this.roamerRng.int(1, 1_000_000),
             pos: at,
             hp: kind.hp,
+            // Visibly a thing that attacks people (D-550) — the switch the
+            // client's auto-attack reads.
+            hostile: true,
           });
           this.roamers.set(entity.id, kind);
           this.broadcastPlane(areaId, false, {
@@ -1062,15 +1812,37 @@ export class GameServer {
       if (!isTileWalkable(def, at)) continue;
       // Never materialise on top of somebody: an ambush nobody could have
       // avoided is not danger, it is a coin toss.
-      if (players.some((p) => chebyshev(p, at) < ROAMER_SPAWN_CLEARANCE)) continue;
+      if (players.some((p) => distance(p, at) < ROAMER_SPAWN_CLEARANCE)) continue;
       return at;
     }
     return null;
   }
 
-  private despawnRoamers(): void {
-    for (const entityId of [...this.roamers.keys()]) {
+  /**
+   * Clears the night's roamers.
+   *
+   * `dissolve` is set when DAYLIGHT is what removed them (D-551): the thing
+   * comes apart where it stands rather than walking off, and the client plays
+   * that rather than blinking it out. It is off for a round reset, where
+   * nothing is happening in the fiction at all and there is nobody to show it
+   * to anyway.
+   */
+  private despawnRoamers(dissolve = false): void {
+    for (const [entityId, kind] of [...this.roamers]) {
+      // The watch is not a night thing (D-552). It walks the town through
+      // both dawns and both dusks, and daylight does not undo it.
+      if (kind.habitat === 'guard') continue;
       const areaId = this.world.getEntityAreaId(entityId);
+      // The dissolve goes out FIRST, while the entity is still in the world:
+      // a client that has already dropped the entity has nothing to play the
+      // effect on, which is how the first version produced no effect at all.
+      if (dissolve && areaId) {
+        this.broadcastPlane(areaId, false, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [{ type: 'entity_dissolved', id: entityId }],
+        });
+      }
       const event = this.world.despawn(entityId);
       if (event && areaId) {
         this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [event] });
@@ -1116,6 +1888,7 @@ export class GameServer {
       appearanceSeed: this.roamerRng.int(1, 1_000_000),
       pos: at,
       hp: kind.hp,
+      hostile: true,
     });
     this.roamers.set(entity.id, kind);
     this.broadcastPlane(areaId, false, {
@@ -1156,19 +1929,26 @@ export class GameServer {
         continue;
       }
       // Nearest LIVING player. Ghosts are not prey — the dead are not here.
+      //
+      // The watch is the exception (D-552): it hunts only somebody it is
+      // already after. Everything else about it — the walk, the approach, the
+      // blow — is the same code, which is the point of making a guard a
+      // roamer with a filter rather than a second implementation.
+      const watch = kind.habitat === 'guard';
       let quarry: ConnState | null = null;
       let best = Infinity;
       for (const conn of this.connsByArea.get(areaId) ?? []) {
         if (!conn.character || conn.entityId === null || !conn.vitals) continue;
         const target = this.world.getEntity(conn.entityId);
         if (!target || target.ghost || conn.downed) continue;
-        const d = chebyshev(roamer.pos, target.pos);
+        if (watch && !this.isWanted(conn.character.id)) continue;
+        const d = distance(roamer.pos, target.pos);
         if (d < best) {
           best = d;
           quarry = conn;
         }
       }
-      if (!quarry || best > kind.aggroTiles) {
+      if (!quarry || best > kind.aggroMetres) {
         // NOTHING IN REACH: wander. Without this they are not roamers at all
         // — they spawn beyond their own aggro radius (deliberately, so nobody
         // is ambushed at the moment night falls) and then stand still until
@@ -1291,6 +2071,9 @@ export class GameServer {
           objectKind: 'node',
           nodeType: node.id,
           nodeCharges: node.charges,
+          // Sent for the same reason a station's is: the client has no copy of
+          // `content/nodes/` and must not guess which mesh a vein wears.
+          stationArt: node.art,
           pos: { x: placed.x, y: placed.y },
         });
         // Anyone already standing here must be TOLD. Spawning into the world
@@ -1310,13 +2093,21 @@ export class GameServer {
   private spawnStations(): void {
     for (const areaId of this.world.areaIds()) {
       for (const placed of this.world.getAreaDef(areaId).stations) {
-        const descriptor = STATION_DESCRIPTORS[placed.type] ?? placed.type;
+        // ⚠ The DEFINITION first (D-583). `content/stations/` has carried a
+        // descriptor since D-530 and was read by CI alone; the hardcoded table
+        // is now only what answers for a station nobody has defined.
+        const def = this.content.stations.get(placed.type);
+        const descriptor = def?.descriptor
+          ?? STATION_DESCRIPTOR_FALLBACK[placed.type]
+          ?? placed.type;
         const { entity } = this.world.spawn(areaId, {
           characterId: null,
-          name: descriptor,
+          name: def?.name ?? descriptor,
           npcDescriptor: descriptor,
           objectKind: 'station',
           stationType: placed.type,
+          // Sent because the client has no copy of `content/stations/`.
+          stationArt: def?.art,
           pos: { x: placed.x, y: placed.y },
         });
         this.broadcastPlane(areaId, false, {
@@ -1384,7 +2175,7 @@ export class GameServer {
     if (!target || target.objectKind !== 'node') {
       return this.fail(conn, 'bad_target', 'there is nothing to work there');
     }
-    if (chebyshev(self.pos, target.pos) > 1) {
+    if (distance(self.pos, target.pos) > 1) {
       return this.fail(conn, 'not_adjacent', 'too far to reach');
     }
     if ((target.nodeCharges ?? 0) <= 0) {
@@ -1397,7 +2188,7 @@ export class GameServer {
       what: def.descriptor,
       targetId: target.id,
       startedAtTick: this.world.tick,
-      endsAtTick: this.world.tick + Math.round(def.effortTicks * this.hungerWorkMultiplier(conn)),
+      endsAtTick: this.world.tick + Math.round(def.effortTicks * this.workMultiplier(conn, 'harvest')),
       at: { ...self.pos },
     };
     this.sendWork(conn, conn.work, 0, false, null);
@@ -1429,7 +2220,7 @@ export class GameServer {
       what: recipe.name,
       targetId: recipe.id,
       startedAtTick: this.world.tick,
-      endsAtTick: this.world.tick + Math.round(recipe.effortTicks * this.hungerWorkMultiplier(conn)),
+      endsAtTick: this.world.tick + Math.round(recipe.effortTicks * this.workMultiplier(conn, 'craft')),
       at: { ...self.pos },
     };
     this.sendWork(conn, conn.work, 0, false, null);
@@ -1473,7 +2264,7 @@ export class GameServer {
         (e) =>
           e.objectKind === 'station' &&
           e.stationType === station &&
-          chebyshev(e.pos, self.pos) <= STATION_REACH_TILES,
+          distance(e.pos, self.pos) <= STATION_REACH_METRES,
       );
   }
 
@@ -1518,7 +2309,14 @@ export class GameServer {
       }
       // Moving abandons the work. Checked by POSITION rather than by intent so
       // that any cause of movement — being carried, a transition — counts.
-      if (self.pos.x !== work.at.x || self.pos.y !== work.at.y) {
+      //
+      // ⚠ By DISTANCE, not by inequality (D-567). Positions are metres now, so
+      // `pos.x !== at.x` is true for a millimetre: a player who stopped
+      // walking and started work in the same breath had it cancelled by the
+      // last centimetres of their own glide, and the message said "you moved"
+      // when they had not. The same float-equality trap that broke every door
+      // in the world and the endgame confirmation.
+      if (distance(self.pos, work.at) > WORK_ANCHOR_METRES) {
         this.interruptWork(conn, 'you moved');
         continue;
       }
@@ -1610,7 +2408,7 @@ export class GameServer {
   //
   // Entered on violence — an attack either way, or a declaration of hostility
   // either way — and left only when nothing threatening has happened for
-  // COMBAT_LEAVE_TICKS *and* no hostile stands within COMBAT_PROXIMITY_TILES.
+  // COMBAT_LEAVE_TICKS *and* no hostile stands within COMBAT_PROXIMITY_METRES.
   // The state is what makes weapons go away: out of combat a character
   // sheathes and returns to a true idle.
   // -------------------------------------------------------------------------
@@ -1655,7 +2453,7 @@ export class GameServer {
         const threatened = entities.some(
           (other) =>
             this.isHostileTo(entity, other) &&
-            chebyshev(entity.pos, other.pos) <= this.combatProximityTiles,
+            distance(entity.pos, other.pos) <= this.combatProximityMetres,
         );
         if (threatened) continue;
         entity.combat = false;
@@ -1682,6 +2480,7 @@ export class GameServer {
         }
         if (entity.pos.x === carrier.pos.x && entity.pos.y === carrier.pos.y) continue;
         entity.pos = { ...carrier.pos };
+        entity.z = carrier.z;
         entity.facing = carrier.facing;
         this.broadcastPlane(areaId, false, {
           t: 'delta',
@@ -1689,6 +2488,7 @@ export class GameServer {
           events: [{
             type: 'entity_moved',
             id: entity.id,
+            z: entity.z,
             x: entity.pos.x,
             y: entity.pos.y,
             facing: entity.facing,
@@ -1774,6 +2574,10 @@ export class GameServer {
     const targetDef = this.world.hasArea(toArea) ? this.world.getAreaDef(toArea) : null;
     if (targetDef?.zone !== 'endgame') return true;
     if (conn.entityId !== null && this.world.getEntity(conn.entityId)?.ghost) return true;
+    // ⚠ Keyed on the TRANSITION's authored point, not on where the body
+    // happened to be when it crossed (D-567). Comparing float positions for
+    // equality is a comparison that is never true again: the warning fired
+    // every single time and the crypt could not be entered at all.
     const pending = this.endgameConfirms.get(conn);
     if (
       pending && pending.areaId === areaId && pending.x === x && pending.y === y &&
@@ -1855,6 +2659,8 @@ export class GameServer {
       characterId: conn.character.id,
       name: conn.character.name,
       appearanceSeed: conn.character.appearanceSeed,
+      appearance: conn.character.appearance,
+      look: conn.character.look,
       pos: { x, y },
       facing: oldEntity.facing,
       ghost: oldEntity.ghost, // the grey country has the same doors
@@ -1918,6 +2724,8 @@ export class GameServer {
       areaId: null,
       vitals: null,
       injuries: [],
+      loadout: null,
+      carried: 0,
       downed: null,
       work: null,
       needs: {
@@ -1979,6 +2787,11 @@ export class GameServer {
         return this.handleEnterWorld(conn, msg);
       case 'move':
         return this.handleMove(conn, msg);
+      case 'move_to':
+        return this.handleMoveTo(conn, msg);
+      case 'move_stop':
+        if (conn.entityId !== null) this.world.stopMoving(conn.entityId);
+        return;
       case 'say':
         return this.handleSay(conn, msg);
       case 'set_presentation':
@@ -2006,6 +2819,28 @@ export class GameServer {
       case 'cancel_work':
         this.interruptWork(conn, 'you stopped');
         return;
+      case 'equip':
+        return this.handleEquip(conn, msg);
+      case 'unequip':
+        return this.handleUnequip(conn, msg);
+      case 'poison_well':
+        return this.handlePoisonWell(conn);
+      case 'store_look':
+        return this.handleStoreLook(conn);
+      case 'store_deposit':
+        return this.handleStoreDeposit(conn, msg);
+      case 'store_withdraw':
+        return this.handleStoreWithdraw(conn, msg);
+      case 'store_spoil':
+        return this.handleStoreSpoil(conn);
+      case 'use_item':
+        return this.handleUseItem(conn, msg);
+      case 'drop_item':
+        return this.handleDropItem(conn, msg);
+      case 'set_hotbar':
+        return this.handleSetHotbar(conn, msg);
+      case 'advance':
+        return this.handleAdvance(conn, msg);
       case 'treat':
         return this.handleTreat(conn, msg);
       case 'respawn':
@@ -2038,18 +2873,282 @@ export class GameServer {
   // Combat, death, and treatment (D-104, D-203, D-205, D-206)
   // -------------------------------------------------------------------------
 
+  // -------------------------------------------------------------------------
+  // Levels and the effective sheet (D-538)
+  //
+  // Everything that gates on a skill, a feat or an ability reads `sheetFor`.
+  // Reading the stored creation build instead would make levelling real in
+  // some places and cosmetic in others — the kind of split a player finds
+  // long before a test does.
+  //
+  // Level is DERIVED from banked xp rather than stored, so the two can never
+  // disagree. In a round that matters twice over: round earnings sit in a pot
+  // and are banked only on survival (D-524), so a character does not level
+  // mid-round off work it is about to die and forfeit.
+  // -------------------------------------------------------------------------
+
+  /** The character's real numbers: creation allocation plus level grants. */
+  private sheetFor(conn: ConnState): EffectiveSheet {
+    const c = conn.character;
+    if (!c) return { level: 1, skills: {}, feats: [], spells: [], abilities: [] };
+    return effectiveSheet(
+      c.classId ? this.content.classes.get(c.classId) : undefined,
+      { xp: c.xp },
+      { skills: c.skills, feats: c.feats, spells: c.spells, advances: c.advances },
+    );
+  }
+
+  /** One skill, effective. */
+  private skill(conn: ConnState, id: string): number {
+    return this.sheetFor(conn).skills[id] ?? 0;
+  }
+
+  /**
+   * The total of every held feat with this effect. Feats declare their
+   * mechanics in content (D-538); the server knows the kinds and nothing
+   * else. A feat with no `effect` contributes nothing here and says so in
+   * its own file rather than implying a mechanic that was never wired.
+   */
+  private featEffect(conn: ConnState, kind: FeatEffectKind): number {
+    const held = new Set(this.sheetFor(conn).feats);
+    let total = 0;
+    for (const feat of this.content.feats) {
+      if (feat.effect && feat.effect.kind === kind && held.has(feat.id)) {
+        total += feat.effect.value;
+      }
+    }
+    return total;
+  }
+
+  /**
+   * How long work takes, all multipliers together. Hunger slows you (D-533);
+   * the trade skill and its feats speed you up. Capped at a 50% saving so a
+   * maximal specialist is meaningfully faster and never instant — an
+   * uninterruptible-because-instant harvest would delete the vulnerability
+   * that makes gathering a risk (D-529).
+   */
+  private workMultiplier(conn: ConnState, activity: 'harvest' | 'craft'): number {
+    const skillId = activity === 'craft' ? 'craft' : 'survival';
+    const effectKind: FeatEffectKind = activity === 'craft' ? 'craft_speed' : 'harvest_speed';
+    const saving = Math.min(
+      0.5,
+      this.skill(conn, skillId) / 200 + this.featEffect(conn, effectKind),
+    );
+    return this.hungerWorkMultiplier(conn) * (1 - saving);
+  }
+
+  /** Endurance and its feats stretch the interval between need steps. */
+  private needStepHours(conn: ConnState, need: 'hunger' | 'thirst', atFacility: boolean): number {
+    const kind: FeatEffectKind = need === 'hunger' ? 'hunger_rate' : 'thirst_rate';
+    const stretch = 1 + this.skill(conn, 'endurance') / 200 + this.featEffect(conn, kind);
+    return stepHoursFor(need, atFacility) * stretch;
+  }
+
+  // -------------------------------------------------------------------------
+  // Attributes, gear and the numbers they produce (D-546, D-547)
+  //
+  // Everything derived is computed on READ from attributes plus the worn set.
+  // Nothing is cached on the character and nothing is stored: a stored max-hp
+  // and a stored vigor are two facts that can disagree, and the one that
+  // disagrees is always the one the player is looking at. Level already works
+  // this way (D-538) for the same reason.
+  //
+  // The worn set is cached per connection because the alternative is a
+  // database read on every swing. It is refreshed on every path that can
+  // change what somebody is holding — equip, unequip, loot, give, strip,
+  // death — and `refreshLoadout` is the ONLY writer.
+  // -------------------------------------------------------------------------
+
+  /** Creation allocation plus every level-up point placed (D-546). */
+  private attributesOf(conn: ConnState): AttributeSet {
+    return totalAttributes(conn.character?.attributes, conn.character?.advances?.attributes);
+  }
+
+  /** What the worn set contributes right now. */
+  private loadoutOf(conn: ConnState): LoadoutTotals {
+    return conn.loadout ?? { armour: 0, damage: 0, mana: 0, weight: 0, range: 1 };
+  }
+
+  /**
+   * Re-reads what this character is wearing and recomputes the ceilings it
+   * moves. Called after anything that can change the worn set.
+   *
+   * Current hp and mana are CLAMPED rather than scaled: taking off a helmet
+   * that was carrying no health is not an injury, but a mana staff that
+   * leaves has to take its reserve with it or removing and re-equipping it
+   * would be a refill.
+   */
+  private async refreshLoadout(conn: ConnState): Promise<void> {
+    if (!conn.character) return;
+    const items = await this.store.getItemsByCharacter(conn.character.id);
+    const worn = this.wornOf(items);
+    // Set the silhouette HERE as well as in sendInventory (D-554): entering
+    // the world grants the kit and then builds a snapshot, and without this
+    // that first snapshot showed everybody wearing nothing.
+    this.publishWorn(conn, lookOf(worn));
+    conn.loadout = loadoutTotals(worn);
+    conn.carried = items.reduce(
+      (sum, i) => sum + (this.content.itemTemplates.get(i.templateId)?.equip?.weight ?? 0) * i.qty,
+      0,
+    );
+    this.applyDerivedCeilings(conn);
+  }
+
+  /** The worn subset of an item list, resolved against content. */
+  private wornOf(items: readonly ItemRecord[]): EquippedItem[] {
+    const worn: EquippedItem[] = [];
+    const seen = new Set<string>();
+    for (const item of items) {
+      if (!item.equippedSlot) continue;
+      const template = this.content.itemTemplates.get(item.templateId);
+      const stats = template?.equip;
+      if (!stats) continue;
+      // A two-hander fills two slots but is ONE item; counting it twice would
+      // double its armour and its weight.
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      // The garment rides along so the silhouette can carry it (D-571). An
+      // item with no garment is not an error — a sword has an `art` asset
+      // instead, and a ring has neither.
+      //
+      // ⚠ And the STANCE rides along with the same justification (D-578). It
+      // is resolved HERE, against loaded content, rather than sent as an asset
+      // id for the client to look up: the client would need the whole worn-item
+      // catalogue to answer it, and an id it could not resolve would silently
+      // become "unarmed" — a man swinging a greatsword like his fists.
+      worn.push({
+        slot: item.equippedSlot,
+        stats,
+        garment: template?.garment,
+        stance: template ? this.stanceOf(template) : undefined,
+      });
+    }
+    return worn;
+  }
+
+  /**
+   * Recomputes max hp and max mana from attributes, gear and thirst, and
+   * clamps the current values under them. The thirst fraction is applied
+   * LAST, so drying out costs a fraction of the real ceiling rather than a
+   * fraction of a stale one.
+   */
+  private applyDerivedCeilings(conn: ConnState): void {
+    if (!conn.vitals) return;
+    const attrs = this.attributesOf(conn);
+    const full = maxHpFor(attrs);
+    conn.character!.maxHp = full;
+    conn.vitals.maxHp = Math.max(1, Math.round(full * THIRST_MAX_HP_FRACTION[conn.needs.thirst]));
+    conn.vitals.hp = Math.max(Math.min(conn.vitals.hp, conn.vitals.maxHp), Math.min(1, conn.vitals.hp));
+    conn.vitals.maxMana = maxManaFor(attrs) + this.loadoutOf(conn).mana;
+    conn.vitals.mana = Math.min(conn.vitals.mana, conn.vitals.maxMana);
+  }
+
+  /**
+   * Swings in a four-second round (D-550). One for everybody, plus whatever
+   * `extra_attack` feats the character holds — which are `minLevel`-gated, so
+   * they arrive through a class's progression rather than being picked at
+   * creation.
+   *
+   * ⚠ This is where a level buys raw power more directly than anywhere else
+   * in the game: a second attack is double output. It is confined to the feat
+   * enum precisely so CI can see every source of it (D-538's argument applied
+   * to a mechanic D-538 would not have allowed).
+   */
+  private attacksPerRound(conn: ConnState): number {
+    return Math.max(
+      1,
+      BASE_ATTACKS_PER_ROUND + Math.floor(this.featEffect(conn, 'extra_attack')),
+    );
+  }
+
+  /** What this character can shift: base, strength, athletics, feats. */
+  private carryCapacity(conn: ConnState): number {
+    return (
+      CARRY_BASE_CAPACITY +
+      carryBonusFor(this.attributesOf(conn)) +
+      this.skill(conn, 'athletics') +
+      this.featEffect(conn, 'carry')
+    );
+  }
+
+  /**
+   * Mana returns out of combat only. In combat it does not, and that is the
+   * whole shape of the resource: a caster who can outlast a fight by standing
+   * in it is not making a decision about when to spend.
+   */
+  private regenMana(): void {
+    for (const conn of this.conns) {
+      if (!conn.vitals || !conn.character) continue;
+      if (conn.vitals.mana >= conn.vitals.maxMana) continue;
+      const entity = conn.entityId === null ? null : this.world.getEntity(conn.entityId);
+      if (entity?.combat) continue;
+      const perTick = manaRegenPerSecond(this.attributesOf(conn)) / TICK_RATE;
+      const before = Math.round(conn.vitals.mana);
+      conn.vitals.mana = Math.min(conn.vitals.maxMana, conn.vitals.mana + perTick);
+      // Only tell them when the number they can SEE has moved. A status
+      // message ten times a second per player is a lot of wire for a bar
+      // that has not visibly changed.
+      if (Math.round(conn.vitals.mana) !== before) this.sendStatus(conn);
+    }
+  }
+
+  /**
+   * Spends from the reserve, or refuses. Returns false without spending when
+   * there is not enough — callers must treat that as the whole failure and
+   * not do the thing anyway.
+   */
+  private spendMana(conn: ConnState, cost: number): boolean {
+    if (!conn.vitals) return false;
+    if (cost <= 0) return true;
+    if (conn.vitals.mana < cost) return false;
+    conn.vitals.mana -= cost;
+    return true;
+  }
+
   private sendStatus(conn: ConnState): void {
     if (!conn.vitals || conn.entityId === null) return;
     const entity = this.world.getEntity(conn.entityId);
+    const sheet = this.sheetFor(conn);
+    const cls = conn.character?.classId
+      ? this.content.classes.get(conn.character.classId)
+      : undefined;
+    const loadout = this.loadoutOf(conn);
     this.send(conn, {
       t: 'status',
       hp: conn.vitals.hp,
       maxHp: conn.vitals.maxHp,
+      mana: Math.round(conn.vitals.mana),
+      maxMana: conn.vitals.maxMana,
+      attributes: this.attributesOf(conn),
+      loadout: {
+        armour: loadout.armour,
+        damage: loadout.damage,
+        weight: conn.carried,
+        capacity: this.carryCapacity(conn),
+      },
+      attacksPerRound: this.attacksPerRound(conn),
+      reach: Math.max(ATTACK_RANGE, this.loadoutOf(conn).range),
+      roundTicks: this.combatRoundTicks,
+      hotbar: conn.character?.hotbar ?? null,
+      unspent: advancementUnspent(
+        sheet.level,
+        cls?.spellcasting ?? false,
+        conn.character?.advances ?? null,
+      ),
+      advances: conn.character?.advances ?? emptyAdvances(),
+      classId: conn.character?.classId ?? null,
+      raceId: conn.character?.raceId ?? null,
       xp: conn.vitals.xp,
       deathDebt: conn.vitals.deathDebt,
       ghost: entity?.ghost ?? false,
       hunger: conn.needs.hunger,
       thirst: conn.needs.thirst,
+      level: sheet.level,
+      xpForNextLevel: xpForNextLevel(conn.character?.xp ?? 0),
+      skills: sheet.skills,
+      feats: sheet.feats,
+      spells: sheet.spells,
+      abilities: sheet.abilities,
       injuries: conn.injuries.map((i) => ({
         id: i.id,
         location: i.location,
@@ -2131,6 +3230,217 @@ export class GameServer {
     });
   }
 
+  // -------------------------------------------------------------------------
+  // The paperdoll (D-547) and the level-up screen (D-546)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Wear or wield one item. The server picks the slot when the client does
+   * not name one, and refuses when the named slot is wrong for the item —
+   * the client's drag targets are a convenience, never the authority (D-102).
+   */
+  /**
+   * The animation stance a weapon puts you in, from the ASSET (D-566).
+   *
+   * ⚠ Looked up rather than repeated on the item, because the asset is where
+   * the decision was made — once, for 163 weapons — and two places to say one
+   * thing eventually disagree. An item with no art, or art naming an asset
+   * nobody has ingested, simply has no stance and no weapon gate applies.
+   *
+   * ⚠ Two readers now: the class gate (D-566) and the silhouette the renderer
+   * animates from (D-578). Silent rather than defaulted is what makes the
+   * second one safe — `CharacterItem.stance` defaults to `one-handed`, which
+   * is right for a thing somebody filed as a weapon and wrong for an item with
+   * no art at all, and defaulting here would put a character holding bread
+   * into a swordsman's guard.
+   */
+  private stanceOf(template: ItemTemplate): Stance | undefined {
+    if (!template.art) return undefined;
+    return this.content.wornAssets.get(`${template.art.pack}/${template.art.asset}`)?.stance;
+  }
+
+  /** Why this character's calling may not use this item, or null. */
+  private gateProblem(conn: ConnState, template: ItemTemplate): string | null {
+    const cls = conn.character?.classId
+      ? this.content.classes.get(conn.character.classId)
+      : undefined;
+    // ⚠ No class, no gate. A character made before classes existed, or one
+    // whose calling has been deleted from content, keeps playing.
+    if (!cls) return null;
+    return itemGateProblem(cls, {
+      id: template.id,
+      material: template.equip?.material,
+      stance: this.stanceOf(template),
+    });
+  }
+
+  private callingName(conn: ConnState): string {
+    const cls = conn.character?.classId
+      ? this.content.classes.get(conn.character.classId)
+      : undefined;
+    return cls?.name ?? 'character';
+  }
+
+  private async handleEquip(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'equip' }>,
+  ): Promise<void> {
+    if (!conn.character || conn.entityId === null) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const item = await this.store.getItem(msg.itemId);
+    if (!item || item.ownerCharacterId !== conn.character.id) {
+      return this.fail(conn, 'no_such_item', 'you are not holding that');
+    }
+    const template = this.content.itemTemplates.get(item.templateId);
+    const stats = template?.equip;
+    if (!stats) return this.fail(conn, 'not_equippable', 'that is not something you can wear');
+
+    const target = msg.slot ?? slotsOccupied(stats.slot)[0]!;
+    if (!slotsOccupied(stats.slot, target).includes(target)) {
+      return this.fail(conn, 'wrong_slot', `${template!.name} does not go there`);
+    }
+    // What this calling is allowed to use (D-566). ACCESS, never power: being
+    // refused plate removes an option, it does not make anybody else stronger.
+    const barred = this.gateProblem(conn, template!);
+    if (barred) {
+      return this.fail(conn, 'not_for_your_calling', `a ${this.callingName(conn)} ${barred}`);
+    }
+    // A two-hander owns BOTH hands. Clearing the off hand first is what stops
+    // a greatsword and a shield being worn at once — the contradiction has to
+    // be owned somewhere, and it is owned here.
+    const filling = isTwoHanded(stats.slot) ? ['main-hand', 'off-hand'] as EquipSlot[] : [target];
+    const held = await this.store.getItemsByCharacter(conn.character.id);
+    for (const other of held) {
+      if (!other.equippedSlot || other.id === item.id) continue;
+      const otherStats = this.content.itemTemplates.get(other.templateId)?.equip;
+      const otherFills = otherStats && isTwoHanded(otherStats.slot)
+        ? (['main-hand', 'off-hand'] as EquipSlot[])
+        : [other.equippedSlot];
+      // Something already in a slot we need comes off, including the
+      // two-hander whose off hand we are about to claim for a shield.
+      if (otherFills.some((sl) => filling.includes(sl))) {
+        await this.store.setItemEquipped(other.id, conn.character.id, null);
+      }
+    }
+    if (!(await this.store.setItemEquipped(item.id, conn.character.id, filling[0]!))) {
+      return this.fail(conn, 'no_such_item', 'you are not holding that');
+    }
+    await this.store.appendEvent('item_equipped', {
+      characterId: conn.character.id,
+      itemId: item.id,
+      templateId: item.templateId,
+      slot: filling[0],
+    });
+    await this.sendInventory(conn);
+  }
+
+  private async handleUnequip(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'unequip' }>,
+  ): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    if (!(await this.store.setItemEquipped(msg.itemId, conn.character.id, null))) {
+      return this.fail(conn, 'no_such_item', 'you are not holding that');
+    }
+    await this.sendInventory(conn);
+  }
+
+  /**
+   * Spend a level (D-546). The submission is the WHOLE advancement record,
+   * re-validated from scratch against the character's current level — so a
+   * replayed message is harmless and a client that invents a budget is simply
+   * refused.
+   *
+   * `validateAdvances` is the same function the client renders its screen
+   * from, which is the point: one rule set, and the server holds it (D-102).
+   */
+  private async handleAdvance(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'advance' }>,
+  ): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    const level = levelForXp(conn.character.xp);
+    const advances: CharacterAdvances = {
+      attributes: { ...msg.advances.attributes },
+      skills: { ...msg.advances.skills },
+      feats: [...msg.advances.feats],
+      spells: [...msg.advances.spells],
+    };
+    const problems = validateAdvances(
+      {
+        classes: [...this.content.classes.values()],
+        skills: this.content.skills,
+        feats: this.content.feats,
+        spells: this.content.spells,
+      },
+      conn.character.classId ?? undefined,
+      level,
+      { skills: conn.character.skills },
+      advances,
+    );
+    if (problems.length > 0) {
+      return this.fail(conn, 'illegal_advance', problems.join('; '));
+    }
+    conn.character.advances = advances;
+    await this.store.saveCharacterAdvances(conn.character.id, advances);
+    await this.store.appendEvent('character_advanced', {
+      characterId: conn.character.id,
+      level,
+      advances,
+    });
+    // Attributes moved, so the ceilings did. Refresh before the status goes
+    // out or the player sees the new vigor beside the old maximum.
+    await this.refreshLoadout(conn);
+    this.sendStatus(conn);
+  }
+
+  /**
+   * The starting kit (D-547). Everyone walks into a round able to fight, be
+   * seen to be somebody, eat once and bind one wound — and no more, because
+   * anything richer makes the farm and the workshop optional.
+   *
+   * Granted at most ONCE per character per round, tracked rather than
+   * inferred from an empty pack: "they hold nothing" is also true of somebody
+   * who has just been looted, and refilling a robbed player would delete the
+   * whole point of robbing them.
+   */
+  private async grantStartingKit(conn: ConnState): Promise<void> {
+    if (!conn.character) return;
+    // ⚠ Asked of the CHARACTER RECORD, not of a Set in this process (D-547).
+    // The Set emptied on every restart, so the next login was handed a second
+    // kit — item duplication, forbidden by invariant 2 and D-114, and silent
+    // until two kits fought over one equipment slot and the login crashed.
+    // The in-memory Set is kept as a same-process short circuit only.
+    if (this.kittedThisRound.has(conn.character.id)) return;
+    if (conn.character.kitGranted) {
+      this.kittedThisRound.add(conn.character.id);
+      return;
+    }
+    const cls = conn.character.classId
+      ? this.content.classes.get(conn.character.classId)
+      : undefined;
+    if (!cls || cls.startingKit.length === 0) return;
+    this.kittedThisRound.add(conn.character.id);
+    conn.character.kitGranted = true;
+    await this.store.setKitGranted(conn.character.id, true);
+    for (const entry of cls.startingKit) {
+      if (!this.content.itemTemplates.has(entry.item)) {
+        this.log(`starting kit: ${cls.id} names unknown item '${entry.item}'`);
+        continue;
+      }
+      const item = await this.store.grantItem(conn.character.id, entry.item, entry.qty);
+      if (entry.equip) {
+        await this.store.setItemEquipped(item.id, conn.character.id, entry.equip);
+      }
+    }
+    await this.store.appendEvent('starting_kit', {
+      characterId: conn.character.id,
+      classId: cls.id,
+      items: cls.startingKit.length,
+    });
+  }
+
   private async handleAttack(
     conn: ConnState,
     msg: Extract<ClientMessage, { t: 'attack' }>,
@@ -2149,8 +3459,32 @@ export class GameServer {
       // Lying corpses and dropped gear are not combatants. Zombies are.
       return this.fail(conn, 'bad_target', 'it is already dead');
     }
-    if (chebyshev(self.pos, target.pos) > ATTACK_RANGE) {
+    // Reach comes from the WEAPON (D-550), not from a constant. Bare hands
+    // and a sword are one tile; a bow is six.
+    const reach = Math.max(ATTACK_RANGE, this.loadoutOf(conn).range);
+    if (distance(self.pos, target.pos) > reach) {
       return this.fail(conn, 'not_adjacent', 'out of reach');
+    }
+    // Anything past arm's length needs to be SEEN. A bow that shoots through
+    // the tavern wall would put a weapon outside the line-of-sight model the
+    // whole witness system rests on (D-217).
+    if (reach > ATTACK_RANGE &&
+        !hasLineOfSight(this.world.getAreaDef(conn.areaId), self.pos, target.pos)) {
+      return this.fail(conn, 'bad_target', 'nothing clear to aim at');
+    }
+    // The combat ROUND (D-550). Two gates, and both are needed: the budget
+    // caps how many swings a round is worth, and `attackReadyAt` spaces them
+    // inside it — without the spacing, two attacks could land on consecutive
+    // ticks across a round boundary, which is the twitch combat D-104 ruled
+    // out.
+    const round = combatRoundOf(this.world.tick, this.combatRoundTicks);
+    if (self.attackRound !== round) {
+      self.attackRound = round;
+      self.attacksThisRound = 0;
+    }
+    const perRound = this.attacksPerRound(conn);
+    if (self.attacksThisRound >= perRound) {
+      return this.fail(conn, 'on_cooldown', 'you have swung all you can this round');
     }
     if (this.world.tick < self.attackReadyAt) {
       return this.fail(conn, 'on_cooldown', 'not ready');
@@ -2181,8 +3515,15 @@ export class GameServer {
       }
     }
 
-    self.attackReadyAt = this.world.tick + this.attackCooldownTicks;
-    const damage = this.contestRng.int(2, 6);
+    self.attacksThisRound += 1;
+    self.attackReadyAt = this.world.tick + attackSpacingTicks(perRound, this.combatRoundTicks);
+    // The blow (D-546, D-547). The 2-6 roll is unchanged and still the bulk
+    // of it: attributes and gear MOVE the number, they do not replace it, so
+    // a well-equipped veteran still loses rolls to a desperate first-timer.
+    const swing =
+      this.contestRng.int(2, 6) +
+      damageBonusFor(this.attributesOf(conn)) +
+      this.loadoutOf(conn).damage;
     // The swing is chosen here, not on each client: a cosmetic disagreement
     // would still be a disagreement about the thing players are watching.
     const variant = this.contestRng.int(0, ATTACK_VARIANTS - 1);
@@ -2194,10 +3535,32 @@ export class GameServer {
       (c) => c.entityId === target.id,
     );
     if (struck) this.interruptWork(struck, 'you were struck');
+    // The DEFENDER's half (D-546, D-547), resolved before the blow is
+    // broadcast so that every observer is shown the damage that was actually
+    // dealt. Sending the raw swing and reducing it afterwards would put a
+    // number on screen that never happened, which is the sort of harmless-
+    // looking desync players learn to read as "armour does nothing".
+    //
+    // Roamers and NPCs have neither gear nor dexterity: they take the swing.
+    let damage = swing;
+    if (struck) {
+      const glanced = this.contestRng.float() < glanceChanceFor(this.attributesOf(struck));
+      // A glance HALVES rather than erases — a whiff reads as the game
+      // ignoring your input, and a run of them would decide a fight by luck.
+      if (glanced) damage = Math.ceil(damage / 2);
+      damage -= this.loadoutOf(struck).armour;
+    }
+    // Armour reduces and can never erase. An unkillable player in a round
+    // with no respawn is not a tank, it is a stalemate the antagonist has no
+    // answer to (D-547).
+    damage = Math.max(MIN_DAMAGE, damage);
     // The blow is heard, not the intent to strike (D-531). This belongs to
     // the SWING, not to the hostility declaration — a declaration is speech
     // and already travels through the speech pipeline.
     this.emitCombatNoise(conn.areaId, self.pos, [self.id, target.id]);
+    // The watch sees what happens in front of it (D-552). Striking a guard
+    // counts too, which is what stops "kill the witness" being free.
+    this.witnessCrime(conn.areaId, self, target.characterId === null ? 'assault_npc' : 'assault');
     this.broadcastPlane(conn.areaId, false, {
       t: 'delta',
       tick: this.world.tick,
@@ -2229,10 +3592,20 @@ export class GameServer {
         // definition (D-537): the flat 10 xp made floor three worth exactly
         // as much as a rabbit, which is not a gradient.
         const kind = this.roamers.get(targetId);
+        const deadSeed = target.appearanceSeed;
+        const deadFacing = target.facing;
         this.roamers.delete(targetId);
         this.world.despawn(targetId);
         this.gainXp(conn, kind?.xp ?? 10);
-        if (kind) await this.grantLoot(conn, kind);
+        // IT LEAVES A BODY (D-554). Everything used to simply cease at the
+        // moment of the killing blow, which read as the swing having deleted
+        // it; and its loot arrived in the killer's pack from nowhere, so
+        // there was never anything on the ground to go and take. Now the
+        // body lies where it fell, holding what it carried, and looting is a
+        // thing you walk to and do.
+        if (kind) {
+          await this.spawnNpcCorpse(conn.areaId, lastPos, deadFacing, deadSeed, kind);
+        }
         this.sendStatus(conn);
         const zombieInfo = this.zombies.get(targetId);
         if (zombieInfo) {
@@ -2290,7 +3663,13 @@ export class GameServer {
    */
   private async createCorpseObject(
     conn: ConnState,
-    src: { pos: { x: number; y: number }; facing: Direction; presentation: WorldEntity['presentation']; appearanceSeed: number },
+    src: {
+      pos: { x: number; y: number };
+      facing: Direction;
+      presentation: WorldEntity['presentation'];
+      appearanceSeed: number;
+      appearance: AppearanceOverride | null;
+    },
   ): Promise<WorldEntity> {
     const zone = this.world.getAreaDef(conn.areaId!).zone;
     const corpseRec = await this.store.createCorpse({
@@ -2311,10 +3690,14 @@ export class GameServer {
       objectKind: 'corpse',
       corpseOfCharacterId: conn.character!.id,
       appearanceSeed: src.appearanceSeed,
+      appearance: src.appearance,
       pos: src.pos,
       facing: src.facing,
     });
     corpse.presentation = src.presentation; // died hooded, lies hooded
+    // A settled-zone corpse is a shape, not a container (D-511) — and it says
+    // so, which saves the walk rather than hiding the disappointment.
+    corpse.lootable = gearMoved > 0;
     this.corpsesByEntity.set(corpse.id, {
       corpseId: corpseRec.id,
       characterId: conn.character!.id,
@@ -2376,6 +3759,7 @@ export class GameServer {
       facing: entity.facing,
       presentation: entity.presentation,
       appearanceSeed: entity.appearanceSeed,
+      appearance: entity.appearance,
     });
     // The living watch them fall and see them no more.
     this.broadcastPlane(conn.areaId, false, {
@@ -2474,7 +3858,7 @@ export class GameServer {
         this.world.getEntityAreaId(target.id) !== conn.areaId) {
       return this.fail(conn, 'bad_target', 'nobody there to save');
     }
-    if (chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
+    if (distance(self.pos, target.pos) > INTERACT_RANGE) {
       return this.fail(conn, 'not_adjacent', 'get to them first');
     }
     const targetConn = [...(this.connsByArea.get(conn.areaId) ?? [])].find(
@@ -2521,6 +3905,7 @@ export class GameServer {
       facing: entity.facing,
       presentation: entity.presentation,
       appearanceSeed: entity.appearanceSeed,
+      appearance: entity.appearance,
     });
     // The living watch the end. The entity leaves the world for good.
     this.broadcastPlane(areaId, false, {
@@ -2603,6 +3988,8 @@ export class GameServer {
       characterId: conn.character.id,
       name: conn.character.name,
       appearanceSeed: conn.character.appearanceSeed,
+      appearance: conn.character.appearance,
+      look: conn.character.look,
       pos: { x: spawn.x, y: spawn.y },
     });
     conn.entityId = revived.id;
@@ -2701,6 +4088,18 @@ export class GameServer {
 
   /** Treatment (D-205): minor wounds you may bind yourself; a major wound
    * needs another pair of hands. Bandages are consumed by the treater. */
+  /**
+   * Tells the area that something happened at an entity (D-541). Public acts
+   * only, and never who or why — see the schema.
+   */
+  private broadcastEffect(areaId: string, entityId: number, effect: 'heal' | 'rite'): void {
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_effect', id: entityId, effect }],
+    });
+  }
+
   private async handleTreat(
     conn: ConnState,
     msg: Extract<ClientMessage, { t: 'treat' }>,
@@ -2713,7 +4112,7 @@ export class GameServer {
     const target = this.world.getEntity(msg.targetEntityId);
     if (!target || target.ghost || target.characterId === null ||
         this.world.getEntityAreaId(target.id) !== conn.areaId ||
-        chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
+        distance(self.pos, target.pos) > INTERACT_RANGE) {
       return this.fail(conn, 'bad_target', 'nobody there to tend');
     }
     const targetConn =
@@ -2733,13 +4132,40 @@ export class GameServer {
     if (!hasBandage) return this.fail(conn, 'no_such_item', 'you need a bandage');
     await this.store.removeInjury(injury.id);
     targetConn.injuries = targetConn.injuries.filter((i) => i.id !== injury.id);
+    // Treatment now MENDS as well as closes (D-538). Medicine was previously
+    // a key that opened a door and nothing more; a physician whose care is
+    // worth queuing for is what makes D-205's dependency social rather than
+    // procedural. Healing is scaled by the treater and capped by the
+    // patient's own maximum, so it can never manufacture health.
+    const healed = TREAT_BASE_HEAL
+      + Math.floor(this.skill(conn, 'medicine') / 20)
+      + this.featEffect(conn, 'treat_bonus');
+    if (targetConn.vitals && healed > 0) {
+      const before = targetConn.vitals.hp;
+      targetConn.vitals.hp = Math.min(targetConn.vitals.maxHp, before + healed);
+      if (targetConn.vitals.hp > before && targetConn !== conn) {
+        this.send(targetConn, {
+          t: 'narrate',
+          text: 'The wound is packed and bound. It is a great deal better than it was.',
+        });
+      }
+    }
+    // Healing is a service, so it pays like one (D-522: craft, farm, HEAL).
+    // Self-treatment does not — or a physician would farm their own scrapes.
+    if (targetConn !== conn) {
+      this.gainXp(conn, injury.severity === 'major' ? 8 : 4);
+      this.countDeed(conn, 2);
+    }
+    this.broadcastEffect(conn.areaId, target.id, 'heal');
     this.sendStatus(targetConn);
+    this.sendStatus(conn);
     await this.sendInventory(conn);
     await this.store.appendEvent('treated', {
       treater: conn.character.id,
       patient: targetConn.character!.id,
       injuryId: injury.id,
       severity: injury.severity,
+      healed,
     });
   }
 
@@ -2751,14 +4177,21 @@ export class GameServer {
 
   /** Class-gated abilities (D-208/D-511). No class, no ability. */
   private hasAbility(conn: ConnState, ability: ClassAbility): boolean {
-    const classId = conn.character?.classId;
-    if (!classId) return false;
-    return this.content.classes.get(classId)?.abilities.includes(ability) ?? false;
+    if (!conn.character?.classId) return false;
+    return this.sheetFor(conn).abilities.includes(ability);
   }
 
   /** Concurrent zombies scale with necromancy skill, hard-capped (D-511). */
-  private zombieCap(necromancy: number): number {
-    return Math.min(MAX_ZOMBIES_PER_NECROMANCER, 1 + Math.floor(necromancy / 40));
+  private zombieCap(conn: ConnState): number {
+    // Effective necromancy (creation + levels) and any feat that widens it,
+    // still under D-511's hard ceiling of three. The cap is the ratified
+    // number; what levels change is how far up it you can reach.
+    const necromancy = Math.max(conn.character?.necromancy ?? 0, this.skill(conn, 'necromancy'));
+    const fromSkill = 1 + Math.floor(necromancy / 40);
+    return Math.min(
+      MAX_ZOMBIES_PER_NECROMANCER,
+      fromSkill + this.featEffect(conn, 'zombie_cap'),
+    );
   }
 
   private findConnByCharacter(characterId: string): ConnState | null {
@@ -2772,8 +4205,10 @@ export class GameServer {
    * survive a restart — an 'animated' row wakes as a lying corpse again. */
   private async restoreCorpses(): Promise<void> {
     for (const rec of await this.store.listActiveCorpses()) {
-      const ch = await this.store.getCharacter(rec.characterId);
-      if (!ch) continue;
+      // A characterless row is a roamer's body or a heap (D-554); it has no
+      // name and no face to restore, so it comes back as anonymous remains.
+      const ch = rec.characterId === null ? null : await this.store.getCharacter(rec.characterId);
+      if (rec.characterId !== null && !ch) continue;
       let { areaId, x, y } = rec;
       if (!this.world.hasArea(areaId)) {
         // The area is gone (a temp area, most likely): wash up at the town spawn.
@@ -2789,15 +4224,17 @@ export class GameServer {
       );
       const { entity } = this.world.spawn(areaId, {
         characterId: null,
-        name: `the ${state === 'ground' ? 'remains' : 'corpse'} of ${ch.name}`,
+        name: ch
+          ? `the ${state === 'ground' ? 'remains' : 'corpse'} of ${ch.name}`
+          : state === 'ground' ? 'a heap of goods' : 'a dead thing',
         objectKind: state === 'ground' ? 'pile' : 'corpse',
-        corpseOfCharacterId: ch.id,
-        appearanceSeed: ch.appearanceSeed,
+        ...(ch ? { corpseOfCharacterId: ch.id } : {}),
+        appearanceSeed: ch?.appearanceSeed ?? 1,
         pos: { x, y },
       });
       this.corpsesByEntity.set(entity.id, {
         corpseId: rec.id,
-        characterId: ch.id,
+        characterId: ch?.id ?? null,
         state,
         expiresAtTick: this.world.tick + ticksLeft,
       });
@@ -2862,15 +4299,89 @@ export class GameServer {
     });
   }
 
+  /**
+   * A dead roamer's body, holding what it was carrying (D-554).
+   *
+   * ⚠ This SUPERSEDES D-537's "loot goes straight to the killer, never to the
+   * floor". That ruling was about a reward evaporating — a pile on a dungeon
+   * floor nobody can re-enter after dusk. A body you loot where it dropped
+   * does not evaporate: you are standing on it. What the change buys is that
+   * killing something leaves evidence in the world, which every other death
+   * in this game already does.
+   *
+   * The corpse carries NO character (D-554), so the rites refuse it.
+   */
+  private async spawnNpcCorpse(
+    areaId: string,
+    pos: { x: number; y: number },
+    facing: Direction,
+    appearanceSeed: number,
+    kind: RoamerDef,
+  ): Promise<void> {
+    const rec = await this.store.createCorpse({
+      characterId: null,
+      areaId,
+      x: pos.x,
+      y: pos.y,
+      state: 'corpse',
+      ticksLeft: this.corpseDecayTicks,
+    });
+    // Roll the loot ONTO the body rather than into a pack. Same table, same
+    // chances (D-537); the only change is where it lands.
+    let carried = 0;
+    for (const drop of kind.loot) {
+      if (this.lootRng.float() > drop.chance) continue;
+      await this.store.grantItemToCorpse(rec.id, drop.item, drop.quantity);
+      carried++;
+    }
+    const { entity: corpse } = this.world.spawn(areaId, {
+      characterId: null,
+      name: `the body of ${kind.descriptor}`,
+      npcDescriptor: `the body of ${kind.descriptor}`,
+      objectKind: 'corpse',
+      appearanceSeed,
+      pos,
+      facing,
+    });
+    corpse.lootable = carried > 0;
+    this.corpsesByEntity.set(corpse.id, {
+      corpseId: rec.id,
+      characterId: null,
+      state: 'corpse',
+      expiresAtTick: this.world.tick + this.corpseDecayTicks,
+    });
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{
+        type: 'entity_entered',
+        entity: toWireEntity(corpse, `the body of ${kind.descriptor}`),
+      }],
+    });
+    await this.store.appendEvent('npc_corpse_created', {
+      corpseId: rec.id,
+      kind: kind.id,
+      areaId,
+      x: pos.x,
+      y: pos.y,
+      carried,
+    });
+  }
+
   /** Gear hits the ground as a lootable pile with its own clock. */
   private async spawnPile(info: CorpseRuntime, areaId: string, pos: { x: number; y: number }): Promise<void> {
-    const dead = await this.store.getCharacter(info.characterId);
+    const dead = info.characterId === null
+      ? null
+      : await this.store.getCharacter(info.characterId);
     const { entity: pile } = this.world.spawn(areaId, {
       characterId: null,
-      name: `the remains of ${dead?.name ?? 'someone'}`,
+      name: info.characterId === null
+        ? 'a heap of goods'
+        : `the remains of ${dead?.name ?? 'someone'}`,
       objectKind: 'pile',
-      corpseOfCharacterId: info.characterId,
+      ...(info.characterId === null ? {} : { corpseOfCharacterId: info.characterId }),
       appearanceSeed: dead?.appearanceSeed ?? 0,
+      appearance: dead?.appearance ?? null,
       pos,
     });
     this.corpsesByEntity.set(pile.id, {
@@ -2928,7 +4439,7 @@ export class GameServer {
       );
       if (!owner) continue;
       const ownerEntity = this.world.getEntity(owner.entityId!)!;
-      if (chebyshev(zombie.pos, ownerEntity.pos) <= 1) continue;
+      if (distance(zombie.pos, ownerEntity.pos) <= 1) continue;
       const dx = Math.sign(ownerEntity.pos.x - zombie.pos.x);
       const dy = Math.sign(ownerEntity.pos.y - zombie.pos.y);
       this.world.setMoveIntent(zombieId, directionFrom(dx, dy));
@@ -2988,10 +4499,19 @@ export class GameServer {
     if (!info || !target || this.world.getEntityAreaId(target.id) !== conn.areaId) {
       return this.fail(conn, 'bad_target', 'nothing there to loot');
     }
-    if (chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
+    if (distance(self.pos, target.pos) > INTERACT_RANGE) {
       return this.fail(conn, 'not_adjacent', 'too far away');
     }
     const moved = await this.store.moveItemsFromCorpse(info.corpseId, conn.character.id);
+    if (moved > 0) {
+      // Emptied: stop advertising a pack that is no longer there.
+      target.lootable = false;
+      this.broadcastPlane(conn.areaId, false, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_lootable', id: target.id, lootable: false }],
+      });
+    }
     if (moved === 0) {
       // Settled-zone corpses hold nothing (D-511) — and piles empty out.
       return this.fail(conn, 'no_such_item', 'nothing to take');
@@ -3038,8 +4558,14 @@ export class GameServer {
         this.world.getEntityAreaId(corpse.id) !== conn.areaId) {
       return this.fail(conn, 'bad_target', 'that is no corpse you can question');
     }
-    if (chebyshev(self.pos, corpse.pos) > INTERACT_RANGE) {
+    if (distance(self.pos, corpse.pos) > INTERACT_RANGE) {
       return this.fail(conn, 'not_adjacent', 'kneel by the body first');
+    }
+    // Nothing that was never a person has anything to say (D-554). A dead
+    // dog is a dead dog, and the refusal has to be distinct from 'beyond
+    // reach' — one means "not a spirit", the other "a spirit you cannot get".
+    if (info.characterId === null) {
+      return this.fail(conn, 'bad_target', 'there was never a person in this');
     }
     const spirit = this.findConnByCharacter(info.characterId);
     const spiritEntity = spirit?.entityId !== null && spirit ? this.world.getEntity(spirit.entityId!) : null;
@@ -3055,9 +4581,17 @@ export class GameServer {
     }
     // Drawn back: the ghost is pulled to its body, still on the other side.
     if (spirit.areaId !== conn.areaId ||
-        chebyshev(spiritEntity.pos, corpse.pos) > CHANNEL_RANGE.say) {
+        distance(spiritEntity.pos, corpse.pos) > CHANNEL_RANGE.say) {
       await this.transferToArea(spirit, conn.areaId, corpse.pos.x, corpse.pos.y);
     }
+    // The rite is paid for (D-546). Charged AFTER every other check, so a
+    // refused séance never costs anything — a mechanic that takes your mana
+    // and then tells you the target was wrong is a mechanic players stop
+    // using.
+    if (!this.spendMana(conn, SEANCE_MANA_COST)) {
+      return this.fail(conn, 'no_mana', 'you have nothing left to reach with');
+    }
+    this.sendStatus(conn);
     const seance: Seance = {
       caster: conn,
       spirit,
@@ -3067,6 +4601,7 @@ export class GameServer {
     };
     this.seancesByCaster.set(conn, seance);
     this.seancesBySpirit.set(spirit, seance);
+    this.broadcastEffect(conn.areaId, corpse.id, 'rite');
     this.send(conn, { t: 'seance', role: 'caster', active: true, questionsLeft: seance.questionsLeft });
     this.send(spirit, { t: 'seance', role: 'spirit', active: true, questionsLeft: seance.questionsLeft });
     this.send(spirit, {
@@ -3114,15 +4649,25 @@ export class GameServer {
         this.world.getEntityAreaId(corpse.id) !== conn.areaId) {
       return this.fail(conn, 'bad_target', 'that is nothing you can raise');
     }
-    if (chebyshev(self.pos, corpse.pos) > INTERACT_RANGE) {
+    if (distance(self.pos, corpse.pos) > INTERACT_RANGE) {
       return this.fail(conn, 'not_adjacent', 'kneel by the body first');
+    }
+    // The rite reaches for a person who was there (D-554). A roamer's body
+    // has nothing in it to call back, and the whole zombie apparatus — the
+    // owner riding along, the gear it wore — assumes a character behind it.
+    if (info.characterId === null) {
+      return this.fail(conn, 'bad_target', 'there was never a person in this');
     }
     const owned = [...this.zombies.values()].filter(
       (z) => z.ownerCharacterId === conn.character!.id,
     ).length;
-    if (owned >= this.zombieCap(conn.character.necromancy)) {
+    if (owned >= this.zombieCap(conn) ) {
       return this.fail(conn, 'limit_reached', 'you cannot hold another body upright');
     }
+    if (!this.spendMana(conn, ANIMATE_MANA_COST)) {
+      return this.fail(conn, 'no_mana', 'you have nothing left to reach with');
+    }
+    this.sendStatus(conn);
     // The ritual overrides any séance in progress on this body.
     for (const seance of [...this.seancesByCaster.values()]) {
       if (seance.corpseEntityId === corpse.id) this.endSeance(seance, 'the body was taken');
@@ -3138,15 +4683,18 @@ export class GameServer {
       characterId: null,
       name: corpse.name,
       objectKind: 'zombie',
-      corpseOfCharacterId: info.characterId,
+      corpseOfCharacterId: info.characterId ?? undefined,
       appearanceSeed: corpse.appearanceSeed,
+      appearance: corpse.appearance,
       pos,
       hp: 15,
+      hostile: true,
     });
     zombie.presentation = presentation;
+    this.broadcastEffect(conn.areaId, conn.entityId!, 'rite');
     this.zombies.set(zombie.id, {
       corpseId: info.corpseId,
-      characterId: info.characterId,
+      characterId: info.characterId!,
       ownerCharacterId: conn.character.id,
       expiresAtTick: this.world.tick + this.zombieDurationTicks,
     });
@@ -3164,7 +4712,7 @@ export class GameServer {
       });
     }
     // If the dead player is watching from the grey country, they feel it.
-    const deadConn = this.findConnByCharacter(info.characterId);
+    const deadConn = this.findConnByCharacter(info.characterId!);
     if (deadConn && deadConn.entityId !== null && this.world.getEntity(deadConn.entityId)?.ghost) {
       this.send(deadConn, {
         t: 'narrate',
@@ -3343,7 +4891,7 @@ export class GameServer {
     if (body.carriedBy !== null) {
       return this.fail(conn, 'bad_target', 'someone already has it');
     }
-    if (chebyshev(self.pos, body.pos) > INTERACT_RANGE) {
+    if (distance(self.pos, body.pos) > INTERACT_RANGE) {
       return this.fail(conn, 'not_adjacent', 'too far to reach');
     }
     // Already carrying something? A body takes both arms.
@@ -3352,8 +4900,10 @@ export class GameServer {
         return this.fail(conn, 'bad_target', 'your arms are already full');
       }
     }
-    const burden = corpseBurden(body.appearanceSeed);
-    const capacity = CARRY_BASE_CAPACITY + (conn.character.skills.athletics ?? 0);
+    const burden = corpseBurden(body.appearanceSeed, body.appearance);
+    // Strength counts toward lifting a body too (D-546) — "what you can lift
+    // includes what a body weighs" was already the athletics blurb.
+    const capacity = this.carryCapacity(conn);
     if (burden > capacity) {
       return this.fail(conn, 'lacks_ability', 'too heavy — you cannot get it off the ground');
     }
@@ -3391,10 +4941,15 @@ export class GameServer {
     this.send(conn, {
       t: 'creation_content',
       classes: [...this.content.classes.values()],
+      races: [...this.content.races.values()],
+      partNames: curatedPartNames([...this.content.races.values()], this.content.partNames),
       skills: this.content.skills,
       feats: this.content.feats,
       spells: this.content.spells,
       budget: {
+        attributePoints: ATTRIBUTE_CREATION_POINTS,
+        attributeBase: ATTRIBUTE_BASE,
+        attributeMax: ATTRIBUTE_CREATION_MAX,
         skillPoints: CREATION_SKILL_POINTS,
         skillStep: CREATION_SKILL_STEP,
         skillMax: CREATION_SKILL_MAX,
@@ -3425,9 +4980,44 @@ export class GameServer {
         }
       }
     }
+    /*
+     * The race, validated against content and against the calling (D-572).
+     *
+     * ⚠ Sent OPTIONALLY, like the class, so every bot and every pre-race
+     * client is untouched. But a race that IS sent must resolve: writing an
+     * id nothing can look up would make a character whose race is a string
+     * and not a thing, which is the failure that survives into the renderer
+     * and the descriptor pipeline before anybody notices.
+     */
+    if (msg.raceId !== undefined) {
+      const cls = msg.classId ? this.content.classes.get(msg.classId) : undefined;
+      const problems = creationRaceProblems(msg.raceId, {
+        race: this.content.races.get(msg.raceId),
+        classRaces: cls?.races ?? [],
+        className: cls?.name,
+        height: msg.appearance?.height,
+      });
+      if (problems.length > 0) {
+        return this.fail(conn, 'invalid_message', problems.join('; '));
+      }
+    }
+    /*
+     * The face, checked against the race that offered it (D-574).
+     *
+     * ⚠ Every part must be one the race curates FOR THAT SLOT. A race that
+     * offers the same faces as every other race is not a race (D-560), and a
+     * hand-rolled client that could send any stem in the pack would have made
+     * the curation decorative rather than a rule.
+     */
+    if (msg.look) {
+      const problems = lookProblems(msg.look, msg.raceId ? this.content.races.get(msg.raceId) : undefined);
+      if (problems.length > 0) {
+        return this.fail(conn, 'invalid_message', `illegal face: ${problems.join('; ')}`);
+      }
+    }
     // The build is validated HERE, against content, before anything is
     // written (D-102): the client's own check is convenience only.
-    const build = msg.build ?? { skills: {}, feats: [], spells: [] };
+    const build = msg.build ?? { attributes: {}, skills: {}, feats: [], spells: [] };
     if (msg.build) {
       if (msg.classId === undefined) {
         return this.fail(conn, 'invalid_message', 'a build requires a class');
@@ -3446,17 +5036,33 @@ export class GameServer {
         return this.fail(conn, 'invalid_message', `illegal build: ${problems.join('; ')}`);
       }
     }
+    // The appearance is validated the same way and for the same reason
+    // (D-102/D-539): the schema has already bounded it, and this catches the
+    // rest — an unknown build name, a colour off the world's palette.
+    if (msg.appearance) {
+      const problems = validateAppearanceOverride(msg.appearance);
+      if (problems.length > 0) {
+        return this.fail(conn, 'invalid_message', `illegal appearance: ${problems.join('; ')}`);
+      }
+    }
     const character = await this.store.createCharacter({
       accountId: conn.accountId,
       name: msg.name,
       appearanceSeed: seed,
+      appearance: msg.appearance ?? null,
       areaId: area.id,
       x: area.spawn.x,
       y: area.spawn.y,
       classId: msg.classId ?? null,
+      raceId: msg.raceId ?? null,
+      look: msg.look ?? null,
       skills: build.skills,
       feats: build.feats,
       spells: build.spells,
+      // Stored only when the player actually used the step (D-546). A null
+      // here reads back as a straight 10/10/10/10, which is exactly the
+      // character every bot and every pre-attribute client produces.
+      attributes: Object.keys(build.attributes ?? {}).length > 0 ? build.attributes! : null,
     });
     if (character === 'character_name_taken') {
       return this.fail(conn, 'character_name_taken', 'that name is taken');
@@ -3495,6 +5101,8 @@ export class GameServer {
       characterId: character.id,
       name: character.name,
       appearanceSeed: character.appearanceSeed,
+      appearance: character.appearance,
+      look: character.look,
       pos: { x: character.x, y: character.y },
     });
     conn.character = character;
@@ -3505,8 +5113,19 @@ export class GameServer {
       maxHp: character.maxHp,
       xp: character.xp,
       deathDebt: character.deathDebt,
+      // Filled in by refreshLoadout below, which is the only thing that knows
+      // what this character is wearing and therefore what its ceilings are.
+      mana: 0,
+      maxMana: 0,
     };
     conn.injuries = await this.store.listInjuries(character.id);
+    // Everyone walks in with a kit (D-547). Done before the loadout is read
+    // so the armour they were handed is already on them in the first status.
+    await this.grantStartingKit(conn);
+    await this.refreshLoadout(conn);
+    // A fresh arrival is not half-drained. The pool is only ever below full
+    // because it was spent, and nothing has been spent yet this session.
+    conn.vitals.mana = conn.vitals.maxMana;
     this.entityCharacter.set(entity.id, character.id);
     this.onlineCharacters.add(character.id);
     // entity_entered is personalized: each observer gets the arrival under
@@ -3527,6 +5146,17 @@ export class GameServer {
     await this.store.appendEvent('enter_world', { characterId: character.id, areaId });
     await this.sendSnapshot(conn);
     this.sendStatus(conn);
+    // ⚠ A round already running tells this arrival their role too (D-579).
+    // It was sent once, in a loop over whoever was connected when the round
+    // STARTED, so two people never heard it: anyone joining mid-round, and —
+    // far worse — the antagonist reconnecting after a dropped connection,
+    // whose secret objective simply vanished while the round carried on
+    // around them. `round_state` already reached them, so the symptom was a
+    // player standing in a round they could see, with no idea what they were.
+    //
+    // ⚠ Sent to EVERY arrival, never only to an antagonist: a role message
+    // that arrives for some people and not others is itself the tell.
+    if (this.roundRunning) this.sendRoundRole(conn);
     this.send(conn, {
       t: 'catalogue',
       items: [...this.content.itemTemplates.values()].map((i) => ({
@@ -3535,6 +5165,11 @@ export class GameServer {
         description: i.description,
         category: i.category,
         stackable: i.stackable,
+        ...(i.nourishes ? { nourishes: i.nourishes } : {}),
+        ...(i.equip ? { equip: i.equip } : {}),
+        // Without this the pack knows a bandage exists and not that it can be
+        // used, so the row rendered with a "drop" button and nothing else.
+        ...(i.use ? { use: i.use } : {}),
       })),
       recipes: [...this.content.recipes.values()].map((r) => ({
         id: r.id,
@@ -3572,6 +5207,23 @@ export class GameServer {
         id: def.id,
         name: def.name,
         lighting: this.lightingOverrides.get(areaId) ?? def.lighting,
+        ...(def.ambience ? { ambience: def.ambience } : {}),
+        // Only what it takes to DRAW one (D-567); the mask stays server-side.
+        assets: def.assets.map((a) => ({
+          pack: a.pack,
+          asset: a.asset,
+          x: a.x,
+          y: a.y,
+          z: a.z,
+          rotation: a.rotation,
+          scale: a.scale,
+        })),
+        roofs: def.roofs,
+        // What the ground is painted with (D-588). Sent as a pair: a mask
+        // without its material list is unlabelled numbers, and the list
+        // without the mask covers nothing.
+        groundPaint: def.groundPaint ?? [],
+        groundMaterials: def.groundMaterials,
         width: def.width,
         height: def.height,
         legend: def.legend,
@@ -3607,7 +5259,7 @@ export class GameServer {
         out.set(e.id, await this.describeDead(observer, e));
       } else if (e.characterId === null) {
         // NPCs wear one public face for everyone (D-507).
-        out.set(e.id, e.npcDescriptor ?? describeAppearance(generateAppearance(e.appearanceSeed)));
+        out.set(e.id, e.npcDescriptor ?? describeAppearance(resolveAppearance(e.appearanceSeed, e.appearance)));
       } else if (e.characterId === observer.character!.id) {
         out.set(e.id, observer.character!.name);
       } else {
@@ -3624,7 +5276,7 @@ export class GameServer {
       );
       for (const e of group) {
         const known = knowledge.get(e.characterId!);
-        const appearance = generateAppearance(e.appearanceSeed);
+        const appearance = resolveAppearance(e.appearanceSeed, e.appearance);
         out.set(
           e.id,
           known?.knownName ??
@@ -3649,7 +5301,7 @@ export class GameServer {
       const knowledge = observer.character
         ? await this.store.getKnowledge(observer.character.id, [deadId], e.presentation)
         : new Map();
-      const appearance = generateAppearance(e.appearanceSeed);
+      const appearance = resolveAppearance(e.appearanceSeed, e.appearance);
       base =
         knowledge.get(deadId)?.knownName ??
         (e.presentation === 'hooded' ? describeHooded(appearance) : describeAppearance(appearance));
@@ -3664,6 +5316,19 @@ export class GameServer {
   private handleMove(conn: ConnState, msg: Extract<ClientMessage, { t: 'move' }>): void {
     if (conn.entityId === null) return this.fail(conn, 'not_in_world', 'enter the world first');
     this.world.setMoveIntent(conn.entityId, msg.dir);
+  }
+
+  /**
+   * Walk to a point (D-567). The server finds the route.
+   *
+   * A refusal is SILENT rather than an error: clicking a spot with no way to it
+   * is an ordinary thing to do with a mouse, and an error toast for it would
+   * fire constantly. The character simply does not set off, which is the same
+   * feedback every game of this shape gives.
+   */
+  private handleMoveTo(conn: ConnState, msg: Extract<ClientMessage, { t: 'move_to' }>): void {
+    if (conn.entityId === null) return this.fail(conn, 'not_in_world', 'enter the world first');
+    this.world.moveTo(conn.entityId, { x: msg.x, y: msg.y });
   }
 
   /**
@@ -3774,7 +5439,7 @@ export class GameServer {
     if (asCaster && !speaker.ghost) {
       const corpse = this.world.getEntity(asCaster.corpseEntityId);
       if (!corpse || this.world.getEntityAreaId(corpse.id) !== conn.areaId ||
-          chebyshev(speaker.pos, corpse.pos) > CHANNEL_RANGE.say) {
+          distance(speaker.pos, corpse.pos) > CHANNEL_RANGE.say) {
         this.endSeance(asCaster, 'the circle was broken');
       } else if (asCaster.questionsLeft > 0) {
         asCaster.questionsLeft--;
@@ -3851,7 +5516,7 @@ export class GameServer {
       const isSelf = listener === speakerConn;
       let seen = true;
       if (!isSelf) {
-        if (chebyshev(speaker.pos, listenerEntity.pos) > range) continue;
+        if (distance(speaker.pos, listenerEntity.pos) > range) continue;
         seen = hasLineOfSight(areaDef, listenerEntity.pos, speaker.pos);
         // Whispers and speech need sight; a shout carries around walls.
         if (!seen && channel !== 'shout') continue;
@@ -3930,7 +5595,7 @@ export class GameServer {
         if (!obsConn.character || speaker.id === zombieId) continue;
         const zombie = this.world.getEntity(zombieId);
         if (!zombie || this.world.getEntityAreaId(zombieId) !== areaId) continue;
-        if (chebyshev(speaker.pos, zombie.pos) > range) continue;
+        if (distance(speaker.pos, zombie.pos) > range) continue;
         const seen = hasLineOfSight(areaDef, zombie.pos, speaker.pos);
         if (!seen && channel !== 'shout') continue;
         const understands = obsConn.character.languages.includes(languageId);
@@ -4035,6 +5700,108 @@ export class GameServer {
 
   /** DM faucet (admin/testing only — production goods enter via play, D-220).
    * Grants an item and refreshes the holder's client if online. */
+  /**
+   * Round state, for the launcher and the admin UI. Read-only, and
+   * deliberately carries NOTHING secret: no objective, no antagonist. Anyone
+   * with the admin port could otherwise read the round off it, and the split
+   * between `round_state` and `round_role` (D-521) exists precisely so that
+   * cannot happen by accident anywhere.
+   */
+  adminRoundState(): {
+    enabled: boolean;
+    phase: string;
+    cast: number;
+    minCast: number;
+    remainingTicks: number | null;
+    hour: number;
+    night: boolean;
+  } {
+    const r = this.round;
+    if (!r) {
+      return {
+        enabled: false, phase: 'off', cast: 0, minCast: 0,
+        remainingTicks: null, hour: 6, night: false,
+      };
+    }
+    const offset = this.roundTickOffset();
+    const running = r.phase === 'running';
+    return {
+      enabled: true,
+      phase: r.phase,
+      cast: this.roundCast().length,
+      minCast: r.minimumCast,
+      remainingTicks: r.remainingTicks(this.roundEffectiveTick()),
+      hour: running ? roundHour(offset, this.roundDayTicks) : 6,
+      night: running ? isNight(offset, this.roundDayTicks) : false,
+    };
+  }
+
+  /**
+   * Ends whatever round is running and starts the next one (launcher/DM).
+   *
+   * A running round is ABANDONED rather than silently discarded, so the cast
+   * still gets its `round_ended` and its banked xp — cutting a round short
+   * from outside must not be a way to rob everybody of what they earned
+   * (D-524). Then the ordinary reset runs: gear stripped, recognition wiped
+   * (D-525), the world re-stocked. The lobby restarts on its own as soon as
+   * enough players are present, which is the same path a natural round takes.
+   */
+  async adminRestartRound(): Promise<{ ok: boolean; error?: string; phase?: string }> {
+    const r = this.round;
+    if (!r) return { ok: false, error: 'this server is not running rounds' };
+    if (r.phase === 'running') {
+      const res = r.abandon(this.roundEffectiveTick());
+      if (res) await this.finishRound(res);
+    }
+    await this.resetRound();
+    await this.store.appendEvent('dm_round_restart', {});
+    return { ok: true, phase: this.round?.phase ?? 'lobby' };
+  }
+
+  /**
+   * Puts one named roamer where you ask (D-554). For the harness and the DM
+   * console: `spawnNpc` makes a scenery NPC with no kind, no loot table and
+   * no hp, which is not the thing you need when the question is "what happens
+   * when this dies".
+   */
+  spawnRoamerFor(
+    areaId: string,
+    pos: { x: number; y: number },
+    roamerId: string,
+  ): number | null {
+    const kind = this.content.roamers.find((r) => r.id === roamerId);
+    if (!kind || !this.world.hasArea(areaId)) return null;
+    const { entity } = this.world.spawn(areaId, {
+      characterId: null,
+      name: kind.descriptor,
+      npcDescriptor: kind.descriptor,
+      appearanceSeed: this.roamerRng.int(1, 1_000_000),
+      pos,
+      hp: kind.hp,
+      hostile: true,
+    });
+    this.roamers.set(entity.id, kind);
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_entered', entity: toWireEntity(entity, kind.descriptor) }],
+    });
+    return entity.id;
+  }
+
+  /** DM/harness: wound somebody to a known health, live. */
+  async adminSetHp(ref: string, hp: number): Promise<{ ok: boolean; error?: string }> {
+    const character = await this.resolveCharacterRef(ref);
+    if (!character) return { ok: false, error: 'no such character' };
+    const conn = this.findConnByCharacter(character.id);
+    if (conn?.vitals) {
+      conn.vitals.hp = Math.max(1, Math.min(hp, conn.vitals.maxHp));
+      this.sendStatus(conn);
+    }
+    await this.store.saveCharacterVitals(character.id, { hp });
+    return { ok: true };
+  }
+
   async adminGrantItem(
     ref: string,
     templateId: string,
@@ -4335,7 +6102,7 @@ export class GameServer {
       this.fail(conn, 'bad_target', 'they are not here');
       return null;
     }
-    if (chebyshev(self.pos, target.pos) > INTERACT_RANGE) {
+    if (distance(self.pos, target.pos) > INTERACT_RANGE) {
       this.fail(conn, 'not_adjacent', 'too far away');
       return null;
     }
@@ -4349,11 +6116,76 @@ export class GameServer {
     return { characterId: target.characterId, conn: targetConn };
   }
 
+  /**
+   * The pack, and — because the two can never be allowed to disagree — the
+   * derived numbers that depend on it (D-547).
+   *
+   * Every path that moves an item already calls this: give, loot, craft,
+   * harvest, eat, equip, the round's strip. Recomputing the loadout HERE
+   * rather than at each of those call sites is what stops the next one added
+   * from quietly shipping a character whose armour is a round out of date —
+   * and it costs nothing, because the item read has already happened.
+   */
   private async sendInventory(conn: ConnState): Promise<void> {
     if (!conn.character) return;
     const items = await this.store.getItemsByCharacter(conn.character.id);
     const coin = await this.store.getCoin(conn.character.id);
+    const worn = this.wornOf(items);
+    conn.loadout = loadoutTotals(worn);
+    conn.carried = items.reduce(
+      (sum, i) => sum + (this.content.itemTemplates.get(i.templateId)?.equip?.weight ?? 0) * i.qty,
+      0,
+    );
+    this.applyDerivedCeilings(conn);
+    // What everybody else SEES you wearing (D-554). Broadcast from here for
+    // the same reason the loadout is computed here: this is the one funnel
+    // every item move already goes through, so a new verb cannot forget it.
+    this.publishWorn(conn, lookOf(worn));
     this.send(conn, { t: 'inventory', items: items.map(toWireItem), coin });
+    this.sendStatus(conn);
+  }
+
+  /**
+   * Tells the area what this character now looks like, if it changed.
+   *
+   * Compared before sending: equipping a ring changes nothing visible, and a
+   * delta per item move would be a broadcast every time anybody tidied their
+   * pack.
+   */
+  private publishWorn(conn: ConnState, look: WornLook): void {
+    if (conn.entityId === null || !conn.areaId) return;
+    const entity = this.world.getEntity(conn.entityId);
+    if (!entity) return;
+    const before = entity.worn;
+    // ⚠ `garments` is part of the comparison, not just the payload. Two
+    // different plate garments produce the SAME five flags — helm, pauldrons,
+    // cape, robe, weapon are a silhouette, not an identity — so without this
+    // line, changing from one suit of plate to another would be judged "no
+    // visible change" and never broadcast. The wearer would see it and
+    // nobody else would (D-571).
+    const sameGarments =
+      before !== null && before !== undefined
+      && before.garments.length === look.garments.length
+      && before.garments.every((g, i) => g === look.garments[i]);
+    // ⚠ And `stance` is part of it too, for EXACTLY the reason above — found
+    // the same way, by a test rather than by reading. A bow and an arming
+    // sword both produce `weapon: 'sword'` with identical flags and identical
+    // garments, because swapping one for the other changes no mesh at all. So
+    // drawing a bow was judged "no visible change" and never broadcast: the
+    // archer nocked an arrow and everybody else watched him swing (D-578).
+    if (before
+      && before.helm === look.helm && before.pauldrons === look.pauldrons
+      && before.cape === look.cape && before.robe === look.robe
+      && before.weapon === look.weapon && before.stance === look.stance
+      && sameGarments) {
+      return;
+    }
+    entity.worn = look;
+    this.broadcastPlane(conn.areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_worn', id: entity.id, worn: look }],
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -4390,11 +6222,19 @@ function toWireItem(i: {
   templateId: string;
   qty: number;
   data: { title?: string } | null;
-}): { id: string; templateId: string; qty: number; label?: string } {
+  equippedSlot?: EquipSlot | null;
+}): {
+  id: string;
+  templateId: string;
+  qty: number;
+  label?: string;
+  equipped: EquipSlot | null;
+} {
   return {
     id: i.id,
     templateId: i.templateId,
     qty: i.qty,
+    equipped: i.equippedSlot ?? null,
     ...(i.data?.title ? { label: i.data.title } : {}),
   };
 }
@@ -4407,6 +6247,10 @@ function toSummary(c: CharacterRecord): CharacterSummary {
     x: c.x,
     y: c.y,
     appearanceSeed: c.appearanceSeed,
+    appearance: c.appearance,
+    look: c.look ?? null,
+    level: levelForXp(c.xp),
     ...(c.classId ? { classId: c.classId } : {}),
+    ...(c.raceId ? { raceId: c.raceId } : {}),
   };
 }

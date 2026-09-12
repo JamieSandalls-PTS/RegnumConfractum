@@ -1,14 +1,166 @@
 {
   "id": "berserker",
   "name": "Berserker",
-  "description": "A fighter who has stopped negotiating with fear. Berserkers trade caution for violence and tend to die the way they lived — loudly.",
+  "description": "A fighter who has stopped negotiating with fear. Berserkers trade caution for violence and tend to die the way they lived \u2014 loudly.",
   "role": "melee",
   "abilities": [],
   "legacyLocked": false,
   "affinities": [
-    "athletics",
     "arms",
-    "intimidation"
+    "athletics",
+    "intimidation",
+    "endurance"
   ],
-  "spellcasting": false
+  "spellcasting": false,
+  "armour": [
+    "leather",
+    "cloth"
+  ],
+  "weapons": [
+    "two-handed",
+    "one-handed",
+    "dagger"
+  ],
+  "races": [],
+  "items": [],
+  "startingAttributes": {},
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "endurance": 5,
+        "intimidation": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The fear does not go. You simply stop letting it arrive first."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "athletics": 5
+      },
+      "feats": [
+        "porter"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You are the one who lifts the thing, and everyone has noticed."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "athletics": 10,
+        "survival": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have learned to sleep rough and wake up angry rather than stiff."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "endurance": 10,
+        "intimidation": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "People decide against it while you are still walking over."
+    },
+    {
+      "level": 6,
+      "skills": {},
+      "feats": [
+        "lean-years",
+        "deep-draught"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Hunger and thirst have both had a go at you and neither finished the job."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "intimidation": 10,
+        "survival": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You are a rumour before you are a person."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "athletics": 10
+      },
+      "feats": [
+        "past-the-point",
+        "second-blow"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "The place where sensible people stop no longer registers as a place."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "endurance": 10,
+        "survival": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have outlasted better fighters and most of the weather."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "intimidation": 10,
+        "athletics": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Whatever it was that you traded away, you are not getting it back."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "notched-greataxe",
+      "qty": 1,
+      "equip": "main-hand"
+    },
+    {
+      "item": "hide-jerkin",
+      "qty": 1,
+      "equip": "chest"
+    },
+    {
+      "item": "travellers-cloak",
+      "qty": 1,
+      "equip": "cloak"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "qty": 1,
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "qty": 1,
+      "equip": "feet"
+    }
+  ]
 }

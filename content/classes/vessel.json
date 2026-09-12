@@ -10,7 +10,150 @@
   "affinities": [
     "insight",
     "necromancy",
-    "medicine"
+    "medicine",
+    "attunement"
   ],
-  "spellcasting": true
+  "spellcasting": true,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "insight": 5,
+        "medicine": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Whatever is riding along has stopped being a stranger."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "attunement": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [
+        "speak-with-dead"
+      ],
+      "note": "A door that opens both ways: the dead can be drawn back, and answer badly."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "attunement": 10,
+        "necromancy": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You hold the crossing steady for longer than the crossing wants."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "medicine": 10
+      },
+      "feats": [
+        "field-kit"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Hands that have held people together, with and without the working."
+    },
+    {
+      "level": 6,
+      "skills": {
+        "necromancy": 10,
+        "insight": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You can feel where the plane is thin, and it is thinner near you."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "medicine": 10
+      },
+      "feats": [
+        "the-long-memory"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You keep what the dead told you, which is not the same as believing it."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "insight": 10,
+        "lore": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Neither side of the door surprises you now."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "attunement": 10,
+        "medicine": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The passenger and the physician have stopped arguing."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "necromancy": 10,
+        "insight": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You are less a person than an arrangement, and it is a working one."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "apprentice-staff",
+      "equip": "main-hand"
+    },
+    {
+      "item": "scholars-robe",
+      "equip": "chest"
+    },
+    {
+      "item": "iron-band",
+      "equip": "ring-left"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ],
+  "armour": [
+    "cloth",
+    "leather"
+  ],
+  "weapons": [
+    "staff",
+    "one-handed"
+  ]
 }

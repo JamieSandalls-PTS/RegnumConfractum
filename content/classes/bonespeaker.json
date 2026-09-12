@@ -1,7 +1,7 @@
 {
   "id": "bonespeaker",
   "name": "Bonespeaker",
-  "description": "One who treats death as a door left ajar. Bonespeakers question the dead — who are under no obligation to be honest — and can make a corpse walk. Feared, and rightly.",
+  "description": "One who treats death as a door left ajar. Bonespeakers question the dead \u2014 who are under no obligation to be honest \u2014 and can make a corpse walk. Feared, and rightly.",
   "role": "arcane",
   "abilities": [
     "speak-with-dead",
@@ -11,7 +11,152 @@
   "affinities": [
     "necromancy",
     "lore",
-    "insight"
+    "insight",
+    "attunement"
   ],
-  "spellcasting": true
+  "spellcasting": true,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "necromancy": 5,
+        "lore": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The traffic between a body and what left it stops feeling like trespass."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "attunement": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You can hold the working while the thing on the table objects."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "necromancy": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Two is possible. Two is also considerably worse than one."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "insight": 10,
+        "lore": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have learned which of the dead are lying, which is most of them."
+    },
+    {
+      "level": 6,
+      "skills": {
+        "attunement": 5
+      },
+      "feats": [
+        "second-vessel"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "A second vessel, held up by the same arms."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "necromancy": 10
+      },
+      "feats": [
+        "the-long-memory"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You remember every name you have called back, which is the cost nobody warns you about."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "lore": 10,
+        "insight": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The old rites, the ones the empire proscribed and then used."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "attunement": 10,
+        "necromancy": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The dead come when called, without much of a call."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "necromancy": 10,
+        "lore": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You are a door that has been open too long, and it shows."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "bone-wand",
+      "equip": "main-hand"
+    },
+    {
+      "item": "scholars-robe",
+      "equip": "chest"
+    },
+    {
+      "item": "hooded-cowl",
+      "equip": "head"
+    },
+    {
+      "item": "warding-charm",
+      "equip": "amulet"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ],
+  "armour": [
+    "cloth",
+    "leather"
+  ],
+  "weapons": [
+    "staff",
+    "dagger"
+  ],
+  "notes": ""
 }

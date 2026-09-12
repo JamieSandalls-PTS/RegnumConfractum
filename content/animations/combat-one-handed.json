@@ -1,0 +1,27 @@
+{
+  "id": "combat-one-handed",
+  "name": "Sword and shield — weapon up",
+  "layer": "readiness",
+  "applies": "one-handed/combat",
+  "clips": {
+    "idle": "one-handed-combat-idle",
+    "walk": "one-handed-combat-walk",
+    "run": "one-handed-combat-run",
+    "walk-back": "one-handed-combat-walk-back",
+    "strafe-left": "one-handed-combat-strafe-left",
+    "strafe-right": "one-handed-combat-strafe-right",
+    "turn-left": "one-handed-combat-turn-left",
+    "turn-right": "one-handed-combat-turn-right",
+    "jump": "one-handed-combat-jump",
+    "attack-1": "one-handed-combat-attack-1",
+    "attack-2": "one-handed-combat-attack-2",
+    "attack-3": "one-handed-combat-attack-3",
+    "attack-heavy": "one-handed-combat-attack-heavy",
+    "block": "one-handed-combat-block",
+    "block-impact": "one-handed-combat-block-impact",
+    "hit-light": "one-handed-combat-hit-light",
+    "death": "one-handed-combat-death",
+    "dodge": "one-handed-combat-dodge"
+  },
+  "note": "Plays only with the weapon up: 18 of 61 actions. Sheathed, the character falls through to the stance and the rig."
+}

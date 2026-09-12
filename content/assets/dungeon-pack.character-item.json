@@ -1,0 +1,1788 @@
+{
+  "pack": "dungeon-pack",
+  "kind": "character-item",
+  "assets": [
+    {
+      "id": "wep-axe-01",
+      "name": "Axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Axe_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          95,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-axe-nature-01",
+      "name": "Nature axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Axe_Nature_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.07,
+          0
+        ],
+        "rotation": [
+          270,
+          95,
+          -15
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-axe-rune-01",
+      "name": "Rune axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Axe_Rune_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.01,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -85,
+          5
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-banner-01",
+      "name": "Banner",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Banner_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "carrying",
+      "clips": {}
+    },
+    {
+      "id": "wep-banner-02",
+      "name": "Banner 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Banner_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "carrying",
+      "clips": {}
+    },
+    {
+      "id": "wep-banner-03",
+      "name": "Banner 3",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Banner_03",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "carrying",
+      "clips": {}
+    },
+    {
+      "id": "wep-banner-04",
+      "name": "Banner 4",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Banner_04",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "carrying",
+      "clips": {}
+    },
+    {
+      "id": "wep-banner-05",
+      "name": "Banner 5",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Banner_05",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "carrying",
+      "clips": {}
+    },
+    {
+      "id": "wep-bone-01",
+      "name": "Bone",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Bone_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.15,
+          0.04,
+          -0.19
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-bone-02",
+      "name": "Bone 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Bone_02",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.04,
+          -0.09
+        ],
+        "rotation": [
+          265,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-brokensword-01",
+      "name": "Broken sword",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_BrokenSword_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.03,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-crysta-halberdl-01",
+      "name": "Crysta halberdl",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Crysta_Halberdl_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.16,
+          0.03,
+          -0.01
+        ],
+        "rotation": [
+          275,
+          -25,
+          10
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-crystal-axe-01",
+      "name": "Crystal axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Crystal_Axe_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          95,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-crystal-axe-large-01",
+      "name": "Large crystal axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Crystal_Axe_Large_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -75,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-crystal-doublesword-01",
+      "name": "Crystal double sword",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Crystal_DoubleSword_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          95,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-crystal-ornate-straightsword-01",
+      "name": "Crystal ornate straightsword",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Crystal_Ornate_Straightsword_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          95,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-cutlass-01",
+      "name": "Cutlass",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Cutlass_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -85,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-axe-01",
+      "name": "Goblin axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Axe_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -80,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-axe-large-01",
+      "name": "Large goblin axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Axe_Large_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.04,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -80,
+          5
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-axe-spikes-01",
+      "name": "Spikes goblin axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Axe_Spikes_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-bone-axe-01",
+      "name": "Goblin bone axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Bone_Axe_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.13,
+          0.01,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          -75,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-club-01",
+      "name": "Goblin club",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Club_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.13,
+          0.04,
+          0.03
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-gem-hammer-01",
+      "name": "Goblin gem hammer",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Gem_Hammer_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -85,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-halberd-01",
+      "name": "Goblin halberd",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Halberd_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-mace-01",
+      "name": "Goblin mace",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Mace_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.06,
+          0.07
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-machete-01",
+      "name": "Goblin machete",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Machete_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.13,
+          0.04,
+          0.02
+        ],
+        "rotation": [
+          260,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-machete-spikes-01",
+      "name": "Spikes goblin machete",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Machete_Spikes_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.04,
+          0.02
+        ],
+        "rotation": [
+          270,
+          -95,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-shiv-bone-01",
+      "name": "Bone goblin shiv",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Shiv_Bone_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.04,
+          -0.02
+        ],
+        "rotation": [
+          250,
+          -95,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "dagger",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-shiv-stone-01",
+      "name": "Stone goblin shiv",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Shiv_Stone_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "dagger",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-spear-01",
+      "name": "Goblin spear",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Spear_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.08,
+          0
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-goblin-staff-01",
+      "name": "Goblin staff",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Goblin_Staff_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "staff",
+      "clips": {}
+    },
+    {
+      "id": "wep-greatsword-01",
+      "name": "Great sword",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_GreatSword_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.03,
+          0.03
+        ],
+        "rotation": [
+          270,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-greatsword-curved-01",
+      "name": "Greatsword curved",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Greatsword_Curved_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          -80,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-greatsword-round-01",
+      "name": "Greatsword round",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Greatsword_Round_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.13,
+          0.03,
+          -0.02
+        ],
+        "rotation": [
+          250,
+          -85,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-greatsword-straight-01",
+      "name": "Greatsword straight",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Greatsword_Straight_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-halberd-06",
+      "name": "Halberd",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Halberd_06",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.38
+        ],
+        "rotation": [
+          270,
+          -95,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-large-metal-01",
+      "name": "Hammer large metal",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Large_Metal_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -100,
+          10
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-large-metal-010",
+      "name": "Hammer large metal 10",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Large_Metal_010",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.05,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -110,
+          5
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-large-stone-01",
+      "name": "Large stone hammer",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Large_Stone_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.04,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -90,
+          5
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-large-wood-01",
+      "name": "Large wood hammer",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Large_Wood_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.05,
+          -0.01
+        ],
+        "rotation": [
+          270,
+          -95,
+          10
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-mace-sphere-01",
+      "name": "Hammer mace sphere",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Mace_Sphere_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.05,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-mace-spikes-01",
+      "name": "Spikes hammer mace",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Mace_Spikes_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-mace-stone-01",
+      "name": "Stone hammer mace",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Mace_Stone_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-small-01",
+      "name": "Small hammer",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Small_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -85,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-hammer-small-02",
+      "name": "Small hammer 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Hammer_Small_02",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -80,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-handaxe-01",
+      "name": "Hand axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_HandAxe_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -75,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-handle-metal-01",
+      "name": "Handle metal",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Handle_Metal_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-handle-wood-01",
+      "name": "Wood handle",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Handle_Wood_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-mace-blades-01",
+      "name": "Mace blades",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Mace_Blades_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.05,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-axe-01",
+      "name": "Ornate axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_Axe_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-axe-02",
+      "name": "Ornate axe 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_Axe_02",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-greataxe-01",
+      "name": "Ornate great axe",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_GreatAxe_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          265,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "two-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-spear-01",
+      "name": "Ornate spear",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_Spear_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-spikes-01",
+      "name": "Spikes ornate",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_Spikes_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -85,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-spikes-long-01",
+      "name": "Spikes long ornate",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_Spikes_Long_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -80,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-sword-01",
+      "name": "Ornate sword",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_Sword_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          260,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-ornate-sword-02",
+      "name": "Ornate sword 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Ornate_Sword_02",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.13,
+          0.04,
+          -0.02
+        ],
+        "rotation": [
+          265,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-bone-01",
+      "name": "Bone shield",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Bone_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.31,
+          -0.05,
+          0.02
+        ],
+        "rotation": [
+          80,
+          -185,
+          -35
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-chitin-01",
+      "name": "Shield chitin",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Chitin_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.38,
+          -0.09,
+          -0.04
+        ],
+        "rotation": [
+          80,
+          170,
+          -365
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-gravestone-01",
+      "name": "Shield gravestone",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Gravestone_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.36,
+          -0.07,
+          -0.03
+        ],
+        "rotation": [
+          -95,
+          5,
+          -175
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-heater-01",
+      "name": "Shield heater",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Heater_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.31,
+          -0.06,
+          0.02
+        ],
+        "rotation": [
+          -110,
+          0,
+          -180
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-heater-02",
+      "name": "Shield heater 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Heater_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-ornate-01",
+      "name": "Ornate shield",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Ornate_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.26,
+          -0.06,
+          0.01
+        ],
+        "rotation": [
+          265,
+          5,
+          -175
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-ornate-02",
+      "name": "Ornate shield 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Ornate_02",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.26,
+          -0.06,
+          -0.02
+        ],
+        "rotation": [
+          -105,
+          5,
+          -180
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-plank-01",
+      "name": "Shield plank",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Plank_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.1,
+          -0.08,
+          -0.01
+        ],
+        "rotation": [
+          -100,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-round-01",
+      "name": "Shield round",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Round_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.11,
+          -0.03,
+          0.03
+        ],
+        "rotation": [
+          -90,
+          5,
+          15
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-skull-01",
+      "name": "Shield skull",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Skull_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.28,
+          -0.05,
+          -0.02
+        ],
+        "rotation": [
+          -100,
+          0,
+          -180
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-spike-01",
+      "name": "Shield spike",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Shield_Spike_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.37,
+          -0.04,
+          -0.02
+        ],
+        "rotation": [
+          -105,
+          10,
+          -10
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-spear-01",
+      "name": "Spear",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Spear_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-spear-02",
+      "name": "Spear 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Spear_02",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-staff-doubleblade-01",
+      "name": "Staff double blade",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Staff_DoubleBlade_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -85,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "staff",
+      "clips": {}
+    },
+    {
+      "id": "wep-staff-gem-01",
+      "name": "Gem staff",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Staff_Gem_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -85,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "staff",
+      "clips": {}
+    },
+    {
+      "id": "wep-straightsword-01",
+      "name": "Straightsword",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Wep_Straightsword_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          -90,
+          0
+        ],
+        "scale": 1
+      },
+      "stance": "one-handed",
+      "clips": {}
+    }
+  ]
+}

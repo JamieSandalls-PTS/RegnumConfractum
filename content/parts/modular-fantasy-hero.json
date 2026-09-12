@@ -1,0 +1,2617 @@
+{
+  "pack": "modular-fantasy-hero",
+  "names": {
+    "SK_Chr_Head_Male_00": "Normal",
+    "SK_Chr_Head_Male_01": "Scarred nose",
+    "SK_Chr_Head_Male_02": "Scarred eye",
+    "SK_Chr_Head_Male_03": "Scarred mouth",
+    "SK_Chr_Head_Male_04": "Small cuts",
+    "SK_Chr_Head_Male_05": "Clawed",
+    "SK_Chr_Head_Male_06": "Cut eye",
+    "SK_Chr_Head_Male_07": "Burnt",
+    "SK_Chr_Head_Male_08": "Dark eyes",
+    "SK_Chr_Ear_Ear_01": "Small Elf ears",
+    "SK_Chr_Ear_Ear_02": "Large Elf ears",
+    "SK_Chr_Ear_Ear_03": "Long Elf ears",
+    "SK_Chr_Hair_01": "Viking Ponytail",
+    "SK_Chr_Hair_02": "Mullet",
+    "SK_Chr_Hair_03": "Short parted",
+    "SK_Chr_Hair_04": "Medium parted",
+    "SK_Chr_Hair_06": "Rows",
+    "SK_Chr_Hair_07": "Messy",
+    "SK_Chr_Eyebrow_Male_01": "Thick monobrow",
+    "SK_Chr_Eyebrow_Male_02": "Wavy monobrow",
+    "SK_Chr_Eyebrow_Male_03": "Thick",
+    "SK_Chr_Eyebrow_Male_04": "Angry",
+    "SK_Chr_Eyebrow_Male_06": "Flared",
+    "SK_Chr_Eyebrow_Male_07": "Normal",
+    "SK_Chr_Eyebrow_Male_08": "Stylish",
+    "SK_Chr_Eyebrow_Male_09": "Scruffy",
+    "SK_Chr_Eyebrow_Male_10": "Scruffy monobrow",
+    "SK_Chr_Eyebrow_Male_05": "Uneven",
+    "SK_Chr_FacialHair_Male_01": "Friendly beard",
+    "SK_Chr_FacialHair_Male_02": "Long beard",
+    "SK_Chr_FacialHair_Male_04": "Yorkshire",
+    "SK_Chr_FacialHair_Male_05": "Musketeer",
+    "SK_Chr_FacialHair_Male_06": "Dashing",
+    "SK_Chr_FacialHair_Male_07": "Chin beard",
+    "SK_Chr_FacialHair_Male_08": "Aristocratic",
+    "SK_Chr_FacialHair_Male_09": "Wild",
+    "SK_Chr_FacialHair_Male_10": "Butcher",
+    "SK_Chr_FacialHair_Male_11": "Simple moustache",
+    "SK_Chr_FacialHair_Male_12": "Scruffy beard",
+    "SK_Chr_FacialHair_Male_14": "Bushy beard",
+    "SK_Chr_FacialHair_Male_15": "Side beard",
+    "SK_Chr_FacialHair_Male_16": "Bushy moustache",
+    "SK_Chr_FacialHair_Male_17": "Mutton chops",
+    "SK_Chr_FacialHair_Male_13": "Tidy beard",
+    "SK_Chr_FacialHair_Male_18": "Full beard",
+    "SK_Chr_FacialHair_Male_03": "Goatee beard",
+    "SK_Chr_Hair_05": "Unkempt parted",
+    "SK_Chr_Hair_08": "Viking",
+    "SK_Chr_Hair_09": "Messy fringe",
+    "SK_Chr_Hair_11": "Balding mohawk",
+    "SK_Chr_Hair_12": "Balding",
+    "SK_Chr_Hair_13": "Spiky",
+    "SK_Chr_Hair_14": "Rogueish",
+    "SK_Chr_Hair_15": "Strip",
+    "SK_Chr_Hair_16": "Elvis",
+    "SK_Chr_Hair_17": "Pointy mohawk",
+    "SK_Chr_Hair_19": "Tied up",
+    "SK_Chr_Hair_20": "Around ears",
+    "SK_Chr_Hair_21": "Bangs",
+    "SK_Chr_Hair_22": "Striped rows",
+    "SK_Chr_Hair_23": "Shaggy",
+    "SK_Chr_Hair_24": "Long messy",
+    "SK_Chr_Hair_25": "Tied up (headband, messy)",
+    "SK_Chr_Hair_27": "Short bob",
+    "SK_Chr_Hair_28": "Bob with flair",
+    "SK_Chr_Hair_29": "Tied up (messy)",
+    "SK_Chr_Hair_30": "Tied up (headband)",
+    "SK_Chr_Hair_31": "Swept over",
+    "SK_Chr_Hair_32": "Emotional",
+    "SK_Chr_Hair_34": "Long",
+    "SK_Chr_Hair_35": "Asymmetrical bob",
+    "SK_Chr_Hair_38": "Tied up (ponytail)",
+    "SK_Chr_Hair_37": "Edgy",
+    "SK_Chr_Hair_36": "Hat hair",
+    "SK_Chr_Hair_33": "Cow's lick",
+    "SK_Chr_Hair_26": "Tied up (rogueish)",
+    "SK_Chr_Hair_18": "Imperial",
+    "SK_Chr_Hair_10": "Bougie",
+    "SK_Chr_Head_Female_01": "Scarred nose",
+    "SK_Chr_Head_Female_02": "Scarred eye",
+    "SK_Chr_Head_Female_03": "Scarred mouth",
+    "SK_Chr_Head_Female_04": "Cuts",
+    "SK_Chr_Head_Female_05": "Clawed face",
+    "SK_Chr_Head_Female_06": "Cut eye",
+    "SK_Chr_Head_Female_07": "Burnt",
+    "SK_Chr_Head_Female_08": "Black eyes",
+    "SK_Chr_Head_Female_00": "Normal",
+    "SK_Chr_Eyebrow_Female_01": "Flared",
+    "SK_Chr_Eyebrow_Female_02": "Scruffy",
+    "SK_Chr_Eyebrow_Female_03": "Stylish",
+    "SK_Chr_Eyebrow_Female_04": "Bushy",
+    "SK_Chr_Eyebrow_Female_05": "Thin",
+    "SK_Chr_Eyebrow_Female_07": "Angry",
+    "SK_Chr_Eyebrow_Female_06": "Normal",
+    "SK_Chr_Head_Male_09": "Markings 1",
+    "SK_Chr_Head_Male_10": "Markings 2",
+    "SK_Chr_Head_Male_11": "Markings 3",
+    "SK_Chr_Head_Male_12": "Markings 4",
+    "SK_Chr_Head_Male_13": "Markings 5",
+    "SK_Chr_Head_Male_14": "Markings 6",
+    "SK_Chr_Head_Male_15": "Markings 7",
+    "SK_Chr_Head_Male_16": "Markings 8",
+    "SK_Chr_Head_Male_17": "Markings 9",
+    "SK_Chr_Head_Male_18": "Markings 10",
+    "SK_Chr_Head_Male_19": "Markings 11",
+    "SK_Chr_Head_Male_20": "Markings 12",
+    "SK_Chr_Head_Male_21": "Markings 13",
+    "SK_Chr_Head_Male_22": "Markings 14",
+    "SK_Chr_Head_Female_09": "Markings 1",
+    "SK_Chr_Head_Female_10": "Markings 2",
+    "SK_Chr_Head_Female_11": "Markings 3",
+    "SK_Chr_Head_Female_12": "Markings 4",
+    "SK_Chr_Head_Female_13": "Markings 5",
+    "SK_Chr_Head_Female_14": "Markings 6",
+    "SK_Chr_Head_Female_15": "Markings 7",
+    "SK_Chr_Head_Female_16": "Markings 8",
+    "SK_Chr_Head_Female_17": "Markings 9",
+    "SK_Chr_Head_Female_18": "Markings 10",
+    "SK_Chr_Head_Female_19": "Markings 11",
+    "SK_Chr_Head_Female_20": "Markings 12",
+    "SK_Chr_Head_Female_21": "Markings 13",
+    "SK_Chr_Head_Female_22": "Markings 14",
+    "SK_Chr_Torso_Male_00": "Unclothed male",
+    "SK_Chr_Torso_Male_01": "Straps male",
+    "SK_Chr_Torso_Male_02": "Fur male",
+    "SK_Chr_Torso_Male_28": "Shirt and leather jerkin male",
+    "SK_Chr_Torso_Male_27": "Jacket with straps male",
+    "SK_Chr_Torso_Male_26": "Fly plaid male",
+    "SK_Chr_Torso_Male_25": "Heavy plate male",
+    "SK_Chr_Torso_Male_24": "Medium plate male",
+    "SK_Chr_Torso_Male_23": "Lion plate male",
+    "SK_Chr_Torso_Male_22": "Scrap plate male",
+    "SK_Chr_Torso_Male_20": "Elven plate male",
+    "SK_Chr_Torso_Male_19": "Banded plate male",
+    "SK_Chr_Torso_Male_04": "Fine jacket male",
+    "SK_Chr_Torso_Male_06": "Archer male",
+    "SK_Chr_Torso_Male_07": "Rogue male",
+    "SK_Chr_Torso_Male_09": "Robe male",
+    "SK_Chr_Torso_Male_10": "Templar male",
+    "SK_Chr_Torso_Male_21": "Half plate male",
+    "SK_Chr_Torso_Male_17": "Strapped plate male",
+    "SK_Chr_Torso_Male_18": "Mercenary plate male",
+    "SK_Chr_Torso_Male_16": "Muscle plate male",
+    "SK_Chr_Torso_Male_14": "Leather male",
+    "SK_Chr_Torso_Male_13": "Fine leather male",
+    "SK_Chr_Torso_Male_12": "Studded leather male",
+    "SK_Chr_Torso_Male_11": "Martial arts male",
+    "SK_Chr_Torso_Male_08": "Toga male",
+    "SK_Chr_Torso_Male_05": "Buddhist male",
+    "SK_Chr_Torso_Male_15": "Gothic plate male",
+    "SK_Chr_Torso_Male_03": "Jacket male",
+    "SK_Chr_Torso_Female_00": "Unclothed female",
+    "SK_Chr_Torso_Female_01": "Straps female",
+    "SK_Chr_Torso_Female_02": "Fur female",
+    "SK_Chr_Torso_Female_28": "Shirt and leather jerkin female",
+    "SK_Chr_Torso_Female_27": "Jacket with straps female",
+    "SK_Chr_Torso_Female_26": "Fly plaid female",
+    "SK_Chr_Torso_Female_25": "Heavy plate female",
+    "SK_Chr_Torso_Female_24": "Medium plate female",
+    "SK_Chr_Torso_Female_23": "Lion plate female",
+    "SK_Chr_Torso_Female_22": "Scrap plate female",
+    "SK_Chr_Torso_Female_20": "Elven plate female",
+    "SK_Chr_Torso_Female_19": "Banded plate female",
+    "SK_Chr_Torso_Female_04": "Fine jacket female",
+    "SK_Chr_Torso_Female_06": "Archer female",
+    "SK_Chr_Torso_Female_07": "Rogue female",
+    "SK_Chr_Torso_Female_09": "Robe female",
+    "SK_Chr_Torso_Female_10": "Templar female",
+    "SK_Chr_Torso_Female_21": "Half plate female",
+    "SK_Chr_Torso_Female_17": "Strapped plate female",
+    "SK_Chr_Torso_Female_18": "Mercenary plate female",
+    "SK_Chr_Torso_Female_16": "Muscle plate female",
+    "SK_Chr_Torso_Female_14": "Leather female",
+    "SK_Chr_Torso_Female_13": "Fine leather female",
+    "SK_Chr_Torso_Female_12": "Studded leather female",
+    "SK_Chr_Torso_Female_11": "Martial arts female",
+    "SK_Chr_Torso_Female_08": "Toga female",
+    "SK_Chr_Torso_Female_05": "Buddhist female",
+    "SK_Chr_Torso_Female_15": "Gothic plate female",
+    "SK_Chr_Torso_Female_03": "Jacket female",
+    "SK_Chr_BackAttachment_01": "Backpack",
+    "SK_Chr_BackAttachment_02": "Small backpack",
+    "SK_Chr_BackAttachment_03": "Feathered cape",
+    "SK_Chr_BackAttachment_04": "Fur cape",
+    "SK_Chr_BackAttachment_05": "Tri-cape",
+    "SK_Chr_BackAttachment_06": "Wrinkled cape",
+    "SK_Chr_BackAttachment_07": "Thin cape",
+    "SK_Chr_BackAttachment_08": "Pointy cape",
+    "SK_Chr_BackAttachment_09": "Short cape",
+    "SK_Chr_BackAttachment_10": "Medium cape",
+    "SK_Chr_BackAttachment_11": "Medium cape plain",
+    "SK_Chr_BackAttachment_12": "Short cape square",
+    "SK_Chr_BackAttachment_13": "Long cape square",
+    "SK_Chr_BackAttachment_14": "Ragged cape",
+    "SK_Chr_BackAttachment_15": "Long cape",
+    "SK_Chr_Head_No_Elements_Male_01": "Plague mask",
+    "SK_Chr_Head_No_Elements_Male_13": "Square plate helm",
+    "SK_Chr_Head_No_Elements_Male_12": "Striped plate helm",
+    "SK_Chr_Head_No_Elements_Male_11": "Cross plate helm",
+    "SK_Chr_Head_No_Elements_Male_10": "Thick plate helm",
+    "SK_Chr_Head_No_Elements_Male_09": "Odd plate helm",
+    "SK_Chr_Head_No_Elements_Male_08": "Templar plate helm",
+    "SK_Chr_Head_No_Elements_Male_07": "Dwarf plate helm",
+    "SK_Chr_Head_No_Elements_Male_06": "Evil plate helm",
+    "SK_Chr_Head_No_Elements_Male_05": "Knight plate helm",
+    "SK_Chr_Head_No_Elements_Male_04": "Jousting plate helm",
+    "SK_Chr_Head_No_Elements_Male_03": "Small plate helm",
+    "SK_Chr_Head_No_Elements_Male_02": "Diamond plate helm",
+    "SK_Chr_HelmetAttachment_01": "Plume large",
+    "SK_Chr_HelmetAttachment_02": "Plume thin",
+    "SK_Chr_HelmetAttachment_03": "Wings",
+    "SK_Chr_HelmetAttachment_04": "Antlers",
+    "SK_Chr_HelmetAttachment_05": "Feathered plume",
+    "SK_Chr_HelmetAttachment_06": "Centurion",
+    "SK_Chr_HelmetAttachment_07": "Horns",
+    "SK_Chr_HelmetAttachment_08": "Crown",
+    "SK_Chr_HelmetAttachment_09": "Sigil",
+    "SK_Chr_HelmetAttachment_10": "Minor feathered plume",
+    "SK_Chr_HelmetAttachment_11": "Cross",
+    "SK_Chr_HelmetAttachment_12": "Side plume right",
+    "SK_Chr_HelmetAttachment_13": "Side plume left",
+    "SK_Chr_ArmLowerLeft_Female_00": "Bare bracer female",
+    "SK_Chr_ArmLowerLeft_Female_01": "Tan bracer female",
+    "SK_Chr_ArmLowerLeft_Female_02": "Dark bracer female",
+    "SK_Chr_ArmLowerLeft_Female_03": "Brown bracer female",
+    "SK_Chr_ArmLowerLeft_Female_04": "Blue bracer female",
+    "SK_Chr_ArmLowerLeft_Female_05": "Blue bracer female 2",
+    "SK_Chr_ArmLowerLeft_Female_06": "Steel vambrace female",
+    "SK_Chr_ArmLowerLeft_Female_07": "Steel vambrace female 2",
+    "SK_Chr_ArmLowerLeft_Female_08": "Steel vambrace female 3",
+    "SK_Chr_ArmLowerLeft_Female_09": "Dark bracer female 2",
+    "SK_Chr_ArmLowerLeft_Female_10": "Dark bracer female 3",
+    "SK_Chr_ArmLowerLeft_Female_11": "Blue bracer female 3",
+    "SK_Chr_ArmLowerLeft_Female_12": "Steel vambrace female 4",
+    "SK_Chr_ArmLowerLeft_Female_13": "Blue bracer female 4",
+    "SK_Chr_ArmLowerLeft_Female_14": "Dark bracer female 4",
+    "SK_Chr_ArmLowerLeft_Female_15": "Dark bracer female 5",
+    "SK_Chr_ArmLowerLeft_Female_16": "Blue bracer female 5",
+    "SK_Chr_ArmLowerLeft_Female_17": "Blue bracer female 6",
+    "SK_Chr_ArmLowerLeft_Female_18": "Blue bracer female 7",
+    "SK_Chr_ArmLowerLeft_Male_00": "Bare bracer male",
+    "SK_Chr_ArmLowerLeft_Male_01": "Tan bracer male",
+    "SK_Chr_ArmLowerLeft_Male_02": "Dark bracer male",
+    "SK_Chr_ArmLowerLeft_Male_03": "Brown bracer male",
+    "SK_Chr_ArmLowerLeft_Male_04": "Blue bracer male",
+    "SK_Chr_ArmLowerLeft_Male_05": "Blue bracer male 2",
+    "SK_Chr_ArmLowerLeft_Male_06": "Steel vambrace male",
+    "SK_Chr_ArmLowerLeft_Male_07": "Steel vambrace male 2",
+    "SK_Chr_ArmLowerLeft_Male_08": "Steel vambrace male 3",
+    "SK_Chr_ArmLowerLeft_Male_09": "Dark bracer male 2",
+    "SK_Chr_ArmLowerLeft_Male_10": "Dark bracer male 3",
+    "SK_Chr_ArmLowerLeft_Male_11": "Blue bracer male 3",
+    "SK_Chr_ArmLowerLeft_Male_12": "Steel vambrace male 4",
+    "SK_Chr_ArmLowerLeft_Male_13": "Blue bracer male 4",
+    "SK_Chr_ArmLowerLeft_Male_14": "Dark bracer male 4",
+    "SK_Chr_ArmLowerLeft_Male_15": "Dark bracer male 5",
+    "SK_Chr_ArmLowerLeft_Male_16": "Blue bracer male 5",
+    "SK_Chr_ArmLowerLeft_Male_17": "Blue bracer male 6",
+    "SK_Chr_ArmLowerLeft_Male_18": "Blue bracer male 7",
+    "SK_Chr_ArmLowerRight_Female_00": "Bare bracer female",
+    "SK_Chr_ArmLowerRight_Female_01": "Tan bracer female",
+    "SK_Chr_ArmLowerRight_Female_02": "Dark bracer female",
+    "SK_Chr_ArmLowerRight_Female_03": "Brown bracer female",
+    "SK_Chr_ArmLowerRight_Female_04": "Blue bracer female",
+    "SK_Chr_ArmLowerRight_Female_05": "Blue bracer female 2",
+    "SK_Chr_ArmLowerRight_Female_06": "Steel vambrace female",
+    "SK_Chr_ArmLowerRight_Female_07": "Steel vambrace female 2",
+    "SK_Chr_ArmLowerRight_Female_08": "Steel vambrace female 3",
+    "SK_Chr_ArmLowerRight_Female_09": "Dark bracer female 2",
+    "SK_Chr_ArmLowerRight_Female_10": "Dark bracer female 3",
+    "SK_Chr_ArmLowerRight_Female_11": "Blue bracer female 3",
+    "SK_Chr_ArmLowerRight_Female_12": "Steel vambrace female 4",
+    "SK_Chr_ArmLowerRight_Female_13": "Blue bracer female 4",
+    "SK_Chr_ArmLowerRight_Female_14": "Dark bracer female 4",
+    "SK_Chr_ArmLowerRight_Female_15": "Dark bracer female 5",
+    "SK_Chr_ArmLowerRight_Female_16": "Blue bracer female 5",
+    "SK_Chr_ArmLowerRight_Female_17": "Blue bracer female 6",
+    "SK_Chr_ArmLowerRight_Female_18": "Blue bracer female 7",
+    "SK_Chr_ArmLowerRight_Male_00": "Bare bracer male",
+    "SK_Chr_ArmLowerRight_Male_01": "Tan bracer male",
+    "SK_Chr_ArmLowerRight_Male_02": "Dark bracer male",
+    "SK_Chr_ArmLowerRight_Male_03": "Brown bracer male",
+    "SK_Chr_ArmLowerRight_Male_04": "Blue bracer male",
+    "SK_Chr_ArmLowerRight_Male_05": "Blue bracer male 2",
+    "SK_Chr_ArmLowerRight_Male_06": "Steel vambrace male",
+    "SK_Chr_ArmLowerRight_Male_07": "Steel vambrace male 2",
+    "SK_Chr_ArmLowerRight_Male_08": "Steel vambrace male 3",
+    "SK_Chr_ArmLowerRight_Male_09": "Dark bracer male 2",
+    "SK_Chr_ArmLowerRight_Male_10": "Dark bracer male 3",
+    "SK_Chr_ArmLowerRight_Male_11": "Blue bracer male 3",
+    "SK_Chr_ArmLowerRight_Male_12": "Steel vambrace male 4",
+    "SK_Chr_ArmLowerRight_Male_13": "Blue bracer male 4",
+    "SK_Chr_ArmLowerRight_Male_14": "Dark bracer male 4",
+    "SK_Chr_ArmLowerRight_Male_15": "Dark bracer male 5",
+    "SK_Chr_ArmLowerRight_Male_16": "Blue bracer male 5",
+    "SK_Chr_ArmLowerRight_Male_17": "Blue bracer male 6",
+    "SK_Chr_ArmLowerRight_Male_18": "Blue bracer male 7",
+    "SK_Chr_ArmUpperLeft_Female_00": "Bare sleeve female",
+    "SK_Chr_ArmUpperLeft_Female_01": "Steel pauldron female",
+    "SK_Chr_ArmUpperLeft_Female_02": "Brown sleeve female",
+    "SK_Chr_ArmUpperLeft_Female_03": "Brown sleeve female 2",
+    "SK_Chr_ArmUpperLeft_Female_04": "Steel pauldron female 2",
+    "SK_Chr_ArmUpperLeft_Female_05": "Blue sleeve female",
+    "SK_Chr_ArmUpperLeft_Female_06": "Blue sleeve female 2",
+    "SK_Chr_ArmUpperLeft_Female_07": "Dark sleeve female",
+    "SK_Chr_ArmUpperLeft_Female_08": "Blue pauldron female",
+    "SK_Chr_ArmUpperLeft_Female_09": "Steel pauldron female 3",
+    "SK_Chr_ArmUpperLeft_Female_10": "Blue sleeve female 3",
+    "SK_Chr_ArmUpperLeft_Female_11": "Brown sleeve female 3",
+    "SK_Chr_ArmUpperLeft_Female_12": "Dark sleeve female 2",
+    "SK_Chr_ArmUpperLeft_Female_13": "Steel pauldron female 4",
+    "SK_Chr_ArmUpperLeft_Female_14": "Steel pauldron female 5",
+    "SK_Chr_ArmUpperLeft_Female_15": "Steel pauldron female 6",
+    "SK_Chr_ArmUpperLeft_Female_16": "Dark sleeve female 3",
+    "SK_Chr_ArmUpperLeft_Female_17": "Blue sleeve female 4",
+    "SK_Chr_ArmUpperLeft_Female_18": "Dark sleeve female 4",
+    "SK_Chr_ArmUpperLeft_Female_19": "Blue sleeve female 5",
+    "SK_Chr_ArmUpperLeft_Female_20": "Blue sleeve female 6",
+    "SK_Chr_ArmUpperLeft_Male_00": "Bare sleeve male",
+    "SK_Chr_ArmUpperLeft_Male_01": "Steel pauldron male",
+    "SK_Chr_ArmUpperLeft_Male_02": "Brown sleeve male",
+    "SK_Chr_ArmUpperLeft_Male_03": "Brown sleeve male 2",
+    "SK_Chr_ArmUpperLeft_Male_04": "Steel pauldron male 2",
+    "SK_Chr_ArmUpperLeft_Male_05": "Blue sleeve male",
+    "SK_Chr_ArmUpperLeft_Male_06": "Blue sleeve male 2",
+    "SK_Chr_ArmUpperLeft_Male_07": "Dark sleeve male",
+    "SK_Chr_ArmUpperLeft_Male_08": "Blue pauldron male",
+    "SK_Chr_ArmUpperLeft_Male_09": "Steel pauldron male 3",
+    "SK_Chr_ArmUpperLeft_Male_10": "Blue sleeve male 3",
+    "SK_Chr_ArmUpperLeft_Male_11": "Brown sleeve male 3",
+    "SK_Chr_ArmUpperLeft_Male_12": "Dark sleeve male 2",
+    "SK_Chr_ArmUpperLeft_Male_13": "Steel pauldron male 4",
+    "SK_Chr_ArmUpperLeft_Male_14": "Steel pauldron male 5",
+    "SK_Chr_ArmUpperLeft_Male_15": "Steel pauldron male 6",
+    "SK_Chr_ArmUpperLeft_Male_16": "Dark sleeve male 3",
+    "SK_Chr_ArmUpperLeft_Male_17": "Blue sleeve male 4",
+    "SK_Chr_ArmUpperLeft_Male_18": "Dark sleeve male 4",
+    "SK_Chr_ArmUpperLeft_Male_19": "Blue sleeve male 5",
+    "SK_Chr_ArmUpperLeft_Male_20": "Blue sleeve male 6",
+    "SK_Chr_ArmUpperRight_Female_00": "Bare sleeve female",
+    "SK_Chr_ArmUpperRight_Female_01": "Steel pauldron female",
+    "SK_Chr_ArmUpperRight_Female_02": "Brown sleeve female",
+    "SK_Chr_ArmUpperRight_Female_03": "Brown sleeve female 2",
+    "SK_Chr_ArmUpperRight_Female_04": "Steel pauldron female 2",
+    "SK_Chr_ArmUpperRight_Female_05": "Blue sleeve female",
+    "SK_Chr_ArmUpperRight_Female_06": "Blue sleeve female 2",
+    "SK_Chr_ArmUpperRight_Female_07": "Dark sleeve female",
+    "SK_Chr_ArmUpperRight_Female_08": "Blue pauldron female",
+    "SK_Chr_ArmUpperRight_Female_09": "Steel pauldron female 3",
+    "SK_Chr_ArmUpperRight_Female_10": "Blue sleeve female 3",
+    "SK_Chr_ArmUpperRight_Female_11": "Brown sleeve female 3",
+    "SK_Chr_ArmUpperRight_Female_12": "Dark sleeve female 2",
+    "SK_Chr_ArmUpperRight_Female_13": "Steel pauldron female 4",
+    "SK_Chr_ArmUpperRight_Female_14": "Steel pauldron female 5",
+    "SK_Chr_ArmUpperRight_Female_15": "Steel pauldron female 6",
+    "SK_Chr_ArmUpperRight_Female_16": "Dark sleeve female 3",
+    "SK_Chr_ArmUpperRight_Female_17": "Blue sleeve female 4",
+    "SK_Chr_ArmUpperRight_Female_18": "Dark sleeve female 4",
+    "SK_Chr_ArmUpperRight_Female_19": "Blue sleeve female 5",
+    "SK_Chr_ArmUpperRight_Female_20": "Blue sleeve female 6",
+    "SK_Chr_ArmUpperRight_Male_00": "Bare sleeve male",
+    "SK_Chr_ArmUpperRight_Male_01": "Steel pauldron male",
+    "SK_Chr_ArmUpperRight_Male_02": "Brown sleeve male",
+    "SK_Chr_ArmUpperRight_Male_03": "Brown sleeve male 2",
+    "SK_Chr_ArmUpperRight_Male_04": "Steel pauldron male 2",
+    "SK_Chr_ArmUpperRight_Male_05": "Blue sleeve male",
+    "SK_Chr_ArmUpperRight_Male_06": "Blue sleeve male 2",
+    "SK_Chr_ArmUpperRight_Male_07": "Dark sleeve male",
+    "SK_Chr_ArmUpperRight_Male_08": "Blue pauldron male",
+    "SK_Chr_ArmUpperRight_Male_09": "Steel pauldron male 3",
+    "SK_Chr_ArmUpperRight_Male_10": "Blue sleeve male 3",
+    "SK_Chr_ArmUpperRight_Male_11": "Brown sleeve male 3",
+    "SK_Chr_ArmUpperRight_Male_12": "Dark sleeve male 2",
+    "SK_Chr_ArmUpperRight_Male_13": "Steel pauldron male 4",
+    "SK_Chr_ArmUpperRight_Male_14": "Steel pauldron male 5",
+    "SK_Chr_ArmUpperRight_Male_15": "Steel pauldron male 6",
+    "SK_Chr_ArmUpperRight_Male_16": "Dark sleeve male 3",
+    "SK_Chr_ArmUpperRight_Male_17": "Blue sleeve male 4",
+    "SK_Chr_ArmUpperRight_Male_18": "Dark sleeve male 4",
+    "SK_Chr_ArmUpperRight_Male_19": "Blue sleeve male 5",
+    "SK_Chr_ArmUpperRight_Male_20": "Blue sleeve male 6",
+    "SK_Chr_ElbowAttachLeft_01": "Brown couter",
+    "SK_Chr_ElbowAttachLeft_02": "Steel couter",
+    "SK_Chr_ElbowAttachLeft_03": "Steel couter 2",
+    "SK_Chr_ElbowAttachLeft_04": "Steel couter 3",
+    "SK_Chr_ElbowAttachLeft_05": "Blue couter",
+    "SK_Chr_ElbowAttachLeft_06": "Blue couter 2",
+    "SK_Chr_ElbowAttachRight_01": "Brown couter",
+    "SK_Chr_ElbowAttachRight_02": "Steel couter",
+    "SK_Chr_ElbowAttachRight_03": "Steel couter 2",
+    "SK_Chr_ElbowAttachRight_04": "Steel couter 3",
+    "SK_Chr_ElbowAttachRight_05": "Blue couter",
+    "SK_Chr_ElbowAttachRight_06": "Blue couter 2",
+    "SK_Chr_HandLeft_Female_00": "Bare glove female",
+    "SK_Chr_HandLeft_Female_01": "Blue glove female",
+    "SK_Chr_HandLeft_Female_02": "Brown glove female",
+    "SK_Chr_HandLeft_Female_03": "Dark glove female",
+    "SK_Chr_HandLeft_Female_04": "Brown glove female 2",
+    "SK_Chr_HandLeft_Female_05": "Blue glove female 2",
+    "SK_Chr_HandLeft_Female_06": "Blue glove female 3",
+    "SK_Chr_HandLeft_Female_07": "Blue glove female 4",
+    "SK_Chr_HandLeft_Female_08": "Blue glove female 5",
+    "SK_Chr_HandLeft_Female_09": "Dark glove female 2",
+    "SK_Chr_HandLeft_Female_10": "Blue glove female 6",
+    "SK_Chr_HandLeft_Female_11": "Blue glove female 7",
+    "SK_Chr_HandLeft_Female_12": "Steel gauntlet female",
+    "SK_Chr_HandLeft_Female_13": "Dark glove female 3",
+    "SK_Chr_HandLeft_Female_14": "Steel gauntlet female 2",
+    "SK_Chr_HandLeft_Female_15": "Brown glove female 3",
+    "SK_Chr_HandLeft_Female_16": "Dark glove female 4",
+    "SK_Chr_HandLeft_Female_17": "Dark glove female 5",
+    "SK_Chr_HandLeft_Male_00": "Bare glove male",
+    "SK_Chr_HandLeft_Male_01": "Blue glove male",
+    "SK_Chr_HandLeft_Male_02": "Brown glove male",
+    "SK_Chr_HandLeft_Male_03": "Dark glove male",
+    "SK_Chr_HandLeft_Male_04": "Brown glove male 2",
+    "SK_Chr_HandLeft_Male_05": "Blue glove male 2",
+    "SK_Chr_HandLeft_Male_06": "Blue glove male 3",
+    "SK_Chr_HandLeft_Male_07": "Blue glove male 4",
+    "SK_Chr_HandLeft_Male_08": "Blue glove male 5",
+    "SK_Chr_HandLeft_Male_09": "Dark glove male 2",
+    "SK_Chr_HandLeft_Male_10": "Blue glove male 6",
+    "SK_Chr_HandLeft_Male_11": "Blue glove male 7",
+    "SK_Chr_HandLeft_Male_12": "Steel gauntlet male",
+    "SK_Chr_HandLeft_Male_13": "Dark glove male 3",
+    "SK_Chr_HandLeft_Male_14": "Steel gauntlet male 2",
+    "SK_Chr_HandLeft_Male_15": "Brown glove male 3",
+    "SK_Chr_HandLeft_Male_16": "Dark glove male 4",
+    "SK_Chr_HandLeft_Male_17": "Dark glove male 5",
+    "SK_Chr_HandRight_Female_00": "Bare glove female",
+    "SK_Chr_HandRight_Female_01": "Blue glove female",
+    "SK_Chr_HandRight_Female_02": "Brown glove female",
+    "SK_Chr_HandRight_Female_03": "Dark glove female",
+    "SK_Chr_HandRight_Female_04": "Brown glove female 2",
+    "SK_Chr_HandRight_Female_05": "Blue glove female 2",
+    "SK_Chr_HandRight_Female_06": "Blue glove female 3",
+    "SK_Chr_HandRight_Female_07": "Blue glove female 4",
+    "SK_Chr_HandRight_Female_08": "Blue glove female 5",
+    "SK_Chr_HandRight_Female_09": "Dark glove female 2",
+    "SK_Chr_HandRight_Female_10": "Blue glove female 6",
+    "SK_Chr_HandRight_Female_11": "Blue glove female 7",
+    "SK_Chr_HandRight_Female_12": "Steel gauntlet female",
+    "SK_Chr_HandRight_Female_13": "Dark glove female 3",
+    "SK_Chr_HandRight_Female_14": "Steel gauntlet female 2",
+    "SK_Chr_HandRight_Female_15": "Brown glove female 3",
+    "SK_Chr_HandRight_Female_16": "Dark glove female 4",
+    "SK_Chr_HandRight_Female_17": "Dark glove female 5",
+    "SK_Chr_HandRight_Male_00": "Bare glove male",
+    "SK_Chr_HandRight_Male_01": "Blue glove male",
+    "SK_Chr_HandRight_Male_02": "Brown glove male",
+    "SK_Chr_HandRight_Male_03": "Dark glove male",
+    "SK_Chr_HandRight_Male_04": "Brown glove male 2",
+    "SK_Chr_HandRight_Male_05": "Blue glove male 2",
+    "SK_Chr_HandRight_Male_06": "Blue glove male 3",
+    "SK_Chr_HandRight_Male_07": "Blue glove male 4",
+    "SK_Chr_HandRight_Male_08": "Blue glove male 5",
+    "SK_Chr_HandRight_Male_09": "Dark glove male 2",
+    "SK_Chr_HandRight_Male_10": "Blue glove male 6",
+    "SK_Chr_HandRight_Male_11": "Blue glove male 7",
+    "SK_Chr_HandRight_Male_12": "Steel gauntlet male",
+    "SK_Chr_HandRight_Male_13": "Dark glove male 3",
+    "SK_Chr_HandRight_Male_14": "Steel gauntlet male 2",
+    "SK_Chr_HandRight_Male_15": "Brown glove male 3",
+    "SK_Chr_HandRight_Male_16": "Dark glove male 4",
+    "SK_Chr_HandRight_Male_17": "Dark glove male 5",
+    "SK_Chr_HeadCoverings_Base_Hair_01": "Tan hood",
+    "SK_Chr_HeadCoverings_Base_Hair_02": "Blue hood",
+    "SK_Chr_HeadCoverings_Base_Hair_03": "Tan hood 2",
+    "SK_Chr_HeadCoverings_Base_Hair_04": "Tan hood 3",
+    "SK_Chr_HeadCoverings_Base_Hair_05": "Brown hood",
+    "SK_Chr_HeadCoverings_Base_Hair_06": "Tan hood 4",
+    "SK_Chr_HeadCoverings_Base_Hair_07": "Blue hood 2",
+    "SK_Chr_HeadCoverings_Base_Hair_08": "Dark hood",
+    "SK_Chr_HeadCoverings_Base_Hair_09": "Blue hood 3",
+    "SK_Chr_HeadCoverings_Base_Hair_10": "Dark hood 2",
+    "SK_Chr_HeadCoverings_Base_Hair_11": "Blue hood 4",
+    "SK_Chr_HeadCoverings_No_FacialHair_01": "Dark hood 3",
+    "SK_Chr_HeadCoverings_No_FacialHair_02": "Steel hood",
+    "SK_Chr_HeadCoverings_No_FacialHair_03": "Blue hood 5",
+    "SK_Chr_HeadCoverings_No_FacialHair_04": "Brown hood 2",
+    "SK_Chr_HeadCoverings_No_Hair_01": "Blue hood 6",
+    "SK_Chr_HeadCoverings_No_Hair_02": "Blue hood 7",
+    "SK_Chr_HeadCoverings_No_Hair_03": "Brown hood 3",
+    "SK_Chr_HeadCoverings_No_Hair_04": "Blue hood 8",
+    "SK_Chr_HeadCoverings_No_Hair_05": "Blue hood 9",
+    "SK_Chr_HeadCoverings_No_Hair_06": "Brown hood 4",
+    "SK_Chr_HeadCoverings_No_Hair_07": "Brown hood 5",
+    "SK_Chr_HeadCoverings_No_Hair_08": "Bare hood",
+    "SK_Chr_HeadCoverings_No_Hair_09": "Brown hood 6",
+    "SK_Chr_HeadCoverings_No_Hair_10": "Tan hood 5",
+    "SK_Chr_HeadCoverings_No_Hair_11": "Steel hood 2",
+    "SK_Chr_HeadCoverings_No_Hair_12": "Blue hood 10",
+    "SK_Chr_HeadCoverings_No_Hair_13": "Brown hood 7",
+    "SK_Chr_Head_No_Elements_Female_01": "Plague mask",
+    "SK_Chr_Head_No_Elements_Female_02": "Diamond plate helm",
+    "SK_Chr_Head_No_Elements_Female_03": "Small plate helm",
+    "SK_Chr_Head_No_Elements_Female_04": "Jousting plate helm",
+    "SK_Chr_Head_No_Elements_Female_05": "Knight plate helm",
+    "SK_Chr_Head_No_Elements_Female_06": "Evil plate helm",
+    "SK_Chr_Head_No_Elements_Female_07": "Dwarf plate helm",
+    "SK_Chr_Head_No_Elements_Female_08": "Templar plate helm",
+    "SK_Chr_Head_No_Elements_Female_09": "Odd plate helm",
+    "SK_Chr_Head_No_Elements_Female_10": "Thick plate helm",
+    "SK_Chr_Head_No_Elements_Female_11": "Cross plate helm",
+    "SK_Chr_Head_No_Elements_Female_12": "Striped plate helm",
+    "SK_Chr_Head_No_Elements_Female_13": "Square plate helm",
+    "SK_Chr_HipsAttachment_01": "Brown belt piece",
+    "SK_Chr_HipsAttachment_02": "Blue belt piece",
+    "SK_Chr_HipsAttachment_03": "Dark belt piece",
+    "SK_Chr_HipsAttachment_04": "Brown belt piece 2",
+    "SK_Chr_HipsAttachment_05": "Dark belt piece 2",
+    "SK_Chr_HipsAttachment_06": "Dark belt piece 3",
+    "SK_Chr_HipsAttachment_07": "Brown belt piece 3",
+    "SK_Chr_HipsAttachment_08": "Tan belt piece",
+    "SK_Chr_HipsAttachment_09": "Brown belt piece 4",
+    "SK_Chr_HipsAttachment_10": "Brown belt piece 5",
+    "SK_Chr_HipsAttachment_11": "Brown belt piece 6",
+    "SK_Chr_HipsAttachment_12": "Brown belt piece 7",
+    "SK_Chr_Hips_Female_00": "Brown skirt female",
+    "SK_Chr_Hips_Female_01": "Brown skirt female 2",
+    "SK_Chr_Hips_Female_02": "Blue skirt female",
+    "SK_Chr_Hips_Female_03": "Blue skirt female 2",
+    "SK_Chr_Hips_Female_04": "Blue skirt female 3",
+    "SK_Chr_Hips_Female_05": "Blue skirt female 4",
+    "SK_Chr_Hips_Female_06": "Dark skirt female",
+    "SK_Chr_Hips_Female_07": "Blue skirt female 5",
+    "SK_Chr_Hips_Female_08": "Blue skirt female 6",
+    "SK_Chr_Hips_Female_09": "Tan skirt female",
+    "SK_Chr_Hips_Female_10": "Tan skirt female 2",
+    "SK_Chr_Hips_Female_11": "Blue skirt female 7",
+    "SK_Chr_Hips_Female_12": "Blue skirt female 8",
+    "SK_Chr_Hips_Female_13": "Brown skirt female 3",
+    "SK_Chr_Hips_Female_14": "Blue skirt female 9",
+    "SK_Chr_Hips_Female_15": "Steel faulds female",
+    "SK_Chr_Hips_Female_16": "Blue skirt female 10",
+    "SK_Chr_Hips_Female_17": "Brown skirt female 4",
+    "SK_Chr_Hips_Female_18": "Blue skirt female 11",
+    "SK_Chr_Hips_Female_19": "Blue skirt female 12",
+    "SK_Chr_Hips_Female_20": "Tan skirt female 3",
+    "SK_Chr_Hips_Female_21": "Blue skirt female 13",
+    "SK_Chr_Hips_Female_22": "Steel skirt female",
+    "SK_Chr_Hips_Female_23": "Blue skirt female 14",
+    "SK_Chr_Hips_Female_24": "Blue skirt female 15",
+    "SK_Chr_Hips_Female_25": "Blue skirt female 16",
+    "SK_Chr_Hips_Female_26": "Blue skirt female 17",
+    "SK_Chr_Hips_Female_27": "Brown skirt female 5",
+    "SK_Chr_Hips_Female_28": "Blue skirt female 18",
+    "SK_Chr_Hips_Male_00": "Brown skirt male",
+    "SK_Chr_Hips_Male_01": "Brown skirt male 2",
+    "SK_Chr_Hips_Male_02": "Blue skirt male",
+    "SK_Chr_Hips_Male_03": "Blue skirt male 2",
+    "SK_Chr_Hips_Male_04": "Blue skirt male 3",
+    "SK_Chr_Hips_Male_05": "Blue skirt male 4",
+    "SK_Chr_Hips_Male_06": "Dark skirt male",
+    "SK_Chr_Hips_Male_07": "Blue skirt male 5",
+    "SK_Chr_Hips_Male_08": "Blue skirt male 6",
+    "SK_Chr_Hips_Male_09": "Tan skirt male",
+    "SK_Chr_Hips_Male_10": "Tan skirt male 2",
+    "SK_Chr_Hips_Male_11": "Blue skirt male 7",
+    "SK_Chr_Hips_Male_12": "Blue skirt male 8",
+    "SK_Chr_Hips_Male_13": "Brown skirt male 3",
+    "SK_Chr_Hips_Male_14": "Blue skirt male 9",
+    "SK_Chr_Hips_Male_15": "Steel faulds male",
+    "SK_Chr_Hips_Male_16": "Blue skirt male 10",
+    "SK_Chr_Hips_Male_17": "Brown skirt male 4",
+    "SK_Chr_Hips_Male_18": "Blue skirt male 11",
+    "SK_Chr_Hips_Male_19": "Blue skirt male 12",
+    "SK_Chr_Hips_Male_20": "Tan skirt male 3",
+    "SK_Chr_Hips_Male_21": "Blue skirt male 13",
+    "SK_Chr_Hips_Male_22": "Steel skirt male",
+    "SK_Chr_Hips_Male_23": "Blue skirt male 14",
+    "SK_Chr_Hips_Male_24": "Blue skirt male 15",
+    "SK_Chr_Hips_Male_25": "Blue skirt male 16",
+    "SK_Chr_Hips_Male_26": "Blue skirt male 17",
+    "SK_Chr_Hips_Male_27": "Brown skirt male 5",
+    "SK_Chr_Hips_Male_28": "Blue skirt male 18",
+    "SK_Chr_KneeAttachLeft_01": "Steel poleyn",
+    "SK_Chr_KneeAttachLeft_02": "Blue poleyn",
+    "SK_Chr_KneeAttachLeft_03": "Blue poleyn 2",
+    "SK_Chr_KneeAttachLeft_04": "Blue poleyn 3",
+    "SK_Chr_KneeAttachLeft_05": "Brown poleyn",
+    "SK_Chr_KneeAttachLeft_06": "Blue poleyn 4",
+    "SK_Chr_KneeAttachLeft_07": "Blue poleyn 5",
+    "SK_Chr_KneeAttachLeft_08": "Blue poleyn 6",
+    "SK_Chr_KneeAttachLeft_09": "Blue poleyn 7",
+    "SK_Chr_KneeAttachLeft_10": "Blue poleyn 8",
+    "SK_Chr_KneeAttachLeft_11": "Blue poleyn 9",
+    "SK_Chr_KneeAttachRight_01": "Steel poleyn",
+    "SK_Chr_KneeAttachRight_02": "Blue poleyn",
+    "SK_Chr_KneeAttachRight_03": "Blue poleyn 2",
+    "SK_Chr_KneeAttachRight_04": "Blue poleyn 3",
+    "SK_Chr_KneeAttachRight_05": "Brown poleyn",
+    "SK_Chr_KneeAttachRight_06": "Blue poleyn 4",
+    "SK_Chr_KneeAttachRight_07": "Blue poleyn 5",
+    "SK_Chr_KneeAttachRight_08": "Blue poleyn 6",
+    "SK_Chr_KneeAttachRight_09": "Blue poleyn 7",
+    "SK_Chr_KneeAttachRight_10": "Blue poleyn 8",
+    "SK_Chr_KneeAttachRight_11": "Blue poleyn 9",
+    "SK_Chr_LegLeft_Female_00": "Bare legging female",
+    "SK_Chr_LegLeft_Female_01": "Blue legging female",
+    "SK_Chr_LegLeft_Female_02": "Blue legging female 2",
+    "SK_Chr_LegLeft_Female_03": "Tan legging female",
+    "SK_Chr_LegLeft_Female_04": "Dark legging female",
+    "SK_Chr_LegLeft_Female_05": "Steel legging female",
+    "SK_Chr_LegLeft_Female_06": "Steel greave female",
+    "SK_Chr_LegLeft_Female_07": "Brown legging female",
+    "SK_Chr_LegLeft_Female_08": "Blue legging female 3",
+    "SK_Chr_LegLeft_Female_09": "Dark legging female 2",
+    "SK_Chr_LegLeft_Female_10": "Steel legging female 2",
+    "SK_Chr_LegLeft_Female_11": "Dark legging female 3",
+    "SK_Chr_LegLeft_Female_12": "Steel greave female 2",
+    "SK_Chr_LegLeft_Female_13": "Steel greave female 3",
+    "SK_Chr_LegLeft_Female_14": "Steel greave female 4",
+    "SK_Chr_LegLeft_Female_15": "Steel greave female 5",
+    "SK_Chr_LegLeft_Female_16": "Blue legging female 4",
+    "SK_Chr_LegLeft_Female_17": "Dark legging female 4",
+    "SK_Chr_LegLeft_Female_18": "Steel greave female 6",
+    "SK_Chr_LegLeft_Female_19": "Dark legging female 5",
+    "SK_Chr_LegLeft_Male_00": "Bare legging male",
+    "SK_Chr_LegLeft_Male_01": "Blue legging male",
+    "SK_Chr_LegLeft_Male_02": "Blue legging male 2",
+    "SK_Chr_LegLeft_Male_03": "Tan legging male",
+    "SK_Chr_LegLeft_Male_04": "Dark legging male",
+    "SK_Chr_LegLeft_Male_05": "Steel legging male",
+    "SK_Chr_LegLeft_Male_06": "Steel greave male",
+    "SK_Chr_LegLeft_Male_07": "Brown legging male",
+    "SK_Chr_LegLeft_Male_08": "Blue legging male 3",
+    "SK_Chr_LegLeft_Male_09": "Dark legging male 2",
+    "SK_Chr_LegLeft_Male_10": "Steel legging male 2",
+    "SK_Chr_LegLeft_Male_11": "Dark legging male 3",
+    "SK_Chr_LegLeft_Male_12": "Steel greave male 2",
+    "SK_Chr_LegLeft_Male_13": "Steel greave male 3",
+    "SK_Chr_LegLeft_Male_14": "Steel greave male 4",
+    "SK_Chr_LegLeft_Male_15": "Steel greave male 5",
+    "SK_Chr_LegLeft_Male_16": "Blue legging male 4",
+    "SK_Chr_LegLeft_Male_17": "Dark legging male 4",
+    "SK_Chr_LegLeft_Male_18": "Steel greave male 6",
+    "SK_Chr_LegLeft_Male_19": "Dark legging male 5",
+    "SK_Chr_LegRight_Female_00": "Bare legging female",
+    "SK_Chr_LegRight_Female_01": "Blue legging female",
+    "SK_Chr_LegRight_Female_02": "Blue legging female 2",
+    "SK_Chr_LegRight_Female_03": "Tan legging female",
+    "SK_Chr_LegRight_Female_04": "Dark legging female",
+    "SK_Chr_LegRight_Female_05": "Steel legging female",
+    "SK_Chr_LegRight_Female_06": "Steel greave female",
+    "SK_Chr_LegRight_Female_07": "Brown legging female",
+    "SK_Chr_LegRight_Female_08": "Blue legging female 3",
+    "SK_Chr_LegRight_Female_09": "Dark legging female 2",
+    "SK_Chr_LegRight_Female_10": "Steel legging female 2",
+    "SK_Chr_LegRight_Female_11": "Dark legging female 3",
+    "SK_Chr_LegRight_Female_12": "Steel greave female 2",
+    "SK_Chr_LegRight_Female_13": "Steel greave female 3",
+    "SK_Chr_LegRight_Female_14": "Steel greave female 4",
+    "SK_Chr_LegRight_Female_15": "Steel greave female 5",
+    "SK_Chr_LegRight_Female_16": "Blue legging female 4",
+    "SK_Chr_LegRight_Female_17": "Dark legging female 4",
+    "SK_Chr_LegRight_Female_18": "Steel greave female 6",
+    "SK_Chr_LegRight_Female_19": "Dark legging female 5",
+    "SK_Chr_LegRight_Male_00": "Bare legging male",
+    "SK_Chr_LegRight_Male_01": "Blue legging male",
+    "SK_Chr_LegRight_Male_02": "Blue legging male 2",
+    "SK_Chr_LegRight_Male_03": "Tan legging male",
+    "SK_Chr_LegRight_Male_04": "Dark legging male",
+    "SK_Chr_LegRight_Male_05": "Steel legging male",
+    "SK_Chr_LegRight_Male_06": "Steel greave male",
+    "SK_Chr_LegRight_Male_07": "Brown legging male",
+    "SK_Chr_LegRight_Male_08": "Blue legging male 3",
+    "SK_Chr_LegRight_Male_09": "Dark legging male 2",
+    "SK_Chr_LegRight_Male_10": "Steel legging male 2",
+    "SK_Chr_LegRight_Male_11": "Dark legging male 3",
+    "SK_Chr_LegRight_Male_12": "Steel greave male 2",
+    "SK_Chr_LegRight_Male_13": "Steel greave male 3",
+    "SK_Chr_LegRight_Male_14": "Steel greave male 4",
+    "SK_Chr_LegRight_Male_15": "Steel greave male 5",
+    "SK_Chr_LegRight_Male_16": "Blue legging male 4",
+    "SK_Chr_LegRight_Male_17": "Dark legging male 4",
+    "SK_Chr_LegRight_Male_18": "Steel greave male 6",
+    "SK_Chr_LegRight_Male_19": "Dark legging male 5",
+    "SK_Chr_ShoulderAttachLeft_01": "Blue shoulder",
+    "SK_Chr_ShoulderAttachLeft_02": "Blue shoulder 2",
+    "SK_Chr_ShoulderAttachLeft_03": "Steel shoulder",
+    "SK_Chr_ShoulderAttachLeft_04": "Steel shoulder 2",
+    "SK_Chr_ShoulderAttachLeft_05": "Steel shoulder 3",
+    "SK_Chr_ShoulderAttachLeft_06": "Brown shoulder",
+    "SK_Chr_ShoulderAttachLeft_07": "Blue shoulder 3",
+    "SK_Chr_ShoulderAttachLeft_08": "Blue shoulder 4",
+    "SK_Chr_ShoulderAttachLeft_09": "Brown shoulder 2",
+    "SK_Chr_ShoulderAttachLeft_10": "Blue shoulder 5",
+    "SK_Chr_ShoulderAttachLeft_11": "Blue shoulder 6",
+    "SK_Chr_ShoulderAttachLeft_12": "Blue shoulder 7",
+    "SK_Chr_ShoulderAttachLeft_13": "Blue shoulder 8",
+    "SK_Chr_ShoulderAttachLeft_14": "Blue shoulder 9",
+    "SK_Chr_ShoulderAttachLeft_15": "Dark shoulder",
+    "SK_Chr_ShoulderAttachLeft_16": "Dark shoulder 2",
+    "SK_Chr_ShoulderAttachLeft_17": "Steel shoulder 4",
+    "SK_Chr_ShoulderAttachLeft_18": "Steel shoulder 5",
+    "SK_Chr_ShoulderAttachLeft_19": "Steel shoulder 6",
+    "SK_Chr_ShoulderAttachLeft_20": "Blue shoulder 10",
+    "SK_Chr_ShoulderAttachLeft_21": "Blue shoulder 11",
+    "SK_Chr_ShoulderAttachRight_01": "Blue shoulder",
+    "SK_Chr_ShoulderAttachRight_02": "Blue shoulder 2",
+    "SK_Chr_ShoulderAttachRight_03": "Steel shoulder",
+    "SK_Chr_ShoulderAttachRight_04": "Steel shoulder 2",
+    "SK_Chr_ShoulderAttachRight_05": "Steel shoulder 3",
+    "SK_Chr_ShoulderAttachRight_06": "Brown shoulder",
+    "SK_Chr_ShoulderAttachRight_07": "Blue shoulder 3",
+    "SK_Chr_ShoulderAttachRight_08": "Blue shoulder 4",
+    "SK_Chr_ShoulderAttachRight_09": "Brown shoulder 2",
+    "SK_Chr_ShoulderAttachRight_10": "Blue shoulder 5",
+    "SK_Chr_ShoulderAttachRight_11": "Blue shoulder 6",
+    "SK_Chr_ShoulderAttachRight_12": "Blue shoulder 7",
+    "SK_Chr_ShoulderAttachRight_13": "Blue shoulder 8",
+    "SK_Chr_ShoulderAttachRight_14": "Blue shoulder 9",
+    "SK_Chr_ShoulderAttachRight_15": "Dark shoulder",
+    "SK_Chr_ShoulderAttachRight_16": "Dark shoulder 2",
+    "SK_Chr_ShoulderAttachRight_17": "Steel shoulder 4",
+    "SK_Chr_ShoulderAttachRight_18": "Steel shoulder 5",
+    "SK_Chr_ShoulderAttachRight_19": "Steel shoulder 6",
+    "SK_Chr_ShoulderAttachRight_20": "Blue shoulder 10",
+    "SK_Chr_ShoulderAttachRight_21": "Blue shoulder 11"
+  },
+  "tags": {
+    "SK_Chr_Torso_Male_00": [
+      "base",
+      "leather"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_00": [
+      "base"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_01": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_02": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_05": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_09": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_10": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_11": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_13": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_14": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_16": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Female_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_00": [
+      "base"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_01": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_02": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_05": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_09": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_10": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_11": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_13": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_14": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_16": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerLeft_Male_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_00": [
+      "base"
+    ],
+    "SK_Chr_ArmLowerRight_Female_01": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerRight_Female_02": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerRight_Female_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Female_05": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Female_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Female_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Female_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Female_09": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_10": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerRight_Female_11": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Female_13": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_14": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Female_16": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Female_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_00": [
+      "base"
+    ],
+    "SK_Chr_ArmLowerRight_Male_01": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerRight_Male_02": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerRight_Male_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Male_05": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Male_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Male_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Male_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Male_09": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_10": [
+      "leather"
+    ],
+    "SK_Chr_ArmLowerRight_Male_11": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Male_13": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_14": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmLowerRight_Male_16": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmLowerRight_Male_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_00": [
+      "base"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_01": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_02": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_05": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_09": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_10": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_11": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_13": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_14": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_16": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_19": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Female_20": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_00": [
+      "base"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_01": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_02": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_05": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_09": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_10": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_11": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_13": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_14": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_16": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_19": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperLeft_Male_20": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Female_00": [
+      "base"
+    ],
+    "SK_Chr_ArmUpperRight_Female_01": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_02": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperRight_Female_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperRight_Female_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_05": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Female_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_09": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_10": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_11": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperRight_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_13": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_14": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_16": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Female_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Female_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Female_19": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Female_20": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Male_00": [
+      "base"
+    ],
+    "SK_Chr_ArmUpperRight_Male_01": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_02": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperRight_Male_03": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperRight_Male_04": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_05": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Male_06": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_07": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_08": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_09": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_10": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_11": [
+      "leather"
+    ],
+    "SK_Chr_ArmUpperRight_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_13": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_14": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_16": [
+      "plate"
+    ],
+    "SK_Chr_ArmUpperRight_Male_17": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Male_18": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Male_19": [
+      "cloth"
+    ],
+    "SK_Chr_ArmUpperRight_Male_20": [
+      "cloth"
+    ],
+    "SK_Chr_ElbowAttachLeft_01": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachLeft_02": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachLeft_03": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachLeft_04": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachLeft_05": [
+      "cloth"
+    ],
+    "SK_Chr_ElbowAttachLeft_06": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachRight_01": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachRight_02": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachRight_03": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachRight_04": [
+      "plate"
+    ],
+    "SK_Chr_ElbowAttachRight_05": [
+      "cloth"
+    ],
+    "SK_Chr_ElbowAttachRight_06": [
+      "plate"
+    ],
+    "SK_Chr_HandLeft_Female_00": [
+      "base"
+    ],
+    "SK_Chr_HandLeft_Female_01": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_02": [
+      "leather"
+    ],
+    "SK_Chr_HandLeft_Female_03": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_04": [
+      "leather"
+    ],
+    "SK_Chr_HandLeft_Female_05": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_06": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_07": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_08": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_09": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_10": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_11": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_HandLeft_Female_13": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_14": [
+      "plate"
+    ],
+    "SK_Chr_HandLeft_Female_15": [
+      "leather"
+    ],
+    "SK_Chr_HandLeft_Female_16": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Female_17": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_00": [
+      "base"
+    ],
+    "SK_Chr_HandLeft_Male_01": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_02": [
+      "leather"
+    ],
+    "SK_Chr_HandLeft_Male_03": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_04": [
+      "leather"
+    ],
+    "SK_Chr_HandLeft_Male_05": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_06": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_07": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_08": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_09": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_10": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_11": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_HandLeft_Male_13": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_14": [
+      "plate"
+    ],
+    "SK_Chr_HandLeft_Male_15": [
+      "leather"
+    ],
+    "SK_Chr_HandLeft_Male_16": [
+      "cloth"
+    ],
+    "SK_Chr_HandLeft_Male_17": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_00": [
+      "base"
+    ],
+    "SK_Chr_HandRight_Female_01": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_02": [
+      "leather"
+    ],
+    "SK_Chr_HandRight_Female_03": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_04": [
+      "leather"
+    ],
+    "SK_Chr_HandRight_Female_05": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_06": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_07": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_08": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_09": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_10": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_11": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_HandRight_Female_13": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_14": [
+      "plate"
+    ],
+    "SK_Chr_HandRight_Female_15": [
+      "leather"
+    ],
+    "SK_Chr_HandRight_Female_16": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Female_17": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_00": [
+      "base"
+    ],
+    "SK_Chr_HandRight_Male_01": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_02": [
+      "leather"
+    ],
+    "SK_Chr_HandRight_Male_03": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_04": [
+      "leather"
+    ],
+    "SK_Chr_HandRight_Male_05": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_06": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_07": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_08": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_09": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_10": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_11": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_HandRight_Male_13": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_14": [
+      "plate"
+    ],
+    "SK_Chr_HandRight_Male_15": [
+      "leather"
+    ],
+    "SK_Chr_HandRight_Male_16": [
+      "cloth"
+    ],
+    "SK_Chr_HandRight_Male_17": [
+      "cloth"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_01": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_02": [
+      "cloth"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_03": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_04": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_05": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_06": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_07": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_08": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_09": [
+      "plate"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_10": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_Base_Hair_11": [
+      "cloth"
+    ],
+    "SK_Chr_HeadCoverings_No_FacialHair_01": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_FacialHair_02": [
+      "plate"
+    ],
+    "SK_Chr_HeadCoverings_No_FacialHair_03": [
+      "cloth"
+    ],
+    "SK_Chr_HeadCoverings_No_FacialHair_04": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_01": [
+      "cloth"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_02": [
+      "plate"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_03": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_04": [
+      "plate"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_05": [
+      "cloth"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_06": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_07": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_09": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_10": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_11": [
+      "plate"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_12": [
+      "cloth"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_13": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_01": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_02": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_03": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_04": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_05": [
+      "plate"
+    ],
+    "SK_Chr_HipsAttachment_06": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_07": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_08": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_09": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_10": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_11": [
+      "leather"
+    ],
+    "SK_Chr_HipsAttachment_12": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_00": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_01": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_02": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Female_03": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_04": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_05": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_06": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_07": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_08": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_09": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_10": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_11": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_12": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_13": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Female_14": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Female_16": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Female_17": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_18": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_19": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_20": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_21": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Female_22": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Female_23": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_24": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_25": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Female_26": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_27": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Female_28": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_00": [
+      "base",
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_01": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_02": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Male_03": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_04": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_05": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_06": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_07": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_08": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_09": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_10": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_11": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_12": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_13": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Male_14": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Male_16": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Male_17": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_18": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_19": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Male_20": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_21": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Male_22": [
+      "plate"
+    ],
+    "SK_Chr_Hips_Male_23": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_24": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_25": [
+      "cloth"
+    ],
+    "SK_Chr_Hips_Male_26": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_27": [
+      "leather"
+    ],
+    "SK_Chr_Hips_Male_28": [
+      "leather"
+    ],
+    "SK_Chr_KneeAttachLeft_01": [
+      "plate"
+    ],
+    "SK_Chr_KneeAttachLeft_02": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_03": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_04": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_05": [
+      "leather"
+    ],
+    "SK_Chr_KneeAttachLeft_06": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_07": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_08": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_09": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_10": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachLeft_11": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_01": [
+      "plate"
+    ],
+    "SK_Chr_KneeAttachRight_02": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_03": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_04": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_05": [
+      "leather"
+    ],
+    "SK_Chr_KneeAttachRight_06": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_07": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_08": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_09": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_10": [
+      "cloth"
+    ],
+    "SK_Chr_KneeAttachRight_11": [
+      "cloth"
+    ],
+    "SK_Chr_LegLeft_Female_00": [
+      "base"
+    ],
+    "SK_Chr_LegLeft_Female_01": [
+      "cloth"
+    ],
+    "SK_Chr_LegLeft_Female_02": [
+      "cloth"
+    ],
+    "SK_Chr_LegLeft_Female_03": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Female_04": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Female_05": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Female_06": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_07": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Female_08": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_09": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Female_10": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_11": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_13": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_14": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_16": [
+      "cloth"
+    ],
+    "SK_Chr_LegLeft_Female_17": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Female_18": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Female_19": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_00": [
+      "base"
+    ],
+    "SK_Chr_LegLeft_Male_01": [
+      "cloth"
+    ],
+    "SK_Chr_LegLeft_Male_02": [
+      "cloth"
+    ],
+    "SK_Chr_LegLeft_Male_03": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_04": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_05": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_06": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_07": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_08": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_09": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_10": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_11": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_13": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_14": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_16": [
+      "cloth"
+    ],
+    "SK_Chr_LegLeft_Male_17": [
+      "leather"
+    ],
+    "SK_Chr_LegLeft_Male_18": [
+      "plate"
+    ],
+    "SK_Chr_LegLeft_Male_19": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_00": [
+      "base"
+    ],
+    "SK_Chr_LegRight_Female_01": [
+      "cloth"
+    ],
+    "SK_Chr_LegRight_Female_02": [
+      "cloth"
+    ],
+    "SK_Chr_LegRight_Female_03": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_04": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_05": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_06": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_07": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_08": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_09": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_10": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_11": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_13": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_14": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_16": [
+      "cloth"
+    ],
+    "SK_Chr_LegRight_Female_17": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Female_18": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Female_19": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_00": [
+      "base"
+    ],
+    "SK_Chr_LegRight_Male_01": [
+      "cloth"
+    ],
+    "SK_Chr_LegRight_Male_02": [
+      "cloth"
+    ],
+    "SK_Chr_LegRight_Male_03": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_04": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_05": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_06": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_07": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_08": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_09": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_10": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_11": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_13": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_14": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_16": [
+      "cloth"
+    ],
+    "SK_Chr_LegRight_Male_17": [
+      "leather"
+    ],
+    "SK_Chr_LegRight_Male_18": [
+      "plate"
+    ],
+    "SK_Chr_LegRight_Male_19": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachLeft_01": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_02": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_03": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachLeft_04": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachLeft_05": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachLeft_06": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachLeft_07": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_08": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_09": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachLeft_10": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_11": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_12": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachLeft_13": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_14": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_15": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachLeft_16": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachLeft_17": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachLeft_18": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachLeft_19": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachLeft_20": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachLeft_21": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_01": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_02": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_03": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachRight_04": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachRight_05": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachRight_06": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachRight_07": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_08": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_09": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachRight_10": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_11": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_12": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachRight_13": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_14": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_15": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachRight_16": [
+      "leather"
+    ],
+    "SK_Chr_ShoulderAttachRight_17": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachRight_18": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachRight_19": [
+      "plate"
+    ],
+    "SK_Chr_ShoulderAttachRight_20": [
+      "cloth"
+    ],
+    "SK_Chr_ShoulderAttachRight_21": [
+      "cloth"
+    ],
+    "SK_Chr_BackAttachment_01": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_02": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_03": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_04": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_05": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_06": [
+      "cloth"
+    ],
+    "SK_Chr_BackAttachment_07": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_08": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_09": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_10": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_11": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_12": [
+      "leather"
+    ],
+    "SK_Chr_BackAttachment_13": [
+      "cloth"
+    ],
+    "SK_Chr_BackAttachment_14": [
+      "cloth"
+    ],
+    "SK_Chr_BackAttachment_15": [
+      "leather"
+    ],
+    "SK_Chr_Ear_Ear_01": [],
+    "SK_Chr_Ear_Ear_02": [],
+    "SK_Chr_Ear_Ear_03": [],
+    "SK_Chr_Eyebrow_Female_01": [],
+    "SK_Chr_Eyebrow_Female_02": [],
+    "SK_Chr_Eyebrow_Female_03": [],
+    "SK_Chr_Eyebrow_Female_04": [],
+    "SK_Chr_Eyebrow_Female_05": [],
+    "SK_Chr_Eyebrow_Female_06": [],
+    "SK_Chr_Eyebrow_Female_07": [],
+    "SK_Chr_Eyebrow_Male_01": [],
+    "SK_Chr_Eyebrow_Male_02": [],
+    "SK_Chr_Eyebrow_Male_03": [],
+    "SK_Chr_Eyebrow_Male_04": [],
+    "SK_Chr_Eyebrow_Male_05": [],
+    "SK_Chr_Eyebrow_Male_06": [],
+    "SK_Chr_Eyebrow_Male_07": [],
+    "SK_Chr_Eyebrow_Male_08": [],
+    "SK_Chr_Eyebrow_Male_09": [],
+    "SK_Chr_Eyebrow_Male_10": [],
+    "SK_Chr_FacialHair_Male_01": [],
+    "SK_Chr_FacialHair_Male_02": [],
+    "SK_Chr_FacialHair_Male_03": [],
+    "SK_Chr_FacialHair_Male_04": [],
+    "SK_Chr_FacialHair_Male_05": [],
+    "SK_Chr_FacialHair_Male_06": [],
+    "SK_Chr_FacialHair_Male_07": [],
+    "SK_Chr_FacialHair_Male_08": [],
+    "SK_Chr_FacialHair_Male_09": [],
+    "SK_Chr_FacialHair_Male_10": [],
+    "SK_Chr_FacialHair_Male_11": [],
+    "SK_Chr_FacialHair_Male_12": [],
+    "SK_Chr_FacialHair_Male_13": [],
+    "SK_Chr_FacialHair_Male_14": [],
+    "SK_Chr_FacialHair_Male_15": [],
+    "SK_Chr_FacialHair_Male_16": [],
+    "SK_Chr_FacialHair_Male_17": [],
+    "SK_Chr_FacialHair_Male_18": [],
+    "SK_Chr_Hair_01": [],
+    "SK_Chr_Hair_02": [],
+    "SK_Chr_Hair_03": [],
+    "SK_Chr_Hair_04": [],
+    "SK_Chr_Hair_05": [],
+    "SK_Chr_Hair_06": [],
+    "SK_Chr_Hair_07": [],
+    "SK_Chr_Hair_08": [],
+    "SK_Chr_Hair_09": [],
+    "SK_Chr_Hair_10": [],
+    "SK_Chr_Hair_11": [],
+    "SK_Chr_Hair_12": [],
+    "SK_Chr_Hair_13": [],
+    "SK_Chr_Hair_14": [],
+    "SK_Chr_Hair_15": [],
+    "SK_Chr_Hair_16": [],
+    "SK_Chr_Hair_17": [],
+    "SK_Chr_Hair_18": [],
+    "SK_Chr_Hair_19": [],
+    "SK_Chr_Hair_20": [],
+    "SK_Chr_Hair_21": [],
+    "SK_Chr_Hair_22": [],
+    "SK_Chr_Hair_23": [],
+    "SK_Chr_Hair_24": [],
+    "SK_Chr_Hair_25": [],
+    "SK_Chr_Hair_26": [],
+    "SK_Chr_Hair_27": [],
+    "SK_Chr_Hair_28": [],
+    "SK_Chr_Hair_29": [],
+    "SK_Chr_Hair_30": [],
+    "SK_Chr_Hair_31": [],
+    "SK_Chr_Hair_32": [],
+    "SK_Chr_Hair_33": [],
+    "SK_Chr_Hair_34": [],
+    "SK_Chr_Hair_35": [],
+    "SK_Chr_Hair_36": [],
+    "SK_Chr_Hair_37": [],
+    "SK_Chr_Hair_38": [],
+    "SK_Chr_Head_Female_01": [],
+    "SK_Chr_Head_Female_02": [],
+    "SK_Chr_Head_Female_03": [],
+    "SK_Chr_Head_Female_04": [],
+    "SK_Chr_Head_Female_05": [],
+    "SK_Chr_Head_Female_06": [],
+    "SK_Chr_Head_Female_07": [],
+    "SK_Chr_Head_Female_08": [],
+    "SK_Chr_Head_Female_09": [],
+    "SK_Chr_Head_Female_10": [],
+    "SK_Chr_Head_Female_11": [],
+    "SK_Chr_Head_Female_12": [],
+    "SK_Chr_Head_Female_13": [],
+    "SK_Chr_Head_Female_14": [],
+    "SK_Chr_Head_Female_15": [],
+    "SK_Chr_Head_Female_16": [],
+    "SK_Chr_Head_Female_17": [],
+    "SK_Chr_Head_Female_18": [],
+    "SK_Chr_Head_Female_19": [],
+    "SK_Chr_Head_Female_20": [],
+    "SK_Chr_Head_Female_21": [],
+    "SK_Chr_Head_Female_22": [],
+    "SK_Chr_Head_Male_01": [],
+    "SK_Chr_Head_Male_02": [],
+    "SK_Chr_Head_Male_03": [],
+    "SK_Chr_Head_Male_04": [],
+    "SK_Chr_Head_Male_05": [],
+    "SK_Chr_Head_Male_06": [],
+    "SK_Chr_Head_Male_07": [],
+    "SK_Chr_Head_Male_08": [],
+    "SK_Chr_Head_Male_09": [],
+    "SK_Chr_Head_Male_10": [],
+    "SK_Chr_Head_Male_11": [],
+    "SK_Chr_Head_Male_12": [],
+    "SK_Chr_Head_Male_13": [],
+    "SK_Chr_Head_Male_14": [],
+    "SK_Chr_Head_Male_15": [],
+    "SK_Chr_Head_Male_16": [],
+    "SK_Chr_Head_Male_17": [],
+    "SK_Chr_Head_Male_18": [],
+    "SK_Chr_Head_Male_19": [],
+    "SK_Chr_Head_Male_20": [],
+    "SK_Chr_Head_Male_21": [],
+    "SK_Chr_Head_Male_22": [],
+    "SK_Chr_Head_No_Elements_Female_01": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_02": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_03": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_04": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_05": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_06": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_07": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_08": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_09": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_10": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_11": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_12": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Female_13": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_01": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_02": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_03": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_04": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_05": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_06": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_07": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_08": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_09": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_10": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_11": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_12": [
+      "plate"
+    ],
+    "SK_Chr_Head_No_Elements_Male_13": [
+      "plate"
+    ],
+    "SK_Chr_HelmetAttachment_01": [],
+    "SK_Chr_HelmetAttachment_02": [],
+    "SK_Chr_HelmetAttachment_03": [],
+    "SK_Chr_HelmetAttachment_04": [],
+    "SK_Chr_HelmetAttachment_05": [],
+    "SK_Chr_HelmetAttachment_06": [],
+    "SK_Chr_HelmetAttachment_07": [],
+    "SK_Chr_HelmetAttachment_08": [],
+    "SK_Chr_HelmetAttachment_09": [],
+    "SK_Chr_HelmetAttachment_10": [],
+    "SK_Chr_HelmetAttachment_11": [],
+    "SK_Chr_HelmetAttachment_12": [],
+    "SK_Chr_HelmetAttachment_13": [],
+    "SK_Chr_Torso_Female_00": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_01": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_02": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_03": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_04": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_05": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_06": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_07": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_08": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_09": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_10": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_11": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_12": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_13": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_14": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_15": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_16": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_17": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_18": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_19": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_20": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_21": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_22": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_23": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_24": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_25": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Female_26": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Female_27": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Female_28": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_01": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_02": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_03": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_04": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_05": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_06": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_07": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_08": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_09": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_10": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_11": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_12": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_13": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_14": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_15": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_16": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_17": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_18": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_19": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_20": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_21": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_22": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_23": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_24": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_25": [
+      "plate"
+    ],
+    "SK_Chr_Torso_Male_26": [
+      "leather"
+    ],
+    "SK_Chr_Torso_Male_27": [
+      "cloth"
+    ],
+    "SK_Chr_Torso_Male_28": [
+      "leather"
+    ],
+    "SK_Chr_HeadCoverings_No_Hair_08": [
+      "base"
+    ]
+  }
+}

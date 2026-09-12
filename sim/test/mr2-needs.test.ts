@@ -1,10 +1,37 @@
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ObjectiveSchema, type ObjectiveDef } from '@rc/shared';
+import { ObjectiveSchema, isTileWalkable, type ObjectiveDef } from '@rc/shared';
 import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+
+/**
+ * Tiles picked from CONTENT rather than typed in. The town was halved in
+ * D-549 and every hardcoded coordinate in this suite pointed off the edge of
+ * the new map or into a wall — where an unwalkable spawn is silently
+ * relocated to the area spawn, which sits in the tavern beside the well. The
+ * tests then passed or failed for reasons that had nothing to do with needs.
+ */
+function townTiles(content: ReturnType<typeof loadContent>): {
+  atWell: { x: number; y: number };
+  farFromFacilities: { x: number; y: number }[];
+} {
+  const town = content.areas.get('round-town')!;
+  const well = town.stations.find((s) => s.type === 'well')!;
+  const far: { x: number; y: number }[] = [];
+  for (let y = 1; y < town.height - 1 && far.length < 8; y++) {
+    for (let x = 1; x < town.width - 1 && far.length < 8; x++) {
+      if (!isTileWalkable(town, { x, y })) continue;
+      // Well clear of every station: standing at one slows the need clock.
+      if (town.stations.some((s) => Math.abs(s.x - x) + Math.abs(s.y - y) < 12)) continue;
+      if (far.some((p) => Math.abs(p.x - x) + Math.abs(p.y - y) < 3)) continue;
+      far.push({ x, y });
+    }
+  }
+  return { atWell: { x: well.x, y: well.y + 1 }, farFromFacilities: far };
+}
+
 
 /**
  * Hunger and thirst (D-526), played by bots.
@@ -90,19 +117,23 @@ beforeAll(async () => {
   const url = `ws://127.0.0.1:${server.port}`;
   townie = await BotClient.connect(url);
   other = await BotClient.connect(url);
-  // Right beside the well at the town's centre (100x100 → centre 50,50).
-  townieChar = await join(townie, 'needs_one', 'Bram Ottel', 921, 'round-town', 50, 52);
+  const tiles = townTiles(loadContent(contentDir));
+  // Right beside the well, wherever content says the well now is.
+  townieChar = await join(
+    townie, 'needs_one', 'Bram Ottel', 921, 'round-town', tiles.atWell.x, tiles.atWell.y,
+  );
   // BOTH in town, deliberately. The first version left this one alone in the
   // mine, where the roamers found and killed it at dusk — which ended the
   // round, reset every need, and made the plateau assertion fail for a reason
   // that had nothing to do with needs. The thirst leash is about standing AT
   // THE WELL, not about being outside the town, so a far corner tests it just
   // as well and nothing else can decide the round.
-  // (20,40) is open floor. NOTE (12,12) is the tavern's wall CORNER, and an
-  // unwalkable spawn is silently relocated to the area spawn — which sits two
-  // tiles from the well, so this bot was quietly drinking its fill and the
-  // "no water here" assertion could never fire.
-  await join(other, 'needs_two', 'Kesia Ward', 922, 'round-town', 20, 40);
+  // Open floor well clear of every facility. NOTE an unwalkable spawn is
+  // silently relocated to the area spawn — which is now INSIDE THE TAVERN,
+  // steps from the well, so a bot placed in a wall would quietly drink its
+  // fill and the "no water here" assertion could never fire.
+  const away = tiles.farFromFacilities[0]!;
+  await join(other, 'needs_two', 'Kesia Ward', 922, 'round-town', away.x, away.y);
   await waitUntil(() => townie.roundState?.phase === 'running', 'the round begins');
 });
 

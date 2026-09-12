@@ -1,0 +1,9 @@
+{
+  "id": "cobble",
+  "name": "Cobblestone",
+  "repeat": 0.36,
+  "tint": "#8a8880",
+  "walkable": true,
+  "notes": "Laid stone. A square, a road that was paid for.",
+  "texture": "cobble-01.png"
+}

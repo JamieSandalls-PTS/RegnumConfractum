@@ -1,0 +1,206 @@
+{
+  "pack": "knights",
+  "kind": "character-item",
+  "assets": [
+    {
+      "id": "wep-broadsword-01",
+      "name": "Arming sword",
+      "pack": "knights",
+      "mesh": "SM_Wep_Broadsword_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-halberd-01",
+      "name": "Halberd",
+      "pack": "knights",
+      "mesh": "SM_Wep_Halberd_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "polearm",
+      "clips": {}
+    },
+    {
+      "id": "wep-rapier-01",
+      "name": "Rapier",
+      "pack": "knights",
+      "mesh": "SM_Wep_Rapier_01",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-01",
+      "name": "Shield",
+      "pack": "knights",
+      "mesh": "SM_Wep_Shield_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.3,
+          -0.05,
+          0.02
+        ],
+        "rotation": [
+          -100,
+          15,
+          -190
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-02",
+      "name": "Shield 2",
+      "pack": "knights",
+      "mesh": "SM_Wep_Shield_02",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "lowerarm_l",
+      "transform": {
+        "position": [
+          0.29,
+          -0.04,
+          -0.02
+        ],
+        "rotation": [
+          -95,
+          10,
+          -180
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-03",
+      "name": "Shield 3",
+      "pack": "knights",
+      "mesh": "SM_Wep_Shield_03",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-shield-04",
+      "name": "Shield 4",
+      "pack": "knights",
+      "mesh": "SM_Wep_Shield_04",
+      "tags": [
+        "auto-fit"
+      ],
+      "kind": "character-item",
+      "attach": "Hand_L",
+      "transform": {
+        "position": [
+          0.06,
+          0.02,
+          -0.02
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "one-handed-shield",
+      "clips": {}
+    },
+    {
+      "id": "wep-zweihander-01",
+      "name": "Zweihander",
+      "pack": "knights",
+      "mesh": "SM_Wep_Zweihander_01",
+      "tags": [],
+      "kind": "character-item",
+      "attach": "Hand_R",
+      "transform": {
+        "position": [
+          -0.12,
+          0.03,
+          -0.22
+        ],
+        "rotation": [
+          270,
+          10,
+          0
+        ],
+        "scale": 0.01
+      },
+      "stance": "two-handed",
+      "clips": {}
+    }
+  ]
+}

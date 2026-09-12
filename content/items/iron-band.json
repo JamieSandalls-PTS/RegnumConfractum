@@ -1,0 +1,12 @@
+{
+  "id": "iron-band",
+  "name": "Iron Band",
+  "description": "A plain ring beaten flat on one side. Somebody wore it thin before you did.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 8,
+  "equip": {
+    "slot": "ring",
+    "armour": 1
+  }
+}

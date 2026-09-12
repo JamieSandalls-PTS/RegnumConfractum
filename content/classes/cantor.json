@@ -1,14 +1,160 @@
 {
   "id": "cantor",
   "name": "Cantor",
-  "description": "A keeper of the old liturgies. The pantheon is quieter than it was, but a cantor's rites still close wounds and lift curses — for those judged worth the singing.",
+  "description": "A keeper of the old liturgies. The pantheon is quieter than it was, but a cantor's rites still close wounds and lift curses \u2014 for those judged worth the singing.",
   "role": "support",
   "abilities": [],
   "legacyLocked": false,
   "affinities": [
     "lore",
     "medicine",
-    "insight"
+    "insight",
+    "attunement"
   ],
-  "spellcasting": true
+  "spellcasting": true,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "lore": 5,
+        "attunement": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The tune stops wandering. You can hold it while frightened."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "insight": 5
+      },
+      "feats": [
+        "sworn-witness",
+        "taproom-lawyer"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "A voice a room quiets for, and the wit to use it."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "medicine": 10,
+        "insight": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You have sung over enough dying people to have learned the practical parts."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "attunement": 10
+      },
+      "feats": [
+        "field-kit"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You carry what is needed as well as what is said."
+    },
+    {
+      "level": 6,
+      "skills": {
+        "lore": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [
+        "speak-with-dead"
+      ],
+      "note": "The dead stop pretending not to hear the tune, and answer."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "medicine": 10,
+        "persuasion": 10
+      },
+      "feats": [
+        "the-long-memory"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You keep the names nobody else wrote down."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "insight": 10,
+        "attunement": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You can hear the lie under the hymn."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "lore": 10,
+        "medicine": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Half a liturgy and half a pharmacy, and neither half is decoration."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "attunement": 10,
+        "insight": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "What you sing is attended to, by things you would rather were not listening."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "arming-sword",
+      "equip": "main-hand"
+    },
+    {
+      "item": "chorister-bell",
+      "equip": "off-hand"
+    },
+    {
+      "item": "padded-gambeson",
+      "equip": "chest"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ],
+  "armour": [
+    "cloth",
+    "leather"
+  ],
+  "weapons": [
+    "one-handed",
+    "one-handed-shield"
+  ]
 }

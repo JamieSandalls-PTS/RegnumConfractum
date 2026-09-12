@@ -1,0 +1,19 @@
+{
+  "id": "apprentice-staff",
+  "name": "Apprentice\u2019s Staff",
+  "description": "A shaft of ash bound at both ends. The wood at the grip has gone dark and slightly warm.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 24,
+  "equip": {
+    "slot": "both-hands",
+    "damage": 2,
+    "mana": 6,
+    "weight": 4
+  },
+  "art": {
+    "pack": "modular-fantasy-hero",
+    "asset": "wep-staff-01",
+    "swaps": []
+  }
+}

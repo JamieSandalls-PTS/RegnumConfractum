@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { maxHpFor, resolveAttributes } from '@rc/shared';
+import type { CharacterAdvances, EquipSlot } from '@rc/shared';
 import { startingBuild } from './types';
 import type {
   Account,
@@ -72,11 +74,21 @@ export class MemoryStore implements Store {
     const record: CharacterRecord = {
       ...c,
       ...startingBuild(c),
+      appearance: c.appearance ?? null,
+      attributes: c.attributes ?? null,
+      raceId: c.raceId ?? null,
+      look: c.look ?? null,
+      advances: null,
+      hotbar: null,
+      kitGranted: false,
       id: randomUUID(),
       coin: 0,
       languages: ['common'],
-      hp: 20,
-      maxHp: 20,
+      // Full health, derived from the vigor just allocated (D-546). The
+      // hardcoded 20 spawned a vigor-14 character at 20/24 — alive, and
+      // already wounded, on the tile it was created on.
+      hp: maxHpFor(resolveAttributes(c.attributes)),
+      maxHp: maxHpFor(resolveAttributes(c.attributes)),
       xp: 0,
       deathDebt: 0,
       deeds: 0,
@@ -113,6 +125,32 @@ export class MemoryStore implements Store {
     if (vitals.xp !== undefined) c.xp = vitals.xp;
     if (vitals.deathDebt !== undefined) c.deathDebt = vitals.deathDebt;
     if (vitals.deeds !== undefined) c.deeds = vitals.deeds;
+  }
+
+  async setKitGranted(id: string, granted: boolean): Promise<void> {
+    const c = this.characters.get(id);
+    if (c) c.kitGranted = granted;
+  }
+
+  async clearAllKitGranted(): Promise<void> {
+    for (const c of this.characters.values()) c.kitGranted = false;
+  }
+
+  async saveCharacterHotbar(id: string, hotbar: (string | null)[]): Promise<void> {
+    const c = this.characters.get(id);
+    if (!c) throw new Error(`saveCharacterHotbar: no character ${id}`);
+    c.hotbar = [...hotbar];
+  }
+
+  async saveCharacterAdvances(id: string, advances: CharacterAdvances): Promise<void> {
+    const c = this.characters.get(id);
+    if (!c) throw new Error(`saveCharacterAdvances: no character ${id}`);
+    c.advances = {
+      attributes: { ...advances.attributes },
+      skills: { ...advances.skills },
+      feats: [...advances.feats],
+      spells: [...advances.spells],
+    };
   }
 
   private legacyPoints = new Map<string, number>();
@@ -228,8 +266,26 @@ export class MemoryStore implements Store {
       templateId,
       ownerCharacterId,
       ownerCorpseId: null,
+      ownerStoreId: null,
       qty,
       data: data ?? null,
+      equippedSlot: null,
+    };
+    this.items.set(item.id, item);
+    return { ...item };
+  }
+
+  async grantItemToCorpse(corpseId: string, templateId: string, qty: number): Promise<ItemRecord> {
+    if (!this.corpses.has(corpseId)) throw new Error(`grantItemToCorpse: no corpse ${corpseId}`);
+    const item: ItemRecord = {
+      id: randomUUID(),
+      templateId,
+      ownerCharacterId: null,
+      ownerCorpseId: corpseId,
+      ownerStoreId: null,
+      qty,
+      data: null,
+      equippedSlot: null,
     };
     this.items.set(item.id, item);
     return { ...item };
@@ -257,15 +313,21 @@ export class MemoryStore implements Store {
     return item ? { ...item } : null;
   }
 
-  async consumeOneItem(ownerCharacterId: string, templateId: string): Promise<boolean> {
-    for (const item of this.items.values()) {
-      if (item.ownerCharacterId === ownerCharacterId && item.templateId === templateId) {
-        if (item.qty > 1) item.qty -= 1;
-        else this.items.delete(item.id);
-        return true;
-      }
-    }
-    return false;
+  async consumeOneItem(
+    ownerCharacterId: string,
+    templateId: string,
+  ): Promise<ItemRecord | null> {
+    const matching = [...this.items.values()].filter(
+      (i) => i.ownerCharacterId === ownerCharacterId && i.templateId === templateId,
+    );
+    // ⚠ A good loaf before a ruined one (D-580), so spoiling bites once the
+    // good food is gone rather than making every meal a coin toss.
+    const item = matching.find((i) => i.data?.spoiled !== true) ?? matching[0];
+    if (!item) return null;
+    const taken = { ...item };
+    if (item.qty > 1) item.qty -= 1;
+    else this.items.delete(item.id);
+    return { ...taken, qty: 1 };
   }
 
   async getItemsByCharacter(characterId: string): Promise<ItemRecord[]> {
@@ -283,6 +345,34 @@ export class MemoryStore implements Store {
     if (!item || item.ownerCharacterId !== fromCharacterId) return false;
     if (!this.characters.has(toCharacterId)) return false;
     item.ownerCharacterId = toCharacterId;
+    // Handing over a worn sword stows it (D-547): it must not arrive already
+    // in the recipient's hand.
+    item.equippedSlot = null;
+    return true;
+  }
+
+  /**
+   * ⚠ Enforces ONE ITEM PER SLOT, the way Postgres does with a partial unique
+   * index (D-547). It did not, and that gap is why every test passed while a
+   * real login died: the tests run on this store, so the second item in a slot
+   * was silently fine here and a constraint violation there. A fake store that
+   * is more permissive than the real one is a test suite agreeing with itself.
+   */
+  async setItemEquipped(
+    itemId: string,
+    characterId: string,
+    slot: EquipSlot | null,
+  ): Promise<boolean> {
+    const item = this.items.get(itemId);
+    if (!item || item.ownerCharacterId !== characterId) return false;
+    if (slot !== null) {
+      for (const other of this.items.values()) {
+        if (other.id === itemId) continue;
+        if (other.ownerCharacterId !== characterId) continue;
+        if (other.equippedSlot === slot) other.equippedSlot = null;
+      }
+    }
+    item.equippedSlot = slot;
     return true;
   }
 
@@ -312,7 +402,9 @@ export class MemoryStore implements Store {
   private corpses = new Map<string, CorpseRecord>();
 
   async createCorpse(c: Omit<CorpseRecord, 'id'>): Promise<CorpseRecord> {
-    if (!this.characters.has(c.characterId)) {
+    // A null character is a roamer's body or a heap of dropped goods (D-554);
+    // only a named one has to exist.
+    if (c.characterId !== null && !this.characters.has(c.characterId)) {
       throw new Error(`createCorpse: no character ${c.characterId}`);
     }
     const record: CorpseRecord = { ...c, id: randomUUID() };
@@ -343,12 +435,30 @@ export class MemoryStore implements Store {
       .map((i) => ({ ...i }));
   }
 
+  async moveItemToCorpse(
+    itemId: string,
+    fromCharacterId: string,
+    corpseId: string,
+  ): Promise<boolean> {
+    const item = this.items.get(itemId);
+    if (!item || item.ownerCharacterId !== fromCharacterId) return false;
+    if (!this.corpses.has(corpseId)) return false;
+    item.ownerCharacterId = null;
+    item.ownerCorpseId = corpseId;
+    item.ownerStoreId = null;
+    // Dropping a worn sword takes it off first (D-547).
+    item.equippedSlot = null;
+    return true;
+  }
+
   async moveItemsToCorpse(characterId: string, corpseId: string): Promise<number> {
     let moved = 0;
     for (const item of this.items.values()) {
       if (item.ownerCharacterId === characterId) {
         item.ownerCharacterId = null;
         item.ownerCorpseId = corpseId;
+        item.ownerStoreId = null;
+        item.equippedSlot = null;
         moved++;
       }
     }
@@ -362,10 +472,73 @@ export class MemoryStore implements Store {
       if (item.ownerCorpseId === corpseId) {
         item.ownerCorpseId = null;
         item.ownerCharacterId = toCharacterId;
+        item.equippedSlot = null;
         moved++;
       }
     }
     return moved;
+  }
+
+  async getItemsByStore(storeId: string): Promise<ItemRecord[]> {
+    return [...this.items.values()]
+      .filter((i) => i.ownerStoreId === storeId)
+      .map((i) => ({ ...i }));
+  }
+
+  async moveItemToStore(
+    itemId: string,
+    fromCharacterId: string,
+    storeId: string,
+  ): Promise<boolean> {
+    const item = this.items.get(itemId);
+    if (!item || item.ownerCharacterId !== fromCharacterId) return false;
+    item.ownerCharacterId = null;
+    item.ownerCorpseId = null;
+    item.ownerStoreId = storeId;
+    // ⚠ Pooling a worn hauberk takes it off first, the same as dropping one
+    // (D-547): an item that arrives somewhere new still claiming a paperdoll
+    // slot is armour worn by nobody.
+    item.equippedSlot = null;
+    return true;
+  }
+
+  async moveItemFromStore(
+    itemId: string,
+    storeId: string,
+    toCharacterId: string,
+  ): Promise<boolean> {
+    const item = this.items.get(itemId);
+    // ⚠ Checked against THAT store, not merely "is in some store". Otherwise
+    // standing at the infirmary would let you take what is in the storehouse
+    // across the square.
+    if (!item || item.ownerStoreId !== storeId) return false;
+    if (!this.characters.has(toCharacterId)) return false;
+    item.ownerStoreId = null;
+    item.ownerCharacterId = toCharacterId;
+    item.equippedSlot = null;
+    return true;
+  }
+
+  async spoilItems(itemIds: readonly string[]): Promise<number> {
+    let spoiled = 0;
+    for (const id of itemIds) {
+      const item = this.items.get(id);
+      if (!item) continue;
+      item.data = { ...(item.data ?? {}), spoiled: true };
+      spoiled++;
+    }
+    return spoiled;
+  }
+
+  async clearStores(): Promise<number> {
+    let cleared = 0;
+    for (const item of [...this.items.values()]) {
+      if (item.ownerStoreId !== null) {
+        this.items.delete(item.id);
+        cleared++;
+      }
+    }
+    return cleared;
   }
 
   async deleteItemsByCorpse(corpseId: string): Promise<number> {

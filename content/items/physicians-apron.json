@@ -1,0 +1,14 @@
+{
+  "id": "physicians-apron",
+  "name": "Physician\u2019s Apron",
+  "description": "Waxed canvas that has stopped taking a stain. The pockets are laid out by hand, in an order.",
+  "category": "equipment",
+  "stackable": false,
+  "value": 14,
+  "equip": {
+    "slot": "chest",
+    "armour": 1,
+    "weight": 3,
+    "material": "cloth"
+  }
+}

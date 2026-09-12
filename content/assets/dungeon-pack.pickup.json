@@ -1,0 +1,762 @@
+{
+  "pack": "dungeon-pack",
+  "kind": "pickup",
+  "assets": [
+    {
+      "id": "item-bookpile-01",
+      "name": "Book pile",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_BookPile_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-book-01",
+      "name": "Book",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Book_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-bag-large-01",
+      "name": "Large bag",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Bag_Large_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-bags-01",
+      "name": "Bags",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Bags_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-bones-01",
+      "name": "Bones",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Bones_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-goblin-hair-01",
+      "name": "Goblin hair",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Goblin_Hair_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-goblin-warbanner-01",
+      "name": "Goblin war banner",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Goblin_WarBanner_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-horn-01",
+      "name": "Horn",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Horn_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-mask-01",
+      "name": "Mask",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Mask_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-mask-02",
+      "name": "Mask 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Mask_02",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-shield-01",
+      "name": "Shield",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Shield_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-shrooms-01",
+      "name": "Shrooms",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Shrooms_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-shrunken-head-01",
+      "name": "Shrunken head",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Shrunken_Head_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-chr-sword-01",
+      "name": "Sword",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Chr_Sword_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-coins-01",
+      "name": "Coins",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Coins_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-coins-02",
+      "name": "Coins 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Coins_02",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-coins-03",
+      "name": "Coins 3",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Coins_03",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-coins-04",
+      "name": "Coins 4",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Coins_04",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-inkwell-01",
+      "name": "Inkwell",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Inkwell_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-jar-01",
+      "name": "Jar",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Jar_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-jar-02",
+      "name": "Jar 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Jar_02",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-01",
+      "name": "Potion",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-02",
+      "name": "Potion 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_02",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-03",
+      "name": "Potion 3",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_03",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-04",
+      "name": "Potion 4",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_04",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-05",
+      "name": "Potion 5",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_05",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-06",
+      "name": "Potion 6",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_06",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-07",
+      "name": "Potion 7",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_07",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-08",
+      "name": "Potion 8",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_08",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-09",
+      "name": "Potion 9",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_09",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-potion-pole-01",
+      "name": "Potion pole",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Potion_Pole_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-scale-01",
+      "name": "Scale",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Scale_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-vial-01",
+      "name": "Vial",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Vial_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-vial-02",
+      "name": "Vial 2",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Vial_02",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-vial-03",
+      "name": "Vial 3",
+      "pack": "dungeon-pack",
+      "mesh": "SM_Item_Vial_03",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "id": "item-arrow-01",
+      "name": "Arrow",
+      "pack": "dungeon-pack",
+      "mesh": "SM_item_Arrow_01",
+      "tags": [],
+      "kind": "pickup",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    }
+  ]
+}

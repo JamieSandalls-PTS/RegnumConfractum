@@ -8,7 +8,158 @@
   "affinities": [
     "stealth",
     "bluff",
-    "perception"
+    "perception",
+    "persuasion"
   ],
-  "spellcasting": true
+  "spellcasting": true,
+  "progression": [
+    {
+      "level": 2,
+      "skills": {
+        "stealth": 5,
+        "bluff": 5
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "The first name that was not yours held up, and something in you relaxed."
+    },
+    {
+      "level": 3,
+      "skills": {
+        "perception": 5
+      },
+      "feats": [
+        "taproom-lawyer"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You have learned to sound bored while talking your way out of a room."
+    },
+    {
+      "level": 4,
+      "skills": {
+        "stealth": 10
+      },
+      "feats": [
+        "read-the-ground"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "You read a place the way you read a person, for the way out."
+    },
+    {
+      "level": 5,
+      "skills": {
+        "bluff": 10
+      },
+      "feats": [
+        "unremarkable"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Descriptions of you have started to fit anybody at all."
+    },
+    {
+      "level": 6,
+      "skills": {
+        "persuasion": 10
+      },
+      "feats": [
+        "lean-years"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "Waiting somewhere cold for two days is a professional skill."
+    },
+    {
+      "level": 7,
+      "skills": {
+        "bluff": 10,
+        "perception": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You can hold a false history through cross-examination."
+    },
+    {
+      "level": 8,
+      "skills": {
+        "stealth": 10,
+        "attunement": 5
+      },
+      "feats": [
+        "second-blow"
+      ],
+      "spells": [],
+      "abilities": [],
+      "note": "The small veils come to hand without being called."
+    },
+    {
+      "level": 9,
+      "skills": {
+        "bluff": 10,
+        "persuasion": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "You are believed by people who know better."
+    },
+    {
+      "level": 10,
+      "skills": {
+        "stealth": 10,
+        "perception": 10
+      },
+      "feats": [],
+      "spells": [],
+      "abilities": [],
+      "note": "Whoever you were before this is not recoverable, and that was the arrangement."
+    }
+  ],
+  "startingKit": [
+    {
+      "item": "narrow-dagger",
+      "equip": "main-hand"
+    },
+    {
+      "item": "hooded-cowl",
+      "equip": "head"
+    },
+    {
+      "item": "roughspun-tunic",
+      "equip": "chest"
+    },
+    {
+      "item": "travellers-cloak",
+      "equip": "cloak"
+    },
+    {
+      "item": "coarse-bread",
+      "qty": 2
+    },
+    {
+      "item": "bandage",
+      "qty": 2
+    },
+    {
+      "item": "travelling-breeches",
+      "equip": "legs"
+    },
+    {
+      "item": "worn-boots",
+      "equip": "feet"
+    }
+  ],
+  "armour": [
+    "leather",
+    "cloth"
+  ],
+  "weapons": [
+    "dagger",
+    "one-handed",
+    "bow"
+  ]
 }

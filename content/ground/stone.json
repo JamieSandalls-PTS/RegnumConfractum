@@ -1,0 +1,9 @@
+{
+  "id": "stone",
+  "name": "Bare stone",
+  "texture": "stone.jpg",
+  "repeat": 0.35,
+  "tint": "#6e6a66",
+  "walkable": true,
+  "notes": "Rock floor, cut or natural. The dungeon's ground."
+}
