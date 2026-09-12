@@ -8459,3 +8459,104 @@ furthest to go, which stopped dead at (25, 22): the square's statue stands at
 (25, 21), directly between the tavern door and everyone crossing the square. It
 uses `move_to` now, which is the message a real player's click sends — a test
 that reimplements pathfinding is testing its own pathfinding.
+
+---
+
+## D-594 — Enemies are content, and a creature is drawn as what its content says
+
+**2026-09-12.** Asked for: the ability to define NPCs and enemies in the
+creation tool — looks, assets, stats — on the grounds that "the asset packs I
+have include enemies." They do: sixteen of them.
+
+### ⚠ Every enemy in the game was being drawn as a random townsman
+
+Roamers had stats and no appearance at all. The spawn passed
+`appearanceSeed: rng.int(...)` and nothing else, so **"something man-shaped
+that does not walk like a man" rendered as a man**, and had done since D-532.
+Meanwhile the ingested dungeon pack held goblins, skeletons, ghosts and a rock
+golem, untouched.
+
+### The measurement that made this cheap
+
+`Character_Goblin_Male.fbx` and its fifteen siblings are on the **Unreal
+humanoid rig** — the same one the Sidekick characters use (D-555). So the
+126-clip library retargets onto them with no new work: a goblin walks because a
+knight already does. Had they been on a vendor rig of their own this would have
+been a week, and the expensive half would have stayed invisible until somebody
+watched a goblin slide across a floor.
+
+### A character can BE a mesh
+
+`CharacterDefSchema` gains `mesh` as the alternative to `parts`, refused if
+both or neither are given. A pack ships people in two shapes and both are
+legitimate: `modular-fantasy-hero` is 720 part files, the dungeon pack's people
+are one rigged FBX each. Forcing the second through the first would mean
+inventing a "whole body" slot and pretending an assembler ran.
+
+⚠ Named from the PACK rather than copied into `assets/incoming/`, which builds
+identically and requires a manual step — the thing D-555 made the pipeline to
+avoid.
+
+⚠ `source: 'mesh'` in the manifest, not `'defined'`. D-571 promises that a
+character carrying a slot vocabulary can be re-dressed, and a finished pack
+body cannot be. Reusing `defined` made a goblin claim to be dressable and broke
+the test guarding exactly that promise — which is the test working.
+
+### The wire field D-559 said was missing
+
+D-559: *"which character an entity is drawn as is UNRESOLVED — picked from the
+seed, which is deterministic and agreed across clients but arbitrary: nothing
+connects the guard model to a guard. That needs a wire field."* `WireEntity`
+gains `model`, and a roamer names one.
+
+⚠ **Absent still means the seed**, which remains right for players who have not
+been through creation, for corpses, and for the town watch — a guard is a
+PERSON, and one drawn from the seed is a different townsman each time rather
+than a uniform (D-552).
+
+⚠ **A model the client cannot find falls back to the seed** rather than failing
+to draw: an invisible enemy is worse than a wrong-looking one. ⚠ And because a
+silent fallback is exactly the state this change existed to leave, the BUILD
+refuses a roamer naming a character that does not exist.
+
+⚠ **Height is on the CREATURE, not the character.** The art is authored at one
+size — the pack's goblin is as tall as its knight — so the same body is a
+different creature at different heights. It reaches the descriptor pipeline, so
+a thing a player is told is towering is.
+
+### The editor
+
+"What it looks like" in the creature editor: a picker of every authored
+character, a height, and a live preview of the built body playing its idle.
+
+⚠ **The stage had to be un-hidden for it.** Round content was in the "no 3D
+preview for rules" list, written when it was recipes and objectives — which are
+rules. A creature's LOOK is the one thing on that screen you can only judge by
+eye, which is why the parts and garment tabs have a stage. Recipes and
+objectives still do not.
+
+### ⚠ Three things caught by measuring after reading a render wrong — twice
+
+1. **The packs ship no quadruped.** `scavenger-dog` is "a lean thing on four
+   legs" and `crypt-crawler` "a low, many-legged thing": drawing them as a
+   goblin and a skeleton is the mismatch that reads as broken art. They keep
+   the seed, and their files say why — either the art or the prose has to give,
+   and that is not a dressing decision.
+2. **A pale patch on the skeleton knight's chest was read as flesh** and nearly
+   justified a change of atlas. Sampling its UVs says the colour is `#cab593`,
+   which is BONE — a ribcage, on a skeleton, correctly. And measured against
+   it, `Dungeons_Texture_01` and `_01_A` give **identical** histograms: this
+   pack's letters are colourways, not channels, so the atlas change was a
+   no-op justified by a bug that did not exist.
+3. **`tormented-soul` is DROPPED.** Its skeleton is spelled differently enough
+   to be its own rig variant, the clips retargeted onto it do not drive its
+   bones, and D-555's shape tests caught it. A character that cannot walk must
+   not ship. D-557's precedent: keep the machinery, drop the character.
+
+### ⚠ What this does NOT do
+
+**NPCs are still Lua-only.** `spawn_npc` takes a descriptor and no look, so the
+Ashfold keeper is still drawn from a seed. Roamers came first because they are
+content already and are most of what a player meets; giving a scripted NPC the
+same field is small and is not done here. D-569's larger complaint — that NPCs
+are not declared content at all — stands.

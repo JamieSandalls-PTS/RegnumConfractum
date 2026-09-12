@@ -1,0 +1,9 @@
+{
+  "id": "rock-golem",
+  "name": "Rock golem",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "Character_Rock_Golem",
+  "note": "A finished body from the pack rather than an assembly (D-594). On the Unreal humanoid rig, so the existing clip library retargets onto it unchanged."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "goblin-warchief",
+  "name": "Goblin war-chief",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "Character_Goblin_WarChief",
+  "note": "A finished body from the pack rather than an assembly (D-594). On the Unreal humanoid rig, so the existing clip library retargets onto it unchanged."
+}

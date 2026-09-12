@@ -841,7 +841,8 @@ function addEntity(wire: WireEntity): void {
       // ⚠ The look is passed through, so an entity is drawn as the face its
       // player chose rather than one picked from the seed (D-574, resolving
       // what D-559 left open). Null for everything that never chose.
-      ? new ImportedVisual(appearance, s.scene, wire.appearanceSeed, wire.look)
+      ? new ImportedVisual(appearance, s.scene, wire.appearanceSeed, wire.look,
+        wire.model ?? null)
       : new CharacterVisual(appearance, s.scene));
   // Layer 1 is the character/pixel layer the split pass quantises (D-404).
   visual.setRenderLayer(1);

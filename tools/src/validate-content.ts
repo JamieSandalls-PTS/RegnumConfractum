@@ -446,6 +446,26 @@ export function validateContent(contentDir: string): ValidationResult {
 
   const roamerIds = new Set<string>();
   /** Everything the world's inhabitants carry, for the D-210 graph. */
+  /**
+   * Every authored character id (D-594) — what a creature may be drawn as.
+   *
+   * ⚠ The AUTHORED list, not what happens to be built: `client/public/models`
+   * is a build output, and validating content against one means a clean
+   * checkout fails until somebody runs the character build.
+   *
+   * ⚠ A PRE-SCAN, and deliberately separate from the characters pass further
+   * down, which is the authoritative one (it schema-checks, refuses duplicate
+   * ids and checks the slots). This exists only because roamers are validated
+   * before characters are read, and reordering the passes to share one set
+   * would make the duplicate-id check see these ids already present and
+   * report every character in the game as a duplicate of itself.
+   */
+  const authoredCharacterIds = new Set(
+    listJson(join(contentDir, 'characters')).map(
+      (f) => (JSON.parse(readFileSync(f, 'utf8')) as { id: string }).id,
+    ),
+  );
+
   const roamerLoot: { item: string }[] = [];
   for (const file of listJson(join(contentDir, 'roamers'))) {
     checked++;
@@ -467,7 +487,7 @@ export function validateContent(contentDir: string): ValidationResult {
     }
     roamerIds.add(parsed.data.id);
     for (const drop of parsed.data.loot) roamerLoot.push({ item: drop.item });
-    for (const problem of roamerProblems(parsed.data, { itemIds })) {
+    for (const problem of roamerProblems(parsed.data, { itemIds, characterIds: authoredCharacterIds })) {
       errors.push(`roamer '${parsed.data.id}' ${problem}`);
     }
   }

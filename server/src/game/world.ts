@@ -36,6 +36,8 @@ export interface WorldEntity {
   /** NPCs carry a fixed public descriptor, the same for every observer.
    * (NPC identity mechanics deferred — see D-507.) */
   npcDescriptor?: string;
+  /** The built character this is drawn as (D-594), when its content says. */
+  model?: string;
   /**
    * World objects born of death (D-224/D-511): a lying corpse, a scatter of
    * dropped gear, or a walking corpse. Null for everything else. Zombies go
@@ -169,6 +171,7 @@ export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
     appearance: e.appearance,
     look: e.look ?? null,
     // What it IS, when it is a thing rather than a person (D-542).
+    ...(e.model ? { model: e.model } : {}),
     ...(e.nodeType ? { variant: e.nodeType } : {}),
     ...(e.stationType ? { variant: e.stationType } : {}),
     ...(e.stationArt ? { art: e.stationArt } : {}),
@@ -237,6 +240,7 @@ export class World {
       characterId: string | null;
       name: string;
       npcDescriptor?: string;
+      model?: string;
       objectKind?: 'corpse' | 'pile' | 'zombie' | 'node' | 'station';
       hostile?: boolean;
       nodeType?: string;
@@ -262,6 +266,7 @@ export class World {
       characterId: opts.characterId,
       name: opts.name,
       ...(opts.npcDescriptor ? { npcDescriptor: opts.npcDescriptor } : {}),
+      ...(opts.model ? { model: opts.model } : {}),
       ...(opts.objectKind ? { objectKind: opts.objectKind } : {}),
       ...(opts.hostile ? { hostile: true } : {}),
       ...(opts.corpseOfCharacterId ? { corpseOfCharacterId: opts.corpseOfCharacterId } : {}),

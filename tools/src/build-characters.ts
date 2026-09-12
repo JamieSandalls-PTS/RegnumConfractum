@@ -52,9 +52,11 @@ import {
   parsePartName,
   rigNamesFor,
   rigVariant,
+  assetAtlas,
+  preferredAtlas,
 } from '@rc/shared';
 import { readUnityPackage } from './unitypackage';
-import { type Pack, meshPath, packOf, partStems } from './packs';
+import { type Pack, meshPath, packOf, partStems, texturePaths, texturesIn } from './packs';
 // ONE assembly implementation, shared with the browser studio (D-558): a
 // preview that assembles differently from the build is a preview that lies.
 import { assemble, type Assembled } from '../../client/src/render/assembly';
@@ -109,7 +111,7 @@ interface Outfit {
   /** The 32x32 palette this combination was coloured against, if it ships one. */
   readonly palette: Buffer | null;
   /** Where it came from, for the build log — the paths are otherwise equal. */
-  readonly source: 'pack' | 'fbx' | 'defined';
+  readonly source: 'pack' | 'fbx' | 'defined' | 'mesh';
 }
 
 /**
@@ -543,7 +545,7 @@ export interface BuildReport {
     bytes: number;
     rig: RigKind;
     variant: string;
-    source: 'pack' | 'fbx' | 'defined';
+    source: 'pack' | 'fbx' | 'defined' | 'mesh';
   }[];
   clips: { name: string; duration: number; tracks: number }[];
   /**
@@ -736,6 +738,23 @@ interface LooseCharacter {
   readonly palette: Buffer | null;
 }
 
+/**
+ * Authored characters that ARE a pack mesh rather than a set of parts (D-594).
+ *
+ * ⚠ Read from the same folder the studio writes, so an enemy is content in
+ * exactly the way a townsfolk is — one list, one validator, one editor.
+ */
+function wholeMeshDefinitions(): CharacterDef[] {
+  if (!existsSync(DEF_DIR)) return [];
+  return readdirSync(DEF_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+    .map((f) => CharacterDefSchema.parse(
+      JSON.parse(readFileSync(join(DEF_DIR, f), 'utf8')),
+    ))
+    .filter((d) => d.mesh !== undefined);
+}
+
 function discoverLooseCharacters(): LooseCharacter[] {
   if (!existsSync(CHARACTER_DIR)) return [];
   const out: LooseCharacter[] = [];
@@ -849,6 +868,11 @@ function definedCharacters(): { def: CharacterDef; pack: Pack }[] {
   const out: { def: CharacterDef; pack: Pack }[] = [];
   for (const file of readdirSync(DEF_DIR).filter((f) => f.endsWith('.json')).sort()) {
     const def = CharacterDefSchema.parse(JSON.parse(readFileSync(join(DEF_DIR, file), 'utf8')));
+    // ⚠ A definition that IS a mesh is not assembled from parts (D-594) and is
+    // built further down. Without this it arrives here with an empty `parts`
+    // record and fails as "<id> has no meshes" — which is true, and says
+    // nothing about the actual cause.
+    if (def.mesh !== undefined) continue;
     const pack = packOf(def.pack);
     if (!pack) {
       throw new Error(
@@ -913,6 +937,71 @@ export async function build(): Promise<BuildReport> {
       buildCharacter(
         { id: def.id, parts: Object.values(def.parts), palette, source: 'defined' },
         partsOfDefinition(def, pack),
+      ),
+    );
+  }
+
+  // ⚠ A FOURTH source: a definition that names one finished mesh in a pack
+  // rather than a set of parts (D-594). It goes through the SAME path a loose
+  // FBX takes — `buildCharacter` with `parts: []` — because that is exactly
+  // what it is: one rigged body, however many skinned meshes it holds. The
+  // only thing this adds is finding the file inside an ingested pack instead
+  // of requiring somebody to copy it into `assets/incoming/` by hand.
+  for (const def of wholeMeshDefinitions()) {
+    const pack = packOf(def.pack);
+    if (!pack) {
+      throw new Error(
+        `character '${def.id}' names pack '${def.pack}', which is not ingested — ` +
+          `put it in assets/source/${def.pack}, or delete content/characters/${def.id}.json`,
+      );
+    }
+    const file = meshPath(pack, def.mesh!);
+    if (!file) {
+      throw new Error(
+        `character '${def.id}' names mesh '${def.mesh}', which pack '${def.pack}' ` +
+          'does not ship — check the spelling against the pack\'s FBX folder',
+      );
+    }
+    // ⚠ `preferredAtlas`, not `assetAtlas`: a CHARACTER wants the lettered cut,
+    // because D-560 measured that the unlettered atlas is the markings-free
+    // variant and a face sampled against it silently returns plain skin.
+    // `assetAtlas` stays right for props, which have no colourways.
+    //
+    // ⚠ For the dungeon pack specifically it makes NO DIFFERENCE, and that is
+    // measured rather than assumed: the skeleton knight's 152 distinct UVs
+    // land on the same eleven colours in `Dungeons_Texture_01` and
+    // `_01_A` — this pack's letters are colourways, not channels. It is here
+    // for the packs where it does matter.
+    //
+    // ⚠ It was nearly justified with a bug that did not exist. A pale patch on
+    // the knight's chest was read as flesh showing through a breastplate;
+    // sampling the UVs says the colour is #cab593, which is BONE — a ribcage,
+    // on a skeleton, correctly. Reading a render is not measuring one (D-560),
+    // and this is the second time in one sitting.
+    const want = def.texture ?? preferredAtlas(texturesIn(pack));
+    const texture = want ? texturePaths(pack).get(want) : undefined;
+    const meshes = skinnedMeshes(loadFbx(readFileSync(file))).map((mesh, i) => ({
+      slot: mesh.name || `${def.mesh}-${i}`,
+      mesh,
+    }));
+    if (meshes.length === 0) {
+      throw new Error(`character '${def.id}': '${def.mesh}' holds no skinned mesh`);
+    }
+    characters.push(
+      buildCharacter(
+        {
+          id: def.id,
+          parts: [],
+          palette: texture ? readFileSync(texture) : null,
+          // ⚠ `mesh`, not `defined`. Both come from `content/characters/`, and
+          // the manifest has to say which is which: D-571 promises that a
+          // character carrying a slot vocabulary can be RE-DRESSED, and a
+          // finished pack body cannot be — there are no parts to swap. Reusing
+          // `defined` made a goblin claim to be dressable and broke the test
+          // that guards exactly that promise.
+          source: 'mesh',
+        },
+        meshes,
       ),
     );
   }

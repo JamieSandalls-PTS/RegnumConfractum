@@ -110,12 +110,48 @@ export const CharacterDefSchema = z.object({
    * mismatched limb away from being neither.
    */
   sex: z.enum(CHARACTER_SEXES),
-  /** Slot → part file stem. */
-  parts: z.record(CharacterSlotSchema, z.string().min(1)),
+  /**
+   * Slot → part file stem, for a character assembled out of a MODULAR pack.
+   *
+   * ⚠ Empty when `mesh` is set. A pack ships people in two shapes and both are
+   * legitimate: `modular-fantasy-hero` is 720 separate part files, and the
+   * dungeon pack's goblins and skeletons are one rigged FBX each. Forcing the
+   * second through the first would mean inventing a "whole body" slot and
+   * pretending an assembler ran.
+   */
+  parts: z.record(CharacterSlotSchema, z.string().min(1)).default({}),
+  /**
+   * One FBX in the pack that IS the whole character (D-594).
+   *
+   * ⚠ This is how enemies get in. The dungeon pack ships sixteen finished
+   * people — goblins, skeletons, ghosts, a rock golem — as single rigged
+   * meshes, and measured, they are on the **Unreal humanoid rig**, the same
+   * one the Sidekick characters use (D-555). So the 126-clip animation library
+   * retargets onto them with no new work: a goblin walks because a knight
+   * already does.
+   *
+   * ⚠ Named from the PACK rather than copied into `assets/incoming/`, which
+   * would build identically and require a manual step — the thing D-555 made
+   * the whole pipeline to avoid.
+   */
+  mesh: z.string().min(1).optional(),
   /** The colour atlas, a file stem in the pack's textures. */
   texture: z.string().min(1).optional(),
   /** Free text for whoever opens this in six months. */
   note: z.string().optional(),
+}).superRefine((def, ctx) => {
+  // ⚠ One or the other, never both and never neither. A definition with both
+  // would have an assembler and a finished body disagreeing about what the
+  // character is, and the build would silently pick one.
+  const hasParts = Object.keys(def.parts).length > 0;
+  if (hasParts === (def.mesh !== undefined)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: def.mesh
+        ? 'a character is either assembled from `parts` or IS a `mesh`, not both'
+        : 'a character needs either `parts` to assemble or a `mesh` to be',
+    });
+  }
 });
 
 export type CharacterDef = z.infer<typeof CharacterDefSchema>;
@@ -149,6 +185,11 @@ export const SLOT_REQUIRES: Readonly<Partial<Record<CharacterSlot, CharacterSlot
  * before it writes rather than the build failing later.
  */
 export function missingBodySlots(def: CharacterDef): BodySlot[] {
+  // ⚠ A character that IS a mesh has no parts and is not incomplete (D-594).
+  // The pack's goblins and skeletons ship as one finished rigged body; asking
+  // which file supplies their left forearm is a question about assembly, and
+  // nothing assembled them.
+  if (def.mesh !== undefined) return [];
   return BODY_SLOTS.filter((s) => {
     if (def.parts[s]) return false;
     const instead = SLOT_ALTERNATIVES[s];

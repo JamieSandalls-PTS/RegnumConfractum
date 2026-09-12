@@ -17,6 +17,7 @@ import {
   loadDressed,
   loadLook,
   outfitFor,
+  outfitById,
   sexOfLook,
   type ImportedOutfit,
 } from './imported-models';
@@ -166,6 +167,15 @@ export class ImportedVisual {
     private parent: THREE.Scene,
     seed: number,
     look: CharacterLook | null = null,
+    /**
+     * The built character this entity IS, when the server said (D-594).
+     *
+     * ⚠ Named rather than drawn from the seed. The seed picks a body that is
+     * deterministic and arbitrary, which is fine for a stranger in a tavern
+     * and wrong for a goblin — D-559 left this open and this is the answer:
+     * the content says.
+     */
+    model: string | null = null,
   ) {
     parent.add(this.root);
     this.appearanceHeight = appearance.height;
@@ -174,7 +184,11 @@ export class ImportedVisual {
     // what names the CLIP FILE for this rig and the palette — the look says
     // which meshes, not which animations. Losing it would leave a chosen face
     // standing perfectly still.
-    this.outfit = outfitFor(seed);
+    // ⚠ A named model that is not built falls back to the seed rather than
+    // failing to draw. An enemy nobody can see is worse than one that looks
+    // like a townsman, and the build is what should have caught the missing
+    // model — not the frame in front of a player.
+    this.outfit = (model ? outfitById(model) : null) ?? outfitFor(seed);
     if (!this.outfit) return;
     // ⚠ Resolve the layers UP FRONT, not on the first change of kit. Nearly
     // everybody in the world never equips anything and never draws a weapon —

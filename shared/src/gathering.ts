@@ -213,6 +213,26 @@ export const RoamerSchema = z
     habitat: z.enum(['night', 'dungeon', 'guard']).default('night'),
     /** Which dungeon floor, for `habitat: 'dungeon'`. */
     floor: z.number().int().min(1).optional(),
+    /**
+     * Which built character it is drawn as (D-594) — an id in
+     * `content/characters/`.
+     *
+     * ⚠ Absent means it falls back to the appearance seed, which is what
+     * every roamer did until now: a random townsman. "Something man-shaped
+     * that does not walk like a man" was drawn as a man, and the pack has had
+     * goblins, skeletons, ghosts and a rock golem in it the whole time.
+     */
+    character: ContentIdSchema.optional(),
+    /**
+     * How tall it stands, in metres.
+     *
+     * ⚠ Here rather than on the character, because the same body is a
+     * different creature at different sizes and the art is authored at one
+     * height: the pack's goblin FBX is as tall as its knight. It also reaches
+     * the DESCRIPTOR pipeline (D-201), so a thing a player is told is
+     * towering actually is.
+     */
+    heightMetres: z.number().min(0.3).max(4).optional(),
     /** Experience for putting it down. Deeper floors are worth more. */
     xp: z.number().int().min(0).default(10),
     /**
@@ -273,6 +293,8 @@ export const WANTED_TICKS = 1_800; // 3 minutes at 10Hz
 export interface ContentRefs {
   /** Every `content/items/` id, or null if unknown. */
   itemIds: ReadonlySet<string> | null;
+  /** Every `content/characters/` id, or null if unknown (D-594). */
+  characterIds?: ReadonlySet<string> | null;
 }
 
 /**
@@ -330,6 +352,16 @@ export function roamerProblems(roamer: RoamerDef, refs: ContentRefs): string[] {
   if (roamer.habitat === 'guard') {
     if (roamer.xp !== 0) problems.push(`is a guard worth ${roamer.xp} xp — killing the watch must never pay`);
     if (roamer.loot.length > 0) problems.push('is a guard carrying loot — killing the watch must never pay');
+  }
+  // ⚠ A look that names nothing FAILS rather than falling back quietly
+  // (D-594). The renderer's fallback is deliberate and is there so a missing
+  // model is a wrong-looking enemy rather than an invisible one — but a
+  // fallback that nothing reports is a goblin silently rendering as a
+  // townsman, which is the state this whole change existed to leave.
+  if (roamer.character && refs.characterIds && !refs.characterIds.has(roamer.character)) {
+    problems.push(
+      `is drawn as '${roamer.character}', which is not a character in content/characters/`,
+    );
   }
   return problems;
 }

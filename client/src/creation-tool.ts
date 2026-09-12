@@ -2519,6 +2519,7 @@ async function createClass(): Promise<void> {
   const name = prompt('Name the calling');
   if (!name?.trim()) return;
   const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  creatureShown = id;
   if (!id) return;
   if (classes.some((c) => c.id === id)) {
     status(`there is already a calling called ${id}`, 'bad');
@@ -4050,12 +4051,15 @@ interface RoundData {
   items: { id: string; name: string; category: string; slots: string[] }[];
   nodes: { id: string; yields: string }[];
   npcDescriptors: string[];
+  /** Every authored character a creature may be drawn as (D-594). */
+  characters: { id: string; name: string; pack: string; whole: boolean }[];
 }
 
 let roundKind: RoundKind = 'recipes';
 let roundPicked: string | null = null;
 let round: RoundData = {
   recipes: [], roamers: [], objectives: [], items: [], nodes: [], npcDescriptors: [],
+  characters: [],
 };
 
 async function loadRound(): Promise<void> {
@@ -4092,6 +4096,11 @@ function renderRoundList(): void {
       roundPicked = null;
       renderRoundList();
       renderRoundSide();
+      // ⚠ The stage is shown for creatures and hidden for rules (D-594), and
+      // that decision is made in `applySection` — so switching KIND has to
+      // re-make it. Without this the layout is whatever the last section
+      // change left, which is a creature editor with nowhere to look.
+      applySection();
     };
     tabs.appendChild(chip);
   }
@@ -4334,6 +4343,11 @@ function renderRecipeForm(host: HTMLElement): void {
 function renderRoamerForm(host: HTMLElement): void {
   const r = round.roamers.find((x) => x.id === roundPicked);
   if (!r) return;
+  // ⚠ Shown on SELECT, not only when the picker changes. Choosing a creature
+  // and being shown whatever was last on the stage is the defect D-570 hit in
+  // the garment editor — "selecting a garment did not show it", in the one
+  // editor whose whole premise is looking.
+  if (creatureShown !== r.character) void previewCreature(r.character ?? null);
   textField(host, 'Descriptor', r.descriptor, (v) => { r.descriptor = v; });
   roundHint(host, 'What a player is told they are looking at. There is no other name.');
 
@@ -4379,6 +4393,54 @@ function renderRoamerForm(host: HTMLElement): void {
       '⚠ A guard is worth <b>zero xp and carries nothing</b>, and those fields '
       + 'are gone rather than greyed. Paying for a guard kill would make '
       + 'murdering the watch the safest income in the game (D-552).',
+    );
+  }
+
+  const lh = document.createElement('h2');
+  lh.textContent = 'What it looks like';
+  host.appendChild(lh);
+
+  const pick = document.createElement('select');
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = '(no model — drawn from the appearance seed)';
+  pick.appendChild(none);
+  for (const c of round.characters) {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = `${c.name}${c.whole ? '' : '  (assembled)'}  ·  ${c.pack}`;
+    pick.appendChild(o);
+  }
+  pick.value = r.character ?? '';
+  pick.style.width = '100%';
+  pick.onchange = () => {
+    r.character = pick.value || undefined;
+    if (r.character && r.heightMetres === undefined) r.heightMetres = 1.7;
+    if (!r.character) r.heightMetres = undefined;
+    markDirty();
+    renderRoundSide();
+    void previewCreature(r.character ?? null);
+  };
+  classField(host, 'Drawn as', pick);
+
+  if (r.character) {
+    numField(host, 'Stands (metres)', r.heightMetres ?? 1.7,
+      (v) => { r.heightMetres = Math.min(4, Math.max(0.3, v)); },
+      { min: 0.3, max: 4, step: 0.05 });
+    roundHint(
+      host,
+      'The art is authored at one size — the pack\'s goblin is as tall as its '
+      + 'knight — so height is set HERE, per creature. It also reaches the '
+      + 'descriptor pipeline, so a thing a player is told is towering is.',
+    );
+  } else {
+    roundHint(
+      host,
+      '⚠ With no model this is drawn from its appearance seed, which is to say '
+      + 'as a random townsman. That is what every roamer in the game did until '
+      + 'D-594: "something man-shaped that does not walk like a man" rendered '
+      + 'as a man. Leave it only when the art genuinely has nothing — the packs '
+      + 'ship no four-legged anything, so the dog and the crawler still wait.',
     );
   }
 
@@ -5561,8 +5623,15 @@ function applySection(): void {
   }
   // No 3D preview for rules: a character standing beside an armour rule reads
   // as an example of it.
-  const flat = section === 'classes' || section === 'progression'
-    || section === 'round' || section === 'world';
+  //
+  // ⚠ EXCEPT the creature editor (D-594). That reasoning was written when
+  // Round content was recipes and objectives, which are rules — a creature's
+  // LOOK is the one thing on that screen you can only judge by eye, which is
+  // exactly why the parts and garment tabs have a stage. Recipes and
+  // objectives still do not.
+  const creatures = section === 'round' && roundKind === 'roamers';
+  const flat = (section === 'classes' || section === 'progression'
+    || section === 'round' || section === 'world') && !creatures;
   $('stage').classList.toggle('hidden', flat);
   document.body.classList.toggle('classes', flat);
   $('soon').classList.toggle('hidden', built || map);
@@ -5900,3 +5969,90 @@ async function saveInteractive(def: InteractiveDef): Promise<void> {
  */
 void boot();
 frame();
+
+/**
+ * Show a creature's built body on the stage (D-594).
+ *
+ * ⚠ The BUILT `.glb`, not an assembly. A goblin is one finished mesh in the
+ * pack (D-594), so there is nothing to assemble and the preview loads exactly
+ * what the game loads — the reason D-558 gives for sharing the assembler
+ * applies here by loading the same file rather than by sharing code.
+ *
+ * ⚠ A character the build has not produced yet shows a message rather than an
+ * empty stage. The id is authored in `content/characters/` and the body only
+ * exists after `npm run build:characters`, so "I picked it and nothing
+ * happened" is the expected state in a fresh checkout and needs saying.
+ */
+let creaturePreview: THREE.Object3D | null = null;
+/** What is on the stage, so re-rendering the form does not reload it. */
+let creatureShown: string | null | undefined;
+let creatureMixer: THREE.AnimationMixer | null = null;
+
+async function previewCreature(id: string | null): Promise<void> {
+  if (creaturePreview) {
+    scene.scene.remove(creaturePreview);
+    creaturePreview = null;
+    creatureMixer = null;
+  }
+  if (!id) return;
+  let file: string | undefined;
+  let palette: string | null = null;
+  let height = 1.7;
+  try {
+    const manifest = (await (await fetch('/models/manifest.json')).json()) as {
+      outfits: { id: string; model: string; palette: string | null; height: number }[];
+    };
+    const outfit = manifest.outfits.find((o) => o.id === id);
+    // ⚠ `model`, not `file`. The first cut guessed the field name and every
+    // character reported itself as "not built yet" — a message that is exactly
+    // what a fresh checkout legitimately shows, so it read as working.
+    file = outfit?.model;
+    palette = outfit?.palette ?? null;
+    height = outfit?.height ?? 1.7;
+  } catch {
+    file = undefined;
+  }
+  if (!file) {
+    banner(`${id} — not built yet. Run \`npm run build:characters\`.`);
+    return;
+  }
+  const gltf = await new GLTFLoader().loadAsync(`/models/${file}`);
+  const body = gltf.scene;
+  const want = round.roamers.find((x) => x.id === roundPicked)?.heightMetres ?? height;
+  // ⚠ Scaled the way the game scales it (D-577): MULTIPLY by the ratio of the
+  // height wanted to the height the model measures. Setting the scale outright
+  // is what once drew every garment a hundred times too large.
+  body.scale.multiplyScalar(want / (height || 1));
+  // ⚠ The character's OWN atlas, loaded separately onto FBX-exported UVs, so
+  // `flipY` stays at the default — setting it false is what once made a
+  // palette come out black and yellow and look like an artistic choice
+  // (D-559).
+  let skin: THREE.Texture | null = null;
+  if (palette) {
+    skin = await new THREE.TextureLoader().loadAsync(`/models/${palette}`);
+    skin.magFilter = THREE.NearestFilter;
+    skin.minFilter = THREE.NearestFilter;
+    skin.generateMipmaps = false;
+    skin.colorSpace = THREE.SRGBColorSpace;
+  }
+  body.traverse((o) => {
+    o.castShadow = true;
+    o.receiveShadow = true;
+    const mesh = o as THREE.Mesh;
+    if (mesh.isMesh && skin) {
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      mat.map = skin;
+      mat.needsUpdate = true;
+    }
+  });
+  scene.scene.add(body);
+  creaturePreview = body;
+  const clips = await loadClipLibrary();
+  const idle = clips.find((c) => c.name === 'unarmed-idle') ?? clips[0];
+  if (idle) {
+    creatureMixer = new THREE.AnimationMixer(body);
+    creatureMixer.clipAction(idle).play();
+    sheetMixers.push(creatureMixer);
+  }
+  banner(`${id} — ${want.toFixed(2)}m`);
+}

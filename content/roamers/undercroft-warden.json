@@ -18,5 +18,7 @@
       "chance": 0.8
     }
   ],
-  "notes": "Floor three, open only for the round's closing daylight (D-535). Wants the cast. UNRATIFIED tuning - this is the number most likely to be wrong."
+  "notes": "Floor three, open only for the round's closing daylight (D-535). Wants the cast. UNRATIFIED tuning - this is the number most likely to be wrong.",
+  "character": "skeleton-knight",
+  "heightMetres": 1.95
 }

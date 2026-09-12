@@ -401,6 +401,23 @@ export const WireEntitySchema = z.object({
    */
   look: CharacterLookSchema.nullable().default(null),
   /**
+   * Which BUILT CHARACTER this entity is drawn as (D-594).
+   *
+   * ⚠ This is the wire field D-559 said was missing. Until now the model was
+   * picked from the appearance seed — deterministic and agreed across clients,
+   * and arbitrary: nothing connected the guard model to a guard, and every
+   * goblin in the game was drawn as a random townsman. A night-walker
+   * described as "something man-shaped that does not walk like a man" rendered
+   * as a man.
+   *
+   * ⚠ Absent means "fall back to the seed", which is still right for players
+   * who have not been through creation, for corpses and for anything a script
+   * spawns without saying what it looks like. A creature that names a model
+   * the client cannot find falls back the same way rather than failing to
+   * draw — an invisible enemy is worse than a wrong-looking one.
+   */
+  model: z.string().optional(),
+  /**
    * Which node or station this is — 'iron-vein', 'well', 'workshop' (D-542).
    * Public information about a public object, and the client needs it to draw
    * the right thing: before this it guessed from the descriptor's prose, and

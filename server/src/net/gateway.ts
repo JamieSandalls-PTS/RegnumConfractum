@@ -1738,6 +1738,10 @@ export class GameServer {
             name: kind.descriptor,
             npcDescriptor: kind.descriptor,
             appearanceSeed: this.roamerRng.int(1, 1_000_000),
+      // What its content says it looks like (D-594). Absent falls back to the
+      // seed, which is what every roamer did before any of them had a face.
+      ...(kind.character ? { model: kind.character } : {}),
+      ...(kind.heightMetres ? { appearance: { height: kind.heightMetres } } : {}),
             pos: at,
             hp: kind.hp,
             // Deliberately NOT `hostile`. A guard on its round is not a thing
@@ -1840,6 +1844,10 @@ export class GameServer {
             name: kind.descriptor,
             npcDescriptor: kind.descriptor,
             appearanceSeed: this.roamerRng.int(1, 1_000_000),
+      // What its content says it looks like (D-594). Absent falls back to the
+      // seed, which is what every roamer did before any of them had a face.
+      ...(kind.character ? { model: kind.character } : {}),
+      ...(kind.heightMetres ? { appearance: { height: kind.heightMetres } } : {}),
             pos: at,
             hp: kind.hp,
             // Visibly a thing that attacks people (D-550) — the switch the
@@ -1944,6 +1952,10 @@ export class GameServer {
       name: kind.descriptor,
       npcDescriptor: kind.descriptor,
       appearanceSeed: this.roamerRng.int(1, 1_000_000),
+      // What its content says it looks like (D-594). Absent falls back to the
+      // seed, which is what every roamer did before any of them had a face.
+      ...(kind.character ? { model: kind.character } : {}),
+      ...(kind.heightMetres ? { appearance: { height: kind.heightMetres } } : {}),
       pos: at,
       hp: kind.hp,
       hostile: true,
@@ -5834,6 +5846,10 @@ export class GameServer {
       name: kind.descriptor,
       npcDescriptor: kind.descriptor,
       appearanceSeed: this.roamerRng.int(1, 1_000_000),
+      // What its content says it looks like (D-594). Absent falls back to the
+      // seed, which is what every roamer did before any of them had a face.
+      ...(kind.character ? { model: kind.character } : {}),
+      ...(kind.heightMetres ? { appearance: { height: kind.heightMetres } } : {}),
       pos,
       hp: kind.hp,
       hostile: true,

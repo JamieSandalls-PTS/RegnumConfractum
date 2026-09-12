@@ -1,0 +1,9 @@
+{
+  "id": "skeleton-slave",
+  "name": "Skeleton slave",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "Character_Skeleton_Slave_01",
+  "note": "A finished body from the pack rather than an assembly (D-594). On the Unreal humanoid rig, so the existing clip library retargets onto it unchanged."
+}

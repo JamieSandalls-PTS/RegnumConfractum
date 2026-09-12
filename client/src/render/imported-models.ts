@@ -178,6 +178,11 @@ export function pickOutfit(
   return all[mixed % all.length] ?? null;
 }
 
+/** The built character with this id, or null if nothing built it. */
+export function outfitById(id: string): ImportedOutfit | null {
+  return outfits().find((o) => o.id === id) ?? null;
+}
+
 export function outfitFor(seed: number): ImportedOutfit | null {
   return pickOutfit(outfits(), seed);
 }

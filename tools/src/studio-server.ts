@@ -760,6 +760,22 @@ const server = http.createServer((req, res) => {
     }
   }
 
+/**
+ * Every authored character definition (D-594), for the creature editor's
+ * "what it looks like" picker.
+ */
+function savedCharacterDefs(): CharacterDef[] {
+  const dir = path.join(contentDir, 'characters');
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+    .map((f) => CharacterDefSchema.parse(
+      JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')),
+    ));
+}
+
   // PUT /api/characters/:id
   if (req.method === 'PUT' && parts[1] === 'characters' && parts.length === 3) {
     let body = '';
@@ -1063,6 +1079,16 @@ const server = http.createServer((req, res) => {
         items: buildCatalogue().items,
         nodes: savedNodes().map((n) => ({ id: n.id, yields: n.yields })),
         npcDescriptors: npcDescriptorHints(),
+        // ⚠ What a creature may be drawn AS (D-594). The authored list, not
+        // what happens to be built — the tool must be able to pick a character
+        // in a checkout where nobody has run `build:characters` yet, and the
+        // build is what turns an id into a body.
+        characters: savedCharacterDefs().map((c) => ({
+          id: c.id,
+          name: c.name,
+          pack: c.pack,
+          whole: c.mesh !== undefined,
+        })),
       });
     } catch (e) {
       return send(res, 500, { error: `a saved document is invalid: ${(e as Error).message}` });

@@ -196,6 +196,105 @@
       }
     },
     {
+      "id": "drowned-shade",
+      "model": "drowned-shade.glb",
+      "palette": "drowned-shade.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "goblin-shaman",
+      "model": "goblin-shaman.glb",
+      "palette": "goblin-shaman.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "goblin-warchief",
+      "model": "goblin-warchief.glb",
+      "palette": "goblin-warchief.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "goblin-warrior",
+      "model": "goblin-warrior.glb",
+      "palette": "goblin-warrior.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "goblin",
+      "model": "goblin.glb",
+      "palette": "goblin.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "rock-golem",
+      "model": "rock-golem.glb",
+      "palette": "rock-golem.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "skeleton-knight",
+      "model": "skeleton-knight.glb",
+      "palette": "skeleton-knight.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "skeleton-slave",
+      "model": "skeleton-slave.glb",
+      "palette": "skeleton-slave.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
+      "id": "skeleton-soldier",
+      "model": "skeleton-soldier.glb",
+      "palette": "skeleton-soldier.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "mesh",
+      "height": 1.7,
+      "parts": null
+    },
+    {
       "id": "polygon-hero-male",
       "model": "polygon-hero-male.glb",
       "palette": "polygon-hero-male.png",
