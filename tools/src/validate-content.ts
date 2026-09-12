@@ -334,12 +334,47 @@ export function validateContent(contentDir: string): ValidationResult {
     objectiveIds.add(parsed.data.id);
     objectives.push(parsed.data);
   }
+  /**
+   * Every public descriptor a shipped script spawns an NPC with.
+   *
+   * ⚠ Scraped from the Lua, because that is where NPCs come from (D-507) and
+   * there is nowhere else to look. Deliberately a loose pattern: a descriptor
+   * built by concatenation would be missed, which is why what it feeds is a
+   * check on LIVE objectives only.
+   */
+  const npcDescriptors = new Set<string>();
+  try {
+    const dir = join(contentDir, 'scripts');
+    for (const f of readdirSync(dir).filter((n) => n.endsWith('.lua'))) {
+      const src = readFileSync(join(dir, f), 'utf8');
+      for (const m of src.matchAll(/descriptor\s*=\s*"([^"]+)"/g)) {
+        npcDescriptors.add(m[1]!);
+      }
+    }
+  } catch {
+    // No scripts directory is legal; it just means no scripted NPCs.
+  }
+
   for (const o of objectives) {
     // ⚠ Shared with the authoring tool (D-569). The tool refuses a save that
     // would fail the build, which is only true while both read one function.
-    // NPC descriptors are not known at this point in the pass -- areas are
-    // read later -- so that check is skipped rather than faked.
-    for (const problem of objectiveProblems(o, { itemIds, npcDescriptors: null })) {
+    //
+    // ⚠ Checked for LIVE objectives ONLY, and that is the whole of why this
+    // can be checked at all. D-569 passed `null` here and said why: NPCs are
+    // spawned by Lua and by DM events, so a build-time scan is partial, and
+    // treating a partial scan as complete would reject every DM-spawned
+    // target. That reasoning holds for a draft. It does not hold for a LIVE
+    // one: the round engine deals those at random with nobody watching, so a
+    // live objective has to be satisfiable out of shipped content or it is
+    // simply a way to lose a round.
+    //
+    // ⚠ This is not hypothetical. `silence-the-keeper` shipped live, naming
+    // the keeper of the Hanged Ferryman — who stands in the persistent
+    // world's tavern, while `round-town` ran no scripts and did not link
+    // there. D-526 calls it the low-cast workhorse. An antagonist dealt it
+    // could not win, and nothing said so.
+    const refs = { itemIds, npcDescriptors: o.status === 'live' ? npcDescriptors : null };
+    for (const problem of objectiveProblems(o, refs)) {
       errors.push(`objective '${o.id}': ${problem}`);
     }
   }

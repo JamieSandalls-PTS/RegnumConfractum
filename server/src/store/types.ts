@@ -393,6 +393,16 @@ export interface Store {
    */
   grantItemToCorpse(corpseId: string, templateId: string, qty: number): Promise<ItemRecord>;
   /**
+   * Puts an item straight into the common stores (D-593), the third owner an
+   * item can have (D-580).
+   *
+   * ⚠ Needed because a town has to START stocked. D-529 identified the
+   * constraint and D-533 recorded it as still unmet: hiding in town beats the
+   * clock unless the storehouse RUNS OUT, and nothing could stock it in the
+   * first place — every route into a store went through somebody's pack.
+   */
+  grantItemToStore(storeId: string, templateId: string, qty: number): Promise<ItemRecord>;
+  /**
    * Moves ONE item from a character onto a corpse or heap (D-554) — dropping.
    * True iff it existed AND belonged to `from`, the same atomicity contract
    * as transferItem, because dropping is a transfer with the floor as the

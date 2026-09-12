@@ -5814,5 +5814,8 @@
     "boards",
     "mud",
     "leafmould"
+  ],
+  "scripts": [
+    "ashfold-keeper"
   ]
 }

@@ -445,6 +445,28 @@ does not have, so three tests pooled a `ration-bread` that does not exist.
 yet better than a field bandage, the workshop not yet better than improvising.
 The 1.5x-2x band is **unratified** and is the number to watch in first play.
 
+**The town starts with a larder, and it RUNS OUT (D-593).** D-529's hard
+constraint — hiding in town beats the clock unless the storehouse runs out — is
+met: the stores open stocked at **two meals a head**, scaled to the cast, and
+nothing refills them. ⚠ The number is chosen against the clock (a belly empties
+in a day, a round is two and a half) and is **unratified**; it is the first
+thing to watch in play. ⚠ It was a SYSTEMS gap as well as a content one —
+every route into a store went through somebody's pack, so nothing could stock
+one at all. ⚠ It also gives the antagonist something to spoil from the first
+minute, which the best sabotage in the game previously had to wait for.
+
+**Ashfold has a keeper, and he can be silenced (D-593).** He stands at the
+tavern DOOR, not behind a bar — measured: every tile of the tavern's footprint
+fails `canStandAt`, so D-584's tavern is a facade with no interior. The
+threshold is better anyway: D-549 put the square where every route crosses, so
+a keeper on it is a target the cast can see being defended. ⚠ The round engine
+matches a kill by **public descriptor, not by id**, so a reworded line of prose
+in either the script or the objective makes it unwinnable again — now a test
+and a build error rather than a hope. ⚠ CI checks this for **live** objectives
+only: D-569 passed `null` because DM events also spawn NPCs and a build-time
+scan is partial, which holds for a draft and does not hold for something the
+engine deals at random with nobody watching.
+
 **Characters LEVEL, and a level may not buy power (D-538).** Fifteen
 skills, twenty-seven feats and a nine-step progression table per class
 (levels 2–10). A level grants feats, class abilities and non-combat skill
@@ -1165,15 +1187,14 @@ one playable at the minimum cast makes the lobby fill and never start.
 Lua, not declared, so descriptors are read from the scripts, offered as
 SUGGESTIONS, warned about — and passed as `null` to the validator, because
 treating a partial scan as complete would reject every DM-spawned target.
-⚠ **That warning found a real bug immediately:** `silence-the-keeper` is
-`live` and targets `"the keeper"`, but the only scripted NPC is
+⚠ **That warning found a real bug immediately:** `silence-the-keeper` was
+`live` and targeted `"the keeper"`, but the only scripted NPC was
 `"a heavyset keeper with scarred knuckles"` in `hanged-ferryman` — and
-`round-town` runs no scripts and does not link there, so **there is no keeper
-in the round map at all.** D-526 calls it the low-cast workhorse; an antagonist
-dealt it cannot win. Two problems, not a typo. **Left unfixed for the
-stakeholder** — repointing the descriptor would make it look fixed while still
-being unwinnable. The tests missed it because their fixtures spawn an NPC with
-the fixture's own descriptor: they prove the mechanism, not the content.
+`round-town` ran no scripts and did not link there, so **there was no keeper in
+the round map at all.** D-526 calls it the low-cast workhorse; an antagonist
+dealt it could not win. The tests missed it because their fixtures spawn an NPC
+with the fixture's own descriptor: they prove the mechanism, not the content.
+**Fixed in D-593.**
 
 **A garment is a list of SWAPS, authored by looking (D-570).** D-562's finding,
 recorded and unbuilt until now: a "set" is a WARDROBE, not a costume — gloves

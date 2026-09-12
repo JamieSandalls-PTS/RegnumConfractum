@@ -328,6 +328,17 @@ export class PgStore implements Store {
     };
   }
 
+  async grantItemToStore(storeId: string, templateId: string, qty: number): Promise<ItemRecord> {
+    const { rows } = await this.pool.query<{ id: string }>(
+      'insert into items (template_id, owner_store_id, qty) values ($1, $2, $3) returning id',
+      [templateId, storeId, qty],
+    );
+    return {
+      id: rows[0]!.id, templateId, ownerCharacterId: null, ownerCorpseId: null,
+      ownerStoreId: storeId, qty, data: null, equippedSlot: null,
+    };
+  }
+
   async getItem(itemId: string): Promise<ItemRecord | null> {
     const { rows } = await this.pool.query(
       'select id, template_id, owner_character_id, owner_corpse_id, qty, data, equipped_slot from items where id = $1',

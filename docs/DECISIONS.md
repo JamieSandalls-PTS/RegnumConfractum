@@ -8376,3 +8376,86 @@ most 1.4 MB for a 100×100. 137 environment meshes, 13 MB. ⚠ Unratified and
 worth watching in play: whether ~500 scattered objects on a spoke is atmosphere
 or clutter, and whether the dungeon's vast open middle wants dressing at all or
 wants a different LAYOUT — that is a map decision, not a dressing one.
+
+---
+
+## D-593 — A keeper who can be silenced, and a larder that runs out
+
+**2026-09-12.** Closes the two items MR2 was carrying: D-569's unwinnable
+objective, and the constraint D-529 named and D-533 recorded as still unmet.
+
+### The keeper existed in the wrong world
+
+`silence-the-keeper` shipped `status: live` and named the keeper of the Hanged
+Ferryman, who stands in the persistent world's tavern. `round-town` ran no
+scripts and did not link there, so the target did not exist in the map the
+round is played in. D-526 calls this objective the low-cast workhorse: an
+antagonist dealt it could not win, and nothing in the build said so.
+
+Ashfold has its own keeper now (`content/scripts/ashfold-keeper.lua`), and the
+objective names him.
+
+⚠ **He stands at the DOOR, not behind a bar, because there is no inside.**
+Measured: every tile of the tavern's footprint fails `canStandAt` — D-584's
+tavern is a solid mesh, a facade you walk past. The threshold is the better
+place anyway: D-549 put the square where every route crosses, so a keeper on it
+is a target the whole cast can see being defended, which is what the
+objective's own notes ask for.
+
+⚠ **The engine matches a kill by PUBLIC DESCRIPTOR, not by id**
+(`npcsKilled.has(descriptor)`), so a rewording in either file silently makes
+the objective unwinnable again. That is now a test and a build error rather
+than a hope.
+
+### ⚠ CI could not have caught this, and now can — for LIVE objectives only
+
+`validate-content.ts` passed `npcDescriptors: null`, and D-569 said why: NPCs
+are spawned by Lua and by DM events, so a build-time scan is partial, and
+treating a partial scan as complete would reject every DM-spawned target.
+
+That reasoning holds for a draft. **It does not hold for a live one:** the
+round engine deals live objectives at random with nobody watching, so a live
+objective has to be satisfiable out of shipped content or it is simply a way to
+lose a round. Live `kill_npc` objectives are now checked against the descriptors
+the shipped scripts spawn; drafts are not. Proven by reverting the objective to
+its old target and watching the build refuse it.
+
+### The town starts with a larder, and nothing refills it
+
+D-529: *hiding in town beats the clock unless the storehouse runs out.* D-533
+recorded the gap precisely — "nothing yet stocks the town with a starting
+supply that then depletes" — and called it a content problem rather than a
+systems one. It was both: **every route into a store went through somebody's
+pack**, so there was no way to stock one at all. `grantItemToStore` is the
+missing third owner (D-580) reaching the store directly.
+
+⚠ **Two meals a head, and the number is the point.** Chosen against the clock
+rather than by feel: a full belly takes about a day to empty (D-534) and a
+round is two and a half days (D-527), so the cast eats comfortably through the
+first day, thins through the second, and is out before the end — by which time
+bread comes from grain, and grain is on the farm, which is outside. ⚠
+Unratified, and the first thing to watch in play.
+
+⚠ **Scaled by cast size**, because the same larder is a fortnight for three and
+an afternoon for eight.
+
+⚠ **One item per row, not one row of N.** Stores are taken from one thing at a
+time and spoiling marks INDIVIDUAL items (D-580); a single stack of twelve
+would go off all at once or not at all, which is a different mechanic from the
+one that was built.
+
+⚠ **It also hands the antagonist something to ruin from the first minute.**
+Until now a round opened with nothing pooled, which made the best sabotage in
+the game unavailable until the cast had done the work of stocking it
+themselves.
+
+### ⚠ Two tests that would have proved nothing
+
+The stocking assertions were first appended to `mr6-stores`, where they ran
+after a sibling that resets the round — so they measured an emptied larder, and
+two of the three passed against it. They have their own fixture now. And the
+keeper test's first draft walked the bot greedily along the axis with the
+furthest to go, which stopped dead at (25, 22): the square's statue stands at
+(25, 21), directly between the tavern door and everyone crossing the square. It
+uses `move_to` now, which is the message a real player's click sends — a test
+that reimplements pathfinding is testing its own pathfinding.

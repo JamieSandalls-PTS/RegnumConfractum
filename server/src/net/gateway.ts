@@ -784,6 +784,7 @@ export class GameServer {
       await this.grantStartingKit(conn);
       await this.sendInventory(conn);
     }
+    await this.stockCommonStores(cast.length);
     // EVERY player receives a role message. Only one carries an objective, so
     // the arrival of the message is not itself a tell - which it would be if
     // only the antagonist were told anything.
@@ -1441,6 +1442,63 @@ export class GameServer {
    * whose goods somebody could be denied.
    */
   private static readonly STORAGE_STATIONS = ['storehouse', 'infirmary'] as const;
+
+  /**
+   * How much food a town starts a round with, per member of the cast.
+   *
+   * ⚠ THIS NUMBER IS THE POINT, and it is unratified. D-529 identified the
+   * constraint and D-533 recorded it as still unmet: **hiding in town beats
+   * the clock unless the storehouse runs out**. Too generous and the cast
+   * never has to leave, which is the failure D-529 named; too mean and the
+   * opening minutes are a scramble rather than the scene D-536's dawn truce
+   * is built around.
+   *
+   * Two is chosen against the clock rather than by feel. A full belly takes
+   * about a day to empty (D-534) and a round is two and a half days
+   * (D-527), so a starting stock of two meals a head carries the cast
+   * comfortably through the first day, thins through the second, and is gone
+   * before the end — by which time bread has to come from grain, and grain is
+   * on the farm, which is outside.
+   */
+  private static readonly STORE_MEALS_PER_HEAD = 2;
+
+  /**
+   * Stock every common store in the world at the opening of a round (D-593).
+   *
+   * ⚠ It is SUPPLY, not generation: nothing refills it, and `resetRound`
+   * empties what is left (D-580). That is what makes it run out, which is the
+   * whole of what D-529 asked for.
+   *
+   * ⚠ It also hands the antagonist something to ruin from the first minute.
+   * D-580's spoiling rides on the ITEMS, so a saboteur's bite is proportional
+   * to how much is pooled — and until now a round opened with nothing pooled
+   * at all, which made the best sabotage in the game unavailable until the
+   * cast had done the work of stocking it themselves.
+   *
+   * ⚠ Scaled by CAST SIZE, because the same larder is a fortnight for three
+   * and an afternoon for eight, and the mode is specified from three upwards
+   * (D-522).
+   */
+  private async stockCommonStores(castSize: number): Promise<void> {
+    const food = [...this.content.itemTemplates.values()].find((t) => t.nourishes === 'hunger');
+    if (!food) return;
+    const loaves = Math.max(1, castSize) * GameServer.STORE_MEALS_PER_HEAD;
+    let stocked = 0;
+    for (const area of this.content.areas.values()) {
+      if (!(area.stations ?? []).some((st) => st.type === 'storehouse')) continue;
+      for (let i = 0; i < loaves; i++) {
+        await this.store.grantItemToStore(`${area.id}:storehouse`, food.id, 1);
+      }
+      stocked += loaves;
+    }
+    if (stocked > 0) {
+      // ⚠ One item per row rather than one row of N. The stores are looked at
+      // and taken from one thing at a time (D-580), and spoiling marks
+      // INDIVIDUAL items — a single stack of twelve would go off all at once
+      // or not at all, which is a different mechanic from the one D-580 built.
+      await this.store.appendEvent('stores_stocked', { loaves: stocked, castSize });
+    }
+  }
 
   /**
    * The store a character is standing at, or null.

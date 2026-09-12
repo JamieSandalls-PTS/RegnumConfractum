@@ -291,6 +291,21 @@ export class MemoryStore implements Store {
     return { ...item };
   }
 
+  async grantItemToStore(storeId: string, templateId: string, qty: number): Promise<ItemRecord> {
+    const item: ItemRecord = {
+      id: randomUUID(),
+      templateId,
+      ownerCharacterId: null,
+      ownerCorpseId: null,
+      ownerStoreId: storeId,
+      qty,
+      data: null,
+      equippedSlot: null,
+    };
+    this.items.set(item.id, item);
+    return { ...item };
+  }
+
   async clearAllKnowledge(): Promise<number> {
     const n = this.knowledge.size;
     this.knowledge.clear();

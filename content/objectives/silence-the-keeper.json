@@ -1,10 +1,13 @@
 {
   "id": "silence-the-keeper",
   "name": "Silence the Keeper",
-  "brief": "The keeper of the Hanged Ferryman kept a ledger, and your name is in it. He does not know you yet. See that he never has the chance to say it aloud — before the round is out, the keeper must be dead.",
-  "kind": { "type": "kill_npc", "descriptor": "the keeper" },
+  "brief": "The keeper of the Ashfold tavern kept a ledger, and your name is in it. He does not know you yet. See that he never has the chance to say it aloud — before the round is out, the keeper must be dead.",
+  "kind": {
+    "type": "kill_npc",
+    "descriptor": "a rawboned keeper in a stained apron"
+  },
   "minCast": 3,
   "maxCast": null,
   "status": "live",
-  "notes": "D-526's low-cast workhorse. A fixed, known, defenceless target turns the round from 'who is the traitor' (thin at three) into 'the keeper must live' (a defence problem at any size). The antagonist is exposed by what it does, not by a coin-flip accusation."
+  "notes": "D-526's low-cast workhorse. A fixed, known, defenceless target turns the round from 'who is the traitor' (thin at three) into 'the keeper must live' (a defence problem at any size). The antagonist is exposed by what it does, not by a coin-flip accusation. ⚠ The descriptor must match content/scripts/ashfold-keeper.lua exactly: the round engine matches a kill by public descriptor, not by id. It named the Hanged Ferryman's keeper until D-593, who stands in the persistent world and not in the round map, so the objective was live and could never complete."
 }
