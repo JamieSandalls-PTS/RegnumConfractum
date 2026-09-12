@@ -22,6 +22,7 @@ import {
   AssetFileSchema,
   assetProblems,
   kindOfMesh,
+  meshShelf,
   ASSET_KINDS,
   type AssetKind,
   AnimationSetSchema,
@@ -1318,7 +1319,14 @@ function savedCharacterDefs(): CharacterDef[] {
   if (req.method === 'GET' && parts[1] === 'assetpacks' && parts.length === 3) {
     const pack = packOf(decodeURIComponent(parts[2]!));
     if (!pack) return send(res, 404, { error: 'no such pack' });
-    const meshes = allMeshStems(pack).map((stem) => ({ stem, kind: kindOfMesh(stem) }));
+    // ⚠ `shelf` as well as `kind`. The kind is what a catalogue may claim and
+    // is null for anything unrecognised; the shelf is where the tool SHOWS it,
+    // and is never null — a mesh with no kind used to appear in no tab at all.
+    const meshes = allMeshStems(pack).map((stem) => ({
+      stem,
+      kind: kindOfMesh(stem),
+      shelf: meshShelf(stem),
+    }));
     return send(res, 200, { meshes, textures: texturesIn(pack) });
   }
 

@@ -92,8 +92,17 @@ export function allPacks(): Pack[] {
   for (const entry of fs.readdirSync(SOURCE_DIR, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const base = path.join(SOURCE_DIR, entry.name);
-    const meshDir = findDir(base, 'fbx');
-    if (!meshDir) continue;
+    // ⚠ Vendors do not agree on what the mesh folder is called, and a pack
+    // whose meshes are somewhere else was SILENTLY SKIPPED — `continue`, no
+    // message, the whole pack invisible to every tool. The `generic` pack
+    // keeps its meshes in `Models/`, so 78 buildings and props had never been
+    // offered anywhere and nothing said so.
+    //
+    // ⚠ The fallback is the pack ROOT rather than nothing, because `meshPath`
+    // and `partStems` both recurse: a pack with meshes anywhere under it now
+    // works whatever the folder is called, and a pack with no meshes at all
+    // simply reports none instead of disappearing.
+    const meshDir = findDir(base, 'fbx') ?? findDir(base, 'models') ?? base;
     out.push({ id: entry.name, meshDir, textureDir: findDir(base, 'textures') });
   }
   return out.sort((a, b) => a.id.localeCompare(b.id));
@@ -149,12 +158,29 @@ export function meshPath(pack: Pack, stem: string): string | null {
 
 /** The part files a pack ships, by stem, so a missing part is named not guessed. */
 export function partStems(pack: Pack): Set<string> {
-  return new Set(
-    fs
-      .readdirSync(pack.meshDir)
-      .filter((f) => /\.fbx$/i.test(f))
-      .map((f) => f.replace(/\.fbx$/i, '')),
-  );
+  // ⚠ RECURSIVE, like `meshPath` beside it. It read only the top level while
+  // `meshPath` searched the whole tree, so the two disagreed about what a pack
+  // contains: the vikings pack keeps 140 snow variants and its six characters
+  // in subfolders, and every one of them was catalogued — by a tool that could
+  // find them — while this said they were not in the pack. Anything checking a
+  // catalogue against this was checking against a smaller pack than the one on
+  // disk.
+  const out = new Set<string>();
+  const stack = [pack.meshDir];
+  while (stack.length) {
+    const dir = stack.pop()!;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const e of entries) {
+      if (e.isDirectory()) stack.push(path.join(dir, e.name));
+      else if (/\.fbx$/i.test(e.name)) out.add(e.name.replace(/\.fbx$/i, ''));
+    }
+  }
+  return out;
 }
 
 /**

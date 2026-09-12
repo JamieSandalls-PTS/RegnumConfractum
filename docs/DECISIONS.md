@@ -8588,3 +8588,87 @@ Ashfold keeper is still drawn from a seed. Roamers came first because they are
 content already and are most of what a player meets; giving a scripted NPC the
 same field is small and is not done here. D-569's larger complaint — that NPCs
 are not declared content at all — stands.
+
+---
+
+## D-595 — Every mesh in every pack can be found in the tool
+
+**2026-09-12.** Asked for: "ensure all assets from all packs are available in
+the creation tool, in the proper categories."
+
+Measured first. **3,555 meshes across seven packs.** Three separate things were
+stopping some of them from reaching the tool, and not one of them said so.
+
+### ⚠ An entire pack was invisible, skipped by a bare `continue`
+
+`allPacks()` required a folder called `fbx`. The `generic` pack keeps its
+meshes in `Models/`, so `findDir` returned null and the loop skipped it —
+**467 meshes, 454 of them placeable scenery, invisible to every tool in the
+project** since the pack was ingested. No warning, no empty entry, nothing.
+
+The mesh folder now falls back to the pack ROOT, because `meshPath` and
+`partStems` both recurse: a pack works whatever its folder is called, and a
+pack with genuinely no meshes reports none rather than disappearing.
+
+### ⚠ Two functions disagreed about what a pack contains
+
+`partStems` read only the TOP LEVEL of the mesh folder. `meshPath`, directly
+beside it, recursed. So the vikings pack's 140 snow variants and its six
+characters were catalogued — by tools that could find them — while `partStems`
+reported them as not in the pack. Anything checking a catalogue against
+`partStems` was checking against a smaller pack than the one on disk, which is
+how a catalogue came to list 370 meshes out of a "233-mesh" pack.
+
+`partStems` recurses now. The vikings pack went from 233 to 373.
+
+### ⚠ A mesh with no kind appeared in NO tab
+
+`kindOfMesh` returns null for anything its prefixes do not cover. That is right
+for a CATALOGUE — D-561 chose it deliberately, better no entry than a guessed
+one — and quietly fatal for a MENU: the tool filters by kind, so an
+unclassified mesh could not be found, named or placed by anybody.
+
+`meshShelf` is the menu's classifier and is **TOTAL**: every mesh lands
+somewhere. It adds three shelves the catalogue has no use for —
+
+  * `character` — a whole rigged person (D-594), not a prop to place
+  * `body-part` — `Chr_*`, which has its own tab and catalogue (D-560)
+  * `helper` — collision hulls, convex shells, LOD stubs and FX meshes
+
+— and an **`unfiled`** shelf, which is shown in the tool as a tab.
+
+⚠ **Unfiled is a real answer, not a failure state.** D-568 tried to file the
+last few by matching English words and broke three meshes to fix three, because
+"bolt" is a fastener as often as it is ammunition. The rule stands: a person
+files them. This only makes sure they can see them. Four remain across all
+seven packs, and all four are now on screen with a name field beside them.
+
+⚠ **Helpers are checked FIRST, before any prefix.**
+`SM_Bld_Base_Stairs_01_Collision` carries a real `Bld_` prefix, so classifying
+by prefix alone offered 78 invisible physics boxes as buildings.
+
+⚠ `kindOfMesh` is UNCHANGED. What a catalogue may claim and what a menu shows
+are different questions, and the knights pack misspelling its own `Prop_`
+prefix as `Prp_` on exactly one mesh is a fact about one pack rather than a
+naming rule.
+
+### The result
+
+```
+pack                  total  char-item  environment  pickup  character  body-part  helper  unfiled
+bow-crossbow              6          4            1       0          0          0       0        1
+dungeon-pack            830         73          684      36         16         16       4        1
+fantasy-dungeons-map     57          0           57       0          0          0       0        0
+generic                 467          0          454       0          1          0      12        0
+knights                 328          8          320       0          0          0       0        0
+modular-fantasy-hero   1494         54            0       0          0       1440       0        0
+vikings                 373         28          342       0          0          0       1        2
+TOTAL                  3555        167         1858      36         17       1456      17        4
+```
+
+`tools/test/pack-coverage.test.ts` asserts every mesh lands on a shelf, that
+`generic` is among the packs found, that unfiled stays small, and that a
+collision hull never reaches the scenery shelf. ⚠ It skips when
+`assets/source/` is empty, which is every clean checkout — the packs are
+licensed art and gitignored (D-555), so this checks the art that is present
+rather than being a reason CI cannot run without it.

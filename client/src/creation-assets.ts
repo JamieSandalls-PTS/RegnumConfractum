@@ -7,6 +7,7 @@ import {
   type AssetDef,
   type AssetFile,
   type AssetKind,
+  type MeshShelf,
   type CharacterItem,
   type EnvironmentAsset,
   type PickupAsset,
@@ -40,7 +41,14 @@ export type {
 
 export interface MeshEntry {
   stem: string;
+  /** What a CATALOGUE may claim it is, or null when no prefix says. */
   kind: AssetKind | null;
+  /**
+   * Which shelf of the tool it is shown on (D-595). Never null — a mesh with
+   * no kind used to be filtered out of every tab and could not be found,
+   * named or placed by anybody.
+   */
+  shelf: MeshShelf;
 }
 
 export interface AssetPackCatalogue {

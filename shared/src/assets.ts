@@ -231,6 +231,46 @@ export function kindOfMesh(stem: string): AssetKind | null {
   return null;
 }
 
+/**
+ * Which SHELF of the creation tool a pack mesh belongs on.
+ *
+ * ⚠ TOTAL — every mesh lands somewhere, and that is the whole point.
+ * `kindOfMesh` returns null for anything its prefixes do not cover, which is
+ * correct for a CATALOGUE (better no entry than a guessed one, D-561) and
+ * quietly disastrous for a MENU: the tool filters by kind, so a mesh with no
+ * kind appeared in no tab and could not be found, named or placed by anybody.
+ * Completeness by construction rather than by hoping the prefixes cover a
+ * vendor we have not read yet.
+ *
+ * ⚠ It does NOT guess harder than `kindOfMesh` does. `unfiled` is a real
+ * answer and is shown as one — D-568 tried matching English words to file the
+ * last few and broke three meshes to fix three, because "bolt" is a fastener
+ * as often as it is ammunition. A person files those; this only makes sure
+ * they can see them.
+ */
+export type MeshShelf = AssetKind | 'character' | 'body-part' | 'helper' | 'unfiled';
+
+export function meshShelf(stem: string): MeshShelf {
+  // ⚠ Helpers FIRST, because several of them also carry a real prefix:
+  // `SM_Bld_Base_Stairs_01_Collision` is a physics hull, not a staircase, and
+  // classifying by prefix alone offered 78 invisible boxes as scenery.
+  if (/(_collision|_convex|_lod\d*|_pivot)$/i.test(stem)) return 'helper';
+  if (/^(FX_|SM_LightRay|AATest)/i.test(stem)) return 'helper';
+  const bare = stem.replace(/^S[MK]_/i, '');
+  // A whole rigged person is a CHARACTER (D-594), not a prop to place.
+  if (/^Character[_s]/i.test(bare) || /^Generic_Characters$/i.test(bare)) return 'character';
+  // Modular body parts have their own tab and their own catalogue (D-560).
+  if (/^Chr_/i.test(bare)) return 'body-part';
+  const kind = kindOfMesh(stem);
+  if (kind) return kind;
+  // ⚠ `Prp_` is the knights pack misspelling its own `Prop_` prefix, on one
+  // mesh. Spelled out rather than folded into `kindOfMesh`, because that
+  // function decides what a CATALOGUE may claim and this decides what a menu
+  // shows — and a vendor typo is a fact about one pack, not a naming rule.
+  if (/^Prp_/i.test(bare)) return 'environment';
+  return 'unfiled';
+}
+
 /** Everything wrong with a set of assets, in one list. Pure, so CI and the tool agree. */
 export function assetProblems(file: AssetFile, meshesInPack: ReadonlySet<string> | null): string[] {
   const problems: string[] = [];

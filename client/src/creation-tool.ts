@@ -52,6 +52,7 @@ import {
   resolveAnimations,
   skinFraction,
   skinPalette,
+  type MeshShelf,
 } from '@rc/shared';
 import {
   type AssetDef,
@@ -140,7 +141,7 @@ let pack = '';
 let catalogue: Catalogue = { slots: {}, textures: [] };
 let names: PartNames = { pack: '', names: {}, tags: {} };
 let races: RaceDef[] = [];
-let tab: 'parts' | 'races' | 'animations' | AssetKind = 'parts';
+let tab: 'parts' | 'races' | 'animations' | 'unfiled' | AssetKind = 'parts';
 
 /** Which slot the naming tab is showing, and which part is previewed. */
 let namingSlot: CharacterSlot = 'head';
@@ -1470,7 +1471,17 @@ async function bodyToAttachTo(): Promise<{ group: THREE.Object3D; bones: string[
 }
 
 function assetKind(): AssetKind {
-  return tab as AssetKind;
+  // ⚠ The Unfiled shelf has no catalogue of its own: a mesh nobody has
+  // classified is not yet a kind of thing. It borrows the environment file so
+  // naming one there files it as scenery, which is what almost all of them
+  // turn out to be — and the ones that are not get moved by hand, which is
+  // D-568's ruling about the three oddities, not a new escape hatch.
+  return tab === 'unfiled' ? 'environment' : (tab as AssetKind);
+}
+
+/** Which shelf the active tab shows. */
+function assetShelf(): MeshShelf {
+  return tab === 'unfiled' ? 'unfiled' : (tab as MeshShelf);
 }
 
 function assetOf(mesh: string): AssetDef | undefined {
@@ -1519,7 +1530,7 @@ async function loadAssetPack(id: string): Promise<void> {
   assetFile = await loadAssets(id, assetKind());
   assetSel = '';
   render();
-  const first = assetCat.meshes.find((m) => m.kind === assetKind());
+  const first = assetCat.meshes.find((m) => m.shelf === assetShelf());
   if (first) void showAsset(first.stem);
 }
 
@@ -1645,12 +1656,12 @@ async function showAsset(stem: string): Promise<void> {
 function renderAssetList(): void {
   const host = $('list');
   host.replaceChildren();
-  const kind = assetKind();
-  const mine = assetCat.meshes.filter((m) => m.kind === kind);
+  const shelf = assetShelf();
+  const mine = assetCat.meshes.filter((m) => m.shelf === shelf);
   const named = mine.filter((m) => assetOf(m.stem)).length;
   const head = document.createElement('div');
   head.innerHTML =
-    `<h1>${kind.replace('-', ' ')}</h1>` +
+    `<h1>${shelf.replace('-', ' ')}</h1>` +
     `<div class="count">${named} of ${mine.length} named in ${assetPack || '—'}</div>`;
   host.appendChild(head);
 
@@ -1707,7 +1718,7 @@ function renderAssetList(): void {
   if (mine.length === 0) {
     const hint = document.createElement('div');
     hint.className = 'hint';
-    hint.textContent = `No ${kind.replace('-', ' ')} meshes in this pack. Try another.`;
+    hint.textContent = `No ${shelf.replace('-', ' ')} meshes in this pack. Try another.`;
     host.appendChild(hint);
   }
 }
