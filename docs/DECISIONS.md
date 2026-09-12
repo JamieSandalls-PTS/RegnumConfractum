@@ -8542,12 +8542,40 @@ objectives still do not.
    goblin and a skeleton is the mismatch that reads as broken art. They keep
    the seed, and their files say why — either the art or the prose has to give,
    and that is not a dressing decision.
-2. **A pale patch on the skeleton knight's chest was read as flesh** and nearly
-   justified a change of atlas. Sampling its UVs says the colour is `#cab593`,
-   which is BONE — a ribcage, on a skeleton, correctly. And measured against
-   it, `Dungeons_Texture_01` and `_01_A` give **identical** histograms: this
-   pack's letters are colourways, not channels, so the atlas change was a
-   no-op justified by a bug that did not exist.
+2. ⚠ **A pale patch on the skeleton knight's chest was a PLAYER'S HEAD, and it
+   took the stakeholder to say so.** It was visible in a screenshot — two dark
+   eyes on a pale face — and it was explained away twice: first as flesh
+   showing through a breastplate, then, after sampling the mesh's UVs and
+   finding `#cab593`, as a ribcage. **The measurement was real and answered the
+   wrong question.** It said what colours the skeleton's own mesh samples; the
+   head was never part of that mesh. It was the creation tool's bare-head
+   mannequin, left on the stage because `previewCreature` cleared only its own
+   object — D-570's bug word for word, one editor later: "the stage kept a bare
+   head from boot, in the one editor whose whole premise is looking."
+
+   The lesson D-560 states is that reading a render is not measuring one. The
+   corollary, which cost more here: **a measurement that confirms your reading
+   is only worth what its question was.** "What colour does this mesh sample"
+   cannot rule out a second object in front of it, and reaching for arithmetic
+   made the wrong answer feel settled.
+
+   ⚠ **And the atlas "finding" from that detour was wrong too, in the same
+   way.** It said `Dungeons_Texture_01` and `_01_A` give identical histograms,
+   so the letters must be colourways and switching to `preferredAtlas` was a
+   harmless no-op. That was measured on ONE model — the skeleton knight, which
+   is bone and grey under either. The goblin is not:
+
+   ```
+   goblin skin   _01    #91945d   olive green
+                 _01_A  #999087   grey-beige
+   ```
+
+   The lettered cut DESATURATES this pack, and for one commit every goblin
+   rendered pale. The build uses the plain `assetAtlas` again, with a
+   definition's own `texture` as the override. **Sampling one mesh and
+   generalising to sixteen is reading a render, one level up:** the arithmetic
+   was real and the sample was not representative, which is the harder version
+   of the same mistake and took a green goblin coming out grey to notice.
 3. **`tormented-soul` is DROPPED.** Its skeleton is spelled differently enough
    to be its own rig variant, the clips retargeted onto it do not drive its
    bones, and D-555's shape tests caught it. A character that cannot walk must

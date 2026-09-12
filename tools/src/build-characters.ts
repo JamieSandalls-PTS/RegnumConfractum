@@ -53,7 +53,6 @@ import {
   rigNamesFor,
   rigVariant,
   assetAtlas,
-  preferredAtlas,
 } from '@rc/shared';
 import { readUnityPackage } from './unitypackage';
 import { type Pack, meshPath, packOf, partStems, texturePaths, texturesIn } from './packs';
@@ -962,23 +961,24 @@ export async function build(): Promise<BuildReport> {
           'does not ship — check the spelling against the pack\'s FBX folder',
       );
     }
-    // ⚠ `preferredAtlas`, not `assetAtlas`: a CHARACTER wants the lettered cut,
-    // because D-560 measured that the unlettered atlas is the markings-free
-    // variant and a face sampled against it silently returns plain skin.
-    // `assetAtlas` stays right for props, which have no colourways.
+    // ⚠ `assetAtlas` — the PLAIN cut — and the definition's own `texture`
+    // overrides it where a pack needs otherwise.
     //
-    // ⚠ For the dungeon pack specifically it makes NO DIFFERENCE, and that is
-    // measured rather than assumed: the skeleton knight's 152 distinct UVs
-    // land on the same eleven colours in `Dungeons_Texture_01` and
-    // `_01_A` — this pack's letters are colourways, not channels. It is here
-    // for the packs where it does matter.
+    // ⚠ This was `preferredAtlas` for one commit, on D-560's reasoning that
+    // the unlettered atlas is the markings-free variant. That is true of the
+    // HERO pack and is not a property of packs in general, and the check that
+    // seemed to confirm it here was drawn from ONE model: the skeleton
+    // knight's colours are identical under `_01` and `_01_A`, because a
+    // skeleton is bone and grey either way. The goblin is not:
     //
-    // ⚠ It was nearly justified with a bug that did not exist. A pale patch on
-    // the knight's chest was read as flesh showing through a breastplate;
-    // sampling the UVs says the colour is #cab593, which is BONE — a ribcage,
-    // on a skeleton, correctly. Reading a render is not measuring one (D-560),
-    // and this is the second time in one sitting.
-    const want = def.texture ?? preferredAtlas(texturesIn(pack));
+    //     goblin skin   _01   #91945d  (olive green)
+    //                   _01_A #999087  (grey-beige)
+    //
+    // So the lettered cut DESATURATES this pack, and a green goblin rendered
+    // pale. Sampling one mesh and generalising to sixteen is the same mistake
+    // as reading a render, one level up: the measurement was real and the
+    // sample was not representative.
+    const want = def.texture ?? assetAtlas(texturesIn(pack));
     const texture = want ? texturePaths(pack).get(want) : undefined;
     const meshes = skinnedMeshes(loadFbx(readFileSync(file))).map((mesh, i) => ({
       slot: mesh.name || `${def.mesh}-${i}`,

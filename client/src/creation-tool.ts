@@ -4418,8 +4418,10 @@ function renderRoamerForm(host: HTMLElement): void {
     if (r.character && r.heightMetres === undefined) r.heightMetres = 1.7;
     if (!r.character) r.heightMetres = undefined;
     markDirty();
+    // ⚠ ONE call, not two. `renderRoundSide` redraws the form, and the form
+    // asks for the preview itself — calling it here as well started two loads
+    // of two different bodies, and BOTH were added to the stage.
     renderRoundSide();
-    void previewCreature(r.character ?? null);
   };
   classField(host, 'Drawn as', pick);
 
@@ -5986,13 +5988,42 @@ frame();
 let creaturePreview: THREE.Object3D | null = null;
 /** What is on the stage, so re-rendering the form does not reload it. */
 let creatureShown: string | null | undefined;
+/**
+ * Which request owns the stage.
+ *
+ * ⚠ Loading a body is asynchronous and clicking down a list is not, so without
+ * this a slow creature lands on top of a fast one that was chosen later: two
+ * bodies on the stage and a caption naming whichever finished last. The same
+ * guard D-571 put on `setEquipment`, for the same reason — "a token guards the
+ * constructor's own load, or `setEquipment` landing first would be undone by
+ * the bare model arriving second."
+ */
+let creatureToken = 0;
 let creatureMixer: THREE.AnimationMixer | null = null;
 
 async function previewCreature(id: string | null): Promise<void> {
+  const mine = ++creatureToken;
   if (creaturePreview) {
     scene.scene.remove(creaturePreview);
     creaturePreview = null;
     creatureMixer = null;
+  }
+  // ⚠ And whatever else the stage was showing. The tool keeps a bare-head
+  // mannequin on `shown` from boot — it is what the body-parts tab is FOR —
+  // and this only ever cleared its own object, so a goblin was drawn with a
+  // player's head floating in the middle of it.
+  //
+  // ⚠ This is D-570's bug one editor later, and word for word: "selecting a
+  // garment did not show it — the stage kept a bare head from boot, in the one
+  // editor whose whole premise is looking." Worth knowing what it cost the
+  // second time: the head was VISIBLE in a screenshot I took, two dark eyes on
+  // a pale face, and I talked myself into it being a skeleton's ribcage and
+  // measured UVs to prove it. The measurement was real and answered the wrong
+  // question. The stakeholder said "why is the player head floating in the
+  // middle of the roamers", which is what it was.
+  if (shown) {
+    scene.scene.remove(shown);
+    shown = null;
   }
   if (!id) return;
   let file: string | undefined;
@@ -6017,6 +6048,7 @@ async function previewCreature(id: string | null): Promise<void> {
     return;
   }
   const gltf = await new GLTFLoader().loadAsync(`/models/${file}`);
+  if (mine !== creatureToken) return;
   const body = gltf.scene;
   const want = round.roamers.find((x) => x.id === roundPicked)?.heightMetres ?? height;
   // ⚠ Scaled the way the game scales it (D-577): MULTIPLY by the ratio of the
@@ -6045,9 +6077,11 @@ async function previewCreature(id: string | null): Promise<void> {
       mat.needsUpdate = true;
     }
   });
+  if (mine !== creatureToken) return;
   scene.scene.add(body);
   creaturePreview = body;
   const clips = await loadClipLibrary();
+  if (mine !== creatureToken) return;
   const idle = clips.find((c) => c.name === 'unarmed-idle') ?? clips[0];
   if (idle) {
     creatureMixer = new THREE.AnimationMixer(body);
