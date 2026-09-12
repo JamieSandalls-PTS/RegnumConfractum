@@ -2552,5 +2552,6 @@
     "grass",
     "stone",
     "sand"
-  ]
+  ],
+  "ambience": "ambience-forest"
 }

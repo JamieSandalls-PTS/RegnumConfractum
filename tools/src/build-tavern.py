@@ -182,13 +182,37 @@ def main():
             {"x": 1, "y": DOOR_Y, "toArea": "broken-yard", "toX": 29, "toY": 16},
         ],
         "scripts": ["ferryman-keeper"],
+        # The first-slice tavern is a real place a player starts in (D-505), not
+        # a map for trying things — so it says so (D-581).
+        "live": True,
     }
 
     path = os.path.join(AREAS, "hanged-ferryman.json")
+
+    # WARNING: what a re-run must NOT throw away. This script builds its
+    # document from scratch, which is right for the SHAPE it owns and wrong for
+    # everything a person or another tool put on top -- the same trap
+    # `build-round-map.py` carries `PRESERVED` for (D-590).
+    #
+    # It has already cost something: running this to restore the tavern's walls
+    # dropped the `live` flag it had been carrying, and had the map been dressed
+    # or painted at the time it would have taken those too, silently, in a
+    # script whose printed output says only how many roof tiles it wrote.
+    PRESERVED = ("live", "assets", "groundPaint", "groundMaterials")
+    kept = {}
+    if os.path.exists(path):
+        with io.open(path, encoding="utf-8") as fh:
+            existing = json.load(fh)
+        for key in PRESERVED:
+            if key in existing:
+                kept[key] = existing[key]
+    doc.update(kept)
+
     with io.open(path, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
-    print("wrote hanged-ferryman (%dx%d, %d props, %d roof tiles)"
-          % (W, H, len(props), len(roofs)))
+    print("wrote hanged-ferryman (%dx%d, %d props, %d roof tiles)%s"
+          % (W, H, len(props), len(roofs),
+             "" if not kept else "  [kept %s]" % ", ".join(sorted(kept))))
 
     # The yard's door must arrive somewhere that still exists.
     yard_path = os.path.join(AREAS, "broken-yard.json")

@@ -580,5 +580,6 @@
     "dirt",
     "sand",
     "flag"
-  ]
+  ],
+  "ambience": "ambience-cave"
 }

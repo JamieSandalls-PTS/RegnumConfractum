@@ -1775,18 +1775,7 @@
   "scripts": [
     "ferryman-keeper"
   ],
-  "groundPaint": [
-    "hanged-ferryman-0.png",
-    "hanged-ferryman-1.png"
-  ],
-  "groundMaterials": [
-    "boards",
-    "dirt",
-    "grass",
-    "mud",
-    "flag",
-    "leafmould"
-  ],
+  "live": true,
   "assets": [
     {
       "asset": "sm-prop-barrel-half-01",
@@ -3627,5 +3616,17 @@
       "overrideCollision": false,
       "dressed": true
     }
+  ],
+  "groundPaint": [
+    "hanged-ferryman-0.png",
+    "hanged-ferryman-1.png"
+  ],
+  "groundMaterials": [
+    "boards",
+    "dirt",
+    "grass",
+    "mud",
+    "flag",
+    "leafmould"
   ]
 }
