@@ -440,7 +440,13 @@ describe('the layers a character resolves through (D-564, D-565, D-578)', () => 
     const combatBow = animationSets().find((set) => set.id === 'combat-bow');
     expect(combatBow, 'the bow combat set is authored').toBeTruthy();
     expect(ready.idle).toBe(combatBow!.clips.idle);
-    expect(ready.idle).not.toBe(peaceful.idle);
+    // The combat set wins over the fall-through on EVERY action it names.
+    // ⚠ Not "differs from the peaceful table": the rig and the bow's combat
+    // set may legitimately name the same idle (they do today), and a test
+    // that needed them to differ was a test about content, not layering.
+    for (const [action, clip] of Object.entries(combatBow!.clips)) {
+      expect(ready[action as keyof typeof ready], action).toBe(clip);
+    }
     expect(ready.shoot).toBe(combatBow!.clips.shoot);
     // ⚠ Draw and sheathe belong to the STANCE layer, not either readiness
     // (D-565) — they are the transition between the two, and a character
