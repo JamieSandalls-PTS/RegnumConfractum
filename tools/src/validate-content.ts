@@ -24,6 +24,8 @@ import {
   objectiveProblems,
   ScenarioSchema,
   scenarioProblems,
+  ClothFileSchema,
+  clothProblems,
   castCoverageProblem,
   SkillsFileSchema,
   SoundsFileSchema,
@@ -943,6 +945,28 @@ export function validateContent(contentDir: string): ValidationResult {
       // acceptable is not knowing where the edges are.
       if (problem.startsWith('NOTE ')) warnings.push(`scenario '${sc.id}' ${problem.slice(5)}`);
       else errors.push(`scenario '${sc.id}' ${problem}`);
+    }
+  }
+
+  /*
+   * Cloth (D-631): a physics file names parts by stem, and the art it names
+   * is gitignored — so the check is against the NAMED parts, which is what a
+   * person filing a cape has already done.
+   */
+  for (const file of listJson(join(contentDir, 'cloth'))) {
+    checked++;
+    const parsed = ClothFileSchema.safeParse(JSON.parse(readFileSync(file, 'utf8')));
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    const named = new Set<string>();
+    for (const pf of listJson(join(contentDir, 'parts'))) {
+      const p = PartNamesSchema.safeParse(JSON.parse(readFileSync(pf, 'utf8')));
+      if (p.success && p.data.pack === parsed.data.pack) for (const stem of Object.keys(p.data.names)) named.add(stem);
+    }
+    for (const problem of clothProblems(parsed.data, named.size ? named : null)) {
+      errors.push(`${file}: ${problem}`);
     }
   }
 

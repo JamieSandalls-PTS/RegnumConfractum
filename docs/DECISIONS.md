@@ -11038,3 +11038,117 @@ not load them. `EnvironmentAsset.operable` and asset `tags` still have no
 reader. The **death-model swap** and **effects as content** do not exist.
 Areas apply at a reset, not live -- making a placed asset appear in a running
 world is a delta the world does not yet emit.
+
+
+## D-631 -- Every mesh is filed from one place, and cloth is tuned on the real thing
+
+**Status:** implemented
+**Supersedes:** the workbench half of D-520 (the generated-grid garments) and
+the placeholder body of D-617. Extends D-561's asset kinds with `projectile`.
+
+Two asks from the stakeholder, both about the Art and Bodies stages of the
+production line (D-629).
+
+### 1. Asset filing
+
+*"Make the Unfiled tab a filing tab, left-most on Art: all assets visible and
+filed from here -- body part, clothing, weapon, pickup, environment -- with
+more than one use allowed (an arrow is a pickup AND a projectile), existing
+categories used to label what is already filed, and the unlabelled
+highlighted."*
+
+**Filing is not a new document.** It is READ off the files that already
+decide what a mesh is -- the asset kinds under `content/assets/`, the `base`
+tag under `content/parts/`, the creature definitions under
+`content/characters/` -- and WRITTEN back into them. A separate filing file
+would be a second source that drifts from the one the game reads, which is
+D-576's mistake with a new name. So the Filing tab and the per-kind tabs are
+two views of one set of files: ticking *weapon* on a mesh creates the entry
+the Weapon assets tab then edits.
+
+- **One mesh, several uses.** `FILING_USES` is body part, clothing, creature,
+  weapon/worn, environment, pickup, projectile, helper. A use maps to an asset
+  kind, a parts tag or a character definition; a mesh may carry any
+  combination its shelf allows.
+- **`projectile` is a fourth asset kind**, thin like `pickup`: which mesh,
+  how it sits, a speed nobody has ratified. The game shoots nothing yet; the
+  kind exists because filing needed it, and its properties belong to the
+  combat rules when they arrive.
+- **A face is never clothing.** Body part and clothing are one tag with two
+  faces (`base`, D-562); the creation slots are body parts whatever the tag
+  says, because a race curates faces.
+- **Unfiling is refused by name** while an area places the asset, an item or a
+  station is drawn as it, or a roamer looks like it. A clean delete and a
+  broken build are the same act (D-569).
+- **Unfiled is highlighted**, and that highlight is the tab's product: a mesh
+  nobody has filed is a mesh no tab lists and no map can place. The dungeon
+  pack had 24 on the day.
+
+### 2. The cloth workbench
+
+*"It uses the old procedural models. Rebuild it so I select clothing assets
+and define the physics for those assets -- for example, capes."*
+
+The old solver (D-403) simulated a grid it generated itself, pinned to a
+placeholder body, and the workbench's output was a JSON block pasted into a
+conversation for somebody to bake by hand. **The rebuilt one takes the pack's
+own skinned mesh**: its vertices are the particles, its triangles' edges the
+constraints, and which vertices hang free is read off the bone weights the
+artist painted. A cape's collar is weighted to `Capes_01` on the spine and
+stays where the animation puts it; the fall of the cape is weighted to
+`back_02..back_05`, a chain nothing animates, and those are the vertices that
+swing. Measured: 197 particles, 113 free, on the guard's feathered cape.
+
+- **Settings are content**, `content/cloth/<pack>.json`, keyed by PART stem
+  -- a garment covers five slots and many garments share one cape, so the
+  physics belongs to the mesh. Free bones, a weight threshold, gravity,
+  damping, stiffness, fold resistance, passes, wind, thickness, floor, and
+  capsule colliders on named bones. Ratified by nobody; the seed is a cape
+  that hangs and does not pass through the body.
+- **The game applies it.** The loaders now say which part stands in which
+  slot; `ImportedVisual` starts a solver per part with settings, hides the
+  skinned original and draws a world-space proxy parented to the scene,
+  because gravity and wind are world directions and the swing when a wearer
+  turns is the whole effect. The wind the world already reported to
+  `update()` -- ignored since the procedural cast went -- is used at last.
+  Settings ride `render_content` (D-630) like the animation sets, so a Publish
+  reaches a client that is already open.
+- **The workbench is the game's own path.** A body assembled through the same
+  `assemble()`, the same `MeshCloth`, the same clip library, with the part's
+  weighted bones offered as the free-bone choice and the body's bones as
+  colliders. Save writes the content file; Remove deletes the entry.
+
+⚠ **Three things measured on the way that reading would not have found.**
+`applyBoneTransform` takes the vertex IN the vector it is handed -- it does
+not read the position attribute -- so an empty vector skins the origin and
+every pinned particle lands on its bone's pivot, which looks like a cape
+gathered into a point at the collar. The pack's FBX parts are **non-indexed
+triangle soup** (every cape), so the solver makes a sequential index and welds
+duplicated corners into shared particles, which is where the edges come from.
+And a skinned test strip authored at the origin while its bone sat a metre up
+hung below the floor: binding takes the current pose as rest, so a vertex sits
+where the artist put it, not where its bone is.
+
+⚠ **Deleted:** `render/cloth.ts`, `cloth-lab.ts`, `cloth-ui.ts`,
+`render/workbench-body.ts`. The stakeholder's D-520 numbers described a
+generated grid on a placeholder and have no meaning on a real mesh; nothing
+else read them.
+
+### Verified
+
+Ten filing tests over a temporary tree (an arrow filed both ways; a face
+refused as clothing; a placed barrel refused by name; a creature filed and
+unfiled). Eight solver tests on a synthetic skinned strip (pins, hang, edge
+lengths, following the bone, staying outside a collider, wind, non-indexed
+input). Live: the dungeon pack's 24 unfiled meshes highlighted, one filed as a
+pickup and unfiled again through the server; the feathered cape assembled on
+a body in the workbench with the bones it is weighted to offered as choices.
+Typecheck clean; content validates over 160 files.
+
+### Open
+
+The cape defaults are a starting point the workbench exists to replace. A
+hood is weighted to the head and has nothing to swing; skirts (`hips`) are
+offered and untried. Self-collision is not simulated. Ragdoll death drops the
+cape with the body because the pins follow the skinned pose; nobody has
+watched it.

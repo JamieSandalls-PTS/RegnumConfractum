@@ -1716,6 +1716,25 @@ when a socket opens and after a reload) instead of being Vite imports —
 connection exists. ⚠ The login form's default port now comes from `.env`
 through Vite, the drift D-628 fixed for the bot runner.
 
+**Every mesh is filed from one place, and cloth is tuned on the real thing
+(D-631).** The **Filing** tab is first on Art: every mesh a pack ships, what
+it is used as (body part, clothing, creature, weapon, environment, pickup,
+**projectile** — a fourth asset kind), several uses per mesh, and the
+unfiled highlighted. ⚠ Filing is READ off and WRITTEN back into the files
+the game already reads (`content/assets/`, the `base` tag in
+`content/parts/`, `content/characters/`) — never a document of its own.
+Unfiling is refused by name while anything references the asset. The
+**cloth workbench** runs the game's own solver (`render/mesh-cloth.ts`) on
+the pack's own skinned part: free vertices are read off the artist's bone
+weights (the cape chain `back_02..05` under a `Capes_01` collar), settings
+live in `content/cloth/<pack>.json` keyed by part stem, ride
+`render_content`, and `ImportedVisual` simulates them on anybody wearing
+the part through a world-space proxy mesh. ⚠ `applyBoneTransform` takes the
+vertex IN the vector it is handed; the pack's FBX parts are non-indexed
+triangle soup and are welded. ⚠ The old grid cloth (`render/cloth.ts`,
+`cloth-lab.ts`, `cloth-ui.ts`, `workbench-body.ts`) is deleted. Every cloth
+number is unratified.
+
 ⚠ **Unratified balance awaiting the stakeholder:** the run multiplier, the
 watch's damage and cadence and the keepers' 40 hit points (D-619); the veil's
 palette (D-621); creation

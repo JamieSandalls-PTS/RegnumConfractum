@@ -14,6 +14,8 @@ import {
   AnimationSetSchema,
   type AnimationSet,
   type PartNames,
+  ClothFileSchema,
+  type ClothFile,
   GroundMaterialSchema,
   type RaceDef,
   type GroundMaterial,
@@ -120,6 +122,8 @@ export interface Content {
   partFiles: PartNames[];
   /** The animation sets (D-564), carried to the client on the wire (D-630). */
   animations: AnimationSet[];
+  /** Cloth physics per clothing part (D-631). */
+  cloth: ClothFile[];
   /** What a patch of ground is made of (D-585), by id. */
   ground: Map<string, GroundMaterial>;
   /** Creation content (D-208): what a build may allocate and pick. */
@@ -336,6 +340,17 @@ export function loadContent(contentDir: string): Content {
   // were authored, validated in CI and read by the tool and a Vite glob in
   // the client — the fifth directory found in D-576's position. The server
   // carries them to the client on `render_content` now.
+  // Cloth physics per clothing part (D-631): presentation, carried to the
+  // client on `render_content` like the animation sets.
+  const cloth: ClothFile[] = [];
+  for (const { file, data } of readJsonFiles(join(contentDir, 'cloth'))) {
+    const parsed = ClothFileSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    cloth.push(parsed.data);
+  }
+
   const animations: AnimationSet[] = [];
   for (const { file, data } of readJsonFiles(join(contentDir, 'animations'))) {
     const parsed = AnimationSetSchema.safeParse(data);
@@ -512,6 +527,7 @@ export function loadContent(contentDir: string): Content {
     partNames,
     partFiles,
     animations,
+    cloth,
     ground,
     skills,
     feats,

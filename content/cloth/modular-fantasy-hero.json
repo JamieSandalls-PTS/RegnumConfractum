@@ -1,0 +1,49 @@
+{
+  "pack": "modular-fantasy-hero",
+  "cloth": {
+    "SK_Chr_BackAttachment_03": {
+      "freeBones": ["back_02", "back_03", "back_04", "back_05"],
+      "freeWeight": 0.5,
+      "gravity": 9.8,
+      "damping": 0.985,
+      "stiffness": 0.9,
+      "bend": 0.25,
+      "iterations": 6,
+      "windScale": 1,
+      "windStrength": 4,
+      "thickness": 0.02,
+      "floor": 0.02,
+      "colliders": [
+        { "bone": "pelvis", "to": "spine_02", "radius": 0.17 },
+        { "bone": "spine_02", "to": "neck_01", "radius": 0.16 },
+        { "bone": "upperarm_l", "to": "lowerarm_l", "radius": 0.06 },
+        { "bone": "upperarm_r", "to": "lowerarm_r", "radius": 0.06 },
+        { "bone": "thigh_l", "to": "calf_l", "radius": 0.09 },
+        { "bone": "thigh_r", "to": "calf_r", "radius": 0.09 }
+      ],
+      "note": "The feathered cape the Ashfold guard wears (D-631). Defaults, not a tuning: measured to hang and not to pass through the body, and nothing more. The free bones are the pack's cape chain under Capes_01; the collar stays with the spine."
+    },
+    "SK_Chr_BackAttachment_15": {
+      "freeBones": ["back_02", "back_03", "back_04", "back_05"],
+      "freeWeight": 0.5,
+      "gravity": 9.8,
+      "damping": 0.985,
+      "stiffness": 0.9,
+      "bend": 0.25,
+      "iterations": 6,
+      "windScale": 1,
+      "windStrength": 4,
+      "thickness": 0.02,
+      "floor": 0.02,
+      "colliders": [
+        { "bone": "pelvis", "to": "spine_02", "radius": 0.17 },
+        { "bone": "spine_02", "to": "neck_01", "radius": 0.16 },
+        { "bone": "upperarm_l", "to": "lowerarm_l", "radius": 0.06 },
+        { "bone": "upperarm_r", "to": "lowerarm_r", "radius": 0.06 },
+        { "bone": "thigh_l", "to": "calf_l", "radius": 0.09 },
+        { "bone": "thigh_r", "to": "calf_r", "radius": 0.09 }
+      ],
+      "note": "The long cape: the same defaults, unratified."
+    }
+  }
+}

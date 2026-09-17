@@ -6837,6 +6837,7 @@ export class GameServer {
       ground: [...this.content.ground.values()],
       grips: [...this.content.wornAssets.entries()].map(([key, item]) => ({ key, item })),
       parts: this.content.partFiles,
+      cloth: this.content.cloth,
     };
   }
 
@@ -6861,7 +6862,7 @@ export class GameServer {
     // keeps the set it started with only in the sense that its cast is
     // already inside it — the edge moves at once.
     this.scenario = next.scenarios.find((sc) => sc.status === 'live') ?? null;
-    applied.push('scenarios', 'animations');
+    applied.push('scenarios', 'animations', 'cloth');
 
     if (changed(prev.areas, next.areas)) {
       deferred.push('areas: applied at the next round reset (the live world was built from the old ones)');

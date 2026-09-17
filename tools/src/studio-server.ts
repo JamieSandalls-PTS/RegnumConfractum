@@ -76,6 +76,10 @@ import {
   AreaSchema,
   ScenarioSchema,
   scenarioProblems,
+  ClothFileSchema,
+  ClothSettingsSchema,
+  type ClothFile,
+  clothProblems,
 } from '@rc/shared';
 // Shared with `build:characters`, so the studio and the build resolve a pack
 // name the same way. Two copies drift, and the failure is a character that
@@ -86,6 +90,7 @@ import { OTHERWISE_USED, listJson } from './validate-content';
 import { editorRoutes } from './editor-routes';
 import { overview } from './overview';
 import { Publisher } from './publish';
+import { applyFiling, filingRows } from './filing';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import type { BufferAttribute, Mesh } from 'three';
 
@@ -147,6 +152,10 @@ import type { BufferAttribute, Mesh } from 'three';
  * reads the same files, so a definition that saves is a definition that
  * builds.
  *
+ *   GET  /api/cloth/:pack              cloth physics per clothing part (D-631)
+ *   PUT  /api/cloth/:pack/:stem        validate, then write; DELETE removes
+ *   GET  /api/filing/:pack             every mesh and its uses (D-631)
+ *   PUT  /api/filing/:pack/:stem       set a mesh's uses; refuses referenced removals
  *   GET  /api/publish                  builds and reload a save still needs (D-630)
  *   POST /api/publish                  run them, streaming NDJSON progress
  *   GET  /api/overview                 what each stage of the line has and lacks (D-629)
@@ -211,6 +220,12 @@ const stationsDir = path.join(contentDir, 'stations');
 const nodesDir = path.join(contentDir, 'nodes');
 const npcsDir = path.join(contentDir, 'npcs');
 const scenariosDir = path.join(contentDir, 'scenarios');
+const clothDir = path.join(contentDir, 'cloth');
+
+/** The cloth file for a pack, or an empty one. */
+function clothFileFor(pack: string): ClothFile {
+  return readJson(clothDir, `${pack}.json`, (r) => ClothFileSchema.parse(r)) ?? { pack, cloth: {} };
+}
 
 /** What has been saved since the last publish, and how to publish it (D-630). */
 const publisher = new Publisher(root);
@@ -790,6 +805,72 @@ const server = http.createServer((req, res) => {
   if (parts[1] === 'publish' && parts.length === 2) {
     if (req.method === 'GET') return send(res, 200, publisher.pending());
     if (req.method === 'POST') return void publisher.run(res);
+  }
+
+  // /api/filing/:pack — every mesh and what it is filed as (D-631).
+  if (req.method === 'GET' && parts[1] === 'filing' && parts.length === 3) {
+    const pack = packOf(decodeURIComponent(parts[2]!));
+    if (!pack) return send(res, 404, { error: 'no such pack' });
+    try {
+      return send(res, 200, {
+        rows: filingRows({ contentDir, pack: pack.id, stems: allMeshStems(pack) }),
+        textures: texturesIn(pack),
+      });
+    } catch (e) {
+      return send(res, 500, { error: `a filed document is invalid: ${(e as Error).message}` });
+    }
+  }
+
+  // PUT /api/filing/:pack/:stem — make a mesh's uses exactly the list given.
+  if (req.method === 'PUT' && parts[1] === 'filing' && parts.length === 4) {
+    const pack = packOf(decodeURIComponent(parts[2]!));
+    if (!pack) return send(res, 404, { error: 'no such pack' });
+    const stem = decodeURIComponent(parts[3]!);
+    return withBody(req, res, (raw) => {
+      const uses = (raw as { uses?: unknown }).uses;
+      if (!Array.isArray(uses) || !uses.every((u) => typeof u === 'string')) {
+        return send(res, 400, { error: 'expected { uses: string[] }' });
+      }
+      const result = applyFiling(
+        { contentDir, pack: pack.id, stems: allMeshStems(pack) },
+        stem,
+        uses as never,
+      );
+      for (const dir of result.changed) publisher.note(dir);
+      if (!result.ok) return send(res, 400, { error: 'refused', problems: result.problems });
+      return send(res, 200, { row: result.row, changed: result.changed });
+    });
+  }
+
+  // /api/cloth/:pack — physics per clothing part (D-631), plus the bones of the pack.
+  if (parts[1] === 'cloth' && parts.length === 3 && req.method === 'GET') {
+    const packId = decodeURIComponent(parts[2]!);
+    return send(res, 200, clothFileFor(packId));
+  }
+  // PUT /api/cloth/:pack/:stem — one part's settings, validated as CI would.
+  if (parts[1] === 'cloth' && parts.length === 4 && req.method === 'PUT') {
+    const packId = decodeURIComponent(parts[2]!);
+    const stem = decodeURIComponent(parts[3]!);
+    return withBody(req, res, (raw) => {
+      const parsed = ClothSettingsSchema.safeParse(raw);
+      if (!parsed.success) return send(res, 400, { error: 'schema', issues: parsed.error.issues });
+      const file = clothFileFor(packId);
+      file.cloth[stem] = parsed.data;
+      const pack = packOf(packId);
+      const problems = clothProblems(file, pack ? partStems(pack) : null);
+      if (problems.length) return send(res, 400, { error: 'would not build', problems });
+      writeJson(clothDir, `${packId}.json`, file);
+      return send(res, 200, { saved: `cloth/${packId}.json`, stem });
+    });
+  }
+  if (parts[1] === 'cloth' && parts.length === 4 && req.method === 'DELETE') {
+    const packId = decodeURIComponent(parts[2]!);
+    const stem = decodeURIComponent(parts[3]!);
+    const file = clothFileFor(packId);
+    if (!(stem in file.cloth)) return send(res, 404, { error: 'no cloth settings for that part' });
+    delete file.cloth[stem];
+    writeJson(clothDir, `${packId}.json`, file);
+    return send(res, 200, { deleted: stem });
   }
 
   // /api/overview — what each stage of the production line has and lacks.

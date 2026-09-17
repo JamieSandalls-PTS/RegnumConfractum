@@ -49,6 +49,7 @@ export const CONTENT_ROUTES: readonly ContentRoute[] = [
   { dir: 'bots', tier: 'hot', builds: [], reader: 'server bot stable' },
   { dir: 'characters', tier: 'hot', builds: ['characters'], reader: 'server looks; client baked .glb' },
   { dir: 'classes', tier: 'hot', builds: [], reader: 'server creation + progression' },
+  { dir: 'cloth', tier: 'hot', builds: [], reader: 'server loads; client cloth via render_content' },
   { dir: 'emotes', tier: 'hot', builds: [], reader: 'server emote parser' },
   { dir: 'feats', tier: 'hot', builds: [], reader: 'server creation + progression' },
   { dir: 'garments', tier: 'client', builds: ['characters'], reader: 'client baked manifest' },

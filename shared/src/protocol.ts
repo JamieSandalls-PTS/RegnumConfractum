@@ -3,6 +3,7 @@ import { DIRECTIONS } from './types';
 import { AttributeSchema } from './attributes';
 import { AnimationSetSchema, StanceSchema } from './actions';
 import { CharacterItemSchema } from './assets';
+import { ClothFileSchema } from './cloth';
 import { GroundMaterialSchema } from './content';
 import { CharacterLookSchema, PartNamesSchema, RaceSchema } from './creation';
 import { EquipSlotSchema, EquipStatsSchema } from './equipment';
@@ -822,6 +823,8 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     /** `pack/id` → the fitted grip. */
     grips: z.array(z.object({ key: z.string(), item: CharacterItemSchema })),
     parts: z.array(PartNamesSchema),
+    /** Cloth physics per clothing part (D-631). */
+    cloth: z.array(ClothFileSchema).default([]),
   }),
   z.object({
     t: z.literal('content_reloaded'),

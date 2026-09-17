@@ -16,7 +16,7 @@ import { VolumeSchema, type Volume } from './collision';
  * in and how big it is are read from the file.
  */
 
-export const ASSET_KINDS = ['character-item', 'environment', 'pickup'] as const;
+export const ASSET_KINDS = ['character-item', 'environment', 'pickup', 'projectile'] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
 
 /** What every named asset carries, whatever kind it is. */
@@ -195,11 +195,83 @@ export const PickupAssetSchema = AssetCoreSchema.extend({
 });
 export type PickupAsset = z.infer<typeof PickupAssetSchema>;
 
+/**
+ * Something that flies: an arrow, a bolt, a thrown knife (D-631).
+ *
+ * ⚠ A fourth kind because filing needed it, not because the game shoots
+ * anything yet. An arrow is a pickup on the ground and a projectile in the
+ * air, and the stakeholder's rule is that one mesh may be filed under both.
+ * Thin on purpose, like `pickup`: what a projectile DOES belongs to the
+ * combat rules when they arrive; this only says which mesh and how it sits.
+ */
+export const ProjectileAssetSchema = AssetCoreSchema.extend({
+  kind: z.literal('projectile'),
+  transform: AttachTransformSchema.default({}),
+  /** Metres per second, for the renderer's flight; unratified. */
+  speed: z.number().positive().default(30),
+});
+export type ProjectileAsset = z.infer<typeof ProjectileAssetSchema>;
+
 export const AssetSchema = z.discriminatedUnion('kind', [
   CharacterItemSchema,
   EnvironmentAssetSchema,
   PickupAssetSchema,
+  ProjectileAssetSchema,
 ]);
+
+/* ------------------------------------------------------------ filing (D-631) */
+
+/**
+ * What a mesh may be USED as. One mesh, several uses: an arrow is a pickup
+ * and a projectile; a hood is clothing.
+ *
+ * Two families. The asset kinds are files the game reads (`content/assets/`),
+ * and filing under one CREATES the entry. `body-part` and `clothing` are the
+ * modular character parts, whose filing is the `base` tag in
+ * `content/parts/` (D-562: bare parts are a measurement a person confirms).
+ * `creature` is a whole rigged body, whose filing is a `content/characters/`
+ * definition (D-594). `helper` is a collision hull or LOD the vendor shipped,
+ * filed by the pack and never by a person.
+ */
+export const FILING_USES = [
+  'body-part', 'clothing', 'creature', 'weapon', 'environment', 'pickup', 'projectile', 'helper',
+] as const;
+export type FilingUse = (typeof FILING_USES)[number];
+
+export const FILING_LABELS: Record<FilingUse, string> = {
+  'body-part': 'body part',
+  clothing: 'clothing',
+  creature: 'creature',
+  weapon: 'weapon / worn',
+  environment: 'environment',
+  pickup: 'pickup',
+  projectile: 'projectile',
+  helper: 'helper',
+};
+
+/** The asset kind a use is stored as, or null for uses stored elsewhere. */
+export function kindForUse(use: FilingUse): AssetKind | null {
+  if (use === 'weapon') return 'character-item';
+  if (use === 'environment' || use === 'pickup' || use === 'projectile') return use;
+  return null;
+}
+
+export function useForKind(kind: AssetKind): FilingUse {
+  return kind === 'character-item' ? 'weapon' : kind;
+}
+
+/** One row of the filing table: a mesh and everything it is filed as. */
+export interface FilingRow {
+  stem: string;
+  shelf: MeshShelf;
+  uses: FilingUse[];
+  /** Uses this mesh CAN be given — a person cannot make a part a barrel. */
+  allowed: FilingUse[];
+  /** For a modular part: which slot the pack cut it for. */
+  slot?: string;
+  /** True when nothing files it and somebody should. */
+  unfiled: boolean;
+}
 export type AssetDef = z.infer<typeof AssetSchema>;
 
 /** One file per pack per kind, so a pack can be re-ingested without a merge. */

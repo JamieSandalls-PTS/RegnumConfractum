@@ -85,6 +85,12 @@ interface Loaded {
    * characters a player authored.
    */
   readonly height: number;
+  /**
+   * Which part stands in which slot, so a renderer can look a mesh's stem
+   * up — cloth physics is keyed by stem (D-631). Empty for a character
+   * built from loose FBX, which has no parts to name.
+   */
+  readonly parts: readonly { slot: string; pack: string; stem: string }[];
 }
 
 /**
@@ -306,7 +312,10 @@ export function load(outfit: ImportedOutfit): Promise<Loaded> {
     // ⚠ The monolith is exported in metres, so it is handed over unscaled and
     // its own bounds are the honest height. `outfit.height` was measured from
     // this very file at build time and is the fallback, not the source.
-    return { scene, clips, height: heightOf(scene) || outfit.height };
+    const parts = outfit.parts
+      ? Object.entries(outfit.parts.parts).map(([slot, stem]) => ({ slot, pack: outfit.parts!.pack, stem }))
+      : [];
+    return { scene, clips, height: heightOf(scene) || outfit.height, parts };
   })();
   models.set(outfit.id, started);
   return started;
@@ -573,7 +582,7 @@ export function loadLook(
         material.needsUpdate = true;
       }
     }
-    return { scene: built.group, clips, height: heightOf(built.group) };
+    return { scene: built.group, clips, height: heightOf(built.group), parts: wanted };
   })();
   dressed.set(key, started);
   return started;
@@ -653,7 +662,7 @@ export function loadDressed(
         material.needsUpdate = true;
       }
     }
-    return { scene: built.group, clips, height: heightOf(built.group) };
+    return { scene: built.group, clips, height: heightOf(built.group), parts: wanted };
   })();
   dressed.set(key, started);
   return started;

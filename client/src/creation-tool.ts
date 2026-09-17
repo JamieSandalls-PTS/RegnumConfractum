@@ -80,6 +80,7 @@ import type { ToolContext, ToolTab } from './tool/context';
 import { charactersTab } from './tool/characters';
 import { clothTab } from './tool/cloth';
 import { scenariosTab } from './tool/scenarios';
+import { filingTab } from './tool/filing';
 
 /**
  * The creation-rules tool (D-560).
@@ -2645,6 +2646,10 @@ function renderAssetProps(): void {
     host.appendChild(note);
   }
 
+  if (asset.kind === 'projectile') {
+    field('Scale', num(asset.transform.scale, (v) => (asset.transform.scale = v), 'scale'));
+    field('Speed (metres per second — unratified)', num(asset.speed, (v) => (asset.speed = v), 'scale'));
+  }
   if (asset.kind === 'pickup') {
     const item = document.createElement('input');
     item.value = asset.item ?? '';
@@ -4200,7 +4205,9 @@ type Section = 'core' | 'map' | 'items' | 'classes' | 'progression' | 'round' | 
   | 'interactive'
   // Absorbed pages (D-629): the studio, the cloth workbench, and the stage
   // that did not exist until the scenario did.
-  | 'characters' | 'cloth' | 'scenarios';
+  | 'characters' | 'cloth' | 'scenarios'
+  // The filing tab (D-631), which replaced Unfiled.
+  | 'filing';
 let section: Section = 'core';
 
 /* ------------------------------------------------ the production line ---- */
@@ -4251,11 +4258,14 @@ const STAGES: Record<StageId, Stage> = {
     label: 'Art',
     blurb: 'Name and file every mesh the packs ship — nothing downstream can show a filename.',
     tabs: [
+      // ⚠ Filing FIRST (D-631): every mesh, and what it is used as. Naming
+      // and properties come after, on the use's own tab.
+      sec('filing', 'Filing'),
       core('parts', 'Body parts'),
       core('character-item', 'Weapon assets'),
       core('environment', 'Environment assets'),
       core('pickup', 'Pickups'),
-      core('unfiled', 'Unfiled'),
+      core('projectile', 'Projectiles'),
     ],
   },
   motion: {
@@ -4427,6 +4437,7 @@ function toolContext(): ToolContext {
 }
 
 const MODULES: Partial<Record<Section, ToolTab>> = {
+  filing: filingTab,
   characters: charactersTab,
   cloth: clothTab,
   scenarios: scenariosTab,
@@ -6598,7 +6609,8 @@ function applySection(): void {
     section === 'core' || section === 'classes' || section === 'items'
     || section === 'progression' || section === 'round' || section === 'world'
     || section === 'garments' || section === 'interactive'
-    || section === 'characters' || section === 'cloth' || section === 'scenarios';
+    || section === 'characters' || section === 'cloth' || section === 'scenarios'
+    || section === 'filing';
   const map = section === 'map';
   $('body').classList.toggle('hidden', !built);
   $('editor').classList.toggle('hidden', !map);

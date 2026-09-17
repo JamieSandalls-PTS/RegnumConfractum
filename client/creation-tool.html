@@ -131,6 +131,10 @@
   td.name input { padding: 3px 6px; }
   tr.named td.name input { border-color: #37502f; }
   .count { color: var(--dim); font-size: 11px; margin-bottom: 8px; }
+  /* Filing (D-631): a row nobody has filed is the tab's whole point. */
+  #list tr.unfiled td.stem { color: var(--bad); }
+  #list tr.unfiled { background: #221515; }
+  #list td .chip { margin: 0 3px 0 0; padding: 0 5px; font-size: 10px; cursor: default; }
 
   .chip { display: inline-block; border: 1px solid var(--line); border-radius: 2px;
     padding: 2px 6px; margin: 0 4px 4px 0; font-size: 11px; cursor: pointer; }

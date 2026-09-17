@@ -11,6 +11,7 @@ import {
   type CharacterItem,
   type EnvironmentAsset,
   type PickupAsset,
+  type ProjectileAsset,
 } from '@rc/shared';
 
 export type {
@@ -179,6 +180,14 @@ export function blankAsset(kind: AssetKind, pack: string, mesh: string, scale: n
       seat: false,
     } satisfies EnvironmentAsset;
   }
+  if (kind === 'projectile') {
+    return {
+      ...core,
+      kind,
+      transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale },
+      speed: 30,
+    } satisfies ProjectileAsset;
+  }
   return {
     ...core,
     kind,
@@ -192,6 +201,7 @@ export function actionsFor(kind: AssetKind): readonly string[] {
     return [...ACTION_GROUPS.locomotion!, ...ACTION_GROUPS.combat!];
   }
   if (kind === 'environment') return ['open', 'use'];
+  if (kind === 'projectile') return ['shoot'];
   return ['pick-up', 'use'];
 }
 

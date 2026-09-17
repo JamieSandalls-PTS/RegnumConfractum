@@ -108,6 +108,30 @@ after every reload). The one presentation file still imported at build time
 is `audio/sounds.json`, because the menu plays music before a connection
 exists.
 
+### Art › Filing — what every mesh is for (D-631)
+
+First tab on Art: every mesh a pack ships and what it is filed as — body
+part, clothing, creature, weapon, environment, pickup, projectile. Rows
+nobody has filed are highlighted; the **unfiled** chip lists them. Pick a
+mesh to preview it and tick its uses: a mesh may have several (an arrow is a
+pickup and a projectile). Ticking creates the entry the use's own tab edits;
+unticking removes it and is refused by name while an area places it, an item
+is drawn as it or a roamer looks like it. Body part and clothing are one
+toggle (the `base` tag); a face is always a body part.
+
+### Bodies › Cloth workbench — physics on a real part (D-631)
+
+Pick a clothing part — the **back** chip lists the capes — and it is
+assembled on a bare body that walks. The bones the part is weighted to are
+offered as **what hangs free**: for a cape that is `back_02..back_05`, and the
+collar on `Capes_01` stays with the spine. Below that, gravity, damping,
+stiffness, fold resistance, passes, wind, thickness, floor, and the capsules
+the cloth drapes over. Structural changes rebuild the solver; the rest is
+live. **Save physics** writes `content/cloth/<pack>.json`; Publish carries
+it to a running game, where anybody wearing the part gets the same solver.
+⚠ A hood is weighted to the head and has nothing to swing — the banner says
+"nothing hangs" rather than pretending.
+
 ### Art — parts and names
 
 **Parts & names** is the prerequisite for everything else: nothing downstream
@@ -195,12 +219,6 @@ that builds. Then run `npm run build:characters` to turn it into a `.glb`.
 If the build prints a line beginning `! repaired`, a part had a weighting
 fault in the source art that the pipeline corrected — worth reading, because
 it means the vendor's mesh was wrong, not yours.
-
-### Bodies › Cloth workbench (D-520)
-
-Tune a cape, a robe skirt or a sleeve against a jointed placeholder body and
-export the numbers. It was `/viewer.html`; it is a tab now, and the body is
-still a stand-in, not the cast.
 
 ### Scenario — the round's edges (D-627)
 

@@ -30,6 +30,7 @@ sits on two servers across four pages, and nothing carries a save into the game.
 | `bots` | R | tool | server load | wired (D-624) |
 | `characters` | both | tool **and** studio | baked `.glb` + manifest | ⚠ two editors for one type |
 | `classes` | both | tool | server load | wired |
+| `cloth` | both | tool (Bodies › Cloth workbench) | server load → `render_content` (D-631) | wired |
 | `emotes` | both | tool | server load | wired |
 | `feats` `skills` `spells` | both | tool | server load | ⚠ spells: `castsSpells` is hard-coded `false` |
 | `garments` | both | tool | baked manifest | ⚠ server never loads it |

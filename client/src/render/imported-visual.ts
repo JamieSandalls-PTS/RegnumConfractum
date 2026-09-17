@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { MeshCloth, clothFor } from './mesh-cloth';
 import type {
   Action,
   Appearance,
@@ -285,6 +286,12 @@ export class ImportedVisual {
   private layer = 0;
   private readonly outfit: ImportedOutfit | null;
   private model: THREE.Object3D | null = null;
+  /**
+   * Cloth on the parts that have it (D-631). One solver per clothing part
+   * with settings in `content/cloth/`; the proxy meshes are parented to the
+   * SCENE, not to `root`, because the simulation runs in world space.
+   */
+  private cloths: MeshCloth[] = [];
   private wearing: string[] = [];
   /** Hood up (D-616). Kept apart from `wearing`: it is not equipment. */
   private hooded = false;
@@ -536,8 +543,10 @@ export class ImportedVisual {
     scene: THREE.Object3D;
     clips: readonly THREE.AnimationClip[];
     height: number;
+    parts?: readonly { slot: string; pack: string; stem: string }[];
   }): void {
     const model = cloneSkinned(loaded.scene);
+    this.dropCloth();
     // Height is the ONE thing D-539's appearance still reaches: the server's
     // descriptors call people towering or slight (D-201), and a cast of
     // identical statures would make every one of those a lie. Build and shape
@@ -585,6 +594,7 @@ export class ImportedVisual {
     this.current = null;
     this.currentName = '';
     this.applyLayer();
+    this.hangCloth(model, loaded.parts ?? []);
     const resumed = this.play(wasPlaying || this.wanted(false), 0);
     // Pick the walk back up where it was rather than at frame zero: putting
     // on a cloak mid-stride must not reset the stride, and a corpse being
@@ -869,6 +879,44 @@ export class ImportedVisual {
 
   private applyLayer(): void {
     this.root.traverse((o) => o.layers.set(this.layer));
+    for (const c of this.cloths) c.proxy.layers.set(this.layer);
+  }
+
+  /**
+   * Start a solver for every part on this model that has cloth settings.
+   *
+   * ⚠ After the model is on `root` and scaled: the solver measures the
+   * instance's world scale to turn authored metres into model units, and reads
+   * the skinned pose for its rest lengths.
+   */
+  private hangCloth(model: THREE.Object3D, parts: readonly { slot: string; pack: string; stem: string }[]): void {
+    this.root.updateMatrixWorld(true);
+    for (const part of parts) {
+      const settings = clothFor(part.pack, part.stem);
+      if (!settings) continue;
+      const mesh = model.getObjectByName(part.slot) as THREE.SkinnedMesh | undefined;
+      // ⚠ Indexed or not: the built parts are triangle soup like the FBX
+      // they came from, and the solver welds either (D-631).
+      if (!mesh?.isSkinnedMesh) continue;
+      try {
+        const cloth = new MeshCloth(mesh, settings, this.root);
+        cloth.proxy.layers.set(this.layer);
+        this.parent.add(cloth.proxy);
+        this.cloths.push(cloth);
+      } catch (e) {
+        console.warn(`[cloth] ${part.stem}: ${(e as Error).message}`);
+      }
+    }
+  }
+
+  private dropCloth(): void {
+    for (const c of this.cloths) c.dispose();
+    this.cloths = [];
+  }
+
+  /** How many parts are being simulated. Verification only (D-114). */
+  get clothCount(): number {
+    return this.cloths.length;
   }
 
   // ---------------------------------------------------------------- frame
@@ -910,7 +958,7 @@ export class ImportedVisual {
     return next;
   }
 
-  update(dt: number, t: number, moving: boolean, _wind: number): void {
+  update(dt: number, t: number, moving: boolean, wind: number): void {
     // Turn toward the facing by the shortest way round, or a character
     // walking north-west spins three quarters of a circle to get there.
     const delta = ((this.targetAngle - this.angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
@@ -934,11 +982,15 @@ export class ImportedVisual {
       this.play(this.wanted(moving), FADE);
     }
     this.mixer?.update(dt);
+    // The wind the world reports, finally used (D-631): it was passed here
+    // and ignored since the procedural cast went.
+    for (const c of this.cloths) c.step(dt, wind, t);
   }
 
   dispose(): void {
     this.disposed = true;
     this.mixer?.stopAllAction();
+    this.dropCloth();
     this.parent.remove(this.root);
     // Geometry, materials and textures are SHARED with every other instance
     // of this character (see imported-models). Disposing them here would

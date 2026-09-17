@@ -24,6 +24,7 @@ import { setAnimationSets } from './render/animation-sets';
 import { setGroundMaterials } from './render/ground';
 import { setGrips } from './render/held-items';
 import { setPartCatalogues } from './render/hood';
+import { setClothSettings } from './render/mesh-cloth';
 import { invalidateWorldAssets } from './render/world-assets';
 import { CreationWizard } from './creation';
 import { GameScene } from './render/scene';
@@ -726,6 +727,7 @@ conn.onMessage = (msg: ServerMessage) => {
       setGroundMaterials(msg.ground);
       setGrips(msg.grips);
       setPartCatalogues(msg.parts);
+      setClothSettings(msg.cloth);
       return;
     case 'content_reloaded':
       // The production line reached the game (D-630). Drop what was read off
@@ -3230,6 +3232,8 @@ window.__rc = {
   cast: () => ({
     modelsBuilt: importedModels.available(),
     visuals: [...entities.values()].map((e) => e.visual.constructor.name),
+    // How many characters have cloth simulating on them (D-631).
+    cloth: [...entities.values()].filter((e) => e.visual instanceof ImportedVisual && e.visual.clothCount > 0).length,
   }),
   step: stepFrame,
   entities: () =>

@@ -11,10 +11,9 @@ of your session.
 
 **On `main`.** The previous session crashed after finishing D-627/D-628 with
 the whole tree uncommitted since D-595; this session committed that as
-`b2ba50c`, then D-629 (`5f58c66`) and D-630 (this commit). Nothing is pushed:
-`gh` is installed but not logged in (`gh auth login --web` is the
-stakeholder's to run); Git Credential Manager is configured, so `git push`
-should work without it.
+`b2ba50c`, then D-629 (`5f58c66`), D-630 (`2a43066`) and D-631. All pushed
+to `origin/main` through Git Credential Manager; `gh` is installed but not
+logged in (`gh auth login --web` is the stakeholder's to run).
 
 ```bash
 npm run typecheck && npm run validate:content && npx vitest run
@@ -77,6 +76,18 @@ reload) instead of being Vite imports.
 
 ---
 
+### After the plan: filing and cloth (D-631)
+
+Two more asks, both done and committed. The **Filing** tab is first on Art
+(`client/src/tool/filing.ts`, `tools/src/filing.ts`): every mesh, several
+uses per mesh, a fourth asset kind `projectile`, unfiled highlighted, unfiling
+refused by name. The **cloth workbench** is rebuilt on the pack's own parts
+(`client/src/tool/cloth.ts`) over a new mesh solver
+(`client/src/render/mesh-cloth.ts`); settings are `content/cloth/<pack>.json`,
+ride `render_content`, and `ImportedVisual` runs them on anybody wearing the
+part. The old grid cloth files are deleted. ⚠ Every cloth number is a default
+the workbench exists to replace; the stakeholder has not tuned one yet.
+
 ## The things most likely to be undone by accident
 
 **1. `render_content` goes out BEFORE auth, on socket open.** A client builds
@@ -101,7 +112,12 @@ a flag flip.
 reload clears only when the game answered. Merging them makes "built, game
 not running" read as "nothing to do".
 
-**6. `.env` is the one source of ports**, read by the server, the bot runner
+**6. `MeshCloth` welds and indexes what it is given.** The pack's FBX parts
+are non-indexed triangle soup; the sequential index plus the weld is what
+turns them into a connected cloth. And `applyBoneTransform` needs the vertex
+in the vector — pass an empty one and every pin lands on its bone's pivot.
+
+**7. `.env` is the one source of ports**, read by the server, the bot runner
 (D-628), the Publisher, and now the login form through Vite's `envDir: '..'`
 and `envPrefix: ['VITE_', 'PORT']`. A second default anywhere is the drift
 that cost D-628 its afternoon.
