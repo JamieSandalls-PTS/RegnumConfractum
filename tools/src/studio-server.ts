@@ -1155,7 +1155,7 @@ function savedCharacterDefs(): CharacterDef[] {
       }
       const race = parsed.data;
       if (race.id !== parts[2]) return send(res, 400, { error: 'id does not match the url' });
-      const problems = raceProblems(race, knownIn(race.pack));
+      const problems = raceProblems(race, knownIn(race.pack), new Set(savedCharacters().map((c) => c.id)));
       if (problems.length) return send(res, 400, { error: 'would not build', problems });
       writeJson(racesDir, `${race.id}.json`, race);
       return send(res, 200, { saved: race.id });

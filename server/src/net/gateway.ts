@@ -3503,6 +3503,8 @@ export class GameServer {
       pos: { x, y },
       facing: oldEntity.facing,
       ghost: oldEntity.ghost, // the grey country has the same doors
+      // ...and the dead look the same on the far side of one (D-632).
+      ...(oldEntity.model ? { model: oldEntity.model } : {}),
     });
     entity.presentation = oldEntity.presentation; // the hood survives the door
     // ⚠ And so does what they are WEARING (D-610). A transition despawns
@@ -4614,6 +4616,13 @@ export class GameServer {
   /** Death (D-203): the visible fall for the living; a quiet second world
    * for the ghost. Debt goes on the books immediately. In endgame zones the
    * fall is not yet death — it opens the revival window instead (D-206). */
+  /** The race's ghost look for this character, if the race has one (D-632). */
+  private ghostModelFor(conn: ConnState): string | null {
+    const raceId = conn.character?.raceId;
+    if (!raceId) return null;
+    return this.content.races.get(raceId)?.ghost ?? null;
+  }
+
   private async die(conn: ConnState, cause: string): Promise<void> {
     if (!conn.character || !conn.vitals || conn.entityId === null || !conn.areaId) return;
     if (this.world.getAreaDef(conn.areaId).zone === 'endgame') {
@@ -4632,6 +4641,11 @@ export class GameServer {
     entity.ghost = true;
     entity.intent = null;
     entity.diedAtTick = this.world.tick;
+    // The dead are drawn as their race's ghost (D-632), to the dead. The
+    // ghosts already here receive this on the entity below; the living never
+    // hear of it, because they never hear of the ghost at all (D-203).
+    const ghostLook = this.ghostModelFor(conn);
+    if (ghostLook) entity.model = ghostLook;
     for (const key of [...this.hostilities.keys()]) {
       if (key.includes(conn.character.id)) this.hostilities.delete(key);
     }
@@ -4659,6 +4673,15 @@ export class GameServer {
         t: 'delta',
         tick: this.world.tick,
         events: [{ type: 'entity_entered', entity: toWireEntity(entity, descriptor) }],
+      });
+    }
+    // And the dead see themselves as the dead do: the one client that cannot
+    // be sent its own `entity_entered` is told which model it is now.
+    if (ghostLook) {
+      this.send(conn, {
+        t: 'delta',
+        tick: this.world.tick,
+        events: [{ type: 'entity_model', id: entity.id, model: ghostLook }],
       });
     }
     await this.store.saveCharacterVitals(conn.character.id, {

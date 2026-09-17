@@ -1222,6 +1222,18 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       if (isPerson(e.visual)) e.visual.setLootable(e.wire.lootable);
       else if (e.visual instanceof PileVisual) e.visual.setLootable(e.wire.lootable);
     }
+  } else if (event.type === 'entity_model') {
+    // Drawn as something else from now on (D-632): you died, and your race
+    // has a ghost look. The visual is rebuilt from the same wire record with
+    // the model changed, which is how everybody else already sees you.
+    const e = entities.get(event.id as number);
+    if (e) {
+      const wire = { ...e.wire, ...(event.model ? { model: event.model } : {}) } as WireEntity;
+      if (!event.model) delete (wire as { model?: string }).model;
+      e.visual.dispose();
+      entities.delete(event.id as number);
+      addEntity(wire);
+    }
   } else if (event.type === 'entity_worn') {
     // Somebody put something on (D-554). The silhouette changes for everyone
     // watching, which is the whole point — armour you cannot see is armour

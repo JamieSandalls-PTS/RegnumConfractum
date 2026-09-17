@@ -1234,7 +1234,12 @@ export function validateContent(contentDir: string): ValidationResult {
       errors.push(`${file}: race id '${race.id}' does not match its filename`);
     }
     // `null`: the art is gitignored, so only the half that needs no pack runs.
-    for (const problem of raceProblems(race, null)) errors.push(`${file}: ${problem}`);
+    const characterIds = new Set(
+      listJson(join(contentDir, 'characters')).map((f) => {
+        try { return (JSON.parse(readFileSync(f, 'utf8')) as { id?: string }).id ?? ''; } catch { return ''; }
+      }),
+    );
+    for (const problem of raceProblems(race, null, characterIds)) errors.push(`${file}: ${problem}`);
   }
 
   /**

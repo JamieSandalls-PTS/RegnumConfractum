@@ -11178,3 +11178,57 @@ solver, a message saying so, and a **Physics ON/OFF** switch per part. Off
 means no solver in the preview and no settings in content (Save removes any),
 so the part rides the animation as the pack built it. On frees the guessed
 chain, or whatever bones a person ticks.
+
+
+## D-632 -- The dead are drawn as their race's ghost
+
+**Status:** implemented
+**Builds on:** D-203 (ghosts see only ghosts), D-572 (a character has a race),
+D-594 (a creature is drawn as what its content says), D-631 (filing).
+
+The stakeholder filed the dungeon pack's ghost meshes as creatures and asked
+where the model for a dead player is defined. Nowhere: the dead were drawn as
+themselves behind the veil (D-621), and a death-model swap was on the open
+list from MR4.
+
+### The ruling
+
+**A race names its ghost look**: `ghost` on `content/races/<id>.json` is a
+`content/characters/` id -- in practice a whole-mesh creature filed on Art
+> Filing -- and is picked on the Races tab under Bodies. Per race, because a
+race already decides what a body looks like and a dwarf's ghost should not
+be an elf's. Absent means what every race did before: drawn as yourself.
+Both shipped races point at `character-ghost-02`, as a default to replace.
+
+### How it reaches a screen
+
+- On death, the server sets the entity's `model` to the race's ghost before
+  it announces the new ghost to the ghosts already present, so their
+  `entity_entered` carries it (D-594's `model` field, unchanged).
+- The dying player cannot be sent their own `entity_entered`, so a new delta
+  event `entity_model` tells that one client which model it is now; the
+  client rebuilds the visual from the same wire record. The living hear
+  nothing, because they never hear of the ghost at all (D-203) -- a model
+  change for someone you cannot see would leak the dead into the world of
+  the living.
+- The look survives a door: the transition re-spawn carries `model` across
+  as it carries the hood and the kit (D-610).
+- A revival re-spawns the entity without it.
+
+⚠ **Refused where it is written.** CI, the race editor's save and the
+server's content load all refuse a ghost look that names no character
+definition; one that resolved to nothing would draw the dead from the seed
+and never say why.
+
+### Verified
+
+Headless (`mr13-ghost-look`): a killed player is told to draw themselves as
+the ghost and their killer, alive, learns nothing; a second ghost sees the
+first as the ghost look and is seen the same way; no bot records a
+violation. The Races tab offers every character definition as the look.
+
+### Also here
+
+Things > Interactive objects redrew the page as the Parts & names tab when
+a station's art was shown: the shared asset preview re-rendered the core
+tabs' panes from any section. It renders only the panes it belongs to.

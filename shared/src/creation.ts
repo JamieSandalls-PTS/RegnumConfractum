@@ -112,6 +112,14 @@ export const RaceSchema = z.object({
    * filtered out at creation from the file name, so one list serves both.
    */
   parts: z.record(CharacterSlotSchema, z.array(z.string().min(1))).default({}),
+  /**
+   * What a DEAD member of this race is drawn as (D-632): a `content/characters/`
+   * id, usually a whole-mesh creature filed as one. Per race because a race
+   * already decides what a body looks like, and a dwarf's ghost should not be
+   * an elf's. Absent means the dead are drawn as themselves behind the veil
+   * (D-621), which is what every race did before this existed.
+   */
+  ghost: z.string().regex(/^[a-z0-9][a-z0-9-]*$/).optional(),
   /** Keywords other content selects on — see `CreationTagsSchema`. */
   tags: z.array(z.string().min(1)).default([]),
 });
@@ -136,8 +144,13 @@ export type CreationSlot = (typeof CREATION_SLOTS)[number];
 export function raceProblems(
   race: RaceDef,
   known: { partsInPack: ReadonlySet<string> } | null,
+  /** Every `content/characters/` id, when the caller can list them (D-632). */
+  characters: ReadonlySet<string> | null = null,
 ): string[] {
   const problems: string[] = [];
+  if (race.ghost && characters && !characters.has(race.ghost)) {
+    problems.push(`${race.id}: ghost look '${race.ghost}' is not a character definition`);
+  }
 
   for (const slot of CREATION_SLOTS) {
     const offered = race.parts[slot] ?? [];

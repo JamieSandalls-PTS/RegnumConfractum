@@ -1057,6 +1057,8 @@ function renderRacesSide(): void {
     '<label for="r-id">Id</label><input id="r-id" placeholder="highland-folk" spellcheck="false">',
     '<label for="r-name">Name</label><input id="r-name" placeholder="Highland folk">',
     '<label for="r-desc">Description</label><textarea id="r-desc" rows="3"></textarea>',
+    '<label for="r-ghost">Ghost look (drawn when dead)</label><select id="r-ghost"></select>',
+    '<div class="hint" style="margin-top:4px;border:0;padding-top:0">What the dead of this race are drawn as, to the dead. A character definition — file a ghost mesh as a creature on Art › Filing and it appears here. None means they are drawn as themselves behind the veil.</div>',
     '<label for="r-sex">Previewing</label>',
     '<select id="r-sex"><option value="male">male</option><option value="female">female</option></select>',
     '<h2>Bodies</h2><div class="row">',
@@ -1116,6 +1118,21 @@ function renderRacesSide(): void {
   bind('r-name', editing.name, (v) => {
     if (editing) editing.name = v;
   });
+  {
+    // The ghost look (D-632): every character definition, built or not.
+    const sel = $('r-ghost') as HTMLSelectElement;
+    sel.replaceChildren();
+    sel.add(new Option('— none: drawn as themselves —', ''));
+    for (const def of [...enemyDefs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
+      sel.add(new Option(`${def.name} (${def.id})`, def.id));
+    }
+    sel.value = editing.ghost ?? '';
+    sel.onchange = () => {
+      if (sel.value) editing!.ghost = sel.value;
+      else delete editing!.ghost;
+      markDirty();
+    };
+  }
   bind('r-desc', editing.description, (v) => {
     if (editing) editing.description = v;
   });
@@ -1993,7 +2010,11 @@ async function showAsset(stem: string): Promise<void> {
   zoom = Math.min(2, Math.max(0.05, (need / perZoom) * 1.25));
   scene.setOrbitHeight(orbitH);
   banner(`${stem}  ·  ${(metres * 100).toFixed(0)}cm as placed`);
-  render();
+  // ⚠ Only the sections whose panes this preview belongs to. `render()`
+  // draws the CORE tabs' panes by default, so a station's art shown from
+  // Interactive objects redrew the page as the Parts & names tab — a table
+  // beside a model that had nothing to do with it (the stakeholder's report).
+  if (section === 'core' || section === 'items') render();
 }
 
 // ---------------------------------------------------------------------------

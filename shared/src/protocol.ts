@@ -714,6 +714,18 @@ export const SimEventSchema = z.discriminatedUnion('type', [
    * you are wearing is visible — and it is a DELTA rather than a resync so
    * that a room full of people changing kit does not cost a snapshot each.
    */
+  /**
+   * An entity is drawn as a different model from now on (D-632). Today that
+   * is one thing: you died, and your race has a ghost look. Sent to the
+   * one client that cannot receive its own `entity_entered` — the dying
+   * player — so they see themselves as the dead do. Null means back to the
+   * seed or the chosen face.
+   */
+  z.object({
+    type: z.literal('entity_model'),
+    id: z.number().int(),
+    model: z.string().nullable(),
+  }),
   z.object({
     type: z.literal('entity_worn'),
     id: z.number().int(),

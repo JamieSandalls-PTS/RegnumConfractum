@@ -1735,6 +1735,14 @@ triangle soup and are welded. ⚠ The old grid cloth (`render/cloth.ts`,
 `cloth-lab.ts`, `cloth-ui.ts`, `workbench-body.ts`) is deleted. Every cloth
 number is unratified.
 
+**The dead are drawn as their race's ghost (D-632).** A race names a
+`content/characters/` id as its `ghost`, picked on Bodies › Races. On death
+the server puts it on the entity's `model` before the ghosts present are
+told, and sends the dying player an `entity_model` delta so they draw
+themselves the same way; the living hear nothing (D-203). The look crosses
+doors with the entity. Refused by CI, the editor and the server load when it
+names no definition. Both races default to `character-ghost-02`, unratified.
+
 ⚠ **Unratified balance awaiting the stakeholder:** the run multiplier, the
 watch's damage and cadence and the keepers' 40 hit points (D-619); the veil's
 palette (D-621); creation

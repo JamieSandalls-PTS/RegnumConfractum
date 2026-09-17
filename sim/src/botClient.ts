@@ -328,6 +328,15 @@ export class BotClient {
             const e = this.entities.get(event.id);
             if (!e) this.violations.push(`entity_presentation for unknown entity ${event.id}`);
             else e.presentation = event.state;
+          } else if (event.type === 'entity_model') {
+            // Drawn as another model (D-632). Recorded on the mirror; an
+            // unknown entity is not a violation, for the reason `entity_worn`
+            // gives below.
+            const e = this.entities.get(event.id);
+            if (e) {
+              if (event.model) (e as { model?: string }).model = event.model;
+              else delete (e as { model?: string }).model;
+            }
           } else if (event.type === 'entity_worn') {
             // ⚠ This was not handled at all, so a bot's view of what anybody
             // was wearing froze at the snapshot. D-554 put the event on the

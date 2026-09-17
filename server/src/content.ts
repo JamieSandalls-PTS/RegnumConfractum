@@ -313,6 +313,14 @@ export function loadContent(contentDir: string): Content {
     characters.set(parsed.data.id, parsed.data);
   }
 
+  // A race's ghost look names a character definition (D-632); one nothing
+  // can resolve would draw the dead from the seed and never say why.
+  for (const race of races.values()) {
+    if (race.ghost && !characters.has(race.ghost)) {
+      throw new Error(`race '${race.id}' ghost look '${race.ghost}' is not in content/characters`);
+    }
+  }
+
   const ground = new Map<string, GroundMaterial>();
   for (const { file, data } of readJsonFiles(join(contentDir, 'ground'))) {
     const parsed = GroundMaterialSchema.safeParse(data);

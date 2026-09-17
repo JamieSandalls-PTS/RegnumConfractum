@@ -148,8 +148,9 @@ that cost D-628 its afternoon.
 - **`garments`** reach the client only through the baked manifest; the server
   does not load them. `EnvironmentAsset.operable` (doors) and asset `tags`
   (the keyword gating) have **no reader**.
-- **Death-model swap** and **effects as content**: named by the stakeholder,
-  do not exist.
+- **Effects as content**: named by the stakeholder, does not exist. The
+  death-model swap exists for GHOSTS (D-632: a race's `ghost` look, picked on
+  Bodies › Races); a corpse still keeps the living mesh.
 - **Areas live**: `reloadContent` defers them to a reset. Making a placed
   asset appear in a running world needs a world delta the protocol does not
   have.
