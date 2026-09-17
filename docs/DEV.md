@@ -60,19 +60,33 @@ built as. Those gaps are the work that follows a yes, not defects to report.
 at isometric distance through the palette filter the two casts are harder to
 tell apart in a screenshot than you would expect.
 
-## The creation-rules tool (D-560)
+## The authoring tool (D-560, one tool since D-629)
 
-What a PLAYER may look like, as opposed to what a designer may assemble:
+Everything the game reads is authored on ONE page, served by ONE server:
 
 ```bash
-npm run dev:studio
+npm run dev:tools
 ```
 ```bash
 npm run dev:client
 ```
 
-Then open **http://localhost:5173/creation-tool.html** (same server as the
-studio — one process serves both).
+Then open **http://localhost:5173/creation-tool.html**. (`dev:studio` and
+`dev:editor` still work and start the same server.)
+
+The top row is the production line, read left to right — **Art → Motion →
+Bodies → Things → World → Rules → Scenario** — each stage using what the one
+before it defined. The row under it is the editors inside the stage. A badge
+on a stage counts what it has and flags what is **unbuilt** or missing: a
+character with no `.glb`, a set naming a clip that was never built, an area
+placing a mesh `build:environment` has not seen. Hover for the list.
+
+⚠ `tsx` does not reload: after a change to a shared schema, restart the
+server, or add `?api=8151` to the page and start a second one with
+`STUDIO_PORT=8151 npm run dev:tools`. The embedded map builder follows the
+same override.
+
+### Art — parts and names
 
 **Parts & names** is the prerequisite for everything else: nothing downstream
 can show a player `SK_Chr_Head_Male_04`. Pick a slot, then look, type, press
@@ -134,19 +148,10 @@ clothing are the same mesh: there is one bare arm, hand and leg per body and
 no bare torso at all. So a race is a face, a stature and a set of skin tones,
 and equipment has to swap limb meshes rather than layer over them.
 
-## The character studio (D-558)
+### Bodies › Characters — the character studio (D-558)
 
 Build a character out of the pack's parts, watch it walk, and save the
-choice:
-
-```bash
-npm run dev:studio
-```
-```bash
-npm run dev:client
-```
-
-Then open **http://localhost:5173/studio.html**.
+choice. It was `/studio.html`; it is a tab now.
 
 Pick a **Body** first — male or female — because most parts are cut twice and
 the lists are filtered by it; the parts cut once (hair, pauldrons, capes)
@@ -169,18 +174,26 @@ If the build prints a line beginning `! repaired`, a part had a weighting
 fault in the source art that the pipeline corrected — worth reading, because
 it means the vendor's mesh was wrong, not yours.
 
-## The map editor (D-543)
+### Bodies › Cloth workbench (D-520)
 
-Place walls, ground and objects and see exactly what the game will draw:
+Tune a cape, a robe skirt or a sleeve against a jointed placeholder body and
+export the numbers. It was `/viewer.html`; it is a tab now, and the body is
+still a stand-in, not the cast.
 
-```bash
-npm run dev:editor
-```
-```bash
-npm run dev:client
-```
+### Scenario — the round's edges (D-627)
 
-Then open **http://localhost:5173/editor.html**.
+A scenario names the areas a round is played in, where it opens, which
+objectives may be dealt and the cast it needs. An endgame area cannot be
+added (a round death there is permanent, D-523); a door leading out of the
+set is reported, not refused, because the point is knowing where the edges
+are. The last live scenario cannot be deleted — with none, the lobby fills
+and never starts.
+
+### World › Map builder — the map editor (D-543)
+
+Place walls, ground and objects and see exactly what the game will draw. It
+is embedded in the tool; `/editor.html` still opens on its own and talks to
+the same server.
 
 Drag to orbit, shift-drag to pan, wheel to zoom. Click places, right-click
 erases, **R** rotates a prop, **[** and **]** size the brush, **ctrl+Z**

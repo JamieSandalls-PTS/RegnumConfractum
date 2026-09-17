@@ -10847,3 +10847,104 @@ opening room, while `round-town` contains a second tavern with the keeper
 `silence-the-keeper` names. One of them should belong to each product. Until
 that is decided the round opens in the town and the borrowed door stays shut.
 
+
+
+## D-629 -- One tool, one server, seven stages, and the scenario at the end
+
+**Status:** implemented
+**Implements:** MR4 (the production line), first half. Builds on D-627.
+
+The stakeholder's brief: *"the tools to build the game, and the game runtime
+itself, are not linked... a streamlined, left-to-right workflow for building
+all assets and definitions, and making them accessible to the runtime."*
+D-627 found the cause upstream of the tools (no boundary for them to serve)
+and drew it. This entry is the tools themselves. The second half -- a save
+reaching the running game -- is the next entry.
+
+### What was there
+
+Four pages on three processes. `/creation-tool.html` held nine sections in one
+flat row with no order; `/studio.html` assembled modular characters on the same
+server; `/viewer.html` was the cloth workbench with no server at all; and
+`/editor.html` ran on a server of its own on 8140 while everything else saved
+through 8150. `SYSTEM_INVENTORY.md` had already measured the real gap: **21 of
+24 content types were editable** -- the missing editors were not the sprawl.
+The sprawl was that the tool had no order, sat on two servers across four
+pages, and nothing carried a save into the game.
+
+⚠ **Two ports was a cost, not untidiness.** A session was lost to a stale
+editor server answering with a schema it had never heard of, which presents
+as a broken route. And the map builder was dead without a second process
+nobody remembered to start.
+
+### The ruling, and what was built
+
+**One page. One server. Seven stages, read left to right, each using what the
+one before it defined:**
+
+    Art -> Motion -> Bodies -> Things -> World -> Rules -> Scenario
+
+- **Art** names meshes (parts, weapons, environment, pickups, unfiled).
+- **Motion** binds built clips to the action vocabulary.
+- **Bodies** is races, **characters** (the studio, absorbed), enemies, and the
+  **cloth workbench** (the viewer, absorbed).
+- **Things** is items, garments, interactive objects.
+- **World** is speech & sound, then the **map builder** (embedded). Cues before
+  maps, because a map names its ambience.
+- **Rules** is skills/feats/spells, callings, round content.
+- **Scenario** is new: D-627's boundary, edited by hand.
+
+`editor-server.ts` is gone; its routes are `editor-routes.ts`, mounted on the
+authoring server, so `npm run dev:tools` is the whole thing (`dev:studio` and
+`dev:editor` alias it). The embedded editor inherits the page's `?api=`
+override, so a second server for a schema change moves both at once.
+
+⚠ **The stages are a REGISTRY, not another `if` chain.** The nine sections that
+existed are untouched -- a restructure, not a rewrite, because the file carries
+the orphan-graph refusals, the cast-coverage check, the shared `assemble()` and
+the measured mirror rules, and a rewrite discards all of that for a layout
+change. A stage is a list of pointers into them; adding a tab is one line.
+Absorbed pages became **tab modules** under `client/src/tool/` that take a
+`ToolContext` -- the page described once -- rather than reaching for its
+globals, which is the pattern for extracting the rest.
+
+⚠ **A stage says what it lacks, and "unbuilt" is the word that matters.**
+`GET /api/overview` reads the content tree AND the build manifests, and each
+stage carries a badge: a character with no `.glb`, an animation set naming a
+clip that was never built, a garment whose parts are not exported, an area
+placing a mesh `build:environment` has not seen. Every one of those validates,
+floods and draws nothing -- three of the taproom's four meshes did exactly
+that for a whole session (D-625) -- and no report that only counted files
+would have said so. Tested against a tree with one of everything unbuilt.
+
+⚠ **The scenario editor refuses exactly what CI refuses.** `scenarioProblems`
+is the one function on both paths (D-543's rule). An endgame area is refused
+at the chip, before a save is attempted; a door out of the set is REPORTED
+before saving and again after, as a warning, because an edge is legal and the
+point is knowing where it is. The last live scenario cannot be deleted --
+with none the lobby fills and never starts, which is D-569's trap with a new
+face.
+
+### Two small things found on the way
+
+`DELETE` was never in either server's CORS allow-list although four DELETE
+routes existed. And the cloth panel still told a person to *"reroll on the
+Cast tab"*, a tab deleted with the procedural cast in D-617.
+
+### Verified
+
+Typecheck clean; tools and client suites green (one test moved from asserting
+the Enemies tab in the HTML to asserting it in the registry). Live in the
+browser against the merged server: the parts tab, the characters tab
+assembling and animating a randomised figure and opening a saved one, the
+cloth workbench on its placeholder body, the scenario editor refusing
+`sunken-crypt` by name and round-tripping `ashfold` with its edge reported,
+and the map builder listing every area through port 8150.
+
+### Not done here, and next
+
+The runtime half of MR4: a dependency map from content type to what it
+invalidates, a **Publish** that runs only the invalidated builds, a content
+**reload** on the running server, and the client's build-time imports moved
+onto the server channel. Today a save still reaches the game the way it did
+yesterday -- by somebody remembering which build to run and restarting.

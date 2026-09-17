@@ -1688,6 +1688,19 @@ inside a round; `speak_dead` deliberately stays open, because the MR gate names
 ⚠ **Read `docs/SYSTEM_INVENTORY.md`** for what belongs to which product, what
 is wired, and what is authored and read by nothing.
 
+**There is ONE authoring tool, on ONE server (D-629).** `npm run dev:tools` +
+`/creation-tool.html`: seven stages read left to right — **Art → Motion →
+Bodies → Things → World → Rules → Scenario** — each using what the one before
+it defined. The character studio (`/studio.html`) and the cloth workbench
+(`/viewer.html`) are tabs of Bodies now; the map editor's server (8140) is
+merged into the authoring server (8150) and the builder is embedded under
+World; the **Scenario** stage is new and edits D-627's boundary with the same
+function CI refuses on. A badge per stage reports what is **unbuilt** —
+the finding nothing else made, and the one D-625 cost a session to.
+⚠ The stages are a REGISTRY in `creation-tool.ts`, not HTML: a tab is one
+line there. ⚠ Tab modules live in `client/src/tool/` and take a `ToolContext`
+rather than the page's globals — the pattern to extract the rest into.
+
 ⚠ **Unratified balance awaiting the stakeholder:** the run multiplier, the
 watch's damage and cadence and the keepers' 40 hit points (D-619); the veil's
 palette (D-621); creation

@@ -10,6 +10,15 @@
       ],
       "port": 5173,
       "autoPort": true
+    },
+    {
+      "name": "tools",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:tools"
+      ],
+      "port": 8150
     }
   ]
 }

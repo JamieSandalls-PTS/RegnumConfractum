@@ -76,6 +76,10 @@ import {
 } from './creation-assets';
 import { GameScene } from './render/scene';
 import { assemble } from './render/assembly';
+import type { ToolContext, ToolTab } from './tool/context';
+import { charactersTab } from './tool/characters';
+import { clothTab } from './tool/cloth';
+import { scenariosTab } from './tool/scenarios';
 
 /**
  * The creation-rules tool (D-560).
@@ -1261,9 +1265,6 @@ function render(): void {
     renderAssetList();
     renderAssetSide();
   }
-  for (const b of Array.from($('tabs').querySelectorAll('button'))) {
-    b.classList.toggle('on', (b as HTMLElement).dataset.tab === tab);
-  }
 }
 
 async function loadRaces(): Promise<void> {
@@ -1305,41 +1306,9 @@ async function boot(): Promise<void> {
   await loadPack(packList[0]!);
 
   assetPacks = await loadAssetPacks();
-  for (const b of Array.from($('sections').querySelectorAll('button'))) {
-    b.addEventListener('click', () => {
-      section = ((b as HTMLElement).dataset.section as Section) ?? 'core';
-      applySection();
-    });
-  }
-  for (const b of Array.from($('tabs').querySelectorAll('button'))) {
-    b.addEventListener('click', () => {
-      const next = ((b as HTMLElement).dataset.tab as typeof tab) ?? 'parts';
-      tab = next;
-      // A tab shows what THIS tab has selected, or nothing. Leaving the last
-      // tab's model up while the new tab loads is how a stale body comes to be
-      // standing beside — or inside — the thing being judged.
-      clearStage();
-      if (next === 'animations') {
-        void loadAnimations().then(() => {
-          void showAnimationBody();
-          render();
-        });
-        return;
-      }
-      if (next === 'enemies') {
-        void enterEnemies();
-        return;
-      }
-      if (next !== 'parts' && next !== 'races') {
-        // Each asset tab reads its own file, so switching tab reloads rather
-        // than showing the previous kind's assets under a new heading.
-        void loadAssetPack(assetPack || assetPacks[0] || '');
-        return;
-      }
-      render();
-      stageRestore.get(next)?.();
-    });
-  }
+  renderStageBar();
+  renderTabBar();
+  void loadOverview();
   // Leaving with work unsaved is the one mistake this tool can make that
   // cannot be undone by looking at it again.
   window.addEventListener('beforeunload', (e) => {
@@ -1347,6 +1316,37 @@ async function boot(): Promise<void> {
     e.preventDefault();
     e.returnValue = '';
   });
+}
+
+/**
+ * Open one of the `core` section's tabs.
+ *
+ * A tab shows what THIS tab has selected, or nothing. Leaving the last tab's
+ * model up while the new tab loads is how a stale body comes to be standing
+ * beside — or inside — the thing being judged.
+ */
+function openCoreTab(next: typeof tab): void {
+  tab = next;
+  clearStage();
+  if (next === 'animations') {
+    void loadAnimations().then(() => {
+      void showAnimationBody();
+      render();
+    });
+    return;
+  }
+  if (next === 'enemies') {
+    void enterEnemies();
+    return;
+  }
+  if (next !== 'parts' && next !== 'races') {
+    // Each asset tab reads its own file, so switching tab reloads rather
+    // than showing the previous kind's assets under a new heading.
+    void loadAssetPack(assetPack || assetPacks[0] || '');
+    return;
+  }
+  render();
+  stageRestore.get(next)?.();
 }
 
 /* ---------------------------------------------------------------- camera */
@@ -1411,6 +1411,7 @@ function frame(): void {
   const delta = animClock.getDelta();
   bodyMixer?.update(delta);
   for (const mixer of sheetMixers) mixer.update(delta);
+  for (const hook of frameHooks) hook(delta);
   scene.setAzimuth(azimuth);
   scene.setZoom(zoom);
   // Faces are judged at eye level, not from the game's overhead orbit: this
@@ -4082,8 +4083,237 @@ async function saveItem(): Promise<void> {
 
 type Section = 'core' | 'map' | 'items' | 'classes' | 'progression' | 'round' | 'world'
   | 'garments'
-  | 'interactive';
+  | 'interactive'
+  // Absorbed pages (D-629): the studio, the cloth workbench, and the stage
+  // that did not exist until the scenario did.
+  | 'characters' | 'cloth' | 'scenarios';
 let section: Section = 'core';
+
+/* ------------------------------------------------ the production line ---- */
+
+/**
+ * One tool, read left to right (D-629).
+ *
+ * Seven STAGES, each using what the ones before it defined: art is named,
+ * motion is bound to it, bodies are assembled from it, things are cut from
+ * bodies, the world is placed with things, rules are written over the world,
+ * and a scenario composes all of it into a round. The stakeholder asked for
+ * exactly this order — base definitions complete before the parts that use
+ * them — and for each stage to say what it has and what it lacks rather than
+ * opening onto an empty editor.
+ *
+ * ⚠ A REGISTRY, not another `if` chain. The sections below are the editors
+ * that already existed and are untouched; a stage is a list of them under a
+ * heading, and a tab here is a pointer into one. Adding a section used to
+ * mean editing the HTML, the `Section` union, `applySection` and `render` by
+ * hand and keeping the four in step; a stage tab is one line.
+ */
+type StageId = 'art' | 'motion' | 'bodies' | 'things' | 'world' | 'rules' | 'scenario';
+interface StageTab { id: string; label: string; open: () => void }
+interface Stage { label: string; blurb: string; tabs: StageTab[] }
+
+/** A tab of the original `core` section, which has its own sub-tabs. */
+const core = (id: typeof tab, label: string): StageTab => ({
+  id,
+  label,
+  open: () => {
+    section = 'core';
+    tab = id;
+    applySection();
+  },
+});
+/** A section of its own. */
+const sec = (id: Section, label: string): StageTab => ({
+  id,
+  label,
+  open: () => {
+    section = id;
+    applySection();
+  },
+});
+
+const STAGES: Record<StageId, Stage> = {
+  art: {
+    label: 'Art',
+    blurb: 'Name and file every mesh the packs ship — nothing downstream can show a filename.',
+    tabs: [
+      core('parts', 'Body parts'),
+      core('character-item', 'Weapon assets'),
+      core('environment', 'Environment assets'),
+      core('pickup', 'Pickups'),
+      core('unfiled', 'Unfiled'),
+    ],
+  },
+  motion: {
+    label: 'Motion',
+    blurb: 'Bind the built clips to the action vocabulary, one set per rig, stance or readiness.',
+    tabs: [core('animations', 'Animation sets')],
+  },
+  bodies: {
+    label: 'Bodies',
+    blurb: 'What a person or a creature is: a race curates faces, a character names parts.',
+    tabs: [
+      core('races', 'Races'),
+      sec('characters', 'Characters'),
+      core('enemies', 'Enemies'),
+      sec('cloth', 'Cloth workbench'),
+    ],
+  },
+  things: {
+    label: 'Things',
+    blurb: 'What can be held, worn, used and walked up to.',
+    tabs: [
+      sec('items', 'Items'),
+      sec('garments', 'Garments'),
+      sec('interactive', 'Interactive objects'),
+    ],
+  },
+  world: {
+    label: 'World',
+    blurb: 'What an area sounds like and what stands in it. Cues before maps: a map names its ambience.',
+    tabs: [sec('world', 'Speech & sound'), sec('map', 'Map builder')],
+  },
+  rules: {
+    label: 'Rules',
+    blurb: 'What a calling grants, what a recipe needs, who roams, and what the antagonist is dealt.',
+    tabs: [
+      sec('progression', 'Skills, feats & spells'),
+      sec('classes', 'Callings'),
+      sec('round', 'Round content'),
+    ],
+  },
+  scenario: {
+    label: 'Scenario',
+    blurb: 'Where it all composes into a round: the areas, the objectives, the cast — and the edges.',
+    tabs: [sec('scenarios', 'Scenarios')],
+  },
+};
+
+let stageId: StageId = 'art';
+let tabId = 'parts';
+
+interface StageReport { count: number; notes: string[]; warnings: string[] }
+let overview: Partial<Record<StageId, StageReport>> = {};
+
+/**
+ * What each stage has and lacks, read off the tree by the server (D-629).
+ *
+ * ⚠ The finding that matters is "unbuilt": a definition that reaches the
+ * game through a baked artefact and was never baked validates, floods and
+ * draws nothing — three of the taproom's four meshes did exactly that for a
+ * session (D-625). The badge on a stage is the first thing that says so.
+ */
+async function loadOverview(): Promise<void> {
+  try {
+    const res = await fetch(`${API}/overview`);
+    if (res.ok) overview = (await res.json()) as typeof overview;
+  } catch {
+    overview = {};
+  }
+  renderStageBar();
+}
+
+function renderStageBar(): void {
+  const host = $('sections');
+  host.replaceChildren();
+  for (const [id, stage] of Object.entries(STAGES) as [StageId, Stage][]) {
+    const b = document.createElement('button');
+    b.dataset['stage'] = id;
+    b.className = stageId === id ? 'on' : '';
+    b.append(stage.label);
+    const rep = overview[id];
+    if (rep) {
+      const badge = document.createElement('i');
+      badge.className = `badge${rep.warnings.length ? ' warn' : ''}`;
+      badge.textContent = rep.warnings.length ? `${rep.count} ⚠${rep.warnings.length}` : String(rep.count);
+      b.append(badge);
+      b.title = [...rep.notes, ...rep.warnings.map((w) => `⚠ ${w}`)].join('\n');
+    }
+    b.onclick = () => openTab(id, STAGES[id].tabs[0]!.id);
+    host.append(b);
+  }
+  const grow = document.createElement('span');
+  grow.className = 'grow';
+  const status = document.createElement('span');
+  status.className = 'status';
+  status.id = 'status';
+  host.append(grow, status);
+}
+
+function renderTabBar(): void {
+  const host = $('tabs');
+  host.replaceChildren();
+  const stage = STAGES[stageId];
+  for (const t of stage.tabs) {
+    const b = document.createElement('button');
+    b.dataset['tab'] = t.id;
+    b.className = tabId === t.id ? 'on' : '';
+    b.textContent = t.label;
+    b.onclick = () => openTab(stageId, t.id);
+    host.append(b);
+  }
+  const grow = document.createElement('span');
+  grow.className = 'grow';
+  const note = document.createElement('span');
+  note.className = 'status';
+  note.id = 'stagenote';
+  const rep = overview[stageId];
+  const warn = rep?.warnings[0];
+  note.textContent = warn ? `⚠ ${warn}` : stage.blurb;
+  if (warn) note.classList.add('warn');
+  note.title = rep ? [...rep.notes, ...rep.warnings].join('\n') : stage.blurb;
+  host.append(grow, note);
+}
+
+function openTab(stage: StageId, id: string): void {
+  const t = STAGES[stage].tabs.find((x) => x.id === id) ?? STAGES[stage].tabs[0]!;
+  stageId = stage;
+  tabId = t.id;
+  renderStageBar();
+  renderTabBar();
+  t.open();
+}
+
+/** Per-frame work a tab module registered; dropped on every section change. */
+const frameHooks: ((dt: number) => void)[] = [];
+
+/** The page, described once, for the tab modules (`tool/`). */
+function toolContext(): ToolContext {
+  return {
+    api: API,
+    list: $('list'),
+    side: $('side'),
+    mount,
+    scene,
+    banner,
+    status,
+    markDirty,
+    clearDirty: () => {
+      dirty = false;
+    },
+    onFrame: (fn) => {
+      frameHooks.push(fn);
+    },
+    view: (fy, oh, z) => {
+      focusY = fy;
+      orbitH = oh;
+      zoom = z;
+      scene.setOrbitHeight(orbitH);
+    },
+    clips: loadClipLibrary,
+    problems: (host, lines, ok) => {
+      host.innerHTML = lines.length
+        ? lines.map((l) => `<div class="bad">${l}</div>`).join('')
+        : `<div class="good">${ok}</div>`;
+    },
+  };
+}
+
+const MODULES: Partial<Record<Section, ToolTab>> = {
+  characters: charactersTab,
+  cloth: clothTab,
+  scenarios: scenariosTab,
+};
 
 interface Soon {
   title: string;
@@ -6244,19 +6474,24 @@ function applySection(): void {
   // Classes reuse the list/side panes but have no 3D preview to show, so the
   // stage is hidden rather than left displaying whatever was last previewed —
   // a character standing beside an armour rule reads as an example of it.
+  // ⚠ Every frame hook belongs to the tab that registered it. Not clearing
+  // here is a cloth solver stepping a body that is no longer on the stage.
+  frameHooks.length = 0;
   const built =
     section === 'core' || section === 'classes' || section === 'items'
     || section === 'progression' || section === 'round' || section === 'world'
-    || section === 'garments' || section === 'interactive';
+    || section === 'garments' || section === 'interactive'
+    || section === 'characters' || section === 'cloth' || section === 'scenarios';
   const map = section === 'map';
-  $('tabs').classList.toggle('hidden', section !== 'core');
   $('body').classList.toggle('hidden', !built);
   $('editor').classList.toggle('hidden', !map);
   if (map) {
     // Loaded lazily and once: the editor boots its own scene, and paying for
     // that on every visit to a different tab would be a pause for nothing.
     const frame = $('editor') as HTMLIFrameElement;
-    if (!frame.src) frame.src = '/editor.html';
+    // ⚠ With the tool's own query string, so a `?api=` override reaches the
+    // embedded editor too: one server, and the same one.
+    if (!frame.src) frame.src = `/editor.html${location.search}`;
   }
   // No 3D preview for rules: a character standing beside an armour rule reads
   // as an example of it.
@@ -6268,16 +6503,21 @@ function applySection(): void {
   // objectives still do not.
   const creatures = section === 'round' && roundKind === 'roamers';
   const flat = (section === 'classes' || section === 'progression'
-    || section === 'round' || section === 'world') && !creatures;
+    || section === 'round' || section === 'world' || section === 'scenarios') && !creatures;
   $('stage').classList.toggle('hidden', flat);
   document.body.classList.toggle('classes', flat);
   $('soon').classList.toggle('hidden', built || map);
-  for (const b of Array.from($('sections').querySelectorAll('button'))) {
-    b.classList.toggle('on', (b as HTMLElement).dataset.section === section);
-  }
-  if (section === 'core') {
-    render();
-    stageRestore.get(tab)?.();
+  const module = MODULES[section];
+  if (module) {
+    // An absorbed page draws into the same panes as everything else, and
+    // starts from empty ones: the last editor's form beside this one's stage
+    // is the two-editors-at-once bug D-570 recorded.
+    $('list').className = 'pane';
+    $('list').replaceChildren();
+    $('side').replaceChildren();
+    void module.enter(toolContext());
+  } else if (section === 'core') {
+    openCoreTab(tab);
   }
   else if (map) {
     /* the embedded editor renders itself */

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Regnum Confractum — Creation Rules</title>
+<title>Regnum Confractum — Authoring</title>
 <style>
   :root {
     --ink: #0b0a0c; --panel: #16151a; --line: #2a2830;
@@ -14,9 +14,10 @@
     font-family: "Segoe UI", system-ui, sans-serif; overflow: hidden; font-size: 13px; }
   #wrap { display: flex; flex-direction: column; height: 100%; }
 
-  /* The top row is the WORKFLOW — what you are doing — and the row under it is
-     what you are doing it to. Six tabs in one flat row gave no clue that
-     naming a torso and building a map are different jobs. */
+  /* The top row is the PRODUCTION LINE (D-629) — seven stages read left to
+     right, each using what the one before it defined — and the row under it
+     is the editors inside the stage. Both are rendered from a registry in
+     creation-tool.ts; the markup here is the frame. */
   #sections { display: flex; gap: 2px; background: #100f13; border-bottom: 1px solid var(--line);
     padding: 0 10px; flex: none; }
   #sections button { background: none; border: 0; color: var(--dim); font: inherit;
@@ -26,6 +27,15 @@
   #sections button.on { color: #e0d8c8; background: var(--panel); }
   #sections .grow { flex: 1; }
   #sections .status { color: var(--dim); font-size: 11px; align-self: center; padding-right: 6px; }
+  /* What a stage has, and whether something in it is missing or unbuilt.
+     The count is a size; the ⚠ is the thing to read. */
+  #sections .badge { font-style: normal; margin-left: 7px; padding: 1px 5px; border-radius: 8px;
+    background: #1f1d24; color: var(--dim); font-size: 10px; letter-spacing: 0; text-transform: none; }
+  #sections .badge.warn { background: #3a2a1a; color: var(--warm); }
+  #sections .status.good, #tabs .status.good { color: var(--good); }
+  #sections .status.bad { color: var(--bad); }
+  #tabs .status.warn { color: var(--warm); }
+  #tabs .status { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   #tabs { display: flex; gap: 2px; background: var(--panel); border-bottom: 1px solid var(--line);
     padding: 0 10px; flex: none; }
@@ -117,41 +127,47 @@
   .chip { display: inline-block; border: 1px solid var(--line); border-radius: 2px;
     padding: 2px 6px; margin: 0 4px 4px 0; font-size: 11px; cursor: pointer; }
   .chip.on { border-color: var(--warm); color: #e0d8c8; background: #2c2118; }
+  .chip.bad { border-color: #5a2f26; color: var(--bad); }
+  .chips { margin: 4px 0 8px; }
+
+  /* The character studio's slot rows (D-558), now a tab of Bodies. */
+  .slot { margin-bottom: 5px; }
+  .slot > span { display: flex; justify-content: space-between; align-items: baseline;
+    color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+  .slot > span b { color: var(--warm); font-weight: 600; }
+  .slot > span i { font-style: normal; color: var(--warm); letter-spacing: 0; }
+  .slot.required > span { color: var(--text); }
+  .slot select { margin-top: 2px; }
+  .slot.empty.required select { border-color: var(--bad); }
+  .slot em { display: block; font-style: normal; font-size: 10px; color: var(--dim);
+    letter-spacing: .04em; margin-top: 1px; }
+  .slot.blocked > span, .slot.blocked select { opacity: .4; }
+  .slot.blocked em { color: var(--warm); opacity: .8; }
+
+  /* The cloth workbench's sliders and checks (D-520), now a tab of Bodies. */
+  .sl { display: flex; align-items: center; gap: 8px; }
+  .sl input[type=range] { flex: 1; padding: 0; }
+  .sl b { width: 40px; text-align: right; font-weight: 400; font-size: 11px; color: var(--text); }
+  .check { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; }
+  .check input { width: auto; }
+  .row2 { display: flex; gap: 4px; margin-top: 4px; }
+  .row2 button { flex: 1; }
+  #problems { margin-top: 10px; font-size: 11px; line-height: 1.5; }
+  #problems .bad { color: var(--bad); }
+  #problems .good { color: var(--good); }
+  #problems .warn { color: var(--warm); }
   #banner { position: absolute; top: 10px; left: 14px; font-size: 11px; color: var(--dim);
     letter-spacing: .1em; text-transform: uppercase; pointer-events: none; }
 </style>
 </head>
 <body>
   <div id="wrap">
-    <div id="sections">
-      <button data-section="core" class="on">Core definitions</button>
-      <button data-section="map">Map builder</button>
-      <button data-section="items">Item definitions</button>
-      <button data-section="classes">Class definitions</button>
-      <button data-section="progression">Skills, feats &amp; spells</button>
-      <button data-section="round">Round content</button>
-      <button data-section="world">Speech &amp; sound</button>
-      <button data-section="garments">Garments</button>
-      <button data-section="interactive">Interactive objects</button>
-      <span class="grow"></span>
-      <span class="status" id="status"></span>
-    </div>
+    <!-- Art → Motion → Bodies → Things → World → Rules → Scenario.
+         Rendered by `renderStageBar()`; the status line lives in it. -->
+    <div id="sections"><span class="grow"></span><span class="status" id="status"></span></div>
 
-    <div id="tabs">
-      <button data-tab="parts" class="on">Body parts</button>
-      <button data-tab="races">Races</button>
-      <!-- Whole-body characters: goblins, skeletons, the golem (D-613).
-           Separate from Body parts because they are a different SHAPE of
-           content, not a different subject: a modular character is 720
-           part files and one of these is a single rigged FBX. -->
-      <button data-tab="enemies">Enemies</button>
-      <button data-tab="character-item">Weapon assets</button>
-      <button data-tab="environment">Environment assets</button>
-      <button data-tab="pickup">Pickups</button>
-      <button data-tab="unfiled">Unfiled</button>
-      <button data-tab="animations">Animations</button>
-      <span class="grow"></span>
-    </div>
+    <!-- The editors inside the chosen stage. Rendered by `renderTabBar()`. -->
+    <div id="tabs"><span class="grow"></span></div>
 
     <div id="body">
       <div id="list" class="pane"></div>

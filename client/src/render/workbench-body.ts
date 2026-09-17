@@ -36,8 +36,10 @@ export class WorkbenchBody {
 
   private readonly joints = new Map<string, THREE.Object3D>();
 
-  constructor(scene: THREE.Scene) {
-    scene.add(this.root);
+  // Any parent will do: the viewer gave it the scene, the tool gives it the
+  // stage mount that every preview hangs from.
+  constructor(parent: THREE.Object3D) {
+    parent.add(this.root);
     this.build();
     this.root.updateMatrixWorld(true);
   }

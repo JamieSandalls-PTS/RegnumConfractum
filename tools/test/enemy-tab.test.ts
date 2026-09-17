@@ -27,17 +27,15 @@ const toolSrc = readFileSync(
   fileURLToPath(new URL('../../client/src/creation-tool.ts', import.meta.url)),
   'utf8',
 );
-const toolHtml = readFileSync(
-  fileURLToPath(new URL('../../client/creation-tool.html', import.meta.url)),
-  'utf8',
-);
 
 describe('the tool has somewhere to put a whole body', () => {
   it('⚠ offers an Enemies tab, and points it at the character shelf', () => {
     // ⚠ Both halves. A tab whose shelf name does not exist matches no meshes
     // and renders an empty list — which is indistinguishable from a pack that
     // genuinely ships no bodies, and is exactly how this would regress.
-    expect(toolHtml).toContain('data-tab="enemies"');
+    // The tab bar is a REGISTRY since D-629 (the seven-stage production
+    // line), so the tab is asserted where it is declared, on the Bodies stage.
+    expect(toolSrc).toMatch(/core\('enemies', 'Enemies'\)/);
     expect(toolSrc).toMatch(/tab === 'enemies'\) return 'character'/);
   });
 

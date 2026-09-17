@@ -73,26 +73,32 @@ import {
   type GarmentDef,
   garmentProblems,
   garmentMaterial,
+  AreaSchema,
+  ScenarioSchema,
+  scenarioProblems,
 } from '@rc/shared';
 // Shared with `build:characters`, so the studio and the build resolve a pack
 // name the same way. Two copies drift, and the failure is a character that
 // previews here and then will not build.
 import { type Pack, allMeshStems, allPacks, meshPath, packOf, packs, partStems, texturePaths, texturesIn } from './packs';
 import { readPng, sampleUv, hex } from './png';
-import { OTHERWISE_USED } from './validate-content';
+import { OTHERWISE_USED, listJson } from './validate-content';
+import { editorRoutes } from './editor-routes';
+import { overview } from './overview';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import type { BufferAttribute, Mesh } from 'three';
 
 /**
- * The authoring server for both character tools (D-558, D-560).
+ * THE authoring server (D-558, D-560, one port since D-629).
  *
- * One process, because both tools read the same art and a second port is a
- * second thing to remember. `/studio.html` assembles a character out of any
- * part in a pack; `/creation-tool.html` decides which of those parts a
- * PLAYER may choose, what they are called, and what a race is.
+ * One process, because every tool reads the same art and a second port is a
+ * second thing to remember — and a stale second server answering with a
+ * schema it never heard of cost a session once. `/creation-tool.html` is the
+ * one page: seven stages, Art to Scenario, with the character studio and the
+ * cloth workbench as tabs of Bodies and the map builder embedded under World.
  *
  * The browser cannot read the art drop or write the repository, so the
- * studio page talks to this:
+ * page talks to this:
  *
  *   GET  /api/packs                    which ingested packs have parts
  *   GET  /api/packs/:pack              the part catalogue, grouped by slot
@@ -139,6 +145,13 @@ import type { BufferAttribute, Mesh } from 'three';
  * and a character missing a body slot is refused with the list. The build
  * reads the same files, so a definition that saves is a definition that
  * builds.
+ *
+ *   GET  /api/overview                 what each stage of the line has and lacks (D-629)
+ *   GET  /api/scenarios                the rounds + the areas and objectives they may name
+ *   PUT  /api/scenarios/:id            validate exactly as CI does, then write
+ *   DELETE /api/scenarios/:id          refuse if it is the last live one
+ *   plus the map editor's routes — areas, ground, paint, palette — from
+ *   `editor-routes.ts` (D-629: one server, one port)
  *
  *   npx tsx tools/src/studio-server.ts [port]
  */
@@ -194,6 +207,32 @@ const objectivesDir = path.join(contentDir, 'objectives');
 const stationsDir = path.join(contentDir, 'stations');
 const nodesDir = path.join(contentDir, 'nodes');
 const npcsDir = path.join(contentDir, 'npcs');
+const scenariosDir = path.join(contentDir, 'scenarios');
+
+/**
+ * What a scenario is checked against: every area's zone and exits, and every
+ * objective (D-627). The same three things CI hands `scenarioProblems`.
+ */
+function scenarioWorld(): {
+  zones: Map<string, string>;
+  exits: Map<string, string[]>;
+  objectives: ObjectiveDef[];
+  areas: { id: string; name: string; zone: string; live: boolean; exits: string[] }[];
+} {
+  const zones = new Map<string, string>();
+  const exits = new Map<string, string[]>();
+  const areas: { id: string; name: string; zone: string; live: boolean; exits: string[] }[] = [];
+  for (const file of listJson(path.join(contentDir, 'areas'))) {
+    const parsed = AreaSchema.safeParse(JSON.parse(fs.readFileSync(file, 'utf8')));
+    if (!parsed.success) continue;
+    const a = parsed.data;
+    const to = a.transitions.map((t) => t.toArea);
+    zones.set(a.id, a.zone);
+    exits.set(a.id, to);
+    areas.push({ id: a.id, name: a.name, zone: a.zone, live: a.live === true, exits: to });
+  }
+  return { zones, exits, objectives: savedDocs(objectivesDir, (r) => ObjectiveSchema.parse(r)), areas };
+}
 /**
  * Where the build leaves the clips. The tool needs the LIST, not the file: an
  * author picking a clip for an action should be choosing from what exists,
@@ -208,7 +247,7 @@ function send(res: http.ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   });
   res.end(json);
@@ -723,13 +762,90 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     });
     return res.end();
   }
 
   if (parts[0] !== 'api') return send(res, 404, { error: 'not found' });
+
+  // The map editor's routes (areas, ground, paint, palette) — D-629 put them
+  // on this server so the tools have one port and one origin. Answered here
+  // first; anything they do not own falls through.
+  if (editorRoutes(req, res, url, parts, { contentDir, send })) return;
+
+  // /api/overview — what each stage of the production line has and lacks.
+  if (req.method === 'GET' && parts[1] === 'overview' && parts.length === 2) {
+    try {
+      return send(res, 200, overview(contentDir, root));
+    } catch (e) {
+      return send(res, 500, { error: `could not read the tree: ${(e as Error).message}` });
+    }
+  }
+
+  // /api/scenarios — the rounds, and what a round may be made of (D-627).
+  if (req.method === 'GET' && parts[1] === 'scenarios' && parts.length === 2) {
+    try {
+      const w = scenarioWorld();
+      return send(res, 200, {
+        scenarios: savedDocs(scenariosDir, (r) => ScenarioSchema.parse(r)),
+        areas: w.areas,
+        objectives: w.objectives.map((o) => ({
+          id: o.id, name: o.name, status: o.status, minCast: o.minCast, maxCast: o.maxCast,
+        })),
+      });
+    } catch (e) {
+      return send(res, 500, { error: `a saved document is invalid: ${(e as Error).message}` });
+    }
+  }
+
+  // PUT /api/scenarios/:id — refused exactly where CI would refuse it.
+  //
+  // ⚠ Same rule as every other save here (D-543): `scenarioProblems` is the
+  // function CI calls, so a scenario that saves is a scenario the build
+  // accepts. Its NOTE lines (doors leading out of the set) come back as
+  // warnings rather than refusals, because an edge is legal and the point is
+  // to know where it is.
+  if (req.method === 'PUT' && parts[1] === 'scenarios' && parts.length === 3) {
+    const id = decodeURIComponent(parts[2]!);
+    return withBody(req, res, (raw) => {
+      const parsed = ScenarioSchema.safeParse(raw);
+      if (!parsed.success) {
+        return send(res, 400, { error: 'schema', issues: parsed.error.issues });
+      }
+      if (parsed.data.id !== id) return send(res, 400, { error: 'id does not match the url' });
+      const w = scenarioWorld();
+      const all = scenarioProblems(parsed.data, w);
+      const problems = all.filter((p) => !p.startsWith('NOTE '));
+      const warnings = all.filter((p) => p.startsWith('NOTE ')).map((p) => p.slice(5));
+      if (problems.length) return send(res, 400, { error: 'would not build', problems, warnings });
+      writeJson(scenariosDir, `${id}.json`, parsed.data);
+      return send(res, 200, { saved: `scenarios/${id}.json`, warnings });
+    });
+  }
+
+  // DELETE /api/scenarios/:id — refused if it is the last LIVE one.
+  //
+  // ⚠ The lobby fills and never starts with no live scenario, and that is
+  // D-569's trap wearing a new face: nothing errors, the round simply never
+  // begins. So the last live scenario cannot be deleted; mark it planned and
+  // author another first.
+  if (req.method === 'DELETE' && parts[1] === 'scenarios' && parts.length === 3) {
+    const id = decodeURIComponent(parts[2]!);
+    const file = path.join(scenariosDir, `${id}.json`);
+    if (!fs.existsSync(file)) return send(res, 404, { error: 'no such scenario' });
+    const live = savedDocs(scenariosDir, (r) => ScenarioSchema.parse(r))
+      .filter((sc) => sc.status === 'live');
+    if (live.length === 1 && live[0]!.id === id) {
+      return send(res, 400, {
+        error: 'would not build',
+        problems: [`${id} is the only live scenario — with none, the lobby fills and never starts`],
+      });
+    }
+    fs.unlinkSync(file);
+    return send(res, 200, { deleted: id });
+  }
 
   // /api/packs
   if (req.method === 'GET' && parts[1] === 'packs' && parts.length === 2) {
@@ -1573,7 +1689,7 @@ function savedCharacterDefs(): CharacterDef[] {
 
 server.listen(port, () => {
   const found = packs();
-  console.log(`character studio api on http://localhost:${port}`);
+  console.log(`authoring api on http://localhost:${port} (studio, creation tool, map editor)`);
   console.log(
     found.length
       ? `  packs: ${found.map((p) => p.id).join(', ')}`

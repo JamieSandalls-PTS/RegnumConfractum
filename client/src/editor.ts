@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { API } from './authoring-api';
 import { AssetVisual } from './render/asset-visual';
 import {
   type EnvironmentAsset,
@@ -49,20 +50,15 @@ import { setOcclusionFocus } from './render/occlusion';
  * the server loads the same bytes.
  */
 
-const API = `http://${location.hostname}:8140/api`;
 /**
- * The AUTHORING api, which is a different server from the editor's own.
- *
- * The editor owns areas; the studio owns packs, meshes and the asset
- * catalogue. Overridable for the same reason the creation tool's is: `tsx`
- * does not reload, so picking up a schema change means a second server on
- * another port rather than stopping the one already running.
+ * ONE authoring api (D-629). The editor used to talk to its own server on
+ * 8140 for areas and to the studio's on 8150 for packs and meshes, and a
+ * session was lost to a stale editor server answering with a schema it had
+ * never heard of. Both names now point at the same origin, kept as two so
+ * the call sites read as what they are — the `?api=` override in
+ * `authoring-api.ts` moves both at once.
  */
-const STUDIO = (() => {
-  const override = new URLSearchParams(location.search).get('studio');
-  if (override && !/^\d+$/.test(override)) return override;
-  return `http://${location.hostname}:${override ?? '8150'}/api`;
-})();
+const STUDIO = API;
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const stage = $('stage');
@@ -315,11 +311,11 @@ async function loadAreaList(): Promise<void> {
     // looks. An empty list and a list that cannot be loaded are different
     // facts and must not look the same.
     select.innerHTML =
-      '<option value="">⚠ map server not running — npm run dev:editor</option>';
+      '<option value="">⚠ authoring server not running — npm run dev:tools</option>';
     select.disabled = true;
     setStatus(
-      [`cannot reach the editor server on port 8140 — start it with:`,
-       `npm run dev:editor`],
+      [`cannot reach the authoring server at ${API} — start it with:`,
+       `npm run dev:tools`],
       'bad',
     );
     console.error(err);

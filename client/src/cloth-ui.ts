@@ -141,14 +141,14 @@ export class ClothTab {
     const sample = this.visuals[0];
 
     if (!sample) {
-      this.root.textContent = 'No characters on stage — reroll on the Cast tab.';
+      this.root.textContent = 'No body on stage.';
       return;
     }
 
     const count = document.createElement('div');
     count.className = 'hint';
     count.style.marginTop = '0';
-    count.textContent = `Tuning ${this.garments.length} garment(s) — one per character on stage.`;
+    count.textContent = `Tuning ${this.garments.length} garment(s) on a placeholder body.`;
     this.root.appendChild(count);
 
     this.select('garment', ['cape', 'robe skirt', 'sleeve'], c.preset, (v) => {
