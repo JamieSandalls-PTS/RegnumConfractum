@@ -404,12 +404,21 @@ describe('resolving an action to a clip (D-578)', () => {
   });
 });
 
+/**
+ * The rig's own idle, READ off the set rather than written here. These tests
+ * are about the layering — rig under stance under readiness — and which clip
+ * the rig idles on is a content decision the Animations tab changes; it went
+ * from `unarmed-idle` to `neutral-idle` in the tool and three tests broke on
+ * a value that was never theirs to hold.
+ */
+const RIG_IDLE = animationSets().find((set) => set.id === 'rig-unreal')!.clips['idle']!;
+
 describe('the layers a character resolves through (D-564, D-565, D-578)', () => {
   it('gives an empty-handed character the RIG clips, with no stance applied', () => {
     // ⚠ `unarmed` is the rig layer, never a stance (D-564). A character
     // holding nothing has no stance set — not a set called `unarmed`.
     const table = clipTable({ rig: 'unreal', readiness: 'peaceful' });
-    expect(table.idle).toBe('unarmed-idle');
+    expect(table.idle).toBe(RIG_IDLE);
     expect(table.walk).toBe('unarmed-walk');
   });
 
@@ -417,7 +426,7 @@ describe('the layers a character resolves through (D-564, D-565, D-578)', () => 
     const peaceful = clipTable({ rig: 'unreal', stance: 'bow', readiness: 'peaceful' });
     // A man with a bow slung walks like a man: the stance set names draw and
     // sheathe, and is silent about idle, so the rig's own clip falls through.
-    expect(peaceful.idle).toBe('unarmed-idle');
+    expect(peaceful.idle).toBe(RIG_IDLE);
     expect(peaceful.draw).toBe('bow-draw');
 
     const ready = clipTable({ rig: 'unreal', stance: 'bow', readiness: 'combat' });
@@ -465,7 +474,7 @@ describe('the layers a character resolves through (D-564, D-565, D-578)', () => 
     // rather than in the sets: the fix is fetching those two idles, not
     // editing content.
     for (const stance of ['dagger', 'thrown'] as const) {
-      expect(clipTable({ rig: 'unreal', stance, readiness: 'combat' }).idle).toBe('unarmed-idle');
+      expect(clipTable({ rig: 'unreal', stance, readiness: 'combat' }).idle).toBe(RIG_IDLE);
     }
   });
 
