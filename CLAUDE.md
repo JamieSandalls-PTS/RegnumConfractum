@@ -1694,6 +1694,14 @@ inside a round; `speak_dead` deliberately stays open, because the MR gate names
 ⚠ **Read `docs/SYSTEM_INVENTORY.md`** for what belongs to which product, what
 is wired, and what is authored and read by nothing.
 
+**There is ONE tavern, and a latecomer is always good (D-634, ratified).**
+The "two taverns" D-627 left open were one building: `round-town` holds a
+facade no body can stand in (D-593) and `hanged-ferryman` is the taproom
+behind its door. The taproom is inside the round now, and the round's edge is
+its door to the yard. ⚠ Two keepers stand as a result — the taproom's own and
+Ashfold's at the door — and which one stays is the stakeholder's call. A
+latecomer joins on the good side; the deduction cost D-579 named is accepted.
+
 **There is ONE authoring tool, on ONE server (D-629).** `npm run dev:tools` +
 `/creation-tool.html`: seven stages read left to right — **Art → Motion →
 Bodies → Things → World → Rules → Scenario** — each using what the one before

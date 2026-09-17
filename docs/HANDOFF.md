@@ -143,14 +143,14 @@ that cost D-628 its afternoon.
 
 ### The stakeholder's decisions, still open
 
-- **Which tavern belongs to which product.** `hanged-ferryman` is the
-  persistent world's first-slice tavern that D-608 borrowed as the round's
-  opening room; `round-town` has its own with the keeper `silence-the-keeper`
-  names. The round opens in the town and the borrowed door stays shut until
-  this is decided (D-628).
-- **A latecomer can never be the antagonist** (D-579): at a cast of three to
-  five that is a free elimination. Needs a call, not code.
+- **One publican or two.** D-634 put the taproom (`hanged-ferryman`) back
+  inside the round, so both its scripted keeper and Ashfold's door keeper are
+  on the map. Which one stays, and whether `silence-the-keeper` should name
+  the one inside, is a content call with a visible result.
 - **Every unratified number** listed at the end of `CLAUDE.md`.
+
+Settled 2026-09-17 (D-634): there is ONE tavern, and it is in the round; a
+latecomer always joins on the good side, deduction cost accepted.
 
 ### From MR4, still to build
 
@@ -210,9 +210,9 @@ fight the screenshot.
 
 **`hasLineOfSight` and the like still hold** — nothing in D-567's list of
 integer-arithmetic traps was touched. The intermittent
-`mr2-gathering › CANCELS when the worker is struck` failed once more under
-full-suite load and passed in isolation, exactly as the earlier note says.
-Still worth making deterministic.
+`mr2-gathering › CANCELS when the worker is struck` is FIXED (D-633): the thug
+was walking onto the miner's tile and shoving them off the seam. It is not a
+coin toss any more, and a failure there now means something.
 
 **The client's login form said 8080.** Everything else had already been
 fixed to read `.env`; the form was the last copy of the old default and it

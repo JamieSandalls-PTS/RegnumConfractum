@@ -3,6 +3,7 @@
   "name": "Ashfold",
   "areas": [
     "round-town",
+    "hanged-ferryman",
     "round-farm",
     "round-wood",
     "round-mine",
@@ -16,5 +17,5 @@
   "minCast": 3,
   "maxCast": null,
   "status": "live",
-  "notes": "The first scenario, and the one every round has been played on since D-549 — written down at last (D-627). ⚠ The area set is the ROUND'S EDGES, not a description of them: a transition out of this list is refused while the round runs. Before this file existed the round had no concept of an area at all, and the world graph ran round-town -> hanged-ferryman -> broken-yard -> sunken-crypt, which is zone 'endgame' and carries involuntary permadeath — the one thing D-523 says a round must never contain. Nothing stopped the walk. ⚠ `hanged-ferryman` is deliberately NOT here. It is the persistent world's first-slice tavern that D-608 borrowed as the round's opening room, and round-town already has a tavern of its own with the keeper `silence-the-keeper` names (D-593). Which tavern belongs to which product is a content decision for the stakeholder; until it is taken, the round opens in the town and the borrowed door stays shut. ⚠ `objectives` is empty, which means every live objective — the engine's behaviour before scenarios existed, kept so this file changes the boundary and nothing else. Naming ids here is how a second scenario gets a different flavour."
+  "notes": "The first scenario, and the one every round has been played on since D-549 — written down at last (D-627). ⚠ The area set is the ROUND'S EDGES, not a description of them: a transition out of this list is refused while the round runs. Before this file existed the round had no concept of an area at all, and the world graph ran round-town -> hanged-ferryman -> broken-yard -> sunken-crypt, which is zone 'endgame' and carries involuntary permadeath — the one thing D-523 says a round must never contain. Nothing stopped the walk. ⚠ `hanged-ferryman` is IN (D-634): it is the taproom behind the tavern door in Ashfold's square — the only tavern interior the round has, since the town's own tavern is a facade no body can stand in (D-593). D-627 left it out while the stakeholder decided which of two taverns the round owned; the ruling is that there is one tavern, and this is it. Its yard door is now the round's edge, and the boundary refuses it like any other. ⚠ `objectives` is empty, which means every live objective — the engine's behaviour before scenarios existed, kept so this file changes the boundary and nothing else. Naming ids here is how a second scenario gets a different flavour."
 }

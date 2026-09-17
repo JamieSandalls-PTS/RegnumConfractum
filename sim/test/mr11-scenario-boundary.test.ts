@@ -23,16 +23,23 @@ import { TICK as SIM_TICK, sleep } from '../src/testTick';
  * walk: `dungeonGateAllows` enforces the dungeon's day/night and floor rules and
  * nothing else, and `confirmEndgameEntry` warns twice and then lets you through.
  * The invariant was upheld by nobody having gone west.
+ *
+ * ⚠ Since D-634 the tavern is INSIDE the round — it is the taproom behind the
+ * door in Ashfold's square, the one tavern the stakeholder knows — so the edge
+ * moved one room west: the taproom's door to the yard is what is refused now.
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
 const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
-/** The door out of the round, read from the map rather than written here. */
-const TOWN = JSON.parse(
-  readFileSync(`${contentDir}/areas/round-town.json`, 'utf8'),
-) as { transitions: { x: number; y: number; toArea: string }[] };
-const WAY_OUT = TOWN.transitions.find((t) => t.toArea === 'hanged-ferryman')!;
+type Doors = { transitions: { x: number; y: number; toArea: string }[] };
+/** Both doors read from the maps rather than written here. */
+const TOWN = JSON.parse(readFileSync(`${contentDir}/areas/round-town.json`, 'utf8')) as Doors;
+const TAVERN = JSON.parse(readFileSync(`${contentDir}/areas/hanged-ferryman.json`, 'utf8')) as Doors;
+/** The tavern door in the square: inside the round (D-634). */
+const TAVERN_DOOR = TOWN.transitions.find((t) => t.toArea === 'hanged-ferryman')!;
+/** The taproom's door to the yard: the round's edge, and the road to the crypt. */
+const WAY_OUT = TAVERN.transitions.find((t) => t.toArea === 'broken-yard')!;
 
 let store: MemoryStore;
 let server: GameServer;
@@ -97,9 +104,10 @@ describe('the scenario is the round map', () => {
     );
     expect(sc.status).toBe('live');
     expect(sc.areas).toContain('round-town');
-    // ⚠ The three that made the walk possible are OUT, and that is the whole
-    // assertion. `sunken-crypt` is endgame; the other two are the road to it.
-    expect(sc.areas).not.toContain('hanged-ferryman');
+    // The taproom is in (D-634): it is the tavern the round has.
+    expect(sc.areas).toContain('hanged-ferryman');
+    // ⚠ The two that made the walk possible are OUT, and that is the whole
+    // assertion. `sunken-crypt` is endgame; the yard is the road to it.
     expect(sc.areas).not.toContain('broken-yard');
     expect(sc.areas).not.toContain('sunken-crypt');
   });
@@ -113,12 +121,19 @@ describe('the scenario is the round map', () => {
 });
 
 describe('⚠ walking out of a round is refused', () => {
+  it('carries a player through the tavern door, which is inside the round (D-634)', async () => {
+    expect(bot.area?.id).toBe('round-town');
+    bot.send({ t: 'move_to', x: TAVERN_DOOR.x, y: TAVERN_DOOR.y });
+    for (let i = 0; i < 400 && bot.area?.id !== 'hanged-ferryman'; i++) await sleep(TICK * 4);
+    expect(bot.area?.id, 'the tavern door in the square refused a player').toBe('hanged-ferryman');
+  }, 40_000);
+
   it('will not carry a player through a door outside the scenario', async () => {
     const start = bot.area!.id;
-    expect(start).toBe('round-town');
+    expect(start).toBe('hanged-ferryman');
     bot.drain('narrate');
 
-    // Walk onto the tavern threshold — a real transition, on a real map.
+    // Walk onto the yard door — a real transition, on a real map.
     bot.send({ t: 'move_to', x: WAY_OUT.x, y: WAY_OUT.y });
     for (let i = 0; i < 400; i++) {
       const me = bot.entities.get(bot.you!);
@@ -132,9 +147,9 @@ describe('⚠ walking out of a round is refused', () => {
     }
 
     // ⚠ Still in the round. This is the assertion that would have failed for
-    // the whole of MR: the door leads to the tavern, the tavern leads to the
-    // yard, and the yard leads to permadeath.
-    expect(bot.area?.id).toBe('round-town');
+    // the whole of MR: the tavern leads to the yard, and the yard leads to
+    // permadeath.
+    expect(bot.area?.id).toBe('hanged-ferryman');
     // And told so in world voice — walking into a barred door is not an error,
     // so it must not arrive as a refusal code.
     expect(bot.narrations.some((n) => /barred/i.test(n))).toBe(true);

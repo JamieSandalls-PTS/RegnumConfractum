@@ -82,20 +82,19 @@ but one `console.warn` each (D-625).
 | `round-town` | settled | R | the Round's town (D-549) |
 | `round-farm` `round-wood` `round-mine` `round-south` | wilderness | R | the spokes |
 | `round-dungeon-1..3` | wilderness | R | D-535's three floors |
-| `hanged-ferryman` | settled | ⚠ **both** | P's first-slice tavern *and* the Round's opening room (D-608) |
-| `broken-yard` | wilderness | P | links to the tavern, so reachable from a round |
-| `sunken-crypt` | **endgame** | P | ⚠ **involuntary permadeath, reachable from a round** |
+| `hanged-ferryman` | settled | **both** | the taproom behind the tavern door in Ashfold's square, inside the Round (D-634); also P's first-slice start |
+| `broken-yard` | wilderness | P | the round's EDGE: the taproom's yard door is refused while a round runs (D-627, D-634) |
+| `sunken-crypt` | **endgame** | P | involuntary permadeath; behind the edge, and CI refuses a scenario naming it |
 | `proving-ground` | wilderness | P | `live: false` — dead content |
 
-⚠ **The walk `round-town → hanged-ferryman → broken-yard → sunken-crypt` is open
-during a round.** `RoundEngine` has no concept of an area; `dungeonGateAllows` only
-enforces the dungeon's day/night and floor rules. D-523 forbids exactly this. The fix
-is the scenario's area set (D-627), not another guard.
+**The walk `round-town → hanged-ferryman → broken-yard → sunken-crypt` was open
+during a round** until D-627 gave the scenario an area set; the boundary refuses
+the taproom's yard door now (`mr11-scenario-boundary`).
 
-⚠ **Two taverns.** `hanged-ferryman` is the Round's opening room while `round-town`
-contains a second tavern with its own keeper (D-593). One of them should belong to
-each product. This is a content decision with a visible result and is for the
-stakeholder.
+**One tavern (D-634).** The "second tavern" in `round-town` is a facade with no
+interior (D-593); the taproom behind its door is `hanged-ferryman`, and it is in
+the round. ⚠ Two keepers are on the map as a result — the taproom's own and
+Ashfold's at the door — and which stays is the stakeholder's.
 
 ---
 

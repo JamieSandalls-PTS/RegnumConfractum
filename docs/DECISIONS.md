@@ -7263,6 +7263,8 @@ This is a design question, not a bug, and the obvious fixes are worse:
 reassigning mid-round changes the win condition under everyone; barring late
 joiners shrinks an already small cast. Left as it is, stated plainly.
 
+➡ **Ratified as it stands in D-634:** a latecomer joins on the good side.
+
 ⚠ Note also that `roundCast()` is computed live from connections, so a
 latecomer DOES count toward the cast size and toward "the good cast is wiped".
 Only the role assignment is frozen at the start.
@@ -10847,6 +10849,8 @@ opening room, while `round-town` contains a second tavern with the keeper
 `silence-the-keeper` names. One of them should belong to each product. Until
 that is decided the round opens in the town and the borrowed door stays shut.
 
+➡ **Settled in D-634:** there is one tavern. The taproom is inside the round.
+
 
 
 ## D-629 -- One tool, one server, seven stages, and the scenario at the end
@@ -11326,3 +11330,53 @@ cannot be a creature, and the message says what such a file usually is.
 
 The eight suites that failed on CI, in the Linux container, 65 of 65; the
 full suite on Windows.
+
+
+
+## D-634 -- One tavern, and a latecomer is always good
+
+**Status:** ratified by the stakeholder, 2026-09-17. Settles the two open
+questions D-627 and D-579 left, without a line of server code.
+
+### One tavern
+
+Asked which of two taverns the round owned, the stakeholder answered that they
+know of only one. They are right, and the "two taverns" were an artefact of
+ids rather than of the world. `round-town` holds a tavern BUILDING in the
+middle of Ashfold's square, and D-593 measured that every tile of its
+footprint fails `canStandAt` -- it is a facade, and its keeper stands at the
+door because there is no inside to stand in. The door on that facade leads
+into `hanged-ferryman`, which is the taproom D-618 furnished and D-625 made
+visible, and the room the stakeholder has stood in. From a player's side of
+the screen that is one tavern: a building in the square with a taproom behind
+its door. The id says "persistent world's first-slice tavern" because that is
+what the room was authored as in M2; nothing about the room says so.
+
+**The ruling:** the taproom is inside the round. `hanged-ferryman` joins the
+Ashfold scenario's area set, so the door in the square works again and the
+round's edge moves one room west, to the taproom's door onto the yard -- which
+the boundary refuses exactly as it refused the tavern door, since the yard is
+the road to the crypt (D-523). Nothing else changes: the round still opens in
+the square (`opensIn`), the keeper the objective names still stands at the
+door, and the persistent world still starts in the same room.
+
+⚠ **Two keepers, and it is left that way on purpose.** The taproom has its own
+scripted keeper (`ferryman-keeper`, "a heavyset keeper with scarred knuckles")
+and Ashfold's stands at the door (`ashfold-keeper`, the one
+`silence-the-keeper` names). With the room in the round both are on the map.
+That is a content question -- one publican or two, and which one the
+objective wants -- with a visible result, and it is the stakeholder's; the
+objective is unaffected either way because it matches by descriptor.
+
+⚠ **Not verified in play.** The boundary suite walks a bot through the square
+door into the taproom and is refused at the yard door; that the taproom reads
+right from inside a round is for the stakeholder's eyes.
+
+### A latecomer is always good
+
+D-579 recorded that the antagonist is dealt once, from the cast present at the
+start, so anyone joining later is told `antagonist: false` -- and that the rest
+of the cast can deduce it. The stakeholder's ruling: **latecomers join the
+round on the good side.** The deduction cost is accepted. The code already did
+this and `mr5-rejoin` has asserted it since D-579; what changes is that it is
+no longer an open question.
