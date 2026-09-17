@@ -96,6 +96,12 @@ Therefore:
 If a change cannot be verified automatically, say so out loud rather than shipping it
 quietly.
 
+⚠ **The simulation tests are wall-clock tests calibrated on Windows' 15.6 ms
+timer clock, and `sim/test/setup-clock.ts` reproduces that clock on Linux so
+CI runs the same simulation (D-633).** A test that passes here and fails in
+CI is a timing test, not a platform bug, and the container recipe in D-633
+is how to see it. Tick-driven waits are the durable fix and are not built.
+
 The one thing the stakeholder *does* do is play the game and judge feel. Make that easy:
 keep staging deployable, keep the admin UI current.
 
