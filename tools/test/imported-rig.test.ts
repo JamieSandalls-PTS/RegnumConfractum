@@ -47,6 +47,8 @@ interface ManifestOutfit {
   rig: RigKind;
   variant: string;
   source: 'pack' | 'fbx';
+  /** A person is held to the whole skeleton; a creature to its trunk (D-631). */
+  kind?: 'person' | 'creature';
   height: number;
 }
 
@@ -228,9 +230,18 @@ describeModels('the imported character rig (D-555)', () => {
       for (const name of driven) expect(model.bones.has(name)).toBe(true);
       // And the core of whichever rig it is on, named the way that rig
       // names it — a Mixamo character has no bone called `pelvis`.
+      //
+      // ⚠ For a PERSON. A creature filed from the packs may be less than a
+      // humanoid: the dungeon pack's tormented soul is a spirit with thighs
+      // and calves and no feet (measured: 42 bones, no Foot_L/R), and the
+      // whole point of filing it as a creature is that it is not one of the
+      // cast. What a creature must still have is the trunk its clips hang
+      // from; anything else it lacks is a fact about the art, not a defect.
       const have = [...model.bones.keys()];
-      for (const name of coreBonesFor(outfit.rig)) {
-        expect(findBone(have, name)).toBeTruthy();
+      const core = coreBonesFor(outfit.rig);
+      const required = outfit.kind === 'creature' ? core.slice(0, 6) : core;
+      for (const name of required) {
+        expect(findBone(have, name), `${outfit.id} lacks ${name}`).toBeTruthy();
       }
     }
   });
@@ -356,7 +367,13 @@ describeModels('the retargeted animations (D-555)', () => {
       core[5]!,
       core[18]!,
       core[19]!,
-    ].map((n) => findBone(have, n)!);
+    ].map((n) => findBone(have, n));
+    // A creature with no feet cannot be judged on its feet; a person with
+    // none is a build fault and fails here by name.
+    if (!footLName || !footRName) {
+      expect(outfit.kind, `${id} has no feet`).toBe('creature');
+      return;
+    }
     const mixer = new AnimationMixer(model.scene);
     mixer.clipAction(walk).play();
 
@@ -392,8 +409,12 @@ describeModels('the retargeted animations (D-555)', () => {
     const walk = clips.clips.find((c) => c.name === 'walking')!;
     const have = [...model.bones.keys()];
     const core = coreBonesFor(kind);
-    const footL = findBone(have, core[18]!)!;
-    const footR = findBone(have, core[19]!)!;
+    const footL = findBone(have, core[18]!);
+    const footR = findBone(have, core[19]!);
+    if (!footL || !footR) {
+      expect(outfit.kind, `${id} has no feet`).toBe('creature');
+      return;
+    }
     const mixer = new AnimationMixer(model.scene);
     mixer.clipAction(walk).play();
     const lift: { l: number[]; r: number[] } = { l: [], r: [] };
