@@ -369,7 +369,7 @@ async function partMesh(stem: string): Promise<THREE.SkinnedMesh> {
  * nothing about whether it is the right eyebrow. A part being previewed is
  * assembled ONTO a head so it can be judged where it will be worn.
  */
-async function preview(stems: readonly string[]): Promise<void> {
+async function preview(stems: readonly string[], animate = false): Promise<void> {
   const token = ++previewToken;
   const wanted = stems.filter(Boolean);
   if (wanted.length === 0) {
@@ -411,6 +411,18 @@ async function preview(stems: readonly string[]): Promise<void> {
   });
   mount.add(built.group);
   shown = built.group;
+  // A suit is judged walking, a face is judged still (D-631): the garment
+  // editor asks for the walk, the naming and race tabs do not.
+  if (animate) {
+    void loadClipLibrary().then((clips) => {
+      if (token !== previewToken) return;
+      const walk = clips.find((c) => c.name === 'walking') ?? clips[0];
+      if (!walk) return;
+      const mixer = new THREE.AnimationMixer(built.group);
+      mixer.clipAction(walk).play();
+      sheetMixers.push(mixer);
+    });
+  }
   // The part being JUDGED, not the scaffolding it is standing in. Listing
   // eleven stems tells you nothing and hides the one that matters.
   banner(previewed || wanted[wanted.length - 1] || '');
@@ -1073,6 +1085,15 @@ function renderRacesSide(): void {
     const found = races.find((r) => r.id === sel.value);
     editing = found ? structuredClone(found) : null;
     render();
+    // Choosing a race SHOWS one: its first curated face on a body, before any
+    // chip is hovered. An empty stage beside a race form reads as a race that
+    // offers nothing.
+    const head = editing?.parts?.['head']?.[0];
+    if (head) showRaceFace('head', head);
+    else {
+      clearStage();
+      if (editing) banner(`${editing.name} offers no heads yet`);
+    }
   };
   $('btn-new').onclick = () => {
     editing = EMPTY_RACE();
@@ -1520,13 +1541,21 @@ stage.addEventListener(
 
 const animClock = new THREE.Clock();
 
-function frame(): void {
-  // The mixer runs whatever tab is showing: a weapon parented to a bone only
-  // moves because the bone does.
-  const delta = animClock.getDelta();
+/**
+ * Advance everything animating on the stage by `delta` seconds. The frame
+ * loop calls it; so does `window.__tool.step`, so a check can drive the
+ * stage by hand when the browser pane is not fronted and its frames stop.
+ */
+function stepStage(delta: number): void {
   bodyMixer?.update(delta);
   for (const mixer of sheetMixers) mixer.update(delta);
   for (const hook of frameHooks) hook(delta);
+}
+
+function frame(): void {
+  // The mixer runs whatever tab is showing: a weapon parented to a bone only
+  // moves because the bone does.
+  stepStage(animClock.getDelta());
   scene.setAzimuth(azimuth);
   scene.setZoom(zoom);
   // Faces are judged at eye level, not from the game's overhead orbit: this
@@ -1656,6 +1685,29 @@ async function loadClipLibrary(): Promise<THREE.AnimationClip[]> {
     clipLibrary = [];
   }
   return clipLibrary;
+}
+
+/** Clips from one built animation file, parsed once. */
+const clipFiles = new Map<string, Promise<THREE.AnimationClip[]>>();
+function clipsFromFile(file: string): Promise<THREE.AnimationClip[]> {
+  let started = clipFiles.get(file);
+  if (!started) {
+    started = new GLTFLoader().loadAsync(`/models/${file}`).then((g) => g.animations).catch(() => []);
+    clipFiles.set(file, started);
+  }
+  return started;
+}
+
+/** The built manifest, for what a definition's clips and palette are. */
+async function builtOutfit(id: string): Promise<{ animations: string; palette?: string } | null> {
+  try {
+    const manifest = (await (await fetch('/models/manifest.json')).json()) as {
+      outfits: { id: string; animations: string; palette?: string }[];
+    };
+    return manifest.outfits.find((o) => o.id === id) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function playOnBody(name: string): void {
@@ -2265,6 +2317,27 @@ async function showEnemy(mesh: string): Promise<void> {
   scene.setOrbitHeight(orbitH);
   banner(`${mesh.replace(/^S[MK]_/, '')}  ·  ${extent.y.toFixed(2)}m tall`);
   render();
+
+  // A defined and BUILT creature moves: the build retargeted a clip file
+  // for its rig, and clips address bones by name, so they play on the raw
+  // mesh as they do on the built one. An unnamed body stands still and the
+  // banner says why.
+  const def = enemyFor(assetPack, mesh);
+  const outfit = def ? await builtOutfit(def.id) : null;
+  if (token !== previewToken) return;
+  if (!outfit) {
+    banner(`${mesh.replace(/^S[MK]_/, '')}  ·  ${extent.y.toFixed(2)}m tall`
+      + (def ? ' — not built yet, so no animation' : ' — name it to build it'));
+    return;
+  }
+  const clips = await clipsFromFile(outfit.animations);
+  if (token !== previewToken) return;
+  const idle = clips.find((c) => c.name === 'unarmed-idle') ?? clips.find((c) => /idle/.test(c.name)) ?? clips[0];
+  if (idle) {
+    const mixer = new THREE.AnimationMixer(object);
+    mixer.clipAction(idle).play();
+    sheetMixers.push(mixer);
+  }
 }
 
 function renderAssetList(): void {
@@ -2777,7 +2850,11 @@ function renderAnimationsList(): void {
       row.textContent = `${set.name}  (${Object.keys(set.clips).length})`;
       row.onclick = () => {
         animSel = set.id;
-        void showAnimationBody();
+        // A set is judged moving: the body plays the set's idle, or its walk,
+        // or the first clip it names, rather than standing in a T-pose.
+        const first = set.clips['idle'] ?? set.clips['walk'] ?? Object.values(set.clips)[0] ?? '';
+        void showAnimationBody().then(() => playOnBody(first));
+        banner(`${set.applies} - ${first || 'no clips yet'}`);
         render();
       };
       host.appendChild(row);
@@ -2847,6 +2924,11 @@ function renderAnimationsSide(): void {
         else delete set.clips[action];
         markDirty();
         render();
+        // Choosing IS playing: the default male body runs the clip the row
+        // will now play — the chosen one, or what it falls through to.
+        const now = set.clips[action] ?? fallback ?? '';
+        void showAnimationBody().then(() => playOnBody(now));
+        banner(`${set.applies} - ${action} - ${now || 'nothing'}`);
       };
       pick.appendChild(sel);
       tr.appendChild(pick);
@@ -4407,6 +4489,19 @@ function openTab(stage: StageId, id: string): void {
 
 /** Per-frame work a tab module registered; dropped on every section change. */
 const frameHooks: ((dt: number) => void)[] = [];
+
+/**
+ * The verification hook (D-114): what the stage holds, how many things are
+ * animating on it, and a way to advance them without the frame loop.
+ */
+(window as unknown as { __stage: unknown }).__stage = {
+  children: () => mount.children.length,
+  mixers: () => sheetMixers.length + (bodyMixer ? 1 : 0),
+  step: (seconds: number) => {
+    for (let i = 0; i < seconds * 60; i++) stepStage(1 / 60);
+  },
+  banner: () => $('banner').textContent,
+};
 
 /** The page, described once, for the tab modules (`tool/`). */
 function toolContext(): ToolContext {
@@ -6385,7 +6480,7 @@ function previewGarment(): void {
   // somebody's chin.
   frameFor('torso');
   previewed = '';
-  void preview([...body, ...(Object.values(worn) as string[])]);
+  void preview([...body, ...(Object.values(worn) as string[])], true);
 }
 
 /** Which slot a stem fills, from the catalogue the pack reported. */
@@ -6681,6 +6776,9 @@ function applySection(): void {
     });
   } else if (section === 'garments') {
     void loadGarments().then(() => {
+      // Open ON a garment: the editor whose premise is looking must not open
+      // on an empty stage (D-570's own finding, one step earlier).
+      if (!garmentPicked) garmentPicked = garmentData.garments[0]?.id ?? null;
       renderGarmentList();
       renderGarmentSide();
       previewGarment();
@@ -6689,6 +6787,8 @@ function applySection(): void {
     void loadInteractive().then(() => {
       renderInteractiveList();
       renderInteractiveSide();
+      const picked = interList().find((d) => d.id === interPicked);
+      if (picked) void previewInteractive(picked);
     });
   } else renderSoon();
 }
@@ -6751,7 +6851,7 @@ let interactive: {
 let interKind: InteractiveKind = 'stations';
 let interPicked: string | null = null;
 /** The environment catalogue for the pack whose art is being chosen. */
-let interAssets: { id: string; name: string; solid: boolean }[] = [];
+let interAssets: { id: string; name: string; mesh: string; solid: boolean }[] = [];
 let interAssetPack = '';
 let interSearch = '';
 
@@ -6782,8 +6882,12 @@ function renderInteractiveList(): void {
     chip.onclick = () => {
       interKind = k;
       interPicked = interList()[0]?.id ?? null;
+      // A new kind is a new subject: clear, then show the first one.
+      clearStage();
       renderInteractiveList();
       renderInteractiveSide();
+      const first = interList().find((d) => d.id === interPicked);
+      if (first) void previewInteractive(first);
     };
     tabs.appendChild(chip);
   }
@@ -6841,9 +6945,39 @@ function renderInteractiveList(): void {
       interPicked = def.id;
       renderInteractiveList();
       renderInteractiveSide();
+      void previewInteractive(def);
     };
     host.appendChild(row);
   }
+}
+
+/**
+ * Show what the picked object IS: its placed art, or for a person the built
+ * body playing its idle. Picking is showing (D-631's rule for every tab);
+ * before this the stage showed the art only after a chip in the picker was
+ * touched, and kept whatever the last kind left standing.
+ */
+async function previewInteractive(def: InteractiveDef): Promise<void> {
+  if (def.character) {
+    clearStage();
+    await previewCreature(def.character);
+    return;
+  }
+  if (def.art) {
+    if (interAssetPack !== def.art.pack) await pickArtPack(def.art.pack, def);
+    assetPack = def.art.pack;
+    const mesh = interAssets.find((a) => a.id === def.art!.asset)?.mesh;
+    if (!mesh) {
+      clearStage();
+      banner(`${def.name ?? def.id} — art '${def.art.asset}' is not in ${def.art.pack}`);
+      return;
+    }
+    await showAsset(mesh);
+    banner(`${def.name ?? def.id}  ·  ${def.art.asset}`);
+    return;
+  }
+  clearStage();
+  banner(`${def.name ?? def.id} — no art chosen; it draws the built-in shape`);
 }
 
 function renderInteractiveSide(): void {
@@ -7057,7 +7191,7 @@ function renderArtPicker(host: HTMLElement, def: InteractiveDef): void {
       markDirty();
       renderInteractiveSide();
       renderInteractiveList();
-      void showAsset(a.id);
+      void showAsset(a.mesh);
     };
     grid.appendChild(chip);
   }
@@ -7068,10 +7202,14 @@ async function pickArtPack(pack: string, def: InteractiveDef): Promise<void> {
   interAssetPack = pack;
   assetPack = pack;
   const got = (await (await fetch(`${API}/assets/${pack}/environment`)).json()) as {
-    assets?: { id: string; name: string; solid?: boolean }[];
+    assets?: { id: string; name: string; mesh: string; solid?: boolean }[];
   };
+  // ⚠ The MESH too. The preview route serves meshes by stem and an asset id
+  // (`sm-prop-table-01`) is not a stem (`SM_Prop_Table_01`): asking for the
+  // id answered 404, so choosing a station's art drew nothing and said
+  // nothing, in the one panel whose job is showing what a station looks like.
   interAssets = (got.assets ?? []).map((a) => ({
-    id: a.id, name: a.name, solid: a.solid !== false,
+    id: a.id, name: a.name, mesh: a.mesh, solid: a.solid !== false,
   }));
   renderInteractiveSide();
   void def;
@@ -7148,7 +7286,10 @@ async function previewCreature(id: string | null): Promise<void> {
   // re-fetched on every keystroke in the form beside it. A failure says so in
   // the banner instead.
   creatureShown = id;
-  if (!id) return;
+  if (!id) {
+    banner('no look chosen — this creature draws as the seed picks, a stranger');
+    return;
+  }
   let file: string | undefined;
   let palette: string | null = null;
   let height = 1.7;

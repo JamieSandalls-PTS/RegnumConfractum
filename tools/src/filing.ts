@@ -129,7 +129,9 @@ export function filingRows(world: FilingWorld): FilingRow[] {
       for (const kind of ASSET_KINDS) if (byKind.get(kind)!.has(stem)) uses.push(useForKind(kind));
       if (creatures.has(stem)) uses.push('creature');
       allowed = ['weapon', 'environment', 'pickup', 'projectile'];
-      if (shelf === 'character') allowed.unshift('creature');
+      // A whole body may be a creature — and so may something the prefixes
+      // could not place, because a person filing it knows what it is.
+      if (shelf === 'character' || shelf === 'unfiled') allowed.unshift('creature');
     }
     return { stem, shelf, uses, allowed, ...(slot ? { slot } : {}), unfiled: uses.length === 0 };
   });

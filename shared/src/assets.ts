@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ActionSchema, StanceSchema } from './actions';
 import { VolumeSchema, type Volume } from './collision';
+import { parsePolygonPart } from './characters';
 
 /**
  * Everything in the packs that is not a character part, named and described
@@ -341,7 +342,14 @@ export function meshShelf(stem: string): MeshShelf {
   // A whole rigged person is a CHARACTER (D-594), not a prop to place.
   if (/^Character[_s]/i.test(bare) || /^Generic_Characters$/i.test(bare)) return 'character';
   // Modular body parts have their own tab and their own catalogue (D-560).
-  if (/^Chr_/i.test(bare)) return 'body-part';
+  //
+  // ⚠ Only when the name IS a modular part. The dungeon pack names its whole
+  // creatures `SK_Chr_Goblin_Female`, `SK_Chr_Ghost_01` — the same prefix as
+  // the hero pack's `SK_Chr_Head_Male_04` and nothing like it in shape — and
+  // filing them as body parts left seventeen creatures that could be filed as
+  // nothing at all (D-631). A `Chr_` the part parser does not recognise is a
+  // whole body.
+  if (/^Chr_/i.test(bare)) return parsePolygonPart(`${stem}.fbx`) ? 'body-part' : 'character';
   const kind = kindOfMesh(stem);
   if (kind) return kind;
   // ⚠ `Prp_` is the knights pack misspelling its own `Prop_` prefix, on one

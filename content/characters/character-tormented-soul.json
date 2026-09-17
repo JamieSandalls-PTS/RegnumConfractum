@@ -1,0 +1,9 @@
+{
+  "id": "character-tormented-soul",
+  "name": "Character Tormented Soul",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "Character_Tormented_Soul",
+  "kind": "creature"
+}

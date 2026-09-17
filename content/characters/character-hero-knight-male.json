@@ -1,0 +1,9 @@
+{
+  "id": "character-hero-knight-male",
+  "name": "Character Hero Knight Male",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "Character_Hero_Knight_Male",
+  "kind": "creature"
+}

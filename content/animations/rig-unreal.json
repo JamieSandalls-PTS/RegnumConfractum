@@ -4,7 +4,7 @@
   "layer": "rig",
   "applies": "unreal",
   "clips": {
-    "idle": "unarmed-idle",
+    "idle": "neutral-idle",
     "walk": "unarmed-walk",
     "run": "unarmed-run",
     "walk-back": "unarmed-walk-back",

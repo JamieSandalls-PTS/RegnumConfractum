@@ -1,0 +1,9 @@
+{
+  "id": "character-ghost-02",
+  "name": "Character Ghost",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "Character_Ghost_02",
+  "kind": "creature"
+}

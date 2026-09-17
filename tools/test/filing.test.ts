@@ -28,6 +28,8 @@ const STEMS = [
   'SK_Chr_Torso_Male_03',
   'SM_Character_Goblin_01',
   'SM_Oddity_01',
+  // The dungeon pack's spelling of a whole creature: the part prefix, not a part.
+  'SK_Chr_Ghost_01',
 ];
 const world = { contentDir, pack: PACK, stems: STEMS };
 
@@ -73,7 +75,7 @@ describe('filing rows', () => {
 
   it('⚠ highlights what nobody has filed', () => {
     const unfiled = filingRows(world).filter((r) => r.unfiled).map((r) => r.stem);
-    expect(unfiled).toEqual(['SM_Arrow_01', 'SM_Oddity_01']);
+    expect(unfiled).toEqual(['SM_Arrow_01', 'SM_Oddity_01', 'SK_Chr_Ghost_01']);
   });
 
   it('says what a mesh may be filed as', () => {
@@ -81,6 +83,11 @@ describe('filing rows', () => {
     expect(rowOf('SK_Chr_Torso_Male_03').allowed).toEqual(['body-part', 'clothing']);
     expect(rowOf('SM_Character_Goblin_01').allowed[0]).toBe('creature');
     expect(rowOf('SM_Bld_Wall_01_Collision').allowed).toEqual([]);
+    // ⚠ A `Chr_` that is not a modular part is a whole body, and may be a
+    // creature; so may a mesh the prefixes could not place.
+    expect(rowOf('SK_Chr_Ghost_01').shelf).toBe('character');
+    expect(rowOf('SK_Chr_Ghost_01').allowed[0]).toBe('creature');
+    expect(rowOf('SM_Oddity_01').allowed).toContain('creature');
   });
 });
 
