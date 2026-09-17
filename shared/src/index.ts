@@ -7,6 +7,7 @@ export * from './audio';
 export * from './rig';
 export * from './characters';
 export * from './creation';
+export * from './d20';
 export * from './garments';
 export * from './skin';
 export * from './actions';

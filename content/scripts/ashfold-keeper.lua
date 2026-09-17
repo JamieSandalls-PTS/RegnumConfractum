@@ -18,11 +18,13 @@
 -- is better anyway: D-549 put the square where every route crosses, so a
 -- keeper on it is a target the whole cast can see being defended, which is
 -- what the objective's own notes ask for.
-local keeper = spawn_npc{
-  x = 25, y = 19,
-  descriptor = "a rawboned keeper in a stained apron",
-  seed = 8817,
-}
+--
+-- He is CONTENT now (D-598), not somebody this file creates. Who he is and
+-- what he looks like live in `content/npcs/ashfold-keeper.json`; where he
+-- stands is a placement on the area, moved in the map editor; and this script
+-- only says what he DOES. `npc` throws if the area does not place him, so a
+-- handle here is always somebody who is really there.
+local keeper = npc("ashfold-keeper")
 
 local greeted_recently = false
 

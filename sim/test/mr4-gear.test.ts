@@ -524,12 +524,17 @@ describe('what a garment puts on the wire (D-571)', () => {
     const wearer = await player('gm_wear', 'Torvald Reik', 'man-at-arms');
 
     // Both are in the same area, so the watcher has the wearer as an entity.
+    // ⚠ The WEARER, by id. This used to take "the first entity that is not
+    // me", which was only ever the other player because the tavern happened to
+    // be empty of anybody else — and the moment the Hanged Ferryman gained a
+    // declared keeper (D-598) the watcher started watching him instead and
+    // waited five seconds for a keeper to put on plate armour.
     let seen = 0;
     await waitUntil(async () => {
-      const e = [...watcher.bot.entities.values()].find((x) => x.id !== watcher.entityId);
+      const e = watcher.bot.entities.get(wearer.entityId);
       if (e) seen = e.id;
       return e !== undefined;
-    }, 'the watcher sees somebody');
+    }, 'the watcher sees the wearer');
 
     // ⚠ No equipping needed: `man-at-arms` walks in wearing the hauberk as
     // part of its kit (D-547), so this is the path the game actually takes
@@ -557,12 +562,17 @@ describe('what a garment puts on the wire (D-571)', () => {
     // own client, which reads the same field, would agree with them.
     const watcher = await player('gm_watch2', 'Bran Holt', 'man-at-arms');
     const wearer = await player('gm_wear2', 'Alix Dorn', 'man-at-arms');
+    // ⚠ The WEARER, by id. This used to take "the first entity that is not
+    // me", which was only ever the other player because the tavern happened to
+    // be empty of anybody else — and the moment the Hanged Ferryman gained a
+    // declared keeper (D-598) the watcher started watching him instead and
+    // waited five seconds for a keeper to put on plate armour.
     let seen = 0;
     await waitUntil(async () => {
-      const e = [...watcher.bot.entities.values()].find((x) => x.id !== watcher.entityId);
+      const e = watcher.bot.entities.get(wearer.entityId);
       if (e) seen = e.id;
       return e !== undefined;
-    }, 'the watcher sees somebody');
+    }, 'the watcher sees the wearer');
 
     await waitUntil(
       async () => (watcher.bot.entities.get(seen)?.worn?.garments ?? []).includes('gothic-plate'),
@@ -789,12 +799,17 @@ describe('what a stance puts on the wire (D-578)', () => {
   it('names the stance of the weapon actually in hand', async () => {
     const watcher = await player('st_watch', 'Ivo Marsh', 'man-at-arms');
     const wearer = await player('st_wear', 'Rolf Dane', 'man-at-arms');
+    // ⚠ The WEARER, by id. This used to take "the first entity that is not
+    // me", which was only ever the other player because the tavern happened to
+    // be empty of anybody else — and the moment the Hanged Ferryman gained a
+    // declared keeper (D-598) the watcher started watching him instead and
+    // waited five seconds for a keeper to put on plate armour.
     let seen = 0;
     await waitUntil(async () => {
-      const e = [...watcher.bot.entities.values()].find((x) => x.id !== watcher.entityId);
+      const e = watcher.bot.entities.get(wearer.entityId);
       if (e) seen = e.id;
       return e !== undefined;
-    }, 'the watcher sees somebody');
+    }, 'the watcher sees the wearer');
 
     // The man-at-arms kit arms him with a sword, so this is the real path.
     await waitUntil(

@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import {
+  SEAT_REACH,
+  SEAT_PICK_RADIUS,
   DIRECTION_VECTORS,
   SoundsFileSchema,
   CORE_STATION_TYPES,
@@ -27,10 +29,17 @@ import { CombatEffects } from './render/effects';
 import { Terrain } from './render/terrain';
 import { buildPaintedGround } from './render/ground';
 import { WorldAssets, loadOneAsset } from './render/world-assets';
-import { CharacterVisual } from './render/character';
+import { HoverOutline } from './render/hover-outline';
 import { ImportedVisual } from './render/imported-visual';
 import * as importedModels from './render/imported-models';
-import { isMoving, markMoved, stepToward, type InterpolatedPosition } from './game/interpolation';
+import {
+  RUN_SECONDS,
+  TILE_SECONDS,
+  isMoving,
+  markMoved,
+  stepToward,
+  type InterpolatedPosition,
+} from './game/interpolation';
 import { RoundHud } from './game/round-hud';
 import {
   formatEffort,
@@ -69,6 +78,16 @@ const charList = $<HTMLUListElement>('char-list');
 const hud = $('hud');
 const chat = $('chat');
 const chatLog = $('chat-log');
+/**
+ * What the player PERCEIVES, kept apart from what people SAY (D-611).
+ *
+ * ⚠ They shared one scrollback, so a line of dialogue could be pushed off
+ * the top by four refusals and a change in the weather — in a mode whose whole
+ * point is people talking to each other (D-521). Speech goes to `chatLog`;
+ * narration, the world's answers, refusals and sounds carried through walls go
+ * here. Nothing writes to both.
+ */
+const eventLog = $('event-log');
 const chatBar = $('chat-bar');
 const chatHint = $('chat-hint');
 const chatInput = $<HTMLInputElement>('in-chat');
@@ -109,14 +128,14 @@ class PileVisual {
   setPosition(x: number, z: number, elevation = 0): void {
     this.root.position.set(x, elevation, z);
   }
-  setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  setFacing(_dir: Parameters<ImportedVisual['setFacing']>[0]): void {}
   /** A heap IS the loot, so this only ever hides an emptied one. */
   setLootable(lootable: boolean): void {
     this.root.visible = lootable;
   }
-  setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
-  setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
-  playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
+  setPosture(_p: Parameters<ImportedVisual['setPosture']>[0]): void {}
+  setPresentation(_p: Parameters<ImportedVisual['setPresentation']>[0]): void {}
+  playTransients(_t: Parameters<ImportedVisual['playTransients']>[0]): void {}
   update(_dt: number, _t: number, _moving: boolean, _wind: number): void {}
   dispose(): void {
     this.parent.remove(this.root);
@@ -221,11 +240,11 @@ class NodeVisual {
   setSpent(spent: boolean): void {
     this.root.scale.setScalar(spent ? 0.55 : 1);
   }
-  setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  setFacing(_dir: Parameters<ImportedVisual['setFacing']>[0]): void {}
   setLootable(_lootable: boolean): void {}
-  setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
-  setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
-  playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
+  setPosture(_p: Parameters<ImportedVisual['setPosture']>[0]): void {}
+  setPresentation(_p: Parameters<ImportedVisual['setPresentation']>[0]): void {}
+  playTransients(_t: Parameters<ImportedVisual['playTransients']>[0]): void {}
   update(_dt: number, _t: number, _moving: boolean, _wind: number): void {}
   dispose(): void {
     this.parent.remove(this.root);
@@ -248,6 +267,11 @@ class NodeVisual {
  */
 class StationEntity {
   private readonly visual: StationVisual;
+  /** ⚠ The union needs ONE way to ask where a visual's geometry is, or the
+   * hover outline (D-622) has to know what kind of thing it is looking at. */
+  get root(): THREE.Object3D {
+    return this.visual.root;
+  }
   constructor(
     parent: THREE.Scene,
     type: CoreStationType,
@@ -260,11 +284,11 @@ class StationEntity {
   setPosition(x: number, z: number, elevation = 0): void {
     this.visual.setPosition(x, z, elevation);
   }
-  setFacing(_dir: Parameters<CharacterVisual['setFacing']>[0]): void {}
+  setFacing(_dir: Parameters<ImportedVisual['setFacing']>[0]): void {}
   setLootable(_lootable: boolean): void {}
-  setPosture(_p: Parameters<CharacterVisual['setPosture']>[0]): void {}
-  setPresentation(_p: Parameters<CharacterVisual['setPresentation']>[0]): void {}
-  playTransients(_t: Parameters<CharacterVisual['playTransients']>[0]): void {}
+  setPosture(_p: Parameters<ImportedVisual['setPosture']>[0]): void {}
+  setPresentation(_p: Parameters<ImportedVisual['setPresentation']>[0]): void {}
+  playTransients(_t: Parameters<ImportedVisual['playTransients']>[0]): void {}
   update(_dt: number, _t: number, _moving: boolean, _wind: number): void {
     this.visual.update();
   }
@@ -276,7 +300,7 @@ class StationEntity {
 interface EntityState {
   wire: WireEntity;
   render: InterpolatedPosition;
-  visual: CharacterVisual | ImportedVisual | PileVisual | NodeVisual | StationEntity;
+  visual: ImportedVisual | PileVisual | NodeVisual | StationEntity;
 }
 
 // Start fetching the character manifest immediately rather than on the first
@@ -300,6 +324,8 @@ let terrain: Terrain | null = null;
  */
 let paintedGround: THREE.Mesh | null = null;
 let worldAssets: WorldAssets | null = null;
+/** The lit edge on whatever the cursor is over (D-622). */
+let hoverOutline: HoverOutline | null = null;
 const occlusionFocus = new THREE.Vector3();
 /** How wide the see-through hole is, in device pixels. */
 const SEE_THROUGH_RADIUS_PX = 110;
@@ -424,6 +450,9 @@ const levelUp = new LevelUpScreen({
  * turned — cosmetic, bounded by one game hour, and the alternative is a hand
  * that jumps in twelve-degree steps and reads as broken.
  */
+/** The last round phase seen, so a RESET can be told from a lobby that is
+ * merely still waiting (D-612). */
+let lastRoundPhase: 'lobby' | 'running' | 'resolved' | null = null;
 let clockHour = 6;
 let clockNight = false;
 let clockHourChangedAt = performance.now();
@@ -441,7 +470,12 @@ const roundHud = new RoundHud({
   ending: $('round-ending'),
   endingTitle: $('round-ending-title'),
   endingBody: $('round-ending-body'),
-});
+  lobby: $('round-lobby'),
+  lobbyNote: $('round-lobby-note'),
+  botAdd: $('round-bot-add') as HTMLButtonElement,
+  botFill: $('round-bot-fill') as HTMLButtonElement,
+  botClear: $('round-bot-clear') as HTMLButtonElement,
+}, (msg) => conn.send(msg));
 /**
  * Sampled sound (D-541). The cue list is CONTENT — the same file the server
  * loads and CI validates — imported directly rather than sent over the wire,
@@ -564,11 +598,51 @@ function showCharacters(characters: CharacterSummary[]): void {
     const li = document.createElement('li');
     // Level belongs on the roster, not in the round (D-538): you choose who
     // to take in knowing what they are, and the round itself never shows it.
-    li.innerHTML = `<span>${c.name}</span>`
+    const label = document.createElement('span');
+    label.className = 'charname';
+    label.innerHTML = `<span>${c.name}</span>`
       + `<span class="where">level ${c.level} · ${c.areaId}</span>`;
-    li.onclick = () => conn.send({ t: 'enter_world', characterId: c.id });
+    // ⚠ The ROW still enters the world, and the button is a sibling of the
+    // row's click target rather than inside it. A delete nested in something
+    // that also means "play this character" is one mis-click from an
+    // irreversible act, and this act is irreversible by design (D-510).
+    label.onclick = () => conn.send({ t: 'enter_world', characterId: c.id });
+    const del = document.createElement('button');
+    del.className = 'chardel';
+    del.type = 'button';
+    del.textContent = 'Delete';
+    del.title = `End ${c.name} permanently`;
+    del.onclick = (e) => {
+      e.stopPropagation();
+      confirmDelete(c);
+    };
+    li.append(label, del);
     charList.appendChild(li);
   }
+}
+
+/**
+ * Ask before ending a character (D-600).
+ *
+ * ⚠ The prompt states BOTH halves, and the payment second. Retirement is
+ * permanent and it is also the only route to Legacy Points (D-510), so a
+ * confirmation that mentioned only the loss would be describing half the
+ * mechanic — and one that led with the reward would be selling it. The
+ * number comes from the server, because the formula has diminishing returns
+ * on repeat sacrifice and the client does not know how many this account has
+ * already spent.
+ */
+function confirmDelete(c: CharacterSummary): void {
+  const points = c.legacyIfRetired;
+  const ok = window.confirm(
+    `Delete ${c.name}?\n\n`
+    + 'This is PERMANENT. The character ends, and no amount of play brings '
+    + 'them back — their name, their levels and everything they were carrying '
+    + 'are gone.\n\n'
+    + `In return this account gains ${points} Legacy Point${points === 1 ? '' : 's'}, `
+    + 'which buy access and flavour for future characters — never raw power.',
+  );
+  if (ok) conn.send({ t: 'retire_character', characterId: c.id });
 }
 
 // ---------------------------------------------------------------------------
@@ -606,6 +680,30 @@ conn.onMessage = (msg: ServerMessage) => {
       if (!$('create-form').classList.contains('hidden')) creation.showError(msg.message);
       else if (msg.code === 'auth_failed' || msg.code === 'username_taken') setStatus(msg.message);
       else if (msg.code === 'character_name_taken') setStatus(msg.message);
+      // ⚠ Once you are IN the world, a refusal goes to the chat log
+      // (D-610). `#status-msg` lives inside the login overlay, which is
+      // hidden the moment you enter play — so every in-world refusal was
+      // written into an invisible element and the game simply did nothing.
+      //
+      // Reported as "I tried to attack a bot and nothing happened". The
+      // server was answering every time: 'out of reach', 'you have swung all
+      // you can this round', 'not now — the day has not started'. All three
+      // are things a player needs to be told, and none of them were on
+      // screen. An action that is refused must LOOK different from an action
+      // that was never sent.
+      // ⚠: cooldown refusals are SWALLOWED (D-618). Combat runs on a
+      // four-second beat (D-550) and a player holds the key down, so every
+      // frame between swings answered "you have swung all you can this round"
+      // -- dozens of identical lines burying everything that matters. The
+      // refusal is still sent, because bots and tests read it and the server
+      // stays the authority on what is allowed (D-102); it simply is not news
+      // to a person who can see their own hotbar.
+      //
+      // ⚠: this is the ONE code suppressed. D-610 routed refusals here
+      // precisely because "nothing happened" was indistinguishable from a
+      // broken game, and quietly hiding a second one would walk that back.
+      else if (msg.code === 'on_cooldown') return;
+      else if (youId !== null) appendSystemLine(msg.message);
       else setStatus(`${msg.code}: ${msg.message}`);
       return;
     case 'auth_ok':
@@ -651,8 +749,8 @@ conn.onMessage = (msg: ServerMessage) => {
       const line = document.createElement('div');
       line.className = 'line narration';
       line.textContent = msg.text;
-      chatLog.appendChild(line);
-      trimAndScrollChat();
+      eventLog.appendChild(stamped(line));
+      trimAndScroll(eventLog);
       return;
     }
     case 'area_lighting':
@@ -666,6 +764,11 @@ conn.onMessage = (msg: ServerMessage) => {
       charPanel.setStatus(msg);
       levelUp.setStatus(msg);
       $('hud-ghost').textContent = msg.ghost ? '☽ dead — /respawn when released' : '';
+      // ⚠ The world goes pale while you are dead (D-621). Driven off the
+      // SERVER's ghost flag rather than off any local guess: the planes are
+      // partitioned by the server both ways (invariant 4), and the veil must
+      // agree with the thing that decides what you can see.
+      scene?.setVeiled(msg.ghost);
       if (msg.ghost && !wasGhost) {
         appendSystemLine('The world goes quiet. Only the dead remain with you.');
       } else if (!msg.ghost && wasGhost) {
@@ -674,11 +777,28 @@ conn.onMessage = (msg: ServerMessage) => {
       return;
     }
     case 'retired':
+      // ⚠ Two ways to arrive here, and only one of them ends the session.
+      // Retiring IN the world takes the character out from under the player,
+      // so the connection is closed and they come back to a login screen.
+      // Deleting from the ROSTER (D-600) leaves them exactly where they were,
+      // looking at a list that is about to be re-sent — closing the socket
+      // there would log them out for tidying up.
+      if (youId === null) {
+        setStatus(
+          `Ended. ${msg.awarded} Legacy Point${msg.awarded === 1 ? '' : 's'} earned `
+          + `(${msg.totalLegacyPoints} total).`,
+          false,
+        );
+        return;
+      }
       appendSystemLine(
         `The tale is told. ${msg.awarded} Legacy Points earned (${msg.totalLegacyPoints} total). ` +
         'Reconnect to begin someone new.',
       );
       setTimeout(() => conn.close(), 4000);
+      return;
+    case 'character_list':
+      showCharacters(msg.characters);
       return;
     case 'seance':
       if (msg.active) {
@@ -717,6 +837,29 @@ conn.onMessage = (msg: ServerMessage) => {
       return;
     }
     case 'round_state':
+      // ⚠ Both logs are emptied when a round resets to the lobby (D-612).
+      // Round-scoped memory is not a tidiness preference here: D-525 wipes
+      // recognition precisely so the cast meets as strangers every round, and
+      // a scrollback still holding last round's accusations, confessions and
+      // dying words hands back exactly what that ruling took away. It is also
+      // the one piece of round state a player can read at leisure.
+      //
+      // ⚠ Keyed on the TRANSITION into lobby, not on the phase being
+      // lobby. Lobby state is broadcast every fifty ticks, so clearing on the
+      // value would wipe the log five times a second while people were
+      // standing around waiting to start — including anything they said.
+      // ⚠ Either way out of a finished round (D-618). Clearing only on
+      // the lobby missed the fast path: a reset with a full cast starts the
+      // next round about a tick later, so a client can go straight from
+      // `resolved` to `running` and never observe the lobby at all --
+      // carrying the last round's dying words into the new one.
+      const wentToLobby = msg.phase === 'lobby' && lastRoundPhase !== 'lobby';
+      const startedAfresh = msg.phase === 'running' && lastRoundPhase === 'resolved';
+      if (wentToLobby || startedAfresh) {
+        eventLog.replaceChildren();
+        chatLog.replaceChildren();
+      }
+      lastRoundPhase = msg.phase;
       roundHud.onState(msg);
       if (msg.hour !== clockHour) {
         clockHour = msg.hour;
@@ -751,8 +894,8 @@ conn.onMessage = (msg: ServerMessage) => {
       const line = document.createElement('div');
       line.className = 'line narration';
       line.textContent = msg.text;
-      chatLog.appendChild(line);
-      trimAndScrollChat();
+      eventLog.appendChild(stamped(line));
+      trimAndScroll(eventLog);
       return;
     }
     case 'pong':
@@ -787,6 +930,8 @@ function clearWorld(): void {
   roofs = null;
   worldAssets?.dispose();
   worldAssets = null;
+  hoverOutline?.dispose();
+  hoverOutline = null;
   youId = null;
 }
 
@@ -835,20 +980,23 @@ function addEntity(wire: WireEntity): void {
   // everybody as the seed rolls them and quietly discard the body the player
   // built — the descriptor would say "towering" over a slight figure.
   const appearance = resolveAppearance(wire.appearanceSeed, wire.appearance);
+  // ⚠ One cast (D-617). The procedural `CharacterVisual` and the toggle
+  // that chose between them are deleted: the imported cast is what ships, and
+  // a settings switch that silently changed which renderer a player was
+  // judging was a way to report a bug about the wrong one.
+  //
+  // ⚠ The look is passed through, so an entity is drawn as the face its
+  // player chose rather than one picked from the seed (D-574, resolving what
+  // D-559 left open). Null for everything that never chose.
   const visual =
-    inherited ??
-    (useImportedCast()
-      // ⚠ The look is passed through, so an entity is drawn as the face its
-      // player chose rather than one picked from the seed (D-574, resolving
-      // what D-559 left open). Null for everything that never chose.
-      ? new ImportedVisual(appearance, s.scene, wire.appearanceSeed, wire.look,
-        wire.model ?? null)
-      : new CharacterVisual(appearance, s.scene));
+    inherited
+    ?? new ImportedVisual(appearance, s.scene, wire.appearanceSeed, wire.look,
+      wire.model ?? null);
   // Layer 1 is the character/pixel layer the split pass quantises (D-404).
   visual.setRenderLayer(1);
   visual.setPosition(wire.x, wire.y, wire.z);
   visual.setFacing(wire.facing);
-  visual.setPosture(wire.posture);
+  visual.setPosture(wire.posture, wire.seated);
   visual.setPresentation(wire.presentation);
   visual.setCombat(wire.combat);
   applyWorn(visual, wire);
@@ -971,7 +1119,12 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       const posture = event.posture as WireEntity['posture'] | undefined;
       if (posture) {
         e.wire.posture = posture;
-        e.visual.setPosture(posture);
+        // WARN The seat comes from the EVENT (D-615). Taking a chair and the
+        // `*sits*` emote both arrive as `posture: 'sitting'`, so reading the
+        // flag off the entity here would be reading a value this very event is
+        // about to change.
+        e.wire.seated = Boolean(event.seated);
+        e.visual.setPosture(posture, e.wire.seated);
       }
       e.visual.playTransients(event.transients as Parameters<typeof e.visual.playTransients>[0]);
     }
@@ -984,12 +1137,41 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
     }
   } else if (event.type === 'entity_combat') {
     const e = entities.get(event.id as number);
-    if (e && e.visual instanceof CharacterVisual) {
+    // ⚠ BOTH casts. This drives the whole readiness layer — sheathe, draw,
+    // guard stance (D-516, D-565) — and narrowed to the procedural cast it
+    // meant a modelled character never entered combat at all.
+    if (e) {
+      // ⚠ The FLAG is recorded whatever the body is, and only the stance
+      // is a person's. A creature has no readiness layer to swap, but it runs
+      // at the same pace a person does (D-619) and the glide reads this.
       e.wire.combat = event.inCombat as boolean;
-      e.visual.setCombat(e.wire.combat);
+      if (isPerson(e.visual)) e.visual.setCombat(e.wire.combat);
     }
   } else if (event.type === 'entity_attacked') {
     playAttack(event.attackerId as number, event.targetId as number, event.variant as number);
+    // ⚠ A MISS is a result, not an absence (D-606). Zero damage and a blow
+    // that never connected are the same number on the wire and must not be the
+    // same picture: without this a fight where nothing lands looks like a
+    // fight where the server has stopped answering.
+    //
+    // ⚠ Only blows YOU are in. Narrating every swing in a taproom brawl
+    // would bury the speech that matters, and what a bystander is entitled to
+    // is what they can see and hear (D-531), not a combat log of other
+    // people's dice.
+    if (event.attackerId === youId || event.targetId === youId) {
+      const mine = event.attackerId === youId;
+      const other = entities.get((mine ? event.targetId : event.attackerId) as number);
+      const who = other ? other.wire.descriptor : 'something';
+      if (event.critical) {
+        appendSystemLine(mine
+          ? `A perfect stroke — you strike ${who} for ${event.damage}.`
+          : `${who} strikes true, for ${event.damage}.`);
+      } else if (!event.hit) {
+        appendSystemLine(mine
+          ? `You swing at ${who} and miss. (rolled ${event.roll})`
+          : `${who} swings at you and misses. (rolled ${event.roll})`);
+      }
+    }
     // Somebody who has swung at you is somebody you may swing back at without
     // clicking again (D-550). Remembered CLIENT-side and never sent: a wire
     // field saying "this player is hostile" would be the game making an
@@ -1006,7 +1188,9 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
     const e = entities.get(event.id as number);
     if (e) {
       e.wire.lootable = event.lootable as boolean;
-      if (e.visual instanceof CharacterVisual) e.visual.setLootable(e.wire.lootable);
+      // ⚠ BOTH casts, or a modelled corpse never draws the pack that says
+      // it is worth searching (D-554).
+      if (isPerson(e.visual)) e.visual.setLootable(e.wire.lootable);
       else if (e.visual instanceof PileVisual) e.visual.setLootable(e.wire.lootable);
     }
   } else if (event.type === 'entity_worn') {
@@ -1024,7 +1208,7 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       // them here was undoing that.
       // A pile, a node and a station wear nothing — the test excludes what
       // is not a person, rather than picking one of the two casts.
-      if (e.visual instanceof CharacterVisual || e.visual instanceof ImportedVisual) {
+      if (isPerson(e.visual)) {
         applyWorn(e.visual, e.wire);
       }
     }
@@ -1049,7 +1233,7 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       // The fall is watched, not skipped. The entity is removed from the
       // world mirror straight away (the server has already replaced it with
       // a corpse), but its visual lingers just long enough to collapse.
-      if (e.visual instanceof CharacterVisual || e.visual instanceof ImportedVisual) {
+      if (isPerson(e.visual)) {
         // A recent blow shoves the body over; anything else (bleeding out,
         // sickness) simply drops it where it stands.
         const blow = lastBlow.get(event.id as number);
@@ -1077,7 +1261,26 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
  * holding gear. That fallback is what keeps the world looking exactly as it
  * did before equipment was visible, rather than stripping every NPC bare.
  */
-function applyWorn(visual: CharacterVisual | ImportedVisual, wire: WireEntity): void {
+/**
+ * Whether a visual is a PERSON — either cast (D-612).
+ *
+ * ⚠ This exists because `instanceof CharacterVisual` kept being written
+ * where "is this somebody" was meant. `CharacterVisual` is the procedural cast
+ * and `ImportedVisual` is the modelled one (D-559); both implement the same
+ * eighteen members precisely so world code does not have to know which it has,
+ * and every narrowing to one of them silently switched half the game off for
+ * whoever was rendered by the other.
+ *
+ * ⚠ It had already been found and written down once — D-571 records
+ * `entity_worn` doing exactly this — and the comment saying so sits fifteen
+ * lines above two more of them. A rule that has to be remembered at each call
+ * site is not a rule; this is.
+ */
+function isPerson(v: unknown): v is ImportedVisual {
+  return v instanceof ImportedVisual;
+}
+
+function applyWorn(visual: ImportedVisual, wire: WireEntity): void {
   const worn = wire.worn;
   if (!worn) return;
   visual.setEquipment({
@@ -1087,6 +1290,10 @@ function applyWorn(visual: CharacterVisual | ImportedVisual, wire: WireEntity): 
     robe: worn.robe,
     weapon: worn.weapon !== 'none',
     weaponKind: worn.weapon === 'staff' ? 'staff' : 'sword',
+    // ⚠ Which blade, not just that there is one (D-614). The silhouette
+    // says 'sword' for every weapon in the game, so without this the imported
+    // cast had nothing to put in the hand and fought empty-handed.
+    weaponArt: worn.weaponArt,
     // ⚠ The imported cast re-assembles a body out of these (D-571); the
     // procedural one ignores them and draws its generated armour from the
     // flags above. One call, two casts, and `main.ts` still does not know
@@ -1131,7 +1338,8 @@ function placementOf(x: number, y: number): { pan: number; distance: number } {
 /** The sex-specific cry for an entity, read from the appearance it wears. */
 function voiceCue(entityId: number, kind: 'hurt' | 'death'): string | null {
   const e = entities.get(entityId);
-  if (!e || !(e.visual instanceof CharacterVisual)) return null;
+  // ⚠ BOTH casts: a modelled character took a blow in silence.
+  if (!e || !isPerson(e.visual)) return null;
   // Corpses and piles do not cry out; the living and the newly dead do.
   if (e.wire.kind === 'corpse' || e.wire.kind === 'pile') return null;
   const sex = resolveAppearance(e.wire.appearanceSeed, e.wire.appearance).sex;
@@ -1140,7 +1348,12 @@ function voiceCue(entityId: number, kind: 'hurt' | 'death'): string | null {
 
 function playAttack(attackerId: number, targetId: number, variant: number): void {
   const attacker = entities.get(attackerId);
-  if (!attacker || !(attacker.visual instanceof CharacterVisual)) return;
+  // ⚠ BOTH casts, and this is the one that was reported: "the animations
+  // for combat do not play at all". `ImportedVisual.playAttack` has been a
+  // real implementation since D-559 and this line returned before reaching it,
+  // so a modelled character swung at somebody and simply stood there — no
+  // animation, and no sound either, because the sound is below this return.
+  if (!attacker || !isPerson(attacker.visual)) return;
   attacker.visual.playAttack(variant, t);
   const target = entities.get(targetId);
   // Remember which way the blow came from: if this one kills, the body
@@ -1226,7 +1439,7 @@ function appendSpeech(msg: Extract<ServerMessage, { t: 'speech' }>): void {
   }
   line.appendChild(document.createTextNode(': '));
   renderSpeechText(line, msg.text);
-  chatLog.appendChild(line);
+  chatLog.appendChild(stamped(line));
   if (msg.impression) {
     const imp = document.createElement('div');
     imp.className = 'line impression';
@@ -1234,7 +1447,7 @@ function appendSpeech(msg: Extract<ServerMessage, { t: 'speech' }>): void {
       msg.impression === 'certain_false'
         ? 'You are certain that name is not their own.'
         : 'Something about that rings false.';
-    chatLog.appendChild(imp);
+    chatLog.appendChild(stamped(imp));
   }
   trimAndScrollChat();
 }
@@ -1243,8 +1456,8 @@ function appendSystemLine(text: string): void {
   const line = document.createElement('div');
   line.className = 'line system';
   line.textContent = text;
-  chatLog.appendChild(line);
-  trimAndScrollChat();
+  eventLog.appendChild(stamped(line));
+  trimAndScroll(eventLog);
 }
 
 function appendDocument(title: string, text: string): void {
@@ -1257,13 +1470,50 @@ function appendDocument(title: string, text: string): void {
     doc.appendChild(t);
   }
   doc.appendChild(document.createTextNode(text));
-  chatLog.appendChild(doc);
-  trimAndScrollChat();
+  stamped(doc);
+  // ⚠ A letter is something you READ, not something anybody said, so it
+  // belongs with what you notice. Putting a long document into the talk panel
+  // would scroll a conversation away by itself.
+  eventLog.appendChild(doc);
+  trimAndScroll(eventLog);
 }
 
+/**
+ * The in-game time, for stamping a log line (D-612).
+ *
+ * ⚠ The ROUND's compressed clock, not the wall clock. A round runs a game
+ * hour every twenty-five seconds (D-527), so a real timestamp would say the
+ * same minute for the whole round and tell nobody anything. What a player
+ * needs to place an event is the hour the world was at — "it happened just
+ * before dusk" is a thing two people can argue about; "14:52:03" is not.
+ *
+ * ⚠ Minutes are INTERPOLATED from how long the current hour has been
+ * running, the same way the dial's minute hand is. Stamping whole hours would
+ * give twenty-five seconds of identical stamps, which reads as a frozen log.
+ */
+function stampNow(): string {
+  const into = Math.min(0.999, (performance.now() - clockHourChangedAt) / GAME_HOUR_MS);
+  const minute = Math.floor(into * 60);
+  return `${String(clockHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+/** Prefixes a line with the world's time. Every log line gets one. */
+function stamped(line: HTMLElement): HTMLElement {
+  const at = document.createElement('span');
+  at.className = 'at';
+  at.textContent = stampNow();
+  line.prepend(at);
+  return line;
+}
+
+function trimAndScroll(log: HTMLElement): void {
+  while (log.childElementCount > 200) log.firstElementChild!.remove();
+  log.scrollTop = log.scrollHeight;
+}
+
+/** Speech only. Kept as its own name so a new writer has to choose a side. */
 function trimAndScrollChat(): void {
-  while (chatLog.childElementCount > 200) chatLog.firstElementChild!.remove();
-  chatLog.scrollTop = chatLog.scrollHeight;
+  trimAndScroll(chatLog);
 }
 
 function sendChat(): void {
@@ -1762,11 +2012,36 @@ function ensureHighlights(): void {
   selectRing.position.y = 0.025;
   selectRing.visible = false;
   scene.scene.add(selectRing);
+  hoverOutline = new HoverOutline(scene.scene);
+}
+
+/**
+ * The geometry the cursor is over, or null (D-622).
+ *
+ * ⚠ Entities FIRST, scenery second. A chair with somebody sitting in it is
+ * two interactable things on one tile, and the person is what you meant: the
+ * pick already resolves that between entities (D-542), and this keeps the same
+ * answer rather than inventing a second rule.
+ *
+ * ⚠ Scenery is narrowed to SEATS. Every wall, cobble and flower is a placed
+ * asset too, and outlining whatever happens to stand on the hovered tile would
+ * light up the floor of the tavern as the cursor crossed it. The stakeholder's
+ * note is "any the character can directly interact with", and a seat is the
+ * only piece of scenery there is a verb for.
+ */
+function hoverTarget(): THREE.Object3D | null {
+  const entity = hoveredEntityId !== null ? entities.get(hoveredEntityId) : undefined;
+  if (entity) return entity.visual.root;
+  if (!hoveredTile || !worldAssets) return null;
+  const seat = seatNear(hoveredTile.x, hoveredTile.y);
+  if (!seat) return null;
+  return worldAssets.objectAt(seat.x, seat.y);
 }
 
 function updateHighlights(): void {
   ensureHighlights();
   if (!tileHighlight || !hoverRing || !selectRing) return;
+  hoverOutline?.show(hoverTarget());
   const hoveredEnt = hoveredEntityId !== null ? entities.get(hoveredEntityId) : undefined;
   if (hoveredEnt) {
     hoverRing.visible = true;
@@ -1933,6 +2208,34 @@ function showContextMenu(x: number, y: number, entries: MenuEntry[]): void {
   ctxMenu.style.top = `${Math.min(y, window.innerHeight - rect.height - 8)}px`;
 }
 
+/**
+ * The seat nearest a point, if one is close enough to have been meant.
+ *
+ * ⚠ Chairs are area SCENERY, not entities (D-542): thirty-two of them in a
+ * taproom would be thirty-two snapshot entries and a delta stream each. So
+ * there is nothing to hit-test against, and the click is resolved against the
+ * placements the snapshot already carries.
+ *
+ * ⚠ The server checks this again, and its answer is the one that counts
+ * (D-102). This exists so the MENU only offers a sit where there is something
+ * to sit on — an entry that always appears and usually fails is worse than no
+ * entry.
+ */
+function seatNear(x: number, y: number): { x: number; y: number } | null {
+  const a = currentArea;
+  if (!a) return null;
+  let best: { x: number; y: number } | null = null;
+  let away = SEAT_PICK_RADIUS;
+  for (const placed of a.assets ?? []) {
+    if (!placed.seat) continue;
+    const d = Math.hypot(placed.x - x, placed.y - y);
+    if (d > away) continue;
+    away = d;
+    best = { x: placed.x, y: placed.y };
+  }
+  return best;
+}
+
 function menuFor(entityId: number | null, tile: { x: number; y: number } | null): MenuEntry[] {
   const entries: MenuEntry[] = [];
   if (entityId !== null) {
@@ -1980,10 +2283,16 @@ function menuFor(entityId: number | null, tile: { x: number; y: number } | null)
       );
     }
   } else if (tile && tileWalkable(tile.x, tile.y)) {
-    if (tileKind(tile.x, tile.y) === 'chair') {
-      // Walk to the chair, then sit through the normal emote pipeline —
-      // everyone nearby sees the same "*sits down*" they would if typed.
-      entries.push({ label: 'Sit here', act: () => { moveDest = tile; moveAsked = false; pendingSit = tile; } });
+    const seat = seatNear(tile.x, tile.y);
+    if (seat) {
+      // Walk to it, then ask the server to seat us (D-605). It decides where
+      // we end up and which way we face: the chair's own rotation is the only
+      // thing that knows which way is forward for it, and a sit taken facing
+      // the way we happened to arrive plays into the backrest.
+      entries.push({
+        label: 'Sit here',
+        act: () => { moveDest = { x: seat.x, y: seat.y }; moveAsked = false; pendingSit = seat; },
+      });
     }
     entries.push({ label: `Walk here (${tile.x}, ${tile.y})`, act: () => { moveDest = tile; moveAsked = false; pendingSit = null; } });
   }
@@ -2276,21 +2585,9 @@ function characterBook(): {
 interface GraphicsSettings {
   /** Walls between the camera and you go stippled (D-542). */
   seeThrough: boolean;
-  /**
-   * Which cast the world is drawn with (D-559).
-   *
-   * `procedural` is D-402's generate-from-a-seed rig and remains the
-   * shipping default: it is the one that renders every appearance the server
-   * can describe, wears equipment, and raises a hood. `imported` swaps in
-   * the built Synty models so the art can be judged IN the game — which is
-   * what D-555 left to the stakeholder and could not be judged from a
-   * viewer.
-   */
-  cast: 'procedural' | 'imported';
 }
 
 const GRAPHICS_DEFAULTS: GraphicsSettings = {
-  cast: 'procedural',
   seeThrough: true,
 };
 
@@ -2308,14 +2605,15 @@ function loadGraphics(): GraphicsSettings {
 const graphics = loadGraphics();
 
 /**
- * Is the imported cast both wanted and BUILT?
+ * Are the models BUILT?
  *
- * Both halves matter. A client served a `models/` directory that nobody has
- * run `build:characters` for must fall back rather than draw nothing, and a
- * setting saved in localStorage outlives the models it refers to.
+ * ⚠ There is no longer a second cast to fall back to (D-617), so this is
+ * now the difference between drawing people and drawing nothing. A checkout
+ * where `build:characters` has not run has no bodies at all, and saying so is
+ * the only useful thing the client can do about it.
  */
 function useImportedCast(): boolean {
-  return graphics.cast === 'imported' && importedModels.available();
+  return importedModels.available();
 }
 
 /**
@@ -2347,23 +2645,16 @@ function applyGraphics(): void {
 }
 
 function syncSettingsUi(): void {
-  $<HTMLSelectElement>('set-cast').value = graphics.cast;
-  // Say WHY it is unavailable rather than offering a control that does
-  // nothing: nobody can tell a broken toggle from an unbuilt one.
+  // ⚠ Says whether the bodies exist, since there is no second cast to fall
+  // back to any more (D-617). An unbuilt checkout draws no people at all, and
+  // the only useful thing the client can do is say so rather than leave
+  // somebody wondering why the tavern is empty.
   const built = importedModels.available();
-  $<HTMLSelectElement>('set-cast').disabled = !built;
   $('cast-note').textContent = built
     ? 'Imported models ignore hoods and equipment — see the note in DECISIONS D-559.'
     : 'No imported models built. Run npm run build:characters.';
   $<HTMLInputElement>('set-seethrough').checked = graphics.seeThrough;
 }
-
-$<HTMLSelectElement>('set-cast').addEventListener('change', (e) => {
-  graphics.cast = (e.target as HTMLSelectElement).value as GraphicsSettings['cast'];
-  applyGraphics();
-  rebuildCast();
-  syncSettingsUi();
-});
 
 $('btn-settings').addEventListener('click', () => {
   $('settings').classList.toggle('hidden');
@@ -2413,7 +2704,12 @@ interface Bubble {
 
 let effects: CombatEffects | null = null;
 /** Bolts released partway through a cast, not at the moment of the message. */
-const pendingBolts: { at: number; from: THREE.Vector3; to: THREE.Vector3; visual: CharacterVisual }[] = [];
+// ⚠ Either cast (D-612). `weaponMuzzle` is implemented by both, and typing
+// this to the procedural one is what stopped a modelled caster's bolt.
+const pendingBolts: {
+  at: number; from: THREE.Vector3; to: THREE.Vector3;
+  visual: ImportedVisual;
+}[] = [];
 /** Melee impact sprays, timed to when the blade actually arrives. */
 const pendingImpacts: { at: number; at3: THREE.Vector3 }[] = [];
 /** Visuals kept alive past their entity so the collapse can finish. */
@@ -2427,14 +2723,14 @@ const pendingImpacts: { at: number; at3: THREE.Vector3 }[] = [];
  * different body appear on top of it in a tidy pose, which is exactly the
  * "switches from a ragdoll into a static model" the stakeholder reported.
  */
-const dyingVisuals: { visual: CharacterVisual | ImportedVisual; until: number; x: number; y: number }[] = [];
+const dyingVisuals: { visual: ImportedVisual; until: number; x: number; y: number }[] = [];
 
 /**
  * Claims the ragdoll of something that just died on this tile, if there is
  * one. Returns null when the death was not witnessed — a corpse found later
  * is already down, and must not flop over as you walk up to it.
  */
-function adoptDyingVisual(x: number, y: number): CharacterVisual | ImportedVisual | null {
+function adoptDyingVisual(x: number, y: number): ImportedVisual | null {
   for (let i = 0; i < dyingVisuals.length; i++) {
     const d = dyingVisuals[i]!;
     // Within a tile: the corpse is spawned where the entity fell, but
@@ -2540,7 +2836,9 @@ function stepFrame(dt: number): void {
   for (const e of entities.values()) {
     const target = { x: e.wire.x, y: e.wire.y };
     const moving = isMoving(e.render, target, now);
-    stepToward(e.render, target, dt);
+    // ⚠ Glide at the pace the SERVER is moving them (D-619). A body with
+    // its weapon up runs, and a walk-paced glide would trail it.
+    stepToward(e.render, target, dt, e.wire.combat ? RUN_SECONDS : TILE_SECONDS);
     // ⚠ Height comes straight from the wire, NOT interpolated with x and y.
     // A stair's treads are a series of small steps and easing between them
     // makes a character wade through the stone; arriving at each tread is what
@@ -2549,7 +2847,8 @@ function stepFrame(dt: number): void {
     // Corpses animate too — their "animation" is the held prone pose, which
     // still has to be written to the bones every frame.
     e.visual.update(dt, t, moving, wind);
-    if (e.visual instanceof CharacterVisual && e.wire.carriedBy !== null) {
+    // ⚠ BOTH casts, or a modelled body being carried drags along the floor.
+    if (isPerson(e.visual) && e.wire.carriedBy !== null) {
       // Slung: lifted off the ground and riding at the carrier's shoulder.
       e.visual.root.position.y += 0.95;
     }
@@ -2586,14 +2885,28 @@ function stepFrame(dt: number): void {
     renderCompass();
     renderClock();
     $('hud-conn').textContent = conn.open ? '' : 'connection lost';
-    // Arrived on the chosen chair: sit through the emote pipeline, once.
-    if (pendingSit && you.wire.x === pendingSit.x && you.wire.y === pendingSit.y
+    // Close enough to the chosen chair, and stopped: ask to sit.
+    //
+    // ⚠ A DISTANCE, not an equality. This compared the wire position against
+    // the clicked tile exactly — and positions have been metres since D-567
+    // while tiles are integers, so arriving on `12.03, 7.98` never matched
+    // `12, 8` and the sit simply never fired. That is what "sitting is not in
+    // the game properly" was.
+    if (pendingSit
+      && Math.hypot(you.wire.x - pendingSit.x, you.wire.y - pendingSit.y) <= SEAT_REACH
       && !isMoving(you.render, { x: you.wire.x, y: you.wire.y }, performance.now())) {
+      const seat = pendingSit;
       pendingSit = null;
-      conn.send({ t: 'say', channel: 'say', text: '*sits down*' });
+      conn.send({ t: 'sit', x: seat.x, y: seat.y });
     }
   }
 
+  // ⚠ LAST, and after everything that poses a body (D-622). The outline
+  // copies world matrices off the meshes it wraps; reading them before the
+  // mixers have run this frame trails a running character by a whole frame,
+  // which at four metres a second is a visible double image.
+  scene.scene.updateMatrixWorld(true);
+  hoverOutline?.update();
   // Split mode (D-404): characters through the quantiser, world crisp.
   scene.render();
 }
@@ -2712,11 +3025,44 @@ declare global {
       assets: () => { placed: number; drawn: number };
       /** Which cast is drawn, and what each entity actually got (D-559). */
       cast: () => {
-        setting: string;
         modelsBuilt: boolean;
-        active: 'procedural' | 'imported';
         visuals: string[];
       };
+      /**
+       * What an entity is actually holding, measured off the scene graph
+       * (D-614).
+       *
+       * ⚠ Verification, not a feature. "Is the sword drawn" is a question
+       * about the scene graph, and the only honest way to answer it is to walk
+       * it: the wire can say `weaponArt`, the grip can resolve, the mesh can
+       * load, and the thing can still end up parented to nothing. This reports
+       * whether an object hangs off the hand and where it is in the world.
+       */
+      /**
+       * What a character's body is MADE OF (D-616).
+       *
+       * The hood is a part swap, so "is the hood up" is a question about
+       * which meshes the assembly contains. A probe that only asked whether a
+       * method had been called would pass against the empty stub this
+       * replaced.
+       */
+      body: (id?: number) => {
+        cast: string;
+        meshes: { name: string; verts: number }[];
+        /** The clip playing right now. */
+        clip: string;
+      } | null;
+      weapon: (id?: number) => {
+        cast: string;
+        wire: string | null;
+        drawn: boolean;
+        at: [number, number, number] | null;
+        bone: string | null;
+        boneAt: [number, number, number] | null;
+        boneScale: number | null;
+        /** Metres between the grip and the bone. A hilt is at the fist. */
+        gap: number | null;
+      } | null;
       step: (dt: number) => void;
       entities: () => { id: number; x: number; y: number; rx: number; ry: number }[];
       you: () => number | null;
@@ -2789,20 +3135,73 @@ window.__rc = {
       movingFlips: flips,
       postureChanges: postures,
       facingChanges: facings,
-      cast: graphics.cast,
     };
   },
   assets: () => ({
     placed: currentArea?.assets.length ?? 0,
     drawn: worldAssets?.drawn ?? 0,
   }),
-  // Two figures at isometric distance are hard to tell apart by eye, and the
-  // whole point of the toggle is that somebody can tell. This reports what
-  // was actually constructed rather than what was asked for.
+  body: (id?: number) => {
+    const target = id ?? youId;
+    if (target === null) return null;
+    const e = entities.get(target);
+    if (!e || !isPerson(e.visual)) return null;
+    const meshes: { name: string; verts: number }[] = [];
+    e.visual.root.traverse((o) => {
+      const m = o as THREE.SkinnedMesh;
+      if (!m.isSkinnedMesh) return;
+      meshes.push({ name: m.name, verts: m.geometry.getAttribute('position')?.count ?? 0 });
+    });
+    const clip = 'playing' in e.visual ? (e.visual as { playing: string }).playing : '';
+    return { cast: e.visual.constructor.name, meshes, clip };
+  },
+  weapon: (id?: number) => {
+    const target = id ?? youId;
+    if (target === null) return null;
+    const e = entities.get(target);
+    if (!e || !isPerson(e.visual)) return null;
+    // ⚠ Both casts hold a weapon differently, and a probe that knew only
+    // one would report the other as unarmed. The IMPORTED cast parents a pack
+    // mesh to a hand bone; the PROCEDURAL cast generates a blade and places it
+    // between anchors each frame, so it hangs off the root under its own name.
+    // Looking only for the first shape reported the procedural cast as
+    // carrying nothing, which is false and would have sent me hunting a bug
+    // that was not there.
+    let found: THREE.Object3D | null = null;
+    e.visual.root.traverse((o) => {
+      if (found) return;
+      if ((o as THREE.Bone).isBone) return;
+      if (/^(sword|staff)$/i.test(o.name)) { found = o; return; }
+      const parent = o.parent;
+      if (!parent) return;
+      if (!/^(Hand_[LR]|hand_[lr]|prop_r|lowerarm_[lr])$/i.test(parent.name)) return;
+      found = o;
+    });
+    const at = new THREE.Vector3();
+    if (found) (found as THREE.Object3D).getWorldPosition(at);
+    // The bone it should be ON, so "drawn" can be checked against "drawn in
+    // the right place" — a sword a metre from the fist is still `drawn`.
+    const bone = (found as THREE.Object3D | null)?.parent ?? null;
+    const boneAt = new THREE.Vector3();
+    const boneScale = new THREE.Vector3();
+    if (bone) { bone.getWorldPosition(boneAt); bone.getWorldScale(boneScale); }
+    return {
+      cast: e.visual.constructor.name,
+      wire: e.wire.worn?.weaponArt ?? null,
+      drawn: found !== null,
+      at: found ? [at.x, at.y, at.z] : null,
+      bone: bone ? bone.name : null,
+      boneAt: bone ? [boneAt.x, boneAt.y, boneAt.z] : null,
+      boneScale: bone ? boneScale.x : null,
+      gap: bone && found ? at.distanceTo(boneAt) : null,
+    };
+  },
+  // ⚠ Still reports what was actually CONSTRUCTED rather than what was
+  // asked for. There is one cast now, so the useful question changed from
+  // "which one is drawn" to "did anything get drawn at all" — an unbuilt
+  // models directory leaves the world peopled by nothing.
   cast: () => ({
-    setting: graphics.cast,
     modelsBuilt: importedModels.available(),
-    active: useImportedCast() ? ('imported' as const) : ('procedural' as const),
     visuals: [...entities.values()].map((e) => e.visual.constructor.name),
   }),
   step: stepFrame,

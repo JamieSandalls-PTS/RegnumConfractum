@@ -162,7 +162,8 @@ function build(root: THREE.Group, type: CoreStationType, rnd: Rnd): void {
 }
 
 export class StationVisual {
-  private readonly root = new THREE.Group();
+  /** ⚠ Public so the hover outline can be built around it (D-622). */
+  readonly root = new THREE.Group();
   private disposed = false;
 
   constructor(

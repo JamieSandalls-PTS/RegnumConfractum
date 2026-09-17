@@ -51,6 +51,42 @@ export function formatPhase(state: RoundState): string {
 }
 
 /**
+ * What the lobby panel says, and whether its controls can do anything
+ * (D-607). Pure, so the one rule that matters here is testable: the panel is
+ * for getting a round STARTED, and a running round must not offer it.
+ *
+ * ⚠ It reports the bot COUNT and never which members of the cast they are.
+ * A bot can be dealt the objective exactly as a player can, so a line naming
+ * them would be the round handing itself away (D-521).
+ */
+export function formatLobby(state: RoundState): {
+  show: boolean;
+  note: string;
+  canAdd: boolean;
+  canClear: boolean;
+} {
+  if (!state.botsAllowed || state.phase === 'running') {
+    return { show: false, note: '', canAdd: false, canClear: false };
+  }
+  const short = Math.max(0, state.minCast - state.cast);
+  const made = state.bots === 1 ? '1 is a bot' : `${state.bots} are bots`;
+  const note = state.phase === 'resolved'
+    ? `The round is over. ${state.cast} still here${state.bots > 0 ? `, ${made}` : ''}.`
+    : short > 0
+      ? `${state.cast} of ${state.minCast}. ${short} more and it can begin.`
+      : `${state.cast} here${state.bots > 0 ? `, ${made}` : ''}. It begins in a moment.`;
+  return { show: true, note, canAdd: true, canClear: state.bots > 0 };
+}
+
+/**
+ * How many bots to ask for when filling the cast: enough to reach the
+ * minimum, and at least one so the button is never a no-op.
+ */
+export function botsToFill(state: RoundState): number {
+  return Math.max(1, state.minCast - state.cast);
+}
+
+/**
  * The ending, in words. Deliberately descriptive and never congratulatory:
  * a round ENDS, it does not grade (D-303, D-521). Nobody is told they were
  * right about anyone.
@@ -82,12 +118,28 @@ export interface RoundHudElements {
   ending: HTMLElement;
   endingTitle: HTMLElement;
   endingBody: HTMLElement;
+  lobby: HTMLElement;
+  lobbyNote: HTMLElement;
+  botAdd: HTMLButtonElement;
+  botFill: HTMLButtonElement;
+  botClear: HTMLButtonElement;
 }
 
 export class RoundHud {
   private role: RoundRole | null = null;
+  private state: RoundState | null = null;
 
-  constructor(private el: RoundHudElements) {}
+  constructor(
+    private el: RoundHudElements,
+    /** Sends a wire message. Absent in tests, which drive the pure half. */
+    private send?: (msg: { t: 'add_bots'; count: number } | { t: 'remove_bots' }) => void,
+  ) {
+    el.botAdd.addEventListener('click', () => this.send?.({ t: 'add_bots', count: 1 }));
+    el.botFill.addEventListener('click', () => {
+      if (this.state) this.send?.({ t: 'add_bots', count: botsToFill(this.state) });
+    });
+    el.botClear.addEventListener('click', () => this.send?.({ t: 'remove_bots' }));
+  }
 
   /** Clears everything — used when a round resets, so nothing carries over. */
   reset(): void {
@@ -99,12 +151,19 @@ export class RoundHud {
   }
 
   onState(state: RoundState): void {
+    this.state = state;
     this.el.root.classList.remove('hidden');
     this.el.phase.textContent = formatPhase(state);
     this.el.clock.textContent = state.phase === 'running' ? formatClock(state.hour, state.night) : '';
     this.el.cast.textContent = state.phase === 'running' ? `${state.cast} in the round` : '';
     this.el.root.classList.toggle('night', state.phase === 'running' && state.night);
     this.el.root.classList.toggle('grace', state.phase === 'running' && state.graceTicks > 0);
+    const lobby = formatLobby(state);
+    this.el.lobby.classList.toggle('hidden', !lobby.show);
+    this.el.lobbyNote.textContent = lobby.note;
+    this.el.botAdd.disabled = !lobby.canAdd;
+    this.el.botFill.disabled = !lobby.canAdd;
+    this.el.botClear.disabled = !lobby.canClear;
     // A new round clears the last one's reveal; the objective card is
     // rebuilt from round_role rather than surviving the reset.
     if (state.phase === 'lobby') this.reset();

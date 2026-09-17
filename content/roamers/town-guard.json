@@ -1,15 +1,16 @@
 {
   "id": "town-guard",
+  "character": "ashfold-guard",
   "descriptor": "a watchman of Ashfold in a battered helm",
-  "hp": 22,
-  "damageMin": 3,
-  "damageMax": 6,
+  "hp": 30,
+  "damageMin": 4,
+  "damageMax": 9,
   "aggroMetres": 20,
   "attackCooldownTicks": 14,
-  "moveCooldownTicks": 4,
+  "moveCooldownTicks": 2,
   "perArea": 4,
   "habitat": "guard",
   "xp": 0,
   "loot": [],
-  "notes": "The watch (D-552). Present all round in settled areas, day and night, and the ONLY roamer that does not hunt on sight - it walks its round until it witnesses something, and then it goes after whoever did it. xp is deliberately ZERO: paying for a guard kill would make murdering the watch a farming strategy, and at a cast of three that is a better xp rate than the dungeon. It carries no loot for the same reason. Tough enough that one player alone should not want the fight and two probably win it - which is the intended shape, because the answer to the watch is not to be seen. UNRATIFIED. ⚠ Deliberately drawn from the appearance seed (D-594): the watch are PEOPLE, and a guard who looked identical to every other guard would be a uniform rather than a person — D-552 wants \"the guards saw you\" to be a someone. The seed gives each one a different townsman."
+  "notes": "The watch (D-552). Present all round in settled areas, day and night, and the ONLY roamer that does not hunt on sight - it walks its round until it witnesses something, and then it goes after whoever did it. xp is deliberately ZERO: paying for a guard kill would make murdering the watch a farming strategy, and at a cast of three that is a better xp rate than the dungeon. It carries no loot for the same reason. Tough enough that one player alone should not want the fight and two probably win it - which is the intended shape, because the answer to the watch is not to be seen. UNRATIFIED. ⚠ Deliberately drawn from the appearance seed (D-594): the watch are PEOPLE, and a guard who looked identical to every other guard would be a uniform rather than a person — D-552 wants \"the guards saw you\" to be a someone. The seed gives each one a different townsman. ⚠ RE-TUNED (D-619), unratified, against the stakeholder's note that combat at level 1 is over in seconds because the watch does not engage. THREE numbers moved and only one of them is damage. `moveCooldownTicks` 4 -> 2 is the important one: a roamer's step is one metre of route laid down every `moveCooldownTicks`, so 4 capped a guard at 2.5 m/s no matter how fast it could move -- slower than a walking player, so the watch could never catch anybody who simply left. At 2 the cap is above its own speed and the guard moves at whatever `speedFor` gives it, which while it is hunting is a run. Damage 3-6 -> 4-9 and hp 22 -> 30 make the arrival matter once it happens; the reach of the change is bounded by the fact that a guard still has to WITNESS something first (D-552, D-217), so none of it touches a player who was not seen."
 }

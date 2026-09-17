@@ -6,6 +6,8 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import {
   ACTION_GROUPS,
   ANIMATION_LAYERS,
+  BOT_ROLES,
+  type BotDef,
   type GarmentDef,
   mirrorGarmentParts,
   type RecipeDef,
@@ -35,6 +37,7 @@ import {
   BODY_SLOTS,
   CHARACTER_SLOTS,
   CREATION_SLOTS,
+  type CharacterDef,
   type CharacterSex,
   type CharacterSlot,
   type CreationSlot,
@@ -125,6 +128,66 @@ let shown: THREE.Object3D | null = null;
 let texture: THREE.Texture | null = null;
 let previewToken = 0;
 
+/**
+ * The ONE place anything being looked at hangs.
+ *
+ * ⚠ Structural, because the same bug has now been reported three times and
+ * patching the call site is what let it come back. Every preview used to add
+ * straight to the scene and remove its OWN object, and with two owners
+ * (`shown` and `creaturePreview`) that is four places to forget: switch to a
+ * different tab, pick something there, and the previous tab's model is still
+ * standing in the middle of it. D-570 was this in the garment editor
+ * ("selecting a garment did not show it"); D-594 was this with a player's head
+ * inside every roamer; the stakeholder has now reported it across tabs.
+ *
+ * So there is nowhere else to put anything. Nothing is added to `scene.scene`
+ * after boot, and a new preview CANNOT forget to clear the old one.
+ *
+ * The ground stays on the scene: it is the floor, not something being judged.
+ */
+const mount = new THREE.Group();
+scene.scene.add(mount);
+
+/**
+ * How to put back what a tab was looking at.
+ *
+ * ⚠ Clearing on a tab change is only half the fix. Empty is honest, but a
+ * tab that forgets its own selection the moment you glance at another one is
+ * the same complaint in a politer form. The asset tabs and the animation tab
+ * already re-show themselves when they load; these two did not.
+ *
+ * A thunk rather than the arguments, because the tabs frame, assemble and
+ * texture their subjects completely differently — the parts tab swaps a torso
+ * INTO a mannequin, the race tab hangs one under a head of the chosen cut —
+ * and reconstructing that from a stem at restore time is how the two drift.
+ */
+const stageRestore = new Map<string, () => void>();
+
+/** Take everything off the stage, whoever put it there. */
+function clearStage(): void {
+  mount.clear();
+  // ⚠ The caption goes too. Leaving it up is a smaller version of the same
+  // bug — an empty stage still labelled `skeleton-knight` reads as a model
+  // that failed to draw rather than as one that was put away. Every preview
+  // sets it again as its first act.
+  banner('');
+  shown = null;
+  creaturePreview = null;
+  creatureMixer = null;
+  // ⚠ The creature tab caches what it has already loaded so re-rendering the
+  // form does not re-fetch a body. Clearing the stage and not that cache makes
+  // the cache a lie, and the symptom is the INVERSE of this bug: come back to
+  // the tab and the stage is empty, because it believes the creature is
+  // already standing there.
+  creatureShown = undefined;
+  sheetMixers = [];
+  // ⚠ `attachBody`, `bodyMixer` and `attachedItem` deliberately survive.
+  // The body is a cache that costs eleven part loads to rebuild, and the item
+  // is parented to one of its BONES rather than to the stage — dropping the
+  // reference here would leave the last weapon in the mannequin's hand for
+  // good, which is the accumulation the note in `showAsset` describes.
+}
+
 /* ------------------------------------------------------------------ state */
 
 interface CatalogueEntry {
@@ -141,7 +204,7 @@ let pack = '';
 let catalogue: Catalogue = { slots: {}, textures: [] };
 let names: PartNames = { pack: '', names: {}, tags: {} };
 let races: RaceDef[] = [];
-let tab: 'parts' | 'races' | 'animations' | 'unfiled' | AssetKind = 'parts';
+let tab: 'parts' | 'races' | 'animations' | 'enemies' | 'unfiled' | AssetKind = 'parts';
 
 /** Which slot the naming tab is showing, and which part is previewed. */
 let namingSlot: CharacterSlot = 'head';
@@ -192,8 +255,7 @@ async function preview(stems: readonly string[]): Promise<void> {
   const token = ++previewToken;
   const wanted = stems.filter(Boolean);
   if (wanted.length === 0) {
-    if (shown) scene.scene.remove(shown);
-    shown = null;
+    clearStage();
     banner('nothing to show');
     return;
   }
@@ -216,7 +278,7 @@ async function preview(stems: readonly string[]): Promise<void> {
     banner(`cannot assemble: ${(e as Error).message}`);
     return;
   }
-  if (shown) scene.scene.remove(shown);
+  clearStage();
   built.group.scale.setScalar(0.01);
   built.group.updateMatrixWorld(true);
   built.group.traverse((o) => {
@@ -229,7 +291,7 @@ async function preview(stems: readonly string[]): Promise<void> {
       mat.needsUpdate = true;
     }
   });
-  scene.scene.add(built.group);
+  mount.add(built.group);
   shown = built.group;
   // The part being JUDGED, not the scaffolding it is standing in. Listing
   // eleven stems tells you nothing and hides the one that matters.
@@ -469,6 +531,14 @@ function renderPartsSide(): void {
     <h2>Base body</h2>
     <button id="btn-base">Measure bare skin in this slot</button>
     <div id="base-note" class="hint" style="border:0;padding-top:6px;margin-top:2px"></div>
+    <h2>The hood</h2>
+    <select id="in-hood"></select>
+    <div class="hint" style="border:0;padding-top:6px;margin-top:2px">
+      Which head covering D-219's <b>hooded</b> presentation wears. It is not
+      equipment and never will be: a hood is what a stranger is DESCRIBED as
+      wearing, and it drops in view to merge two recognition threads. Choosing
+      it here rather than in code is the same rule as everything else in this
+      tool &mdash; the art stays out of git, the decision goes in.</div>
     <h2>Save</h2>
     <button id="btn-save" class="primary">Save names</button>
     <div id="problems"></div>
@@ -477,6 +547,7 @@ function renderPartsSide(): void {
       what a player is told it is called goes in.</div>`;
   host.appendChild(box);
 
+  renderHoodPicker();
   const packSel = $('in-pack') as HTMLSelectElement;
   for (const p of packList) packSel.add(new Option(p, p));
   packSel.value = pack;
@@ -525,6 +596,7 @@ function renderPartsSide(): void {
 
 /** Preview one part, worn where it belongs so it can be judged in place. */
 function showPart(stem: string): void {
+  stageRestore.set('parts', () => showPart(stem));
   previewed = stem;
   let wanted: string[];
   if (namingSlot === 'head' || namingSlot === 'helmet') {
@@ -631,6 +703,79 @@ async function measureBareness(): Promise<void> {
   markDirty();
   status(`${sure} certainly bare in ${namingSlot}.${hint}`, 'good');
   render();
+}
+
+/**
+ * Which part the hood wears, and a picker to change it (D-623).
+ *
+ * ⚠ A TAG, not a filename in the renderer. `hoodStem()` scans for the part
+ * tagged `hood` (D-616), which was the right shape and had no way to be set:
+ * the tag was typed into `content/parts/` by hand, so "the model for the hood
+ * is incorrect" was a bug nobody could fix without editing JSON.
+ *
+ * ⚠ Exactly one part may carry it. Setting a new hood CLEARS the old one in
+ * the same action rather than leaving two and letting `hoodStem` return
+ * whichever it reaches first -- an ordering-dependent answer that is stable
+ * until somebody renames a part.
+ */
+function taggedHood(): string | null {
+  for (const [stem, tags] of Object.entries(names.tags)) {
+    if (tags.includes('hood')) return stem;
+  }
+  return null;
+}
+
+function setHood(stem: string | null): void {
+  for (const [other, tags] of Object.entries(names.tags)) {
+    if (!tags.includes('hood')) continue;
+    const left = tags.filter((t) => t !== 'hood');
+    if (left.length) names.tags[other] = left;
+    else delete names.tags[other];
+  }
+  if (stem) names.tags[stem] = [...new Set([...(names.tags[stem] ?? []), 'hood'])];
+  markDirty();
+}
+
+/**
+ * Fills the hood picker.
+ *
+ * ⚠ Every head covering in the pack, by the name a PERSON gave it. Twenty-
+ * eight of them here, and the file stems say `HeadCoverings_No_Hair_03` while
+ * the names say "Brown hood 3" -- a picker showing stems would be asking
+ * somebody to choose a hood by inventory number.
+ */
+function renderHoodPicker(): void {
+  const sel = document.getElementById('in-hood') as HTMLSelectElement | null;
+  if (!sel) return;
+  sel.replaceChildren();
+  sel.add(new Option('(no hood \u2014 the mechanic renders nothing)', ''));
+  const options = [
+    ...optionsFor('headCovering', 'male'),
+    ...optionsFor('headCovering', 'female'),
+  ];
+  const seen = new Set<string>();
+  for (const option of options) {
+    if (seen.has(option.stem)) continue;
+    seen.add(option.stem);
+    const label = names.names[option.stem] ?? option.stem.replace(/^SK_Chr_/, '');
+    sel.add(new Option(label, option.stem));
+  }
+  const current = taggedHood();
+  // ⚠ A tag pointing at a part this pack does not ship still SHOWS, rather
+  // than silently resetting to none: somebody switching packs should see what
+  // was chosen, not have the tool quietly discard it.
+  if (current && !seen.has(current)) {
+    sel.add(new Option(`${current} (not in this pack)`, current));
+  }
+  sel.value = current ?? '';
+  sel.onchange = () => {
+    setHood(sel.value || null);
+    if (sel.value) {
+      namingSlot = 'headCovering';
+      showPart(sel.value);
+    }
+    render();
+  };
 }
 
 function isBase(stem: string): boolean {
@@ -753,6 +898,7 @@ function renderRacesList(): void {
 }
 
 function showRaceFace(slot: CharacterSlot, stem: string): void {
+  stageRestore.set('races', () => showRaceFace(slot, stem));
   previewed = stem;
   frameFor(slot);
   // Below the neck a part is judged on a body, exactly as in the naming tab:
@@ -1108,6 +1254,9 @@ function render(): void {
   } else if (tab === 'animations') {
     renderAnimationsList();
     renderAnimationsSide();
+  } else if (tab === 'enemies') {
+    renderEnemyList();
+    renderEnemySide();
   } else {
     renderAssetList();
     renderAssetSide();
@@ -1152,6 +1301,7 @@ async function boot(): Promise<void> {
   }
   packList = found.map((p) => p.id);
   await loadRaces();
+  await loadEnemies();
   await loadPack(packList[0]!);
 
   assetPacks = await loadAssetPacks();
@@ -1165,11 +1315,19 @@ async function boot(): Promise<void> {
     b.addEventListener('click', () => {
       const next = ((b as HTMLElement).dataset.tab as typeof tab) ?? 'parts';
       tab = next;
+      // A tab shows what THIS tab has selected, or nothing. Leaving the last
+      // tab's model up while the new tab loads is how a stale body comes to be
+      // standing beside — or inside — the thing being judged.
+      clearStage();
       if (next === 'animations') {
         void loadAnimations().then(() => {
           void showAnimationBody();
           render();
         });
+        return;
+      }
+      if (next === 'enemies') {
+        void enterEnemies();
         return;
       }
       if (next !== 'parts' && next !== 'races') {
@@ -1179,6 +1337,7 @@ async function boot(): Promise<void> {
         return;
       }
       render();
+      stageRestore.get(next)?.();
     });
   }
   // Leaving with work unsaved is the one mistake this tool can make that
@@ -1481,6 +1640,11 @@ function assetKind(): AssetKind {
 
 /** Which shelf the active tab shows. */
 function assetShelf(): MeshShelf {
+  // ⚠ The Enemies tab shows the 'character' shelf, whose name it does not
+  // share (D-613). Without this the tab asked for a shelf called 'enemies',
+  // matched nothing, and showed an empty list -- which is indistinguishable
+  // from a pack that genuinely has no whole bodies in it.
+  if (tab === 'enemies') return 'character';
   return tab === 'unfiled' ? 'unfiled' : (tab as MeshShelf);
 }
 
@@ -1527,15 +1691,26 @@ let loadedAssetTexture = '';
 async function loadAssetPack(id: string): Promise<void> {
   assetPack = id;
   assetCat = await loadAssetCatalogue(id);
-  assetFile = await loadAssets(id, assetKind());
+  // ⚠ Enemies have no asset FILE. They are character definitions in
+  // `content/characters/`, not entries in `content/assets/<pack>.<kind>.json`
+  // (D-594), so asking for an asset file of kind 'enemies' would be a request
+  // for a document that cannot exist.
+  const enemies = tab === 'enemies';
+  assetFile = enemies ? null : await loadAssets(id, assetKind());
   assetSel = '';
   render();
   const first = assetCat.meshes.find((m) => m.shelf === assetShelf());
-  if (first) void showAsset(first.stem);
+  if (!first) return;
+  if (enemies) void showEnemy(first.stem);
+  else void showAsset(first.stem);
 }
 
 async function showAsset(stem: string): Promise<void> {
   assetSel = stem;
+  // ⚠ Only from the CORE tabs. `showItem` calls this from the items section,
+  // where the stage belongs to an item rather than to a tab — recording that
+  // here would make a sword come back under the Environment heading.
+  if (section === 'core') stageRestore.set(tab, () => void showAsset(stem));
   const token = ++previewToken;
   banner('loading…');
   let object: THREE.Object3D;
@@ -1556,7 +1731,7 @@ async function showAsset(stem: string): Promise<void> {
   const scale =
     asset && 'transform' in asset ? asset.transform.scale : guessScale(assetSize);
 
-  if (shown) scene.scene.remove(shown);
+  clearStage();
   const holder = new THREE.Group();
   object.traverse((o) => {
     o.castShadow = true;
@@ -1613,7 +1788,7 @@ async function showAsset(stem: string): Promise<void> {
     holder.add(object);
     holder.position.set(0, assetKind() === 'character-item' ? 1.1 : 0, 0);
   }
-  scene.scene.add(holder);
+  mount.add(holder);
   shown = holder;
   // ⚠ Kept so a recolour can find the ITEM rather than guessing which meshes
   // are it. Comparing `material.map` against the module's texture looked
@@ -1650,6 +1825,329 @@ async function showAsset(stem: string): Promise<void> {
   zoom = Math.min(2, Math.max(0.05, (need / perZoom) * 1.25));
   scene.setOrbitHeight(orbitH);
   banner(`${stem}  ·  ${(metres * 100).toFixed(0)}cm as placed`);
+  render();
+}
+
+// ---------------------------------------------------------------------------
+// Enemies: whole-body characters (D-613)
+//
+// ⚠ A separate tab because they are a different SHAPE of content, not a
+// different subject. A modular character is an assembly of part files chosen
+// slot by slot (D-560); one of these is a single rigged FBX that IS the body.
+// `CharacterDefSchema` has said so since D-594 -- "this is how enemies get
+// in" -- and no tool ever showed the field, so the seventeen finished people
+// in the packs (six goblins, four skeletons, two ghosts, a rock golem, a
+// tormented soul) could not be found, named or previewed by anybody.
+// Reported as "the Goblin meshes do not show up in that tool".
+//
+// ⚠ `meshShelf` has classified them as 'character' since D-595 and the tool
+// simply had no tab for that shelf. The classifier was right; the menu was one
+// entry short.
+// ---------------------------------------------------------------------------
+
+/** Saved definitions from `content/characters/`, keyed by id. */
+let enemyDefs = new Map<string, CharacterDef>();
+/** The mesh whose row is selected, so the side pane knows what it is editing. */
+let enemySel = '';
+
+async function loadEnemies(): Promise<void> {
+  const list = (await (await fetch(`${API}/characters`)).json()) as CharacterDef[];
+  enemyDefs = new Map(list.map((d) => [d.id, d]));
+}
+
+/** The definition that names this mesh, if one does. */
+function enemyFor(packId: string, mesh: string): CharacterDef | undefined {
+  for (const def of enemyDefs.values()) {
+    if (def.mesh === mesh && def.pack === packId) return def;
+  }
+  return undefined;
+}
+
+/**
+ * An id from a name: lower case, dashes, nothing else.
+ *
+ * ⚠ The id is the OUTPUT FILENAME, so two characters sharing one means the
+ * second overwrites the first and loads as somebody else (D-558). The server
+ * refuses a clash; this makes one unlikely rather than relying on that.
+ */
+function enemyIdFor(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Which cut the pack says this body is.
+ *
+ * ⚠ `sex` is REQUIRED by the schema and means nothing for a finished mesh:
+ * it selects which modular parts fit (D-558), and these have no parts. Read
+ * off the filename where the vendor states it, male otherwise -- rather than
+ * asking a person a question whose answer changes nothing.
+ */
+function enemySexFor(mesh: string): 'male' | 'female' {
+  return /_female\b/i.test(mesh) ? 'female' : 'male';
+}
+
+/**
+ * Opens the Enemies tab on a pack that HAS some.
+ *
+ * ⚠ Only one of the ingested packs ships finished people, so opening on
+ * whichever pack the last tab happened to be reading shows an empty list --
+ * and an empty list is indistinguishable from a broken tab. It walks the packs
+ * until it finds bodies, and gives up quietly on the current one if none do,
+ * which is the honest answer when a checkout genuinely has no such art.
+ */
+async function enterEnemies(): Promise<void> {
+  const start = assetPack || assetPacks[0] || '';
+  await loadAssetPack(start);
+  if (assetCat.meshes.some((m) => m.shelf === 'character')) return;
+  for (const packId of assetPacks) {
+    if (packId === start) continue;
+    await loadAssetPack(packId);
+    if (assetCat.meshes.some((m) => m.shelf === 'character')) return;
+  }
+}
+
+function renderEnemyList(): void {
+  const host = $('list');
+  host.replaceChildren();
+  const mine = assetCat.meshes.filter((m) => m.shelf === 'character');
+  const named = mine.filter((m) => enemyFor(assetPack, m.stem)).length;
+  const head = document.createElement('div');
+  head.innerHTML =
+    '<h1>enemies</h1>'
+    + `<div class="count">${named} of ${mine.length} named in ${assetPack || '—'}</div>`;
+  host.appendChild(head);
+
+  const table = document.createElement('table');
+  for (const [i, entry] of mine.entries()) {
+    const def = enemyFor(assetPack, entry.stem);
+    const tr = document.createElement('tr');
+    tr.className = def ? 'named' : '';
+    if (entry.stem === enemySel) tr.classList.add('on');
+
+    const stem = document.createElement('td');
+    stem.className = 'stem';
+    stem.textContent = entry.stem.replace(/^S[MK]_/, '');
+    stem.title = entry.stem;
+    stem.onclick = () => void showEnemy(entry.stem);
+
+    const cell = document.createElement('td');
+    cell.className = 'name';
+    const input = document.createElement('input');
+    input.value = def?.name ?? '';
+    input.placeholder = nameFromMesh(entry.stem);
+    input.onfocus = () => void showEnemy(entry.stem);
+    // ⚠ On CHANGE, not on input. Every keystroke would be a write to git
+    // and a definition id per prefix of the word being typed.
+    input.onchange = () => void saveEnemy(entry.stem, input.value.trim());
+    input.onkeydown = (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const next = table.querySelectorAll('input')[i + 1] as HTMLInputElement | undefined;
+      if (next) next.focus();
+    };
+    cell.appendChild(input);
+    tr.append(stem, cell);
+    table.appendChild(tr);
+  }
+  host.appendChild(table);
+  if (mine.length === 0) {
+    const hint = document.createElement('div');
+    hint.className = 'hint';
+    hint.textContent = 'No whole-body characters in this pack. Try the dungeon pack.';
+    host.appendChild(hint);
+  }
+}
+
+function renderEnemySide(): void {
+  const side = $('side');
+  side.replaceChildren();
+  const def = enemySel ? enemyFor(assetPack, enemySel) : undefined;
+  const h = document.createElement('h3');
+  h.textContent = def ? def.name : 'Enemies';
+  side.appendChild(h);
+
+  const box = document.createElement('div');
+  box.innerHTML = '<label>pack</label><select id="e-pack"></select>';
+  side.appendChild(box);
+  const sel = $('e-pack') as HTMLSelectElement;
+  for (const packId of assetPacks) sel.add(new Option(packId, packId));
+  sel.value = assetPack;
+  sel.onchange = () => void loadAssetPack(sel.value);
+
+  const note = document.createElement('div');
+  note.className = 'hint';
+  note.innerHTML = enemySel
+    ? 'A finished body from the pack, not an assembly. Name it and it becomes '
+      + 'a character a creature can be drawn as -- pick it under '
+      + '<b>Round content</b>, creatures.'
+    : 'Pick a mesh on the left. These are whole rigged people; the modular '
+      + 'ones are under <b>Body parts</b>.';
+  side.appendChild(note);
+  if (!enemySel) return;
+
+  if (!def) {
+    const todo = document.createElement('div');
+    todo.className = 'hint';
+    todo.textContent = 'Not named yet. Type a name beside it to create the definition.';
+    side.appendChild(todo);
+    return;
+  }
+
+  const facts = document.createElement('div');
+  facts.className = 'hint';
+  facts.innerHTML =
+    `id <code>${def.id}</code><br>pack <code>${def.pack}</code><br>`
+    + `mesh <code>${def.mesh ?? ''}</code><br>cut <code>${def.sex}</code>`;
+  side.appendChild(facts);
+
+  // ⚠ The single most useful thing this tab can tell an author, and it is
+  // counter-intuitive enough that D-594 wrote it down: the pack's goblin FBX
+  // measures 1.86m, within centimetres of its knight. Every body in the pack
+  // is authored at human scale, so how big a thing IS comes from the creature
+  // that wears it, never from the mesh -- and it reaches the descriptor
+  // pipeline (D-201), so a thing a player is told is small actually is.
+  const scale = document.createElement('div');
+  scale.className = 'hint';
+  scale.innerHTML =
+    'Every body in these packs is modelled at human height, whatever it is: '
+    + 'this pack\u2019s goblin measures within centimetres of its knight. Set '
+    + '<code>heightMetres</code> on the creature under <b>Round content</b> '
+    + 'or it will stand eye to eye with a man.';
+  side.appendChild(scale);
+
+  textField(side, 'note', def.note ?? '', (v) => {
+    def.note = v || undefined;
+    void saveEnemyDef(def);
+  }, true, render);
+
+  // ⚠ Says out loud that a name is not a body. The definition is content
+  // and lands in git immediately; the .glb it names exists only after
+  // `build:characters` runs, and until then anything previewing a BUILT
+  // character (the creature editor) shows an empty stage. That is the correct
+  // state in a fresh checkout and it needs saying, or it reads as a bad save.
+  const build = document.createElement('div');
+  build.className = 'hint';
+  build.innerHTML = 'Saved. Run <code>npm run build:characters</code> to make '
+    + 'the body the game loads.';
+  side.appendChild(build);
+}
+
+/** Create or rename the definition for one mesh; an empty name removes it. */
+async function saveEnemy(mesh: string, name: string): Promise<void> {
+  const existing = enemyFor(assetPack, mesh);
+  if (!name) {
+    if (!existing) return;
+    const res = await fetch(`${API}/characters/${encodeURIComponent(existing.id)}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      status(`could not remove ${existing.id}`, 'bad');
+      return;
+    }
+    enemyDefs.delete(existing.id);
+    status(`removed ${existing.id}`, 'good');
+    render();
+    return;
+  }
+  const def: CharacterDef = existing
+    ? { ...existing, name }
+    : {
+        id: enemyIdFor(name),
+        name,
+        pack: assetPack,
+        sex: enemySexFor(mesh),
+        parts: {},
+        mesh,
+        // ⚠: a CREATURE, because this is the Enemies tab (D-618). It is
+        // what keeps a goblin out of the fallback that draws anybody who never
+        // chose a face -- which is how a bot came to be a goblin.
+        kind: 'creature',
+      };
+  await saveEnemyDef(def);
+}
+
+async function saveEnemyDef(def: CharacterDef): Promise<void> {
+  const res = await fetch(`${API}/characters/${encodeURIComponent(def.id)}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(def),
+  });
+  const body = (await res.json()) as { error?: string; problems?: string[] };
+  if (!res.ok) {
+    // ⚠ The server's own words. It refuses anything that would not BUILD
+    // (D-558), and that refusal is the only thing between a typo and a
+    // character that loads as somebody else.
+    status(body.problems?.join('; ') ?? body.error ?? 'refused', 'bad');
+    return;
+  }
+  enemyDefs.set(def.id, def);
+  status(`saved ${def.id}`, 'good');
+  render();
+}
+
+/**
+ * Puts the raw pack mesh on the stage. No build required to LOOK at one.
+ *
+ * ⚠ Deliberately NOT `previewCreature`, which loads the BUILT `.glb` from
+ * the models manifest. That is right for the creature editor, where the
+ * question is "what will the game draw", and useless here, where the question
+ * is "what is this mesh" -- a body nobody has named yet has never been built
+ * and never will be until somebody names it. Previewing only built characters
+ * would make the tab unable to show the very meshes it exists to show.
+ */
+async function showEnemy(mesh: string): Promise<void> {
+  enemySel = mesh;
+  stageRestore.set(tab, () => void showEnemy(mesh));
+  render();
+  const token = ++previewToken;
+  banner('loading…');
+  let object: THREE.Object3D;
+  try {
+    object = await assetMesh(assetPack, mesh);
+  } catch (e) {
+    banner((e as Error).message);
+    return;
+  }
+  if (token !== previewToken) return;
+
+  // The pack's own atlas, or every one of them is a black silhouette and no
+  // two goblins are distinguishable.
+  await loadAssetTexture();
+  object.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh || !texture) return;
+    const mat = m.material as THREE.MeshStandardMaterial;
+    mat.map = texture;
+    mat.needsUpdate = true;
+  });
+
+  clearStage();
+  const holder = new THREE.Group();
+  // ⚠ Measured, not assumed. Packs disagree about units by 100x (D-561) and
+  // these bodies are centimetres, so a mesh dropped on the stage unscaled is a
+  // hundred-and-seventy-metre goblin filling the whole frustum.
+  const size = measure(object);
+  const extentRaw = Math.max(size.x, size.y, size.z);
+  holder.scale.setScalar(guessScale(extentRaw));
+  holder.add(object);
+  mount.add(holder);
+  shown = holder;
+
+  // Frame what is actually there, the way the asset tabs do.
+  const bounds = new THREE.Box3().setFromObject(holder);
+  const extent = new THREE.Vector3();
+  bounds.getSize(extent);
+  const centre = new THREE.Vector3();
+  bounds.getCenter(centre);
+  focusY = centre.y - 0.9;
+  orbitH = 0.9;
+  const perZoom = scene.camera.top / Math.max(1e-6, zoom);
+  const aspect = scene.camera.right / Math.max(1e-6, scene.camera.top);
+  const wide = Math.max(extent.x, extent.z);
+  const need = Math.max(extent.y / 2, wide / 2 / Math.max(0.1, aspect));
+  zoom = Math.min(2, Math.max(0.05, (need / perZoom) * 1.25));
+  scene.setOrbitHeight(orbitH);
+  banner(`${mesh.replace(/^S[MK]_/, '')}  ·  ${extent.y.toFixed(2)}m tall`);
   render();
 }
 
@@ -2109,13 +2607,14 @@ function selectedSet(): AnimationSet | undefined {
  * than on a second, differently-assembled one.
  */
 async function showAnimationBody(): Promise<void> {
+  stageRestore.set('animations', () => void showAnimationBody());
   const body = await bodyToAttachTo();
   if (!body) return;
   if (shown !== body.group.parent) {
-    if (shown) scene.scene.remove(shown);
+    clearStage();
     const holder = new THREE.Group();
     holder.add(body.group);
-    scene.scene.add(holder);
+    mount.add(holder);
     shown = holder;
   }
   focusY = 0.05;
@@ -2312,8 +2811,7 @@ async function showContactSheet(): Promise<void> {
   await loadAssetTexture();
   const bodyTexture = await characterAtlas();
 
-  if (shown) scene.scene.remove(shown);
-  sheetMixers = [];
+  clearStage();
   const grid = new THREE.Group();
 
   for (const [i, asset] of page.entries()) {
@@ -2390,7 +2888,7 @@ async function showContactSheet(): Promise<void> {
     }
   }
 
-  scene.scene.add(grid);
+  mount.add(grid);
   shown = grid;
   // Frame what is actually there, the same way the single-item preview does.
   // A fixed zoom is wrong the moment a page holds two-metre polearms instead
@@ -2530,7 +3028,6 @@ async function createClass(): Promise<void> {
   const name = prompt('Name the calling');
   if (!name?.trim()) return;
   const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  creatureShown = id;
   if (!id) return;
   if (classes.some((c) => c.id === id)) {
     status(`there is already a calling called ${id}`, 'bad');
@@ -3192,8 +3689,7 @@ async function loadItemArt(): Promise<void> {
 async function showItem(): Promise<void> {
   const item = selectedItem();
   if (!item?.art) {
-    if (shown) scene.scene.remove(shown);
-    shown = null;
+    clearStage();
     banner(item ? `${item.name} — no art assigned` : '');
     return;
   }
@@ -3511,7 +4007,7 @@ function renderItemSide(): void {
     // so a partial object does not type-check and would not parse. Zero is the
     // honest starting value: it means "no armour", not "unset".
     item.equip = cb.checked
-      ? { slot: 'main-hand', armour: 0, damage: 0, mana: 0, weight: 1, range: 1 }
+      ? { slot: 'main-hand', armour: 0, damage: 0, mana: 0, weight: 1, range: 1, acBonus: 0 }
       : undefined;
     markDirty();
     render();
@@ -4053,24 +4549,29 @@ function renderSpellForm(host: HTMLElement): void {
  * they can be judged against each other rather than one file at a time, which
  * is the shape the stakeholder has to settle them in.
  */
-type RoundKind = 'recipes' | 'roamers' | 'objectives';
+type RoundKind = 'recipes' | 'roamers' | 'bots' | 'objectives';
 
 interface RoundData {
   recipes: RecipeDef[];
   roamers: RoamerDef[];
+  /** The companions a lobby can summon, in draw order (D-624). */
+  bots: BotDef[];
   objectives: ObjectiveDef[];
   items: { id: string; name: string; category: string; slots: string[] }[];
   nodes: { id: string; yields: string }[];
   npcDescriptors: string[];
   /** Every authored character a creature may be drawn as (D-594). */
   characters: { id: string; name: string; pack: string; whole: boolean }[];
+  /** What a companion may be given (D-624). */
+  callings: { id: string; name: string }[];
+  races: { id: string; name: string }[];
 }
 
 let roundKind: RoundKind = 'recipes';
 let roundPicked: string | null = null;
 let round: RoundData = {
-  recipes: [], roamers: [], objectives: [], items: [], nodes: [], npcDescriptors: [],
-  characters: [],
+  recipes: [], roamers: [], bots: [], objectives: [], items: [], nodes: [],
+  npcDescriptors: [], characters: [], callings: [], races: [],
 };
 
 async function loadRound(): Promise<void> {
@@ -4085,6 +4586,12 @@ async function loadRound(): Promise<void> {
 function roundList(): { id: string; name: string }[] {
   if (roundKind === 'recipes') return round.recipes.map((r) => ({ id: r.id, name: r.name }));
   if (roundKind === 'roamers') return round.roamers.map((r) => ({ id: r.id, name: r.descriptor }));
+  // ⚠ Numbered in the list, because the ORDER is the decision (D-624). A
+  // roster shown as eleven names looks like a set; the first three are what a
+  // cast of three gets.
+  if (roundKind === 'bots') {
+    return round.bots.map((b, i) => ({ id: b.id, name: `${i + 1}. ${b.name} — ${b.role}` }));
+  }
   return round.objectives.map((o) => ({ id: o.id, name: o.name }));
 }
 
@@ -4098,7 +4605,7 @@ function renderRoundList(): void {
 
   const tabs = document.createElement('div');
   tabs.className = 'chips';
-  for (const k of ['recipes', 'roamers', 'objectives'] as RoundKind[]) {
+  for (const k of ['recipes', 'roamers', 'bots', 'objectives'] as RoundKind[]) {
     const chip = document.createElement('span');
     chip.className = `chip${roundKind === k ? ' on' : ''}`;
     chip.textContent = k;
@@ -4129,9 +4636,17 @@ function renderRoundList(): void {
         id, name: 'New recipe', output: first, outputQuantity: 1,
         inputs: [{ item: first, quantity: 1 }], station: 'anywhere', effortTicks: 40,
       });
+    } else if (roundKind === 'bots') {
+      round.bots.push({
+        id, name: 'Newcomer', role: 'idler',
+        // Last in the draw, so adding one never disturbs who a cast of three
+        // gets. Moving it up is one field, and the save checks the arms.
+        order: Math.max(0, ...round.bots.map((b) => b.order)) + 1,
+        appearanceSeed: 10_000 + round.bots.length * 977,
+      });
     } else if (roundKind === 'roamers') {
       round.roamers.push({
-        id, descriptor: 'something in the dark', hp: 12, damageMin: 1, damageMax: 3,
+        id, descriptor: 'something in the dark', hp: 12, armourClass: 10, damageMin: 1, damageMax: 3,
         aggroMetres: 9, attackCooldownTicks: 12, moveCooldownTicks: 4, perArea: 4,
         habitat: 'night', xp: 10, loot: [],
       });
@@ -4262,7 +4777,108 @@ function renderRoundSide(): void {
   }
   if (roundKind === 'recipes') return renderRecipeForm(host);
   if (roundKind === 'roamers') return renderRoamerForm(host);
+  if (roundKind === 'bots') return renderBotForm(host);
   return renderObjectiveForm(host);
+}
+
+
+/**
+ * A companion the lobby can summon (D-624).
+ *
+ * ⚠ The roster used to be eleven names and six roles hardcoded in
+ * `server/src/dev/bots.ts` -- the thing D-110 exists to prevent, and the thing
+ * the stakeholder asked for: a tool cannot edit a TypeScript array. Filling a
+ * lobby is how a round starts at all (D-607), so who fills it is content.
+ */
+function renderBotForm(host: HTMLElement): void {
+  const bot = round.bots.find((b) => b.id === roundPicked);
+  if (!bot) return;
+
+  textField(host, 'Name', bot.name, (v) => { bot.name = v; });
+  roundHint(
+    host,
+    '⚠ <b>Letters only</b>. Character names are letters on the wire, and a '
+    + 'refusal here surfaces as a bot that never arrives rather than as a '
+    + 'message. A surname is added at summon time so two rounds never collide.',
+  );
+
+  const roleSel = document.createElement('select');
+  for (const role of BOT_ROLES) roleSel.add(new Option(role, role));
+  roleSel.value = bot.role;
+  roleSel.onchange = () => {
+    bot.role = roleSel.value as BotDef['role'];
+    markDirty();
+    renderRoundList();
+  };
+  classField(host, 'Role', roleSel);
+  roundHint(
+    host,
+    'What it spends the round doing. <b>gatherer</b> the mine, <b>forager</b> '
+    + 'the farm, <b>woodsman</b> the wood, <b>physician</b> the hurt, '
+    + '<b>delver</b> the dungeon, <b>idler</b> the tavern. ⚠ A companion '
+    + 'dealt the antagonist works like everybody else until it commits '
+    + '(D-540), whichever role it has.',
+  );
+
+  numField(host, 'Summoned', bot.order, (v) => {
+    bot.order = Math.max(0, Math.round(v));
+    round.bots.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+    renderRoundList();
+  }, { min: 0 });
+  roundHint(
+    host,
+    '⚠ Lowest first, and it is a real decision. A cast of three is the '
+    + 'floor (D-522), so the first three summoned must cover the mine, the '
+    + 'farm and the wood \u2014 leave an arm unworked and hunger looks broken '
+    + 'when it is merely unattended (D-529). The save refuses a roster that '
+    + 'does not.',
+  );
+
+  numField(host, 'Face (seed)', bot.appearanceSeed ?? 0, (v) => {
+    bot.appearanceSeed = Math.max(0, Math.round(v));
+  }, { min: 0 });
+  roundHint(
+    host,
+    '⚠ A fixed number makes this companion the same person every round. '
+    + 'Without one the face came from the order it happened to be summoned in '
+    + '\u2014 which is half of what "one of the bots shows up as a goblin" '
+    + 'was; the other half was the lottery drawing over creatures (D-618).',
+  );
+
+  const calling = document.createElement('select');
+  calling.add(new Option('(none)', ''));
+  for (const c of round.callings) calling.add(new Option(c.name, c.id));
+  calling.value = bot.classId ?? '';
+  calling.onchange = () => {
+    if (calling.value) bot.classId = calling.value;
+    else delete bot.classId;
+    markDirty();
+  };
+  classField(host, 'Calling', calling);
+
+  const race = document.createElement('select');
+  race.add(new Option('(none)', ''));
+  for (const r of round.races) race.add(new Option(r.name, r.id));
+  race.value = bot.raceId ?? '';
+  race.onchange = () => {
+    if (race.value) bot.raceId = race.value;
+    else delete bot.raceId;
+    markDirty();
+  };
+  classField(host, 'Race', race);
+  roundHint(
+    host,
+    'Both optional, and a companion with neither behaves exactly as the '
+    + 'hardcoded roster did. Authoring narrows; it never silently locks '
+    + '(D-572).',
+  );
+
+  textField(host, 'Notes', bot.notes ?? '', (v) => {
+    if (v.trim()) bot.notes = v;
+    else delete bot.notes;
+  }, true, () => {});
+
+  roundButtons(host, bot.id);
 }
 
 function renderRecipeForm(host: HTMLElement): void {
@@ -4358,7 +4974,11 @@ function renderRoamerForm(host: HTMLElement): void {
   // and being shown whatever was last on the stage is the defect D-570 hit in
   // the garment editor — "selecting a garment did not show it", in the one
   // editor whose whole premise is looking.
-  if (creatureShown !== r.character) void previewCreature(r.character ?? null);
+  // ⚠ Both sides normalised. `character` is optional and `creatureShown`
+  // holds what was asked for, so comparing `undefined` against `null` made the
+  // guard always fire and re-fetched the body on every render of this form.
+  const wantCreature = r.character ?? null;
+  if (creatureShown !== wantCreature) void previewCreature(wantCreature);
   textField(host, 'Descriptor', r.descriptor, (v) => { r.descriptor = v; });
   roundHint(host, 'What a player is told they are looking at. There is no other name.');
 
@@ -4717,6 +5337,7 @@ function roundButtons(host: HTMLElement, id: string): void {
 function roundDoc(id: string): unknown {
   if (roundKind === 'recipes') return round.recipes.find((r) => r.id === id);
   if (roundKind === 'roamers') return round.roamers.find((r) => r.id === id);
+  if (roundKind === 'bots') return round.bots.find((b) => b.id === id);
   return round.objectives.find((o) => o.id === id);
 }
 
@@ -5617,6 +6238,9 @@ async function deleteGarment(id: string): Promise<void> {
 
 /** Show the panes this section uses, and hide the rest. */
 function applySection(): void {
+  // Same rule one level up: the sections do not share a stage either, and
+  // several of them hide it entirely rather than show one.
+  clearStage();
   // Classes reuse the list/side panes but have no 3D preview to show, so the
   // stage is hidden rather than left displaying whatever was last previewed —
   // a character standing beside an armour rule reads as an example of it.
@@ -5651,7 +6275,10 @@ function applySection(): void {
   for (const b of Array.from($('sections').querySelectorAll('button'))) {
     b.classList.toggle('on', (b as HTMLElement).dataset.section === section);
   }
-  if (section === 'core') render();
+  if (section === 'core') {
+    render();
+    stageRestore.get(tab)?.();
+  }
   else if (map) {
     /* the embedded editor renders itself */
   } else if (section === 'classes') {
@@ -5712,7 +6339,7 @@ function applySection(): void {
  * geometry with no way to say otherwise (D-583 wired the art; this is where a
  * person chooses it).
  */
-type InteractiveKind = 'stations' | 'nodes';
+type InteractiveKind = 'stations' | 'nodes' | 'npcs';
 
 interface InteractiveArt {
   pack: string;
@@ -5725,6 +6352,9 @@ interface InteractiveDef {
   name?: string;
   descriptor: string;
   notes?: string;
+  /** People only (D-598): what they are drawn as, and a fixed seed. */
+  character?: string;
+  appearanceSeed?: number;
   art?: InteractiveArt;
   yields?: string;
   quantity?: number;
@@ -5736,9 +6366,15 @@ interface InteractiveDef {
 let interactive: {
   stations: InteractiveDef[];
   nodes: InteractiveDef[];
+  npcs: InteractiveDef[];
   coreStations: string[];
   usedBy: Record<string, string[]>;
-} = { stations: [], nodes: [], coreStations: [], usedBy: {} };
+  npcPlaces: Record<string, string[]>;
+  characterIds: string[];
+} = {
+  stations: [], nodes: [], npcs: [], coreStations: [], usedBy: {},
+  npcPlaces: {}, characterIds: [],
+};
 let interKind: InteractiveKind = 'stations';
 let interPicked: string | null = null;
 /** The environment catalogue for the pack whose art is being chosen. */
@@ -5752,6 +6388,7 @@ async function loadInteractive(): Promise<void> {
 }
 
 function interList(): InteractiveDef[] {
+  if (interKind === 'npcs') return interactive.npcs ?? [];
   return interKind === 'stations' ? interactive.stations : interactive.nodes;
 }
 
@@ -5764,6 +6401,7 @@ function renderInteractiveList(): void {
   for (const [k, label] of [
     ['stations', 'facilities'],
     ['nodes', 'resource nodes'],
+    ['npcs', 'people'],
   ] as [InteractiveKind, string][]) {
     const chip = document.createElement('span');
     chip.className = `chip${interKind === k ? ' on' : ''}`;
@@ -5778,15 +6416,54 @@ function renderInteractiveList(): void {
   }
   host.appendChild(tabs);
 
+  // ⚠ People can be CREATED here; facilities and nodes cannot, and that is
+  // not an oversight. A station id is named by the server's own rules and by
+  // the recipes that gate on it (D-530), so a new one is a change to the rules
+  // rather than a document. A person is only a document.
+  if (interKind === 'npcs') {
+    const add = document.createElement('button');
+    add.textContent = '+ New person';
+    add.onclick = () => {
+      const name = prompt('Name them (for you, not for players)');
+      if (!name?.trim()) return;
+      const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (!id) return banner('that name has no letters or digits in it');
+      if ((interactive.npcs ?? []).some((n) => n.id === id)) {
+        return banner(`there is already somebody called ${id}`);
+      }
+      interactive.npcs = [...(interactive.npcs ?? []), {
+        id,
+        name: name.trim(),
+        descriptor: 'somebody who has not been described yet',
+      }].sort((a, b) => (a.name ?? a.id).localeCompare(b.name ?? b.id));
+      interPicked = id;
+      markDirty();
+      renderInteractiveList();
+      renderInteractiveSide();
+    };
+    host.appendChild(add);
+  }
+
   for (const def of interList()) {
     const row = document.createElement('div');
     row.className = `listrow${interPicked === def.id ? ' on' : ''}`;
+    if (interKind === 'npcs') {
+      // ⚠ WHERE they stand, on the row. A person defined and placed nowhere
+      // is somebody no player will ever meet, and the list saying "nowhere"
+      // is the difference between that and a finished-looking entry.
+      const where = interactive.npcPlaces?.[def.id] ?? [];
+      row.innerHTML = `<b>${def.name ?? def.id}</b>`
+        + `<span class="sub">${def.descriptor}`
+        + `${def.character ? ` · ${def.character}` : ' · <i>drawn from a seed</i>'}`
+        + ` · ${where.length ? where.join(', ') : '<i>placed nowhere</i>'}</span>`;
+    } else {
     const core = interactive.coreStations.includes(def.id);
     const used = interactive.usedBy[def.id]?.length ?? 0;
     row.innerHTML = `<b>${def.name ?? def.id}</b>`
       + `<span class="sub">${def.id}${core ? ' · named by the rules' : ''}`
       + `${def.art ? ` · ${def.art.asset}` : ' · <i>no art</i>'}`
       + `${used ? ` · ${used} recipe(s)` : ''}</span>`;
+    }
     row.onclick = () => {
       interPicked = def.id;
       renderInteractiveList();
@@ -5804,8 +6481,9 @@ function renderInteractiveSide(): void {
     roundHint(
       host,
       'Facilities and resource nodes are the objects a player walks up to and '
-      + 'uses. Pick one to give it a name, a description and — new — the mesh '
-      + 'it is actually drawn as.',
+      + 'uses; <b>people</b> are the ones who stand somewhere and can be spoken '
+      + 'to or killed. Pick one to give it a name, a description and what it is '
+      + 'drawn as. Where each one STANDS is decided in the map editor.',
     );
     return;
   }
@@ -5824,6 +6502,17 @@ function renderInteractiveSide(): void {
     host, 'what a player sees', def.descriptor, (v) => { def.descriptor = v; },
     true, renderInteractiveList,
   );
+
+  if (interKind === 'npcs') {
+    renderNpcForm(host, def);
+    const savePerson = document.createElement('button');
+    savePerson.className = 'primary';
+    savePerson.textContent = 'Save';
+    savePerson.style.marginTop = '10px';
+    savePerson.onclick = () => void saveInteractive(def);
+    host.appendChild(savePerson);
+    return;
+  }
 
   if (interKind === 'nodes') {
     numField(host, 'yields, per harvest', def.quantity ?? 1, (v) => { def.quantity = v; });
@@ -5848,6 +6537,71 @@ function renderInteractiveSide(): void {
   host.appendChild(save);
 }
 
+
+/**
+ * Who somebody is (D-598).
+ *
+ * ⚠ This exists because an NPC could only be born inside a Lua script
+ * until now, which made the world's cast a thing you had to read source to
+ * know. The split is the one facilities already use: this is WHO, the map
+ * editor decides WHERE, and a script still decides what they DO.
+ */
+function renderNpcForm(host: HTMLElement, def: InteractiveDef): void {
+  // ⚠ `name` and `what a player sees` are drawn by the caller, for every
+  // kind. Drawing them again here put two of each on screen, editing the same
+  // field: the first version of this did exactly that, and it looked like the
+  // form had been pasted in twice because it had.
+  roundHint(
+    host,
+    '⚠ This is a <b>match key</b> as well as prose. A live <code>kill_npc</code> '
+    + 'objective is decided by comparing it <i>exactly</i>, so rewording it can '
+    + 'make an objective unwinnable — the save refuses that and names the '
+    + 'objective. There is no other name: a player is told this and nothing else.',
+  );
+
+  const head = document.createElement('h2');
+  head.textContent = 'What they look like';
+  host.appendChild(head);
+  const chips = document.createElement('div');
+  chips.className = 'chips';
+  const pick = (id: string | undefined): void => {
+    if (id) def.character = id;
+    else delete def.character;
+    markDirty();
+    renderInteractiveList();
+    renderInteractiveSide();
+  };
+  const seedChip = document.createElement('span');
+  seedChip.className = `chip${def.character ? '' : ' on'}`;
+  seedChip.textContent = 'drawn from a seed';
+  seedChip.onclick = () => pick(undefined);
+  chips.appendChild(seedChip);
+  for (const id of interactive.characterIds ?? []) {
+    const c = document.createElement('span');
+    c.className = `chip${def.character === id ? ' on' : ''}`;
+    c.textContent = id;
+    c.onclick = () => pick(id);
+    chips.appendChild(c);
+  }
+  host.appendChild(chips);
+  roundHint(
+    host,
+    'An authored character from <code>content/characters/</code>, built by '
+    + '<code>npm run build:characters</code>. "Drawn from a seed" is the honest '
+    + 'default for a passer-by — it gives a different stranger on every world, '
+    + 'which is wrong for anybody the cast has to recognise.',
+  );
+
+  numField(host, 'fixed appearance seed', def.appearanceSeed ?? 0, (v) => {
+    if (v > 0) def.appearanceSeed = Math.floor(v);
+    else delete def.appearanceSeed;
+  });
+  roundHint(
+    host,
+    'Zero means one is derived from where they stand — stable until somebody '
+    + 'moves them. It only matters when no character is chosen.',
+  );
+}
 /**
  * Choose the mesh this object is drawn as.
  *
@@ -6014,28 +6768,13 @@ let creatureMixer: THREE.AnimationMixer | null = null;
 
 async function previewCreature(id: string | null): Promise<void> {
   const mine = ++creatureToken;
-  if (creaturePreview) {
-    scene.scene.remove(creaturePreview);
-    creaturePreview = null;
-    creatureMixer = null;
-  }
-  // ⚠ And whatever else the stage was showing. The tool keeps a bare-head
-  // mannequin on `shown` from boot — it is what the body-parts tab is FOR —
-  // and this only ever cleared its own object, so a goblin was drawn with a
-  // player's head floating in the middle of it.
-  //
-  // ⚠ This is D-570's bug one editor later, and word for word: "selecting a
-  // garment did not show it — the stage kept a bare head from boot, in the one
-  // editor whose whole premise is looking." Worth knowing what it cost the
-  // second time: the head was VISIBLE in a screenshot I took, two dark eyes on
-  // a pale face, and I talked myself into it being a skeleton's ribcage and
-  // measured UVs to prove it. The measurement was real and answered the wrong
-  // question. The stakeholder said "why is the player head floating in the
-  // middle of the roamers", which is what it was.
-  if (shown) {
-    scene.scene.remove(shown);
-    shown = null;
-  }
+  clearStage();
+  // ⚠ Claimed BEFORE the load, not after it. This is what the guard in
+  // `renderRoundSide` reads to decide the stage already shows this creature,
+  // and setting it on success would mean a body that fails to build is
+  // re-fetched on every keystroke in the form beside it. A failure says so in
+  // the banner instead.
+  creatureShown = id;
   if (!id) return;
   let file: string | undefined;
   let palette: string | null = null;
@@ -6089,7 +6828,7 @@ async function previewCreature(id: string | null): Promise<void> {
     }
   });
   if (mine !== creatureToken) return;
-  scene.scene.add(body);
+  mount.add(body);
   creaturePreview = body;
   const clips = await loadClipLibrary();
   if (mine !== creatureToken) return;

@@ -1,5 +1,12 @@
 import { WebSocketServer, type WebSocket } from 'ws';
 import {
+  strike,
+  attackBonusFor,
+  dexterityAc,
+  BASE_ARMOUR_CLASS,
+  directionFromDegrees,
+  SEAT_REACH,
+  SEAT_PICK_RADIUS,
   ATTACK_COOLDOWN_TICKS,
   ATTACK_RANGE,
   BLEED_INTERVAL_TICKS,
@@ -101,6 +108,8 @@ import {
   WANTED_TICKS,
   ROUND_DAY_TICKS,
   ROUND_GRACE_TICKS,
+  ROUND_THIN_CAST_TICKS,
+  sitterFacingFor,
   DIRECTIONS,
   dungeonEntranceOpen,
   dungeonFloorOpen,
@@ -115,12 +124,14 @@ import {
   STARVATION_DAMAGE_PER_HOUR,
   type NeedStage,
   isTileWalkable,
+  type ScenarioDef,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
 import type { CharacterRecord, InjuryRecord, ItemRecord, Store } from '../store/types';
 import { World, toWireEntity, type WorldEntity } from '../game/world';
 import { RoundEngine, type RoundResolution } from '../game/round';
+import { BotStable } from '../dev/bots';
 
 /** Words for a bearing, so the wire stays terse and the prose lives here. */
 const COMPASS_WORDS: Record<string, string> = {
@@ -170,6 +181,15 @@ const TRANSITION_REACH = 0.5;
  * not cancel itself.
  */
 const WORK_ANCHOR_METRES = 0.4;
+/**
+ * How far a worker may be PUSHED and still be working.
+ *
+ * ⚠ Above what two bodies can shove each other: `BODY_RADIUS` is 0.3, so
+ * a stranger walking into somebody displaces them by up to about two
+ * radii. Below a deliberate walk away, which is caught by intent rather
+ * than by distance.
+ */
+const WORK_SHOVE_METRES = 1.0;
 
 /** What each facility looks like to an observer. */
 /**
@@ -252,6 +272,25 @@ export interface GameServerOptions {
   combatLeaveTicks?: number;
   combatProximityMetres?: number;
   /**
+   * Whether the town watch stands (D-552). On by default; a fixture that is
+   * not about the watch turns it off, exactly as one that is not about the
+   * dawn truce sets `graceTicks: 0` (D-536).
+   *
+   * ⚠ This exists because the watch got FASTER (D-619) and started
+   * deciding fixtures it was never part of. `mr1-round` murders one of the
+   * cast in a settled zone to prove a round needs no hostility declaration
+   * (D-531); D-610 had already moved it out of the square for this reason,
+   * and guards stand in every settled area, so the tavern was only ever
+   * far enough away rather than out of reach. Once they could run, the watch
+   * killed the murderer partway through, the cast was wiped, the round
+   * resolved and the NEXT assertion found the round already over.
+   *
+   * ⚠ That is the watch being CORRECT. Routing round it in the fixture is
+   * the fix; weakening the watch to keep an unrelated suite green would be
+   * tuning the game to the tests.
+   */
+  watch?: boolean;
+  /**
    * The Round (D-521). Off by default: without it this is the persistent
    * world, with respawn, death debt and enduring recognition. Turning it on
    * changes the rules of death, progression and memory all at once, which is
@@ -273,7 +312,24 @@ export interface GameServerOptions {
     dayTicks?: number;
     /** Length of the dawn truce (D-536). Tests shrink it. */
     graceTicks?: number;
+    /**
+     * How long a round may run below the minimum cast before it is abandoned
+     * (D-608). Defaults to 30s; tests shrink it. Zero never abandons.
+     */
+    thinCastTicks?: number;
+    /**
+     * Whether an arrival is placed at the round's opening point and reset
+     * (D-608). True in the game. Fixtures that stand a character somewhere
+     * specific with `saveCharacterPosition` set it false — see the note at
+     * the placement itself.
+     */
+    placeArrivals?: boolean;
   };
+  /**
+   * Whether the lobby may summon bots to fill the cast (D-607). Off unless
+   * asked for — see `server/src/dev/bots.ts` for why that direction.
+   */
+  allowBots?: boolean;
   log?: (msg: string) => void;
 }
 
@@ -425,6 +481,19 @@ export class GameServer {
   private hostilityWindowTicks = HOSTILITY_WINDOW_TICKS;
   private ghostMinTicks = GHOST_MIN_TICKS;
   private attackCooldownTicks = ATTACK_COOLDOWN_TICKS;
+  /** Does the town watch stand this game? Always, outside a fixture (D-552). */
+  private watchStands = true;
+  /**
+   * Which round is being played, and therefore where it ENDS (D-627).
+   *
+   * ⚠ Null means no scenario is authored, and the server behaves exactly as it
+   * did before scenarios existed — no boundary, and the persistent world's
+   * `defaultAreaId` as the opening room. That fallback is deliberate: a
+   * checkout with no `content/scenarios/` should still run, and the failure of
+   * a missing scenario should be "the round has no edges again" rather than a
+   * server that will not start.
+   */
+  private scenario: ScenarioDef | null = null;
   private combatRoundTicks = COMBAT_ROUND_TICKS;
   private bleedIntervalTicks = BLEED_INTERVAL_TICKS;
   private corpseDecayTicks = CORPSE_DECAY_TICKS;
@@ -450,6 +519,27 @@ export class GameServer {
   private roundResolutionTicks = ROUND_RESOLUTION_TICKS;
   /** Tick at which a resolved round resets; null unless one is resolved. */
   private roundResetAtTick: number | null = null;
+  /** Lobby-summoned bots (D-607). Null unless this server allows them. */
+  private bots: BotStable | null = null;
+  /** Whether arrivals are gathered to the round's opening point (D-608). */
+  private placeArrivals = true;
+  /** Ticks a round tolerates a cast below the minimum before abandoning. */
+  private thinCastTicks = ROUND_THIN_CAST_TICKS;
+  /** First tick the cast was seen below the minimum; null while it is not. */
+  private thinCastSince: number | null = null;
+  /**
+   * True while the reset between rounds is in flight (D-607).
+   *
+   * ⚠ `onTick` is async and runs on an interval, so a later tick starts
+   * while an earlier one is still inside an await. The reset is a long chain
+   * of them, and the engine's phase flips to 'lobby' PART WAY THROUGH — so
+   * without this a tick landing in the middle of a reset saw a lobby with a
+   * full cast and started the next round before the last one had finished
+   * clearing, which cost the lobby broadcast entirely: the HUD went from 'the
+   * round is over' straight to a running clock and never showed the lobby the
+   * bot controls live on. Measured: it happened on two runs in three.
+   */
+  private roundResetting = false;
   /** Tick the running round started at — the origin of its own clock. */
   private roundStartedAtTick = 0;
   /** Last broadcast day-night phase, so lighting changes fire once. */
@@ -519,6 +609,11 @@ export class GameServer {
     this.hostilityWindowTicks = opts.hostilityWindowTicks ?? HOSTILITY_WINDOW_TICKS;
     this.ghostMinTicks = opts.ghostMinTicks ?? GHOST_MIN_TICKS;
     this.attackCooldownTicks = opts.attackCooldownTicks ?? ATTACK_COOLDOWN_TICKS;
+    this.watchStands = opts.watch ?? true;
+    // ⚠ The first LIVE scenario, in file order. Rotation is MR3's and is
+    // deliberately not guessed at here: choosing between two scenarios is a
+    // decision about what a lobby offers, not a detail of loading one.
+    this.scenario = opts.content.scenarios.find((sc) => sc.status === 'live') ?? null;
     this.combatRoundTicks =
       opts.combatRoundTicks ?? opts.attackCooldownTicks ?? COMBAT_ROUND_TICKS;
     this.bleedIntervalTicks = opts.bleedIntervalTicks ?? BLEED_INTERVAL_TICKS;
@@ -541,6 +636,19 @@ export class GameServer {
       this.lootRng = new Rng(`${opts.round.seed ?? 'roamers'}-loot`);
       this.roundDayTicks = opts.round.dayTicks ?? ROUND_DAY_TICKS;
       this.roundGraceTicks = opts.round.graceTicks ?? ROUND_GRACE_TICKS;
+      this.placeArrivals = opts.round.placeArrivals ?? true;
+      this.thinCastTicks = opts.round.thinCastTicks ?? ROUND_THIN_CAST_TICKS;
+      if (opts.allowBots) {
+        this.bots = new BotStable({
+          // ⚠ Resolved lazily. The port is 0 until `start()` binds one, and
+          // reading it in the constructor would hand every bot 'ws://:0'.
+          url: () => `ws://127.0.0.1:${this.port}`,
+          objectiveKinds: new Map(opts.content.objectives.map((o) => [o.id, o.kind])),
+          // ⚠ The roster is CONTENT now (D-624), read in draw order.
+          roster: opts.content.bots,
+          log: this.log,
+        });
+      }
       // A configured minimum below anything the content can actually run is a
       // server that fills its lobby and never starts. That is a
       // misconfiguration, and it belongs in the log at boot rather than being
@@ -555,7 +663,21 @@ export class GameServer {
         );
       }
     }
-    for (const def of opts.content.areas.values()) this.world.addArea(def);
+    for (const def of opts.content.areas.values()) {
+      // ⚠ Refused at construction, not at spawn. An area placing an npc id
+      // nothing declares would otherwise fail when that area first loads,
+      // which for the round map is the moment somebody starts a round.
+      for (const placed of def.npcs ?? []) {
+        if (!opts.content.npcs.has(placed.type)) {
+          const known = [...opts.content.npcs.keys()].sort().join(', ') || 'none';
+          throw new Error(
+            `area '${def.id}' places an npc '${placed.type}' `
+            + `that is not in content/npcs (have: ${known})`,
+          );
+        }
+      }
+      this.world.addArea(def);
+    }
     const fallback = opts.content.areas.keys().next().value as string;
     this.defaultAreaId = opts.defaultAreaId ?? fallback;
     if (!this.world.hasArea(this.defaultAreaId)) {
@@ -570,6 +692,9 @@ export class GameServer {
   async start(): Promise<void> {
     await this.store.init();
     await this.restoreCorpses();
+    // The declared cast exists in the persistent world too, not only in a
+    // round: the Hanged Ferryman's keeper is who a new player meets first.
+    this.syncDeclaredNpcs();
     await new Promise<void>((resolve, reject) => {
       this.wss = new WebSocketServer({ port: this.requestedPort }, resolve);
       this.wss.on('error', reject);
@@ -577,7 +702,7 @@ export class GameServer {
     const address = this.wss!.address();
     this.port = typeof address === 'object' && address ? address.port : this.requestedPort;
     this.wss!.on('connection', (ws) => this.onConnection(ws));
-    this.tickTimer = setInterval(() => void this.onTick(), this.tickIntervalMs);
+    this.tickTimer = setInterval(() => void this.safeTick(), this.tickIntervalMs);
     this.log(`gateway listening on :${this.port}`);
   }
 
@@ -585,6 +710,10 @@ export class GameServer {
   async stop(): Promise<void> {
     if (this.tickTimer) clearInterval(this.tickTimer);
     this.tickTimer = null;
+    // ⚠ Before the connection sweep below, not after: a bot whose socket is
+    // closed out from under a running agent goes on issuing intent into a dead
+    // client, and the process never exits.
+    this.bots?.removeAll();
     for (const conn of [...this.conns]) {
       await this.handleDisconnect(conn);
       conn.ws.close();
@@ -601,6 +730,46 @@ export class GameServer {
   // -------------------------------------------------------------------------
   // Tick loop
   // -------------------------------------------------------------------------
+
+  /**
+   * Runs a tick and survives one that throws (D-607).
+   *
+   * ⚠ The driver was `() => void this.onTick()`, which discards the
+   * promise — so anything that rejected inside a tick became an unhandled
+   * rejection, and Node ends the process on those. One bad query took the
+   * whole world down with every player in it. Observed for real: a single
+   * INSERT naming a column that does not exist, issued while stocking the
+   * larder on the first tick of a round, exited the server every time a round
+   * began.
+   *
+   * ⚠ It is caught LOUDLY and never quietly. A tick that failed has, by
+   * definition, left something half-done, and a server that hides that is
+   * worse than one that stops — so the failure is logged with its stack and
+   * counted. What it must not do is take the world with it: the tick after
+   * this one is very likely fine, and for the things this server is meant to
+   * hold — a round with no respawn, a cast of people who cannot rejoin what
+   * has ended — staying up is the lesser harm.
+   *
+   * ⚠ Repeats are throttled by MESSAGE, not silenced. The same fault fires
+   * ten times a second, and ten thousand identical lines is a log nobody
+   * reads; a fault that has stopped repeating should also stop shouting.
+   */
+  private async safeTick(): Promise<void> {
+    try {
+      await this.onTick();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const seen = (this.tickFailures.get(message) ?? 0) + 1;
+      this.tickFailures.set(message, seen);
+      // 1st, 10th, 100th, 1000th... — enough to see it start and to see that
+      // it has not stopped, without drowning everything else.
+      if (Number.isInteger(Math.log10(seen))) {
+        this.log(`⚠ tick failed (${seen}x): ${err instanceof Error && err.stack ? err.stack : message}`);
+      }
+    }
+  }
+
+  private readonly tickFailures = new Map<string, number>();
 
   private async onTick(): Promise<void> {
     // Out of combat only (D-546): a caster who refills while standing in a
@@ -633,6 +802,7 @@ export class GameServer {
             );
             if (
               conn &&
+              this.scenarioAllows(conn, tr.toArea) &&
               this.dungeonGateAllows(conn, areaId, tr.toArea) &&
               this.confirmEndgameEntry(conn, areaId, tr.x, tr.y, tr.toArea)
             ) {
@@ -723,6 +893,7 @@ export class GameServer {
   private async roundTick(): Promise<void> {
     const r = this.round;
     if (!r) return;
+    if (this.roundResetting) return;
     if (this.inGrace) {
       // The day does not advance. Counted rather than skipped, so every
       // round-clock reading stays consistent with itself.
@@ -746,6 +917,7 @@ export class GameServer {
       return;
     }
     if (r.phase === 'running') {
+      if (await this.abandonIfDeserted(r)) return;
       this.roundDayNightTick();
       const resolution = r.evaluate(this.roundEffectiveTick());
       if (resolution) await this.finishRound(resolution);
@@ -776,6 +948,19 @@ export class GameServer {
     this.roundLastNight = null;
     this.roundXp.clear();
     this.roundDead.clear();
+    // ⚠ Anybody standing OUTSIDE the scenario is brought inside it (D-627).
+    //
+    // The cast was only ever gathered at a RESET, so the first round after a
+    // boot was played wherever people happened to log in — and the shipped
+    // `DEFAULT_AREA_ID` is `hanged-ferryman`, the persistent world's tavern,
+    // which is not in the scenario at all. So every server's first round began
+    // out of bounds, and the boundary would then have refused the cast passage
+    // back to their own town.
+    //
+    // ⚠ Only the ones who are out of bounds move. A general gather at the
+    // start would be a second implementation of the reset's, and would shove
+    // anybody already standing in the round somewhere else for no reason.
+    await this.placeStrandedCast();
     // Gear was stripped at the last reset (D-522), so the kit is granted
     // here, before anybody has had a chance to do anything with an empty
     // pack. Anyone who joined the lobby already has theirs and is skipped.
@@ -809,10 +994,114 @@ export class GameServer {
     this.despawnStations();
     this.spawnNodes();
     this.spawnStations();
+    // ⚠ NOT despawned first, unlike the nodes and stations above. Those are
+    // the round's resources and a fresh map means fresh ones; a person is
+    // not a resource, and taking the keeper away to put an identical keeper
+    // back would break every script handle pointing at him.
+    this.syncDeclaredNpcs();
     this.despawnRoamers(); // a new round opens at dawn, whatever the last one left
     this.spawnDungeon();
-    this.spawnGuards();
+    if (this.watchStands) this.spawnGuards();
     this.beginGrace('You have all woken in the same place. Say what needs saying.');
+    return true;
+  }
+
+  // -------------------------------------------------------------------------
+  // Filling the lobby (D-607)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Bring bots in to make up the cast.
+   *
+   * ⚠ Refused OUT LOUD on a server that does not allow them, rather than
+   * ignored. A button that does nothing is indistinguishable from a button
+   * that is broken, and the stakeholder's only way to tell is to ask me.
+   *
+   * ⚠ Deliberately not restricted to the lobby. A round that has already
+   * started is exactly when a thin cast becomes obvious, and a late arrival is
+   * already a supported thing that happens (D-579) — with the consequence
+   * recorded there, that a latecomer can never BE the antagonist.
+   */
+  private async handleAddBots(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'add_bots' }>,
+  ): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    if (!this.bots) {
+      return this.fail(conn, 'not_allowed', 'this server does not summon bots');
+    }
+    if (this.bots.count >= this.bots.capacity) {
+      return this.fail(
+        conn,
+        'not_allowed',
+        this.bots.capacity === 0
+          ? 'no companions are authored — add one in content/bots/'
+          : `no more than ${this.bots.capacity} companions at once`,
+      );
+    }
+    const arrived = await this.bots.add(msg.count);
+    // ⚠ Told to EVERYONE, and worded so it names no allegiance. The cast
+    // may see that companions arrived — they are about to be standing in the
+    // square — but a bot can be dealt the objective like anybody else, so a
+    // message that marked them out would hand the round away (D-521).
+    if (arrived.length > 0) {
+      this.broadcastNarrate(
+        arrived.length === 1
+          ? `${arrived[0]} comes in out of the road.`
+          : `${arrived.length} more come in out of the road.`,
+      );
+    } else {
+      this.fail(conn, 'not_allowed', 'nobody came');
+    }
+    this.broadcastRoundState();
+  }
+
+  private handleRemoveBots(conn: ConnState): void {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    if (!this.bots) {
+      return this.fail(conn, 'not_allowed', 'this server does not summon bots');
+    }
+    const sent = this.bots.removeAll();
+    if (sent > 0) this.broadcastNarrate('Some of those who were here have gone.');
+    this.broadcastRoundState();
+  }
+
+  /**
+   * Ends a round the players have left (D-608).
+   *
+   * ⚠ The outcome and the intent were both already written down — D-521
+   * lists `abandoned` as "too few players remained connected to continue" —
+   * and nothing ever called it except the DM's restart button. So a round
+   * whose cast had all disconnected kept running to its full twenty-five
+   * minutes with nobody in it, and the next person to log in did not arrive in
+   * a lobby: they arrived as a latecomer in a round that could not be won,
+   * with the bot controls hidden because the controls are a LOBBY thing. That
+   * is a dead end you cannot get out of from inside the game.
+   *
+   * ⚠ It waits rather than firing on the first missing player. Dropping and
+   * reconnecting is a supported thing that happens (D-579) and ending the
+   * round on a flicker of somebody's wifi would be a worse failure than the
+   * one this fixes.
+   *
+   * ⚠ Counted from who is CONNECTED, never from who is alive. Dying is how
+   * a round is supposed to shrink; `cast_wiped` is a result, not a desertion.
+   */
+  private async abandonIfDeserted(r: RoundEngine): Promise<boolean> {
+    if (this.thinCastTicks <= 0) return false;
+    if (this.roundCast().length >= r.minimumCast) {
+      this.thinCastSince = null;
+      return false;
+    }
+    if (this.thinCastSince === null) {
+      this.thinCastSince = this.world.tick;
+      return false;
+    }
+    if (this.world.tick - this.thinCastSince < this.thinCastTicks) return false;
+    this.thinCastSince = null;
+    const resolution = r.abandon(this.roundEffectiveTick());
+    if (!resolution) return false;
+    this.log('round: abandoned - too few players left connected to continue');
+    await this.finishRound(resolution);
     return true;
   }
 
@@ -919,6 +1208,8 @@ export class GameServer {
       graceTicks: this.roundGraceUntil === null
         ? 0
         : Math.max(0, this.roundGraceUntil - this.world.tick),
+      bots: this.bots?.count ?? 0,
+      botsAllowed: this.bots !== null,
     };
     for (const conn of this.conns) {
       if (conn.character) this.send(conn, msg);
@@ -972,6 +1263,15 @@ export class GameServer {
    * person, and knowing who they are still says nothing about what they are.
    */
   private async resetRound(): Promise<void> {
+    this.roundResetting = true;
+    try {
+      await this.doResetRound();
+    } finally {
+      this.roundResetting = false;
+    }
+  }
+
+  private async doResetRound(): Promise<void> {
     const forgotten = await this.store.clearAllKnowledge();
     let stripped = 0;
     for (const conn of this.conns) {
@@ -981,10 +1281,20 @@ export class GameServer {
     this.despawnStations();
     this.despawnRoamers();
     this.despawnGuards();
+    const swept = await this.sweepTheDead();
     // The watch forgets between rounds, like everyone else (D-525), and the
     // well runs clean again.
     this.wanted.clear();
     this.wellPoisonedUntil = -1;
+    // ⚠ And so does everyone else. `hostilities` records who declared against
+    // whom (D-206/D-531) and was NEVER cleared, so a grudge from one round was
+    // still on the books in the next — long enough for a stale entry to decide
+    // whether somebody counts as a threat for `combatTick`'s proximity check.
+    // `roamerHeadings` is keyed on entity id, and the entities are despawned
+    // above: every round left its headings behind and the map grew for the
+    // life of the process.
+    this.hostilities.clear();
+    this.roamerHeadings.clear();
     // ⚠ And the common stores are emptied (D-580). Not tidying: gear is
     // stripped between rounds (D-522), and stores that survived would let the
     // cast accumulate a permanent larder across rounds — which defeats
@@ -1018,9 +1328,172 @@ export class GameServer {
       };
       this.applyThirstToVitals(conn);
     }
-    await this.store.appendEvent('round_reset', { forgotten, stripped });
-    this.log(`round: reset - ${forgotten} memories wiped, ${stripped} items stripped`);
+    // ⚠ And everybody is stood back up, in the same place (D-607). Two
+    // separate things were carried over from the last round and both of them
+    // stopped a SECOND round from being playable at all:
+    //
+    //   * the dead stayed dead. Round death is not permadeath (D-522) and
+    //     respawn is refused while a round runs — so after the reset a killed
+    //     player was a ghost with no route back into the mode, which reads as
+    //     a bug in death rather than a missing line in reset.
+    //   * the living stood wherever they stopped. The opening truce says 'you
+    //     have all woken in the same place' (D-536) and it was simply untrue
+    //     from the second round on: the cast opened scattered across six
+    //     areas, some of them underground, with a minute of enforced peace to
+    //     spend walking back.
+    await this.gatherForNewRound();
+    await this.store.appendEvent('round_reset', { forgotten, stripped, swept });
+    this.log(
+      `round: reset - ${forgotten} memories wiped, ${stripped} items stripped, `
+      + `${swept} bodies and heaps cleared`,
+    );
     this.broadcastRoundState();
+  }
+
+  /**
+   * Clears every body and every heap of dropped gear (D-618).
+   *
+   * ⚠: the reset cleared nodes, stations, roamers, guards, the stores,
+   * recognition, kit and xp -- and left the DEAD lying where they fell.
+   * Reported as corpses surviving into the next round, each one replaying its
+   * death over and over, which is what a fresh client does with a body it was
+   * never told had already landed.
+   *
+   * ⚠: swept rather than decayed. A corpse normally rots on a timer and
+   * leaves its gear as a heap (D-511, D-554), and that whole chain is a
+   * WITHIN-round mechanic: hunt your own corpse, loot somebody else's, watch
+   * the evidence disappear. Between rounds none of it means anything -- the
+   * gear is stripped anyway (D-522) -- so the bodies go without ceremony and
+   * without leaving heaps, which is what "back to the start of round state"
+   * means.
+   *
+   * ⚠: the ITEMS are deleted with them. A corpse's gear rows are owned
+   * by the corpse, so dropping the entity and leaving the rows would leave
+   * items owned by nothing -- invisible, unreachable, and still counted by the
+   * no-duplication invariant D-114 exists to protect.
+   */
+  private async sweepTheDead(): Promise<number> {
+    let swept = 0;
+    for (const [entityId, info] of [...this.corpsesByEntity]) {
+      const areaId = this.world.getEntityAreaId(entityId);
+      const entity = this.world.getEntity(entityId);
+      this.corpsesByEntity.delete(entityId);
+      if (info.corpseId) await this.store.deleteItemsByCorpse(info.corpseId);
+      const left = this.world.despawn(entityId);
+      if (left && areaId) {
+        // ⚠: on the plane the thing was ON. A ghost's body is a ghost's
+        // to see; announcing it to the living would be a departure they were
+        // never told about, which a bot records as a protocol violation and a
+        // real client ignores in silence (D-608).
+        this.broadcastPlane(areaId, entity?.ghost ?? false, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [left],
+        });
+      }
+      swept++;
+    }
+    return swept;
+  }
+
+  /**
+   * Everything a round resets about a PERSON, in one place (D-608).
+   *
+   * The stakeholder's ruling: "a round should be a complete reset of player
+   * statuses and position." Position is the caller's job because the two
+   * callers differ in how they move somebody; this is the status half, and it
+   * is deliberately total — health, mana, wounds, hunger and thirst.
+   *
+   * ⚠ Health was previously only restored FROM ZERO, on entry, by a line
+   * that read `if (character.hp <= 0)`. So a character stored at 7 of 20 hit
+   * points — which is the normal state of anyone who logged out after a bad
+   * night — walked into the next round almost dead and was killed by the
+   * first thing that touched them. That is the "I log in and I am dead" the
+   * stakeholder reported, and it is not a death bug: it is a reset that only
+   * covered one of its cases.
+   *
+   * ⚠ Needs too, or a round opens with somebody already starving on a
+   * clock that belongs to a round that finished (D-526).
+   */
+  private async wipeRoundStatus(conn: ConnState): Promise<void> {
+    if (!conn.character || !conn.vitals) return;
+    conn.vitals.hp = conn.vitals.maxHp;
+    conn.vitals.mana = conn.vitals.maxMana;
+    await this.store.downgradeInjuries(conn.character.id);
+    conn.injuries = await this.store.listInjuries(conn.character.id);
+    conn.needs = {
+      hunger: 'sated',
+      thirst: 'sated',
+      hungerAtHour: 0,
+      thirstAtHour: 0,
+      starvedAtHour: 0,
+    };
+    await this.store.saveCharacterVitals(conn.character.id, { hp: conn.vitals.hp });
+  }
+
+  /**
+   * Puts every player back on their feet at the round's starting point.
+   *
+   * ⚠ Uniform: the living are moved by the same despawn-and-respawn the
+   * dead are, rather than by a quiet position edit. A living character moved
+   * without an entity_left would leave a copy of themselves standing in the
+   * area they came from for every observer still in it — and the observers
+   * who moved at the same instant would never learn they had gone. One path
+   * for both is one path to get wrong.
+   */
+  private async gatherForNewRound(): Promise<void> {
+    const home = this.roundHomeArea();
+    const spawn = this.world.getAreaDef(home).spawn;
+    for (const conn of [...this.conns]) {
+      if (!conn.character || conn.entityId === null || !conn.vitals || !conn.areaId) continue;
+      const old = this.world.getEntity(conn.entityId);
+      this.endSeanceInvolving(conn, 'the round ended');
+      if (this.bodyObservers.delete(conn)) this.send(conn, { t: 'observing', on: false });
+      // ⚠ No entity_left delta goes out for any of this, deliberately.
+      // Every connection with a character is re-snapshotted below, so a delta
+      // announcing a departure is at best redundant and at worst a message
+      // about an entity the receiving mirror has already dropped — which a bot
+      // records as a protocol violation and a real client silently ignores,
+      // meaning the only way to see it is the headless run. Found exactly that
+      // way: the first version announced each departure on the plane it
+      // happened on, and a ghost was told about a ghost it had never been told
+      // about in the first place.
+      this.world.despawn(conn.entityId);
+      this.entityCharacter.delete(conn.entityId);
+      this.connsByArea.get(conn.areaId)?.delete(conn);
+      await this.wipeRoundStatus(conn);
+      const { entity } = this.world.spawn(home, {
+        characterId: conn.character.id,
+        name: conn.character.name,
+        appearanceSeed: conn.character.appearanceSeed,
+        appearance: conn.character.appearance,
+        look: conn.character.look,
+        pos: { x: spawn.x, y: spawn.y },
+      });
+      // ⚠ Carried across the reset for the same reason a door carries it
+      // (D-610): `worn` lives on the entity and this despawns one.
+      entity.worn = old?.worn ?? null;
+      conn.entityId = entity.id;
+      conn.areaId = home;
+      this.entityCharacter.set(entity.id, conn.character.id);
+      let byArea = this.connsByArea.get(home);
+      if (!byArea) this.connsByArea.set(home, (byArea = new Set()));
+      byArea.add(conn);
+      this.dirtyCharacters.set(conn.character.id, { areaId: home, x: spawn.x, y: spawn.y });
+      await this.store.saveCharacterVitals(conn.character.id, { hp: conn.vitals.hp });
+    }
+    // ⚠ Announced to the others in a SECOND pass, after everybody has been
+    // placed. Announcing inside the loop tells the people already moved about
+    // the people moved after them and nobody about the people moved before —
+    // so the first arrival ends up alone in a square full of players.
+    for (const conn of this.conns) {
+      if (!conn.character || conn.entityId === null) continue;
+      const entity = this.world.getEntity(conn.entityId);
+      if (!entity) continue;
+      await this.sendSnapshot(conn);
+      this.sendStatus(conn);
+      this.onAreaEnter?.(home, entity.id);
+    }
   }
 
   /**
@@ -1913,9 +2386,26 @@ export class GameServer {
       if (event && areaId) {
         this.broadcastPlane(areaId, false, { t: 'delta', tick: this.world.tick, events: [event] });
       }
+      // ⚠ Forgotten one at a time, NOT by clearing the map (D-610). This
+      // used to end with `this.roamers.clear()`, which threw away the handles
+      // to the very guards the loop above had just been careful to SKIP. The
+      // watchmen stayed in the world and the server stopped knowing they
+      // existed, with two consequences and only one of them visible:
+      //
+      //   * `despawnGuards` then found nothing to stand down, so every round
+      //     left its watch behind and spawned four more — reported as "the
+      //     bots seem to be duplicating each round", 4 -> 8 -> 12 -> 16;
+      //   * and `witnessCrime` walks this same map, so the watch quietly
+      //     stopped SEEING anything. Every guard on the map was scenery, and
+      //     murder in the open square went unwitnessed (D-552, D-217). That
+      //     half is invisible: nothing errors, the guards are still standing
+      //     there, and the crime simply never registers.
+      //
+      // ⚠ It fires at every dawn, not only at a reset (D-551), so the watch
+      // was blind from the first morning of the very first round.
+      this.roamers.delete(entityId);
+      this.roamerHeadings.delete(entityId);
     }
-    this.roamers.clear();
-    this.roamerHeadings.clear();
   }
 
   /**
@@ -2028,6 +2518,14 @@ export class GameServer {
         continue;
       }
       const target = this.world.getEntity(quarry.entityId!)!;
+      // ⚠ A thing that has picked you out is IN COMBAT, from the moment it
+      // turns rather than from the moment it lands a blow (D-619). Two things
+      // follow from the flag and neither is cosmetic: it runs (`speedFor`),
+      // and every observer sees a weapon come up. The watch could not close
+      // before -- a guard advanced at 2.5 m/s against a player walking at 2.9,
+      // so "the guards saw you" was a thing you strolled away from, and the
+      // stakeholder's note is that they never arrive.
+      this.enterCombat(roamer, areaId);
       if (best > 1) {
         if (this.world.tick % kind.moveCooldownTicks !== 0) continue;
         this.world.setMoveIntent(
@@ -2091,7 +2589,22 @@ export class GameServer {
   ): Promise<void> {
     if (!victim.vitals || victim.entityId === null) return;
     if (this.inGrace) return; // the truce binds the wild things too (D-536)
-    const damage = this.roamerRng.int(kind.damageMin, kind.damageMax);
+    // ⚠ A roamer rolls too (D-606). It was a flat draw between two numbers,
+    // which meant armour and dexterity did nothing at all against the thing
+    // players actually fight most — the dungeon and the night. Its attack
+    // bonus is its own damage floor, so a stronger creature is also a more
+    // accurate one without needing a second number in content.
+    const victimEntity = this.world.getEntity(victim.entityId);
+    const blow = strike(
+      {
+        bonus: kind.damageMin,
+        damage: `1d${Math.max(1, kind.damageMax - kind.damageMin + 1)}`,
+        damageBonus: kind.damageMin - 1,
+      },
+      victimEntity ? this.armourClassOf(victimEntity) : BASE_ARMOUR_CLASS,
+      (sides) => this.roamerRng.int(1, sides),
+    );
+    const damage = blow.damage;
     this.enterCombat(roamer, areaId);
     this.enterCombat(this.world.getEntity(victim.entityId), areaId);
     // Being mauled ends whatever you were doing, exactly as a player's blow
@@ -2107,6 +2620,9 @@ export class GameServer {
           targetId: victim.entityId,
           variant: 0,
           damage,
+          hit: blow.attack.hit,
+          roll: blow.attack.roll,
+          critical: blow.attack.critical,
         },
       ],
     });
@@ -2157,6 +2673,169 @@ export class GameServer {
         });
       }
     }
+  }
+
+
+
+  /**
+   * How hard this body is to hit (D-606).
+   *
+   * ⚠ Three kinds of target and only one of them has attributes. A PLAYER
+   * composes it from dexterity and what they are wearing; a ROAMER carries it
+   * as content, because a rock golem should not be as easy to hit as a rat;
+   * anything else -- a scripted NPC, a corpse being hacked at -- is an
+   * ordinary unarmoured body at ten.
+   */
+  private armourClassOf(entity: WorldEntity): number {
+    const conn = [...this.conns].find((c) => c.entityId === entity.id);
+    if (conn?.character) {
+      return BASE_ARMOUR_CLASS
+        + dexterityAc(this.attributesOf(conn))
+        + this.loadoutOf(conn).ac;
+    }
+    return this.roamers.get(entity.id)?.armourClass ?? BASE_ARMOUR_CLASS;
+  }
+
+  /**
+   * Sit on the nearest seat to a point (D-605).
+   *
+   * ⚠ The SERVER decides where the sitter ends up and which way they face,
+   * and that is the whole point of the verb rather than an emote. Sitting used
+   * to be `*sits down*` typed anywhere, so a character sat facing whatever way
+   * they happened to walk in from -- which on a chair against a wall plays the
+   * sit-down animation into the backrest. The seat's own rotation is the only
+   * thing that knows which way is forward for it.
+   *
+   * ⚠ Reach is checked against the PLAYER, and the seat is found near the
+   * point they clicked. A client that asked to sit on a chair across the room
+   * would otherwise teleport, which is the shape of every movement exploit.
+   */
+  private handleSit(conn: ConnState, msg: { x: number; y: number }): void {
+    if (conn.entityId === null || !conn.areaId) {
+      return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    const entity = this.world.getEntity(conn.entityId);
+    if (!entity) return this.fail(conn, 'not_in_world', 'enter the world first');
+    if (entity.ghost) return this.fail(conn, 'bad_target', 'the dead do not rest');
+    if (conn.downed) return this.fail(conn, 'bad_target', 'you are on the floor already');
+
+    const def = this.world.getAreaDef(conn.areaId);
+    let best: { x: number; y: number; rotation: number } | null = null;
+    let bestAway = SEAT_PICK_RADIUS;
+    for (const placed of def.assets) {
+      if (!placed.seat) continue;
+      const away = Math.hypot(placed.x - msg.x, placed.y - msg.y);
+      if (away > bestAway) continue;
+      bestAway = away;
+      best = { x: placed.x, y: placed.y, rotation: placed.rotation };
+    }
+    if (!best) return this.fail(conn, 'bad_target', 'there is nothing to sit on there');
+
+    const reach = Math.hypot(best.x - entity.pos.x, best.y - entity.pos.y);
+    if (reach > SEAT_REACH) return this.fail(conn, 'not_adjacent', 'walk to it first');
+
+    // ⚠ Somebody already in it. A seat is one person wide, and two bodies
+    // on one stool is the kind of thing that looks like a rendering fault.
+    for (const other of this.world.entitiesIn(conn.areaId)) {
+      if (other.id === entity.id || other.posture !== 'sitting') continue;
+      if (Math.hypot(other.pos.x - best.x, other.pos.y - best.y) < 0.4) {
+        return this.fail(conn, 'bad_target', 'somebody is in it');
+      }
+    }
+
+    entity.pos.x = best.x;
+    entity.pos.y = best.y;
+    // ⚠ Through `sitterFacingFor`, never straight off the yaw (D-609). The
+    // seat's rotation is where the CHAIR points; the sitter looks the other
+    // way, because the backrest is behind them.
+    entity.facing = sitterFacingFor(best.rotation);
+    entity.posture = 'sitting';
+    // ⚠ On a SEAT, which is the fact the emote cannot claim (D-615). Only
+    // this verb finds a chair, decides where the sitter ends up and which way
+    // they face (D-605); `*sits*` says nothing about furniture.
+    entity.seated = true;
+    // Stop where they are: a queued route would walk them straight back out
+    // of the chair on the next tick.
+    this.world.stopMoving(entity.id);
+    // Both events: where they are and what they are doing. A posture with no
+    // move leaves everybody else's copy of them standing beside the chair.
+    this.broadcastPlane(conn.areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [
+        { type: 'entity_moved', id: entity.id, x: entity.pos.x, y: entity.pos.y,
+          z: entity.z, facing: entity.facing },
+        { type: 'entity_emote', id: entity.id, posture: 'sitting', seated: true, transients: [] },
+      ],
+    });
+  }
+
+  /**
+   * Put the declared cast into the world, and keep it there (D-598).
+   *
+   * ⚠ IDEMPOTENT, and that is the whole design. It runs when the world
+   * boots and again at every round start, and it skips anybody already
+   * standing. A round is not allowed to be the reason the next round has no
+   * keeper: `silence-the-keeper` is live, the engine deals it at random, and an
+   * antagonist who won it in round one would otherwise have deleted the
+   * objective for everybody afterwards until somebody restarted the server.
+   *
+   * ⚠ It matches on `npcType`, not on the descriptor. Two NPCs may share
+   * wording, a descriptor is prose somebody edits, and the question being
+   * asked here is "is this PLACEMENT filled" rather than "is somebody who
+   * sounds like this nearby".
+   */
+  private syncDeclaredNpcs(): void {
+    for (const areaId of this.world.areaIds()) {
+      const standing = new Set(
+        [...this.world.entitiesIn(areaId)]
+          .filter((e) => e.npcType !== undefined)
+          .map((e) => e.npcType!),
+      );
+      for (const placed of this.world.getAreaDef(areaId).npcs ?? []) {
+        if (standing.has(placed.type)) continue;
+        // Checked at construction, so this cannot be missing; the throw says
+        // so rather than spawning a person with no description.
+        const def = this.content.npcs.get(placed.type);
+        if (!def) throw new Error(`area '${areaId}' places an undeclared npc '${placed.type}'`);
+        const { entity } = this.world.spawn(areaId, {
+          characterId: null,
+          name: def.name,
+          npcDescriptor: def.descriptor,
+          npcType: def.id,
+          hp: def.hp,
+          ...(def.character ? { model: def.character } : {}),
+          // A seed derived from the SPOT when none is authored: stable while
+          // nobody moves them, and different for two nameless NPCs in one area.
+          appearanceSeed: def.appearanceSeed
+            ?? Math.abs((placed.x * 7919) ^ (placed.y * 104729)),
+          pos: { x: placed.x, y: placed.y },
+          ...(placed.facing ? { facing: placed.facing } : {}),
+        });
+        standing.add(placed.type);
+        this.broadcastPlane(areaId, false, {
+          t: 'delta',
+          tick: this.world.tick,
+          events: [{ type: 'entity_entered', entity: toWireEntity(entity, def.descriptor) }],
+        });
+      }
+    }
+  }
+
+  /**
+   * The entity a script means by `npc("<id>")` (D-598).
+   *
+   * ⚠ THROWS when there is nobody. A script that silently got a bad handle
+   * would go on calling `say` on it and nothing would be said, which reads as
+   * the NPC being mute rather than absent. CI refuses a script naming an NPC
+   * its own area does not place, so this firing means somebody changed one and
+   * not the other.
+   */
+  findNpc(areaId: string, type: string): number {
+    for (const e of this.world.entitiesIn(areaId)) {
+      if (e.npcType === type) return e.id;
+    }
+    throw new Error(`no npc '${type}' placed in '${areaId}'`);
   }
 
   /** Puts the town's facilities into the world as real objects (D-530). */
@@ -2386,7 +3065,26 @@ export class GameServer {
       // last centimetres of their own glide, and the message said "you moved"
       // when they had not. The same float-equality trap that broke every door
       // in the world and the endgame confirmation.
-      if (distance(self.pos, work.at) > WORK_ANCHOR_METRES) {
+      //
+      // ⚠ And by MOVEMENT, not by displacement alone. Two bodies have radius
+      // and push each other apart, so somebody walking into a worker shoved
+      // them off their anchor and cancelled the job — which meant a harvest
+      // could be broken by barging, without a blow, by anyone who happened to
+      // path through. That inverts D-529's buddy system: being interrupted is
+      // supposed to be the cost of being ATTACKED while stationary and
+      // predictable, not of standing somewhere a stranger wanted to walk.
+      //
+      // ⚠ It also made `mr2-gathering`'s interrupt test intermittent, and the
+      // failure said "you moved" when nobody had: the thug's approach
+      // cancelled the work a tick before its own blow could.
+      //
+      // ⚠ INTENT, not the route. Reading the route as "leaving" put the old
+      // glide bug straight back: a worker who has just arrived still holds the
+      // tail of the route that brought them, so the settling wobble counted as
+      // walking away and cancelled the job it had just started. Intent is set
+      // only by somebody actually steering.
+      const shifted = distance(self.pos, work.at);
+      if (shifted > WORK_SHOVE_METRES || (self.intent !== null && shifted > WORK_ANCHOR_METRES)) {
         this.interruptWork(conn, 'you moved');
         continue;
       }
@@ -2595,6 +3293,77 @@ export class GameServer {
    *      risk. Movement between floors already reached stays open, so being
    *      caught below is frightening rather than merely idle.
    */
+  /**
+   * Where a round opens, and where the cast is gathered back to at a reset.
+   *
+   * ⚠ The SCENARIO's opening area, not the server's `defaultAreaId`. The
+   * default is the persistent world's starting room, so using it meant the
+   * persistent world decided where a round began — the same absence of a
+   * boundary as the map, one layer up. It falls back to the default when no
+   * scenario is authored, and again if a scenario names an area this world
+   * does not have: a round in the wrong room beats a round that cannot place
+   * its cast at all.
+   */
+  /**
+   * Moves anybody outside the scenario into its opening area (D-627).
+   *
+   * ⚠ Uses `transferToArea`, the same path a door uses, so the arrival is
+   * announced and snapshotted exactly as walking in would be. Reimplementing
+   * the move here is how an entity ends up in two areas' tables at once.
+   */
+  private async placeStrandedCast(): Promise<void> {
+    const sc = this.scenario;
+    if (sc === null) return;
+    const home = this.roundHomeArea();
+    if (!this.world.hasArea(home)) return;
+    const spawn = this.world.getAreaDef(home).spawn;
+    for (const conn of [...this.conns]) {
+      if (!conn.character || conn.areaId === null) continue;
+      if (sc.areas.includes(conn.areaId)) continue;
+      await this.transferToArea(conn, home, spawn.x, spawn.y);
+    }
+  }
+
+  private roundHomeArea(): string {
+    const opensIn = this.scenario?.opensIn;
+    if (opensIn !== undefined && this.world.hasArea(opensIn)) return opensIn;
+    return this.defaultAreaId;
+  }
+
+  /**
+   * The round's EDGE (D-627).
+   *
+   * ⚠ This is the check the round never had. `RoundEngine` knew the cast,
+   * the clock and the objective and had no concept of an AREA -- while the
+   * world graph ran `round-town -> hanged-ferryman -> broken-yard ->
+   * sunken-crypt`, and `sunken-crypt` is `zone: endgame`, which carries
+   * involuntary permadeath. D-523 says a round must never contain one, because
+   * a round death must not cost a character levelled across fifty rounds.
+   * Nothing stopped the walk: `dungeonGateAllows` below enforces the dungeon's
+   * day/night and floor rules and nothing else, and `confirmEndgameEntry`
+   * warns twice and then lets you through. The invariant was held up by nobody
+   * having gone west.
+   *
+   * ⚠ Read off the SCENARIO rather than checked against a list of bad
+   * areas. A guard naming `sunken-crypt` would fix the case found and leave
+   * the class, and the class grows every time the persistent world does
+   * (D-521). A declared set answers the question by reading.
+   *
+   * ⚠ The door is not removed, it is shut. The tavern's west door belongs
+   * to the persistent world and is a real part of that map; during a round it
+   * simply does not open, and the player is told why in world voice rather
+   * than by a refusal code, because walking into a door is not an error.
+   */
+  private scenarioAllows(conn: ConnState, toArea: string): boolean {
+    if (!this.roundRunning || this.scenario === null) return true;
+    if (this.scenario.areas.includes(toArea)) return true;
+    this.send(conn, {
+      t: 'narrate',
+      text: 'That way is barred, and stays barred while this business is unsettled.',
+    });
+    return false;
+  }
+
   private dungeonGateAllows(conn: ConnState, fromArea: string, toArea: string): boolean {
     if (!this.roundRunning || !this.world.hasArea(toArea)) return true;
     // Nobody slips away during the truce (D-536). Leaving mid-conversation
@@ -2736,6 +3505,19 @@ export class GameServer {
       ghost: oldEntity.ghost, // the grey country has the same doors
     });
     entity.presentation = oldEntity.presentation; // the hood survives the door
+    // ⚠ And so does what they are WEARING (D-610). A transition despawns
+    // the entity and spawns a new one, and `worn` lives on the entity — so
+    // every door stripped the character back to bare skin for everyone
+    // watching, including themselves. `publishWorn` could not put it back
+    // either: it compares against the previous value and a fresh entity has
+    // none, so the next time the wearer changed anything it would compare
+    // against null and look like a change, but until then they simply stood
+    // there undressed.
+    //
+    // ⚠ The line above it shows this was thought about once already —
+    // "the hood survives the door" — and `worn` arrived three decisions later
+    // (D-554, D-571, D-578) without anybody revisiting the list.
+    entity.worn = oldEntity.worn;
     conn.entityId = entity.id;
     conn.areaId = toAreaId;
     this.entityCharacter.set(entity.id, conn.character.id);
@@ -2915,8 +3697,16 @@ export class GameServer {
         return this.handleTreat(conn, msg);
       case 'respawn':
         return this.handleRespawn(conn);
+      case 'sit':
+        return this.handleSit(conn, msg);
+      case 'add_bots':
+        return this.handleAddBots(conn, msg);
+      case 'remove_bots':
+        return this.handleRemoveBots(conn);
       case 'retire':
         return this.handleRetire(conn);
+      case 'retire_character':
+        return this.handleRetireCharacter(conn, msg);
       case 'loot':
         return this.handleLoot(conn, msg);
       case 'speak_dead':
@@ -3036,7 +3826,7 @@ export class GameServer {
 
   /** What the worn set contributes right now. */
   private loadoutOf(conn: ConnState): LoadoutTotals {
-    return conn.loadout ?? { armour: 0, damage: 0, mana: 0, weight: 0, range: 1 };
+    return conn.loadout ?? { armour: 0, damage: 0, mana: 0, weight: 0, range: 1, ac: 0 };
   }
 
   /**
@@ -3091,6 +3881,10 @@ export class GameServer {
         stats,
         garment: template?.garment,
         stance: template ? this.stanceOf(template) : undefined,
+        // ⚠ And WHICH mesh it is (D-614). Resolved here for the same reason
+        // the stance is: the item names its art in content, and a client that
+        // had to look that up would need the whole item catalogue.
+        art: template?.art ? `${template.art.pack}/${template.art.asset}` : undefined,
       });
     }
     return worn;
@@ -3590,10 +4384,28 @@ export class GameServer {
     // The blow (D-546, D-547). The 2-6 roll is unchanged and still the bulk
     // of it: attributes and gear MOVE the number, they do not replace it, so
     // a well-equipped veteran still loses rolls to a desperate first-timer.
-    const swing =
-      this.contestRng.int(2, 6) +
-      damageBonusFor(this.attributesOf(conn)) +
-      this.loadoutOf(conn).damage;
+    // The swing, rolled (D-606). A d20 against the target's Armour Class, and
+    // the damage rolled SEPARATELY beside it — the stakeholder's brief, and
+    // the NWN shape the project was always meant to have.
+    //
+    // ⚠ This replaces two rules rather than joining them. Dexterity's
+    // glance chance is gone: it and AC are the same idea, and keeping both
+    // paid dexterity twice. Armour's flat subtraction is gone: armour raises
+    // AC now, and doing both counted a breastplate twice over.
+    const loadout = this.loadoutOf(conn);
+    const targetAc = this.armourClassOf(target);
+    const blow = strike(
+      {
+        bonus: attackBonusFor(this.attributesOf(conn)) + loadout.damage,
+        // ⚠ The flat `damage` is the FALLBACK, not dead. Forty-odd authored
+        // items carry it and no dice, and a weapon with no dice must not
+        // become a weapon that cannot hurt anybody.
+        damage: loadout.damageDice ?? String(Math.max(1, loadout.damage)),
+        damageBonus: damageBonusFor(this.attributesOf(conn)),
+      },
+      targetAc,
+      (sides) => this.contestRng.int(1, sides),
+    );
     // The swing is chosen here, not on each client: a cosmetic disagreement
     // would still be a disagreement about the thing players are watching.
     const variant = this.contestRng.int(0, ATTACK_VARIANTS - 1);
@@ -3611,19 +4423,11 @@ export class GameServer {
     // number on screen that never happened, which is the sort of harmless-
     // looking desync players learn to read as "armour does nothing".
     //
-    // Roamers and NPCs have neither gear nor dexterity: they take the swing.
-    let damage = swing;
-    if (struck) {
-      const glanced = this.contestRng.float() < glanceChanceFor(this.attributesOf(struck));
-      // A glance HALVES rather than erases — a whiff reads as the game
-      // ignoring your input, and a run of them would decide a fight by luck.
-      if (glanced) damage = Math.ceil(damage / 2);
-      damage -= this.loadoutOf(struck).armour;
-    }
-    // Armour reduces and can never erase. An unkillable player in a round
-    // with no respawn is not a tank, it is a stalemate the antagonist has no
-    // answer to (D-547).
-    damage = Math.max(MIN_DAMAGE, damage);
+    // ⚠ The defence already happened: it is the AC the roll was made
+    // against. There is nothing to subtract here any more, and a miss deals
+    // nothing rather than the floor of one that D-547 needed when subtraction
+    // could reach zero.
+    const damage = blow.damage;
     // The blow is heard, not the intent to strike (D-531). This belongs to
     // the SWING, not to the hostility declaration — a declaration is speech
     // and already travels through the speech pipeline.
@@ -3639,6 +4443,11 @@ export class GameServer {
         attackerId: self.id,
         targetId: target.id,
         damage,
+        // ⚠ Whether it LANDED, not merely how much it did. Zero damage and a
+        // miss are the same number and must not be the same picture.
+        hit: blow.attack.hit,
+        roll: blow.attack.roll,
+        critical: blow.attack.critical,
         variant,
       }],
     });
@@ -3875,13 +4684,14 @@ export class GameServer {
     conn.downed = { expiresAtTick: this.world.tick + this.reviveWindowTicks };
     entity.intent = null;
     entity.posture = 'kneeling';
+    entity.seated = false;
     for (const key of [...this.hostilities.keys()]) {
       if (key.includes(conn.character.id)) this.hostilities.delete(key);
     }
     this.broadcastPlane(conn.areaId, false, {
       t: 'delta',
       tick: this.world.tick,
-      events: [{ type: 'entity_emote', id: entity.id, posture: 'kneeling', transients: [] }],
+      events: [{ type: 'entity_emote', id: entity.id, posture: 'kneeling', seated: false, transients: [] }],
     });
     for (const other of this.connsByArea.get(conn.areaId) ?? []) {
       if (other === conn || !other.character || other.entityId === null) continue;
@@ -3940,10 +4750,11 @@ export class GameServer {
     targetConn.downed = null;
     targetConn.vitals.hp = Math.max(1, Math.ceil(targetConn.vitals.maxHp / 4));
     target.posture = 'standing';
+    target.seated = false;
     this.broadcastPlane(conn.areaId, false, {
       t: 'delta',
       tick: this.world.tick,
-      events: [{ type: 'entity_emote', id: target.id, posture: 'standing', transients: [] }],
+      events: [{ type: 'entity_emote', id: target.id, posture: 'standing', seated: false, transients: [] }],
     });
     this.sendStatus(targetConn);
     this.send(targetConn, { t: 'narrate', text: 'A hand drags you back from the edge.' });
@@ -4095,6 +4906,15 @@ export class GameServer {
   private async handleRetire(conn: ConnState): Promise<void> {
     if (conn.entityId === null || !conn.character || !conn.vitals || !conn.areaId) {
       return this.fail(conn, 'not_in_world', 'enter the world first');
+    }
+    // ⚠ Never inside a round (D-627). Retirement ends the character forever
+    // and pays Legacy, and D-207 and MR3 both say Legacy is earned BETWEEN
+    // rounds and never within one. Ungated it was two exploits at once: a way
+    // out of a round with no respawn, and a way to bank the round's takings
+    // before anybody could take them off you. `handleRespawn` has carried this
+    // guard since D-521; this one and `pay` were simply never given it.
+    if (this.roundRunning) {
+      return this.fail(conn, 'not_allowed', 'you cannot lay a life down until the round ends');
     }
     const entity = this.world.getEntity(conn.entityId)!;
     this.endSeanceInvolving(conn, 'the spirit went into the dark');
@@ -4923,13 +5743,11 @@ export class GameServer {
       token = newSessionToken();
       await this.store.createSession({ token, accountId, expiresAt: Date.now() + SESSION_TTL_MS });
     }
-    const characters = await this.store.getCharactersByAccount(accountId);
     this.send(conn, {
       t: 'auth_ok',
       accountId,
       token,
-      // The retired are memories, not options.
-      characters: characters.filter((c) => !c.retired).map(toSummary),
+      characters: await this.roster(accountId),
       legacyPoints: await this.store.getLegacyPoints(accountId),
     });
   }
@@ -5143,7 +5961,17 @@ export class GameServer {
       name: character.name,
       ...(character.classId ? { classId: character.classId } : {}),
     });
-    this.send(conn, { t: 'character_created', character: toSummary(character) });
+    // ⚠ Priced here too. The schema promises `legacyIfRetired` on every
+    // summary, and a zero here would be a lie the roster happens not to show
+    // today only because creating a character walks straight into the world.
+    this.send(conn, {
+      t: 'character_created',
+      character: toSummary(character, computeLegacyAward({
+        xp: character.xp,
+        deeds: character.deeds,
+        priorRetirements: await this.store.countRetired(conn.accountId!),
+      })),
+    });
   }
 
   private async handleEnterWorld(
@@ -5159,10 +5987,48 @@ export class GameServer {
     if (this.onlineCharacters.has(character.id)) {
       return this.fail(conn, 'already_in_world', 'character is already online');
     }
-    const areaId = this.world.hasArea(character.areaId) ? character.areaId : this.defaultAreaId;
-    // Ghosts do not persist across sessions: leaving as a ghost means waking
-    // at the respawn point, debt already on the books (recorded call, D-509).
-    if (character.hp <= 0) {
+    // Where an arrival goes, and in what state (D-608).
+    //
+    // The stakeholder's ruling: "upon joining a game, all players should be
+    // placed in the tavern... a round should be a complete reset of player
+    // statuses and position." So in a round, arriving is arriving FOR the
+    // round — not resuming wherever a previous one left you standing. The
+    // area saved on the record is a fact about a round that no longer exists,
+    // and honouring it is what put a character in the proving ground at seven
+    // hit points with no way to reach anything the round was using.
+    //
+    // ⚠ The one exception is somebody REJOINING a round they are already
+    // in. Moving them would undo whatever they had walked into, and for the
+    // antagonist it would be a public relocation in the middle of their own
+    // plan (D-579). It also protects the mode's central rule: the dead stay
+    // down until the round ends (D-521), and a "complete reset" applied to a
+    // reconnecting corpse would be a respawn button made of wifi.
+    //
+    // ⚠ `placeArrivals` exists because nine test fixtures put a character
+    // in a specific area with `saveCharacterPosition` and then assert what
+    // they can see from there — a body in the wilderness at dusk, at the well,
+    // on the gate road. Those suites are not testing arrival, and the flag
+    // says which question a fixture is asking rather than weakening the rule.
+    const stored = this.world.hasArea(character.areaId) ? character.areaId : this.defaultAreaId;
+    const rejoining = this.roundRunning && this.round!.inCast(character.id);
+    const sendHome = this.round !== null && this.placeArrivals && !rejoining;
+    // ⚠ The ROUND's home, not the persistent world's starting room (D-627).
+    // D-608 sends an arriving character to the tavern so they open the round
+    // whole and in the same place as everybody else; it read `defaultAreaId`,
+    // which is `hanged-ferryman` and is not in the scenario at all — so a
+    // latecomer arrived outside the round and the boundary then refused them
+    // passage to the town the rest of the cast was standing in.
+    const areaId = sendHome ? this.roundHomeArea() : stored;
+    const at = areaId === character.areaId && !sendHome
+      ? { x: character.x, y: character.y }
+      : this.world.getAreaDef(areaId).spawn;
+    // ⚠ Restored from ANY wound, not merely from zero. The line here read
+    // `if (character.hp <= 0)`, so a character stored at 7 of 20 — the normal
+    // state of anyone who logged out after a bad night — walked into the next
+    // round almost dead. `wipeRoundStatus` does the rest once vitals exist;
+    // this is the record, which has to be right before the entity is built.
+    const fullHeal = sendHome || character.hp <= 0;
+    if (fullHeal) {
       character.hp = character.maxHp;
       await this.store.saveCharacterVitals(character.id, { hp: character.hp });
       await this.store.downgradeInjuries(character.id);
@@ -5173,7 +6039,7 @@ export class GameServer {
       appearanceSeed: character.appearanceSeed,
       appearance: character.appearance,
       look: character.look,
-      pos: { x: character.x, y: character.y },
+      pos: { x: at.x, y: at.y },
     });
     conn.character = character;
     conn.entityId = entity.id;
@@ -5196,6 +6062,10 @@ export class GameServer {
     // A fresh arrival is not half-drained. The pool is only ever below full
     // because it was spent, and nothing has been spent yet this session.
     conn.vitals.mana = conn.vitals.maxMana;
+    // ⚠ And the rest of the reset, AFTER the loadout, because the loadout
+    // is what decides the ceilings — topping health up before it is read tops
+    // it up to the wrong number.
+    if (sendHome) await this.wipeRoundStatus(conn);
     this.entityCharacter.set(entity.id, character.id);
     this.onlineCharacters.add(character.id);
     // entity_entered is personalized: each observer gets the arrival under
@@ -5227,6 +6097,14 @@ export class GameServer {
     // ⚠ Sent to EVERY arrival, never only to an antagonist: a role message
     // that arrives for some people and not others is itself the tell.
     if (this.roundRunning) this.sendRoundRole(conn);
+    // ⚠ And the round's STATE, immediately, rather than whenever the next
+    // broadcast happens to come round (D-607). A waiting lobby only spoke
+    // every fifty ticks — five real seconds — so somebody who had just logged
+    // in stood in a town with no HUD at all, which is indistinguishable from
+    // a server that has not noticed them. It is worse now than it was: the
+    // lobby is where the controls for filling the cast live, so the first
+    // thing a lone player needs was the last thing to appear.
+    if (this.round) this.broadcastRoundState();
     this.send(conn, {
       t: 'catalogue',
       items: [...this.content.itemTemplates.values()].map((i) => ({
@@ -5287,6 +6165,7 @@ export class GameServer {
           z: a.z,
           rotation: a.rotation,
           scale: a.scale,
+          seat: a.seat,
         })),
         roofs: def.roofs,
         // What the ground is painted with (D-588). Sent as a pair: a mask
@@ -5425,7 +6304,13 @@ export class GameServer {
     // within the speaker's plane (D-203 — the living never see a ghost move).
     const emotes = this.emoteParser.parse(msg.text);
     if (emotes.posture || emotes.transients.length > 0) {
-      if (emotes.posture) speaker.posture = emotes.posture;
+      if (emotes.posture) {
+        speaker.posture = emotes.posture;
+        // ⚠ An emote never seats you (D-615). `*sits*` is somebody sitting
+        // down where they are; taking a chair is the `sit` verb, which is the
+        // only thing that knows there is a chair.
+        speaker.seated = false;
+      }
       this.broadcastPlane(conn.areaId, speaker.ghost, {
         t: 'delta',
         tick: this.world.tick,
@@ -5434,7 +6319,7 @@ export class GameServer {
             type: 'entity_emote',
             id: speaker.id,
             posture: emotes.posture ?? undefined,
-            transients: emotes.transients,
+            seated: false, transients: emotes.transients,
           },
         ],
       });
@@ -5701,15 +6586,118 @@ export class GameServer {
   // console. Everything here is server-authoritative narration and staging.
   // -------------------------------------------------------------------------
 
+  /**
+   * The account's playable characters, each priced (D-600).
+   *
+   * ⚠ The retired are memories, not options — they are filtered here, which
+   * is the one place a roster is built, so the delete verb and the login
+   * cannot disagree about who still exists.
+   *
+   * ⚠ `countRetired` is read ONCE, not per character. The award has
+   * diminishing returns on repeat sacrifice, so asking per character would be
+   * the same number every time and three extra queries; and the number shown
+   * is deliberately what retiring THIS character FIRST would pay. Retiring two
+   * pays less for the second, which is the rule doing its job rather than the
+   * screen lying — the roster refreshes after each one.
+   */
+  private async roster(accountId: string): Promise<CharacterSummary[]> {
+    const characters = await this.store.getCharactersByAccount(accountId);
+    const priorRetirements = await this.store.countRetired(accountId);
+    return characters
+      .filter((c) => !c.retired)
+      .map((c) => toSummary(c, computeLegacyAward({
+        xp: c.xp,
+        deeds: c.deeds,
+        priorRetirements,
+      })));
+  }
+
+  /**
+   * Delete a character from the roster, permanently (D-600).
+   *
+   * ⚠ This is RETIREMENT, not a row removal. The account is paid, the
+   * character is marked retired rather than erased, and the event log keeps
+   * what happened (D-106) — a character who owed somebody money or killed
+   * somebody cannot be made never to have existed by the person who did it.
+   *
+   * ⚠ Refused while that character is ONLINE, and the check is against the
+   * live set rather than against this connection. An account can hold two
+   * sockets; deleting the character the other one is playing would leave a
+   * body walking around belonging to somebody the store says is retired.
+   */
+  private async handleRetireCharacter(
+    conn: ConnState,
+    msg: { characterId: string },
+  ): Promise<void> {
+    if (!conn.accountId) return this.fail(conn, 'not_authenticated', 'log in first');
+    if (conn.character) {
+      return this.fail(conn, 'already_in_world', 'leave the world before deleting a character');
+    }
+    const character = await this.store.getCharacter(msg.characterId);
+    // ⚠ Same answer for "not yours" and "does not exist". Telling an account
+    // that somebody else's id is real is a way to enumerate characters.
+    if (!character || character.accountId !== conn.accountId || character.retired) {
+      return this.fail(conn, 'no_such_character', 'no such character');
+    }
+    if (this.onlineCharacters.has(character.id)) {
+      return this.fail(conn, 'character_online', 'that character is in the world');
+    }
+    const awarded = computeLegacyAward({
+      xp: character.xp,
+      deeds: character.deeds,
+      priorRetirements: await this.store.countRetired(conn.accountId),
+    });
+    await this.store.retireCharacter(character.id);
+    await this.store.addLegacyPoints(conn.accountId, awarded);
+    const total = await this.store.getLegacyPoints(conn.accountId);
+    await this.store.appendEvent('retired', {
+      characterId: character.id,
+      accountId: conn.accountId,
+      awarded,
+      xp: character.xp,
+      deeds: character.deeds,
+      voluntary: true,
+      fromRoster: true,
+    });
+    this.send(conn, { t: 'retired', awarded, totalLegacyPoints: total });
+    // The roster is re-sent rather than the client removing the row itself:
+    // every remaining character's price has just changed.
+    this.send(conn, {
+      t: 'character_list',
+      characters: await this.roster(conn.accountId),
+      legacyPoints: total,
+    });
+  }
+
   spawnNpc(
     areaId: string,
-    opts: { x: number; y: number; descriptor: string; appearanceSeed?: number },
+    opts: {
+      x: number;
+      y: number;
+      descriptor: string;
+      appearanceSeed?: number;
+      /** An id in `content/characters/` (D-596). Omitted means drawn from the seed. */
+      character?: string;
+    },
   ): number {
     if (!this.world.hasArea(areaId)) throw new Error(`no such area '${areaId}'`);
+    // ⚠ Refused HERE, by name, rather than passed through to the client. An
+    // unresolvable model is not a fault the renderer can report: it falls back
+    // to the appearance seed and draws a perfectly plausible stranger, so a
+    // misspelling would leave the keeper an objective names standing at the
+    // door as somebody else with nothing in any log. Same reason D-593 made a
+    // missing keeper a build error rather than a silent unwinnable round.
+    if (opts.character && !this.content.characters.has(opts.character)) {
+      const known = [...this.content.characters.keys()].sort().join(', ');
+      throw new Error(
+        `no such character '${opts.character}' in content/characters (have: ${known})`,
+      );
+    }
     const { entity } = this.world.spawn(areaId, {
       characterId: null,
       name: opts.descriptor,
       npcDescriptor: opts.descriptor,
+      ...(opts.character ? { model: opts.character } : {}),
       appearanceSeed: opts.appearanceSeed ?? Math.abs((opts.x * 7919) ^ (opts.y * 104729)),
       pos: { x: opts.x, y: opts.y },
     });
@@ -5738,12 +6726,18 @@ export class GameServer {
     if (!speaker || !areaId || speaker.characterId !== null) return false;
     const emotes = this.emoteParser.parse(text);
     if (emotes.posture || emotes.transients.length > 0) {
-      if (emotes.posture) speaker.posture = emotes.posture;
+      if (emotes.posture) {
+        speaker.posture = emotes.posture;
+        // ⚠ An emote never seats you (D-615). `*sits*` is somebody sitting
+        // down where they are; taking a chair is the `sit` verb, which is the
+        // only thing that knows there is a chair.
+        speaker.seated = false;
+      }
       // NPCs live on the living plane — ghosts must not see them move (D-203).
       this.broadcastPlane(areaId, false, {
         t: 'delta',
         tick: this.world.tick,
-        events: [{ type: 'entity_emote', id: speaker.id, posture: emotes.posture ?? undefined, transients: emotes.transients }],
+        events: [{ type: 'entity_emote', id: speaker.id, posture: emotes.posture ?? undefined, seated: false, transients: emotes.transients }],
       });
     }
     await this.deliverSpeech({ speaker, areaId, channel, text, languageId: 'common' });
@@ -6143,6 +7137,13 @@ export class GameServer {
     conn: ConnState,
     msg: Extract<ClientMessage, { t: 'pay' }>,
   ): Promise<void> {
+    // ⚠ No coin inside a round (D-627). Gold belongs to the persistent
+    // world's economy (D-220) and round mode does not even display it, so a
+    // working transfer verb was a currency the cast could move around without
+    // the UI ever admitting it existed.
+    if (this.roundRunning) {
+      return this.fail(conn, 'not_allowed', 'coin is no use to anyone here');
+    }
     const target = this.interactionTarget(conn, msg.toEntityId);
     if (!target) return;
     const ok = await this.store.transferCoin(conn.character!.id, target.characterId, msg.amount);
@@ -6251,6 +7252,13 @@ export class GameServer {
       && before.helm === look.helm && before.pauldrons === look.pauldrons
       && before.cape === look.cape && before.robe === look.robe
       && before.weapon === look.weapon && before.stance === look.stance
+      // ⚠ And `weaponArt`, for the THIRD time on this same comparison
+      // (D-571 caught `garments`, D-578 caught `stance`, D-614 this).
+      // Two different swords give identical flags, identical garments AND
+      // an identical stance -- so without this line, changing sword is
+      // judged "no visible change" and never broadcast: the wielder sees
+      // the new blade and nobody else does.
+      && before.weaponArt === look.weaponArt
       && sameGarments) {
       return;
     }
@@ -6313,7 +7321,7 @@ function toWireItem(i: {
   };
 }
 
-function toSummary(c: CharacterRecord): CharacterSummary {
+function toSummary(c: CharacterRecord, legacyIfRetired = 0): CharacterSummary {
   return {
     id: c.id,
     name: c.name,
@@ -6324,6 +7332,7 @@ function toSummary(c: CharacterRecord): CharacterSummary {
     appearance: c.appearance,
     look: c.look ?? null,
     level: levelForXp(c.xp),
+    legacyIfRetired,
     ...(c.classId ? { classId: c.classId } : {}),
     ...(c.raceId ? { raceId: c.raceId } : {}),
   };

@@ -178,7 +178,44 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   }),
   z.object({ t: z.literal('respawn') }),
   /** Voluntary permadeath (D-207): irreversible; earns Legacy Points. */
+  /**
+   * Sit on the seat nearest a point (D-605).
+   *
+   * ⚠ A POINT, not an entity id. Chairs are area scenery, not entities —
+   * thirty-two of them in one taproom would be thirty-two deltas and a
+   * snapshot entry each (D-542) — so the client says where it clicked and the
+   * server finds the seat. It is also the server that decides where the
+   * sitter ends up and which way they face, which is what stops a sit playing
+   * into the back of the chair.
+   */
+  z.object({ t: z.literal('sit'), x: z.number(), y: z.number() }),
   z.object({ t: z.literal('retire') }),
+  /**
+   * Fill out the lobby with bots, and send them home again (D-607).
+   *
+   * ⚠ A DEVELOPMENT verb, and the server refuses it outright unless it was
+   * started with bots allowed. It registers accounts and creates characters on
+   * demand, so on a public server it is an account-creation hole with a button
+   * on it. The refusal is by error code rather than by silence — a control the
+   * client draws and the server ignores is worse than one that is not drawn.
+   *
+   * ⚠ `count` is how many MORE to bring in, not a target. A target would
+   * have to decide what to do about the ones already standing there, and the
+   * only sensible answer ('remove some') is a different verb.
+   */
+  z.object({ t: z.literal('add_bots'), count: z.number().int().min(1).max(11) }),
+  z.object({ t: z.literal('remove_bots') }),
+  /**
+   * End a character from the ROSTER, without entering the world (D-600).
+   *
+   * ⚠ Separate from `retire` rather than a relaxation of it. `retire` is an
+   * act performed BY a character who is standing somewhere: the world watches
+   * them go, a corpse is made, a seance can still reach them. This is the
+   * roster's delete, taken by an account about a character who is nowhere,
+   * and conflating the two would either put a body in a tavern nobody is in
+   * or quietly drop the part of retirement other players can see.
+   */
+  z.object({ t: z.literal('retire_character'), characterId: UuidSchema }),
   /** Take everything a corpse or scatter of gear holds (D-224/D-511). */
   z.object({ t: z.literal('loot'), targetEntityId: z.number().int() }),
   /** D-204: draw the ghost back to this corpse for five questions. */
@@ -309,6 +346,8 @@ export const ErrorCodeSchema = z.enum([
   'already_in_world',
   'not_in_world',
   'no_such_character',
+  /** That character is in the world; they cannot be deleted from under themselves (D-600). */
+  'character_online',
   'character_name_taken',
   'bad_target',
   'not_adjacent',
@@ -339,6 +378,9 @@ export const ErrorCodeSchema = z.enum([
    * bitterleaf is spent, since the room is deliberately hard to read. */
   'nothing_to_spoil',
   'not_food',
+  /** The server declines to do this at all — not a state, a policy.
+   * Bots on a server that does not summon them (D-607). */
+  'not_allowed',
   'grace_window',
   'too_soon',
   'no_injury',
@@ -381,6 +423,17 @@ export const WireEntitySchema = z.object({
   z: z.number().default(0),
   facing: DirectionSchema,
   posture: PostureSchema,
+  /**
+   * Sitting on an actual SEAT rather than on the ground (D-615).
+   *
+   * ⚠ The server owns this because the server put them there: `sit` finds
+   * the seat, decides where the sitter ends up and which way they face
+   * (D-605), while the emote only ever says "sitting". A client cannot tell
+   * the two apart -- both are `posture: 'sitting'` -- and guessing from the
+   * tile would make it a question of geometry that the authority has already
+   * answered (D-102).
+   */
+  seated: z.boolean().default(false),
   presentation: PresentationSchema,
   /** Drives client-side procedural appearance (D-402). */
   appearanceSeed: z.number().int().nonnegative(),
@@ -490,6 +543,15 @@ export const WireEntitySchema = z.object({
        * base layer, never a stance (D-564).
        */
       stance: StanceSchema.optional(),
+      /**
+       * Which mesh the weapon in hand is, as `pack/asset` (D-614).
+       *
+       * ⚠ On the wire because the SERVER decides it (D-102) and because an
+       * observer cannot work it out: the silhouette says 'sword' for every
+       * blade in the game. Absent means no particular sword rather than no
+       * sword -- the flag beside it still says whether a hand is full.
+       */
+      weaponArt: z.string().optional(),
     })
     .nullable()
     .default(null),
@@ -550,6 +612,16 @@ export const CharacterSummarySchema = z.object({
   raceId: z.string().optional(),
   /** Derived from banked xp (D-538); shown on the roster screen. */
   level: z.number().int().min(1).default(1),
+  /**
+   * What retiring this character right now would pay the ACCOUNT (D-600).
+   *
+   * ⚠ Sent with the roster so the confirmation can state the number before
+   * the player commits to something irreversible. Computed by the server,
+   * never by the client: the formula has diminishing returns on repeat
+   * sacrifice (D-207) and depends on how many characters this account has
+   * already retired, which is not a fact the client holds.
+   */
+  legacyIfRetired: z.number().int().min(0).default(0),
 });
 export type CharacterSummary = z.infer<typeof CharacterSummarySchema>;
 
@@ -573,6 +645,17 @@ export const SimEventSchema = z.discriminatedUnion('type', [
     type: z.literal('entity_emote'),
     id: z.number().int(),
     posture: PostureSchema.optional(),
+    /**
+     * Whether that sitting is on a SEAT (D-615).
+     *
+     * ⚠ On the event as well as on the entity, because this event is how a
+     * posture change reaches an observer who already has the entity. Taking a
+     * chair broadcasts `entity_emote` with `posture: 'sitting'` exactly as the
+     * `*sits*` emote does -- so without this the client set the flag from the
+     * entity, then immediately cleared it from the event, and everybody sat on
+     * the floor through the chair.
+     */
+    seated: z.boolean().default(false),
     transients: z.array(TransientAnimSchema).max(3),
   }),
   z.object({
@@ -585,6 +668,18 @@ export const SimEventSchema = z.discriminatedUnion('type', [
     attackerId: z.number().int(),
     targetId: z.number().int(),
     damage: z.number().int().min(0),
+    /**
+     * What the d20 showed, and whether it landed (D-606).
+     *
+     * ⚠ A MISS is now a thing that happens, and zero damage is not enough to
+     * say so: a blow absorbed to nothing and a blow that never connected look
+     * identical on the wire and must not look identical on screen. The face is
+     * carried too, because "natural 20" is the one result a player wants to
+     * see named rather than inferred from a big number.
+     */
+    hit: z.boolean().default(true),
+    roll: z.number().int().min(0).max(20).default(0),
+    critical: z.boolean().default(false),
     /** Which swing/stab/cast to play. Chosen SERVER-side so every observer
      * sees the same blow — the animation is cosmetic, but disagreeing
      * clients would be a desync in the one place players are watching. */
@@ -705,6 +800,20 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
   }),
   z.object({ t: z.literal('character_created'), character: CharacterSummarySchema }),
   /**
+   * The roster again (D-600).
+   *
+   * ⚠ Its own message rather than a second `auth_ok`. Re-sending `auth_ok`
+   * would hand the client a session token and an account id it already has,
+   * and every client handler for it would have to be written to be harmless
+   * the second time — which is the sort of thing that is true until somebody
+   * adds a line to it.
+   */
+  z.object({
+    t: z.literal('character_list'),
+    characters: z.array(CharacterSummarySchema),
+    legacyPoints: z.number().int().min(0),
+  }),
+  /**
    * The creation catalogue (D-208/D-110). Sent on request so the creation
    * screen is rendered from CONTENT rather than hardcoded in the client —
    * adding a feat is a data change, not a client deploy.
@@ -788,6 +897,17 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
             z: z.number().default(0),
             rotation: z.number().default(0),
             scale: z.number().positive().default(1),
+            /**
+             * Something a person can sit on (D-605).
+             *
+             * ⚠ On the wire for the MENU, not for the rule. The client needs
+             * it to know whether "Sit here" is worth offering on a right
+             * click; the server checks it again and its answer is the one
+             * that counts (D-102). One boolean per placed asset is a cost
+             * worth paying to avoid an entry that always appears and usually
+             * fails.
+             */
+            seat: z.boolean().default(false),
           }),
         )
         .default([]),
@@ -942,6 +1062,17 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
      * is only knowable by trying to attack someone.
      */
     graceTicks: z.number().int().nonnegative(),
+    /**
+     * How many of the cast are bots, and whether this server will summon
+     * more (D-607).
+     *
+     * ⚠ Public, and safe to be: it says how many bots are in the round, and
+     * never WHICH. Naming them would hand the cast a free elimination — a bot
+     * can be dealt the objective like anybody else, and a round where the
+     * antagonist can be deduced from a HUD is not a round (D-521, D-217).
+     */
+    bots: z.number().int().nonnegative().default(0),
+    botsAllowed: z.boolean().default(false),
   }),
   z.object({
     t: z.literal('round_role'),

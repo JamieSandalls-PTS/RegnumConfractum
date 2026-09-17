@@ -178,6 +178,37 @@ together and unwilling to go out alone — and "he went out at dusk and
 something took him" is an alibi the world itself makes plausible, twice a
 round, with nothing scripted.
 
+---
+
+### ⚠ Where MR actually stands (revised 2026-09-17, D-627)
+
+This section was written before any of it was built. Revised against the code
+rather than against memory. **MR1 and MR2 are substantially met**; what is left
+is listed here rather than implied by silence.
+
+| | State |
+|---|---|
+| **MR1 — the round spine** | **Met**, except it was built BESIDE the DM event engine rather than on it (see below). |
+| **MR2 — the loop inside** | **Met** except **farming**, which does not exist at all — there is no `plant` verb — and with it the antagonist's third sabotage, "burn the crop". Also unbuilt: D-530's potency band (the infirmary is not yet better than a field bandage). |
+| **MR3 — scenarios and the map** | **Not started.** The map exists; the scenario does not. |
+| **MR4 — the production line** | **New.** See below. |
+
+⚠ **MR1 asked for the round to be an event document that plays itself, built
+on the DM event engine (D-508). It was built beside it.** `RoundEngine` is its
+own system; `EventEngine` receives deaths and nothing else. That was defensible
+for a spine that had to work, and the cost is now visible: the round has no
+document, so it has no declared area set, so **it has no edges** (D-627).
+Converging the two is a decision nobody has taken; MR3 below does not depend on
+it.
+
+⚠ **The boundary is the hole under all of this.** `RoundEngine` has no concept
+of an area, and the area graph runs `round-town → hanged-ferryman → broken-yard
+→ sunken-crypt`, which is `zone: endgame` and carries involuntary permadeath —
+the one thing D-523 says a round must never contain. Making the **scenario** a
+real content type is therefore MR3's foundation rather than its last feature.
+
+---
+
 ### MR1 — The round spine
 
 *Prove the loop with no economy in it at all.*
@@ -216,6 +247,13 @@ ghosts (invariant 4), a character carries its level **out** of the round and
 its gear **not at all**, and the event log is unbroken across the reset
 (invariant 10).
 
+**State: met.** `sim/test/mr1-round.test.ts` and `mr3-bots.test.ts` assert the
+chain and the invariants. ⚠ Two verbs escaped the round's rules and are fixed
+in MR3 below, not here: `handleRetire` and `handlePay` carry no `roundRunning`
+guard, so a character can be **retired mid-round** — ending it forever and
+collecting Legacy, which D-207 says is earned between rounds and never inside
+one (D-627).
+
 ### MR2 — The loop inside the round
 
 *The M5 economy, cut down to what fits in 25 minutes.*
@@ -239,8 +277,12 @@ its gear **not at all**, and the event log is unbroken across the reset
   a *decision* (leave the room), not damage. **No death spiral** —
   consequences plateau; a round decided by a hunger bar is a failed round.
   Water and food must fail differently or one is decoration.
-- Farming: plant, grow against the round clock, harvest — now consumed by
-  the cast rather than orphaned content
+- ⚠ **Farming: NOT BUILT, moved to MR3.** Plant, grow against the round
+  clock, harvest. There is no `plant` verb and no crop; `round-farm` is a
+  gathering map like the others. This also costs the antagonist the third of
+  D-526's three sabotages — poison the well and spoil the stores are built,
+  **burn the crop is not**, so the non-violent attack surface is two thirds of
+  what the design called for.
 - **The antagonist's non-violent attack surface:** poison the well, spoil the
   stores, burn the crop. Unwitnessed, deniable, no combat required — at a
   cast of three a poisoner is a better antagonist than a duellist (D-526).
@@ -275,11 +317,30 @@ character's name in round one **does not know it** in round two (D-525), and
 the round's clock shows **two nights** between an opening and closing
 daylight (D-527).
 
+**State: met except farming.** Gathering, crafting, the three-floor dungeon,
+hunger and thirst, night roamers, the watch, the common stores and persistent
+progression are all built and bot-verified. ⚠ Still open from D-530: potency
+beyond meals — the infirmary is not better than a field bandage and the workshop
+not better than improvising. The 1.5x–2x band remains unratified.
+
 ### MR3 — The scenario library and the map
 
-- Five or so linked areas sized for a 25-minute round (tavern, yard, farm,
-  wood, mine or chapel)
-- Multiple scenarios as data, chosen or rotated per round
+- ⚠ **The SCENARIO becomes a real content type, and it goes first** (D-627).
+  `content/scenarios/*.json` declaring an **area set** and opening area, an
+  objective pool, cast bounds and round configuration. `RoundEngine` takes one;
+  a transition outside the set is refused. This is the round's missing boundary,
+  and everything else in MR3 is downstream of it:
+  - the permadeath walk becomes impossible by construction rather than by a new
+    guard, which would fix the case found and leave the class;
+  - CI can assert a round is **self-contained and winnable** — the bug D-593 hit
+    by hand (an objective naming a keeper in no round map);
+  - the persistent world keeps its areas by being in no scenario.
+- Five or so linked areas sized for a 25-minute round — **built**: town, farm,
+  wood, mine, south and three dungeon floors.
+- ⚠ **Farming, carried from MR2**: plant, grow against the round clock,
+  harvest, and "burn the crop" as the antagonist's third sabotage.
+- Multiple scenarios as data, chosen or rotated per round — falls out of the
+  scenario type rather than being separate work
 - Lobby, cast assembly, round rotation, results
 - NPC crowd and hostile spawns per area — the low-cast fix: somewhere to hide
   at a cast of three, and something to earn xp from without inflating it
@@ -294,7 +355,45 @@ daylight (D-527).
   tuning knob.
 
 **Done when:** the stakeholder can run back-to-back rounds with different
-scenarios without a restart or an admin action.
+scenarios without a restart or an admin action — and a bot in a round that
+walks at the edge of its scenario's area set is **refused**, with the
+persistent world's areas still reachable outside one.
+
+---
+
+### MR4 — The production line *(new, 2026-09-17)*
+
+*The stakeholder's report: "the tools to build the game, and the game runtime
+itself, are not linked". This milestone is that sentence.*
+
+- **One tool, left to right**, each stage gated on the one before it:
+  **Art → Motion → Bodies → Things → World → Rules → Scenario**. Absorbs
+  `studio.html` and `viewer.html`; merges `editor-server` into `studio-server`
+  so there is one port and one API. Every definition the game can read is
+  authorable in it, including the ones with no editor today (ground materials,
+  scenarios).
+- **A save reaches the game without anyone remembering how.** A declared
+  dependency map (content type → what it invalidates), a **Publish** action that
+  runs only the invalidated builds, and a content **reload** on the running
+  server. ⚠ Today nothing links them: no tool invokes a build and the server
+  has no reload, which is how three of the tavern's four meshes sat unbuilt for
+  a whole session — validating, flooding, and drawing nothing but a
+  `console.warn` each (D-625).
+- **Four content channels collapse to two.** Server-load, a Vite build-time
+  import, baked `.glb`, and Python scripts all deliver content today;
+  `content/animations` and `content/garments` are never loaded by the game
+  server at all.
+- **Authored implies reachable.** Every definition type asserts a runtime reader
+  exists, so a field nothing reads fails the build instead of going quiet.
+  ⚠ Dead today: `EnvironmentAsset.operable` and its open/close `clips` (zero
+  readers — a door you define as operable does nothing), and asset `tags`, which
+  the keyword gating was for.
+- **Then the definitions that do not exist yet**: a **death-model swap** (no
+  such concept anywhere today) and **effects** as content.
+
+**Done when:** an animation set changed in the tool is visible in the running
+client without a restart, and a definition type with no runtime reader fails
+CI.
 
 ### The MR gate — which is also the M2 gate
 

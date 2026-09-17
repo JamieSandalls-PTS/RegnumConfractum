@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TICK_RATE, WALK_SPEED, distance } from '@rc/shared';
+import { RUN_SPEED, TICK_RATE, WALK_SPEED, distance } from '@rc/shared';
 import { World } from '@rc/server/game/world';
 import { tinyArea } from './helpers';
 
@@ -198,5 +198,56 @@ describe('the server owns the route (D-567)', () => {
     const where = { ...entity.pos };
     for (let i = 0; i < 20; i++) world.step();
     expect(entity.pos).toEqual(where);
+  });
+});
+
+describe('a weapon up is a run (D-619)', () => {
+  it('covers more ground in one tick than the same body walking', () => {
+    const world = makeWorld();
+    const walker = world.spawn('tiny-test', {
+      characterId: 'char-walk',
+      name: 'Walker',
+      pos: { x: 1, y: 1 },
+    }).entity;
+    const runner = world.spawn('tiny-test', {
+      characterId: 'char-run',
+      name: 'Runner',
+      pos: { x: 1, y: 2 },
+    }).entity;
+    // ⚠ The entity's OWN combat flag, which the gateway owns and
+    // broadcasts. There is no run key and no client-side speed: you run
+    // because your weapon is out, so every observer sees the same pace.
+    runner.combat = true;
+
+    const walkFrom = { ...walker.pos };
+    const runFrom = { ...runner.pos };
+    world.setMoveIntent(walker.id, 'e');
+    world.setMoveIntent(runner.id, 'e');
+    world.step();
+
+    const walked = distance(walkFrom, walker.pos);
+    const ran = distance(runFrom, runner.pos);
+    expect(ran).toBeGreaterThan(walked);
+    expect(ran / walked).toBeCloseTo(RUN_SPEED / WALK_SPEED, 2);
+    expect(walked).toBeCloseTo(WALK_SPEED / TICK_RATE, 5);
+    expect(ran).toBeCloseTo(RUN_SPEED / TICK_RATE, 5);
+  });
+
+  it('sheathing puts the same body back to a walk', () => {
+    const world = makeWorld();
+    const { entity } = world.spawn('tiny-test', {
+      characterId: 'char-1',
+      name: 'Mover',
+      pos: { x: 1, y: 1 },
+    });
+    entity.combat = true;
+    world.setMoveIntent(entity.id, 'e');
+    world.step();
+    const fast = entity.pos.x - 1;
+    entity.combat = false;
+    const before = entity.pos.x;
+    world.setMoveIntent(entity.id, 'e');
+    world.step();
+    expect(entity.pos.x - before).toBeLessThan(fast);
   });
 });

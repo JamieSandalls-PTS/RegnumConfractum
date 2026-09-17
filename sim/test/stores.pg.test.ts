@@ -98,6 +98,36 @@ describe.skipIf(!DATABASE_URL)('the common stores (Postgres)', () => {
     ).rejects.toThrow();
   });
 
+  it('⚠ stocks a store with no pack involved — the round-opening path', async () => {
+    // ⚠ This is the one route into a store that does NOT go through
+    // somebody's inventory (D-593's larder), and it was the only store method
+    // with no test against real Postgres. It named a column — `owner_store_id`
+    // — that has never existed, so the insert was rejected every time.
+    //
+    // ⚠ The consequence was not a failed deposit. Its caller is
+    // `stockCommonStores`, which runs on the first tick of EVERY round, and
+    // the rejection propagated out of the tick loop and KILLED THE SERVER
+    // PROCESS the instant a round began. `MemoryStore` has no columns to
+    // disagree about, so all 1015 in-memory tests passed against it.
+    const stocked = await store.grantItemToStore(storeId, 'coarse-bread', 2);
+    expect(stocked.ownerStoreId).toBe(storeId);
+    expect(stocked.qty).toBe(2);
+
+    // It is genuinely IN the store, not merely inserted somewhere.
+    const held = await store.getItemsByStore(storeId);
+    expect(held.map((i) => i.id)).toContain(stocked.id);
+
+    // ⚠ And readable back through `getItem`, which selects an explicit
+    // column list that had forgotten `owner_store` existed — so a pooled loaf
+    // read that way reported belonging to nobody.
+    expect((await store.getItem(stocked.id))?.ownerStoreId).toBe(storeId);
+
+    // Somebody can take what the town started with, like anything else pooled.
+    expect(await store.moveItemFromStore(stocked.id, storeId, characterId)).toBe(true);
+    expect((await store.getItemsByCharacter(characterId)).some((i) => i.id === stocked.id))
+      .toBe(true);
+  });
+
   it('marks items spoiled without losing what else the data held', async () => {
     // ⚠ Merged into `data`, not replacing it: a letter that was spoiled must
     // not lose its text (D-505).

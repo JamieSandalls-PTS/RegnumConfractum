@@ -144,14 +144,16 @@ RECIPES = {
                     ("dirt", 0.12, 8.0)],
     },
     "hanged-ferryman": {
-        # ⚠ `wood` is the taproom's own floor and `floor` is the ground outside
-        # the door. The legend says which, so nothing has to be named by hand.
-        "materials": ["boards", "dirt", "grass", "mud", "flag", "leafmould"],
-        "kinds": {"wood": "boards", "floor": "dirt", "table": "boards",
-                  "chair": "boards", "hearth": "flag", "grass": "grass"},
-        "under_trees": "leafmould",
-        # Outside the door: grass taking the edges of a beaten yard.
-        "patches": [("grass", 0.16, 6.0), ("mud", 0.07, 4.0)],
+        # ⚠ An INTERIOR (D-604). This used to name grass, mud and leaf mould
+        # as surfaces of a taproom, because the area used to be a plot with a
+        # building on it -- and the result was a tavern with a lawn in it.
+        # Boards underfoot, flags at the hearth, and nothing else.
+        "materials": ["boards", "flag"],
+        "kinds": {"wood": "boards", "table": "boards",
+                  "chair": "boards", "hearth": "flag"},
+        # A worn track through the middle of the room, which is the only
+        # variation a board floor honestly has.
+        "patches": [("flag", 0.10, 3.0)],
     },
     "broken-yard": {
         "materials": ["dirt", "gravel", "mud", "grass", "stone", "sand"],
@@ -387,7 +389,14 @@ def paint(area):
     stack = np.where(painted, stack / np.maximum(total, 1e-6), 0.0)
 
     saved = []
-    for m in range(MASKS):
+    # ⚠ As many masks as the MATERIALS need, not always two. Three weights
+    # fit in a mask, so six materials want two and two want one -- and a map
+    # that ships an empty second mask is refused by the build, which checks the
+    # count against the material list. It only surfaced when an area was
+    # repainted with a shorter recipe (D-604): every map until then used all
+    # six, so `range(MASKS)` was right by coincidence.
+    needed = max(1, -(-len(mats) // WEIGHTS_PER_MASK))
+    for m in range(needed):
         img = np.zeros((h, w, 4), dtype=np.uint8)
         for c in range(WEIGHTS_PER_MASK):
             i = m * WEIGHTS_PER_MASK + c

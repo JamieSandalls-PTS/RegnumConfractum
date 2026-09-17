@@ -59,20 +59,18 @@
       "name": "Recurve bow",
       "pack": "bow-crossbow",
       "mesh": "Rigged_Bow_NativeAmerican_Testing",
-      "tags": [
-        "auto-fit"
-      ],
+      "tags": [],
       "kind": "character-item",
       "attach": "Hand_L",
       "transform": {
         "position": [
-          0.06,
-          0.02,
-          -0.02
+          0.12,
+          -0.02,
+          0.05
         ],
         "rotation": [
-          0,
-          0,
+          80,
+          115,
           0
         ],
         "scale": 0.01

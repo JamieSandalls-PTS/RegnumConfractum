@@ -1,6 +1,6 @@
 import { defaultClothParams, type ClothParams } from './render/cloth';
 import { LabGarment, presetConfig, type GarmentConfig } from './cloth-lab';
-import type { CharacterVisual } from './render/character';
+import type { WorkbenchBody } from './render/workbench-body';
 
 /**
  * The cloth tab's controls. Kept apart from the solver and from the rest of
@@ -24,7 +24,7 @@ export class ClothTab {
    * point of body-relative sizing. */
   private garments: LabGarment[] = [];
   private config: GarmentConfig = presetConfig('cape');
-  private visuals: CharacterVisual[] = [];
+  private visuals: WorkbenchBody[] = [];
 
   constructor(
     private root: HTMLElement,
@@ -33,7 +33,7 @@ export class ClothTab {
   ) {}
 
   /** Called whenever the viewer repopulates: re-attach to the new bodies. */
-  attach(visuals: CharacterVisual[]): void {
+  attach(visuals: WorkbenchBody[]): void {
     for (const g of this.garments) g.dispose();
     this.garments = [];
     this.visuals = visuals;

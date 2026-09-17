@@ -18,8 +18,15 @@ export const TICKS_PER_GAME_HOUR = 2 * 60 * TICK_RATE;
 export interface ScriptGateway {
   spawnNpc(
     areaId: string,
-    opts: { x: number; y: number; descriptor: string; appearanceSeed?: number },
+    opts: {
+      x: number;
+      y: number;
+      descriptor: string;
+      appearanceSeed?: number;
+      character?: string;
+    },
   ): number;
+  findNpc(areaId: string, type: string): number;
   despawnEntity(entityId: number): boolean;
   speakAs(entityId: number, text: string, channel?: Channel): Promise<boolean>;
   moveEntity(entityId: number, dir: Direction): void;
@@ -72,15 +79,37 @@ export class ScriptHost {
     // Stripped from within Lua — wasmoon's marshaller rejects JS null.
     await engine.doString(BANNED_GLOBALS.map((name) => `${name} = nil`).join('\n'));
 
-    engine.global.set('spawn_npc', (opts: { x: number; y: number; descriptor: string; seed?: number }) =>
-      this.guard(areaId, 'spawn_npc', () =>
-        this.gateway.spawnNpc(areaId, {
-          x: Number(opts.x),
-          y: Number(opts.y),
-          descriptor: String(opts.descriptor),
-          ...(opts.seed !== undefined ? { appearanceSeed: Number(opts.seed) } : {}),
-        }),
-      ),
+    // ⚠ `character` is what this NPC LOOKS like (D-596) and it is optional
+    // for a reason: almost every scripted NPC should go on being drawn from
+    // its seed. A named one is a decision — the tavern keeper is a target the
+    // cast has to recognise on sight — and an unknown id is refused by the
+    // gateway with the list of what exists, rather than quietly ignored.
+    engine.global.set(
+      'spawn_npc',
+      (opts: { x: number; y: number; descriptor: string; seed?: number; character?: string }) =>
+        this.guard(areaId, 'spawn_npc', () =>
+          this.gateway.spawnNpc(areaId, {
+            x: Number(opts.x),
+            y: Number(opts.y),
+            descriptor: String(opts.descriptor),
+            ...(opts.seed !== undefined ? { appearanceSeed: Number(opts.seed) } : {}),
+            ...(opts.character !== undefined ? { character: String(opts.character) } : {}),
+          }),
+        ),
+    );
+    // ⚠ `npc("<id>")` reaches somebody the AREA declares (D-598), rather
+    // than the script creating them. A person who stands somewhere is
+    // content now: that is what lets a tool list the cast, what lets the
+    // map editor show where they stand, and what finally makes a
+    // `kill_npc` objective checkable against something other than a
+    // regular expression over Lua source (D-569).
+    //
+    // ⚠ It THROWS when nobody is placed, and the guard turns that into a
+    // contained script error with the area's name in it. Returning a dud
+    // handle would leave every later `say` doing nothing, which reads as an
+    // NPC who will not speak rather than one who is not there.
+    engine.global.set('npc', (id: string) =>
+      this.guard(areaId, 'npc', () => this.gateway.findNpc(areaId, String(id))),
     );
     engine.global.set('despawn', (id: number) =>
       this.guard(areaId, 'despawn', () => this.gateway.despawnEntity(Number(id))),

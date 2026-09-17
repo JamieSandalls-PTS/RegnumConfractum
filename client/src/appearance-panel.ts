@@ -1,13 +1,8 @@
 import * as THREE from 'three';
 import {
-  ACCENT_COLORS,
   APPEARANCE_LIMITS,
   ARCHETYPES,
   ARCHETYPE_NAMES,
-  CLOTH_COLORS,
-  HAIR_COLORS,
-  HAIR_STYLES,
-  SKIN_COLORS,
   describeAppearance,
   overrideFromAppearance,
   resolveAppearance,
@@ -18,7 +13,6 @@ import {
   type CharacterLook,
 } from '@rc/shared';
 import { GameScene } from './render/scene';
-import { CharacterVisual } from './render/character';
 import { ImportedVisual } from './render/imported-visual';
 
 /**
@@ -48,7 +42,7 @@ export class AppearancePanel {
   // ⚠ The union, not one cast.  holds the same pair for the same
   // reason (D-559): the code that drives a character must not know which it
   // has, and the compiler is what keeps the two interchangeable.
-  private visual: CharacterVisual | ImportedVisual | null = null;
+  private visual: ImportedVisual | null = null;
   private raf = 0;
   private clock = new THREE.Clock();
   private t = 0;
@@ -114,28 +108,76 @@ export class AppearancePanel {
   }
 
   /** Builds the controls and the preview into `parent`. */
-  mount(parent: HTMLElement): void {
+  /**
+   * The figure, and the words that describe it.
+   *
+   * ⚠ Mounted SEPARATELY from the controls (D-601) so the screen can put
+   * the preview at the top and the sliders at the bottom with the part choices
+   * in between. They were one call, which fixed the order: a player scrolled
+   * past every control to see what they were making.
+   */
+  mountPreview(parent: HTMLElement): void {
+    // ⚠ Tear down anything already running first. The wizard empties its
+    // body and re-renders the step in place, which orphans the previous
+    // canvas while its animation frame keeps going — and browsers cap live
+    // WebGL contexts, so the symptom is the preview going black several
+    // re-renders later rather than at the one that caused it.
+    if (this.scene) this.dispose();
     const wrap = document.createElement('div');
     wrap.className = 'appearance';
-
     const stage = document.createElement('div');
     stage.className = 'app-preview';
     wrap.appendChild(stage);
     this.stage = stage;
-
-    const controls = document.createElement('div');
-    controls.className = 'app-controls';
-    wrap.appendChild(controls);
-    parent.appendChild(wrap);
-
     const descriptor = document.createElement('div');
     descriptor.className = 'app-descriptor';
     wrap.appendChild(descriptor);
     this.descriptorEl = descriptor;
-
-    this.buildControls(controls);
+    parent.appendChild(wrap);
     this.startPreview(stage);
     this.rebuild();
+  }
+
+  /**
+   * Which body the art is cut for.
+   *
+   * ⚠ ONE control, not two. `AppearanceOverride.sex` already existed as the
+   * procedural body's, and the parts a player may pick are cut per body too
+   * (D-558) -- so this drives both. A second selector for the meshes would be
+   * exactly the "second source that can disagree" D-574 refused, and the
+   * disagreement renders as a female forearm on a male upper arm.
+   */
+  mountSex(parent: HTMLElement, onChange?: (sex: 'male' | 'female') => void): void {
+    this.choice<'male' | 'female'>(
+      parent,
+      'body',
+      ['male', 'female'],
+      this.state.sex,
+      (v) => {
+        this.state.sex = v;
+        onChange?.(v);
+      },
+    );
+  }
+
+  /** Build, proportions and colours. */
+  mountControls(parent: HTMLElement): void {
+    const controls = document.createElement('div');
+    controls.className = 'app-controls';
+    parent.appendChild(controls);
+    this.buildControls(controls);
+  }
+
+  /** Preview, body, controls -- for anything not laying them out itself. */
+  mount(parent: HTMLElement): void {
+    this.mountPreview(parent);
+    this.mountSex(parent);
+    this.mountControls(parent);
+  }
+
+  /** Which body the parts should be cut for. */
+  get sex(): 'male' | 'female' {
+    return this.state.sex;
   }
 
   dispose(): void {
@@ -221,9 +263,12 @@ export class AppearancePanel {
     if (!this.scene) return;
     const appearance = this.appearance;
     const chosen = this.look && Object.keys(this.look.parts).length > 0 ? this.look : null;
-    this.visual = chosen
-      ? new ImportedVisual(appearance, this.scene.scene, this.seed, chosen)
-      : new CharacterVisual(appearance, this.scene.scene);
+    // ⚠ One cast (D-617). The creation screen seeds a real look before this
+    // ever runs (D-601), so a player sees the body they are building from the
+    // first frame; with no look yet the seed picks one, which is the same
+    // fallback every NPC uses. The procedural branch that used to sit here
+    // drew a body nobody would ever play as.
+    this.visual = new ImportedVisual(appearance, this.scene.scene, this.seed, chosen);
     this.visual.setPosition(0, 0);
     this.visual.setFacing('s');
     this.visual.setRenderLayer(1);
@@ -294,31 +339,6 @@ export class AppearancePanel {
     return row;
   }
 
-  private swatches(
-    parent: HTMLElement,
-    label: string,
-    palette: readonly number[],
-    key: 'skin' | 'hairColor' | 'cloth' | 'accent' | 'capeColor',
-  ): void {
-    const row = this.row(parent, label);
-    const strip = document.createElement('div');
-    strip.className = 'app-swatches';
-    for (const c of palette) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.style.background = hex(c);
-      b.className = this.state[key] === c ? 'active' : '';
-      b.addEventListener('click', () => {
-        this.state[key] = c;
-        for (const other of strip.querySelectorAll('button')) other.classList.remove('active');
-        b.classList.add('active');
-        this.rebuild();
-      });
-      strip.appendChild(b);
-    }
-    row.appendChild(strip);
-  }
-
   private choice<T extends string>(
     parent: HTMLElement,
     label: string,
@@ -346,66 +366,38 @@ export class AppearancePanel {
     row.appendChild(strip);
   }
 
+  /**
+   * The controls that actually move what is on screen.
+   *
+   * ⚠ Most of this panel was REMOVED (D-603), at the stakeholder's
+   * instruction, because it did nothing. Bulk, shoulders, limbs, head size,
+   * bust, hair style, hair length and every colour swatch shape the
+   * PROCEDURAL body; the cast a player is now previewed and rendered as is
+   * built from fixed meshes (D-559), and a mesh does not take a slider. While
+   * the preview showed the procedural body they appeared to work, and
+   * switching the cast is what exposed them.
+   *
+   * ⚠ A control that silently does nothing is the lie this codebase has
+   * refused twice already -- D-538 would not let a feat declare an effect it
+   * did not have, and D-553 greys out a spell on the hotbar rather than let
+   * the slot do nothing quietly. Leaving five sliders on screen that move no
+   * pixel is the same defect wearing a nicer coat.
+   *
+   * ⚠ What is LOST, stated rather than buried: those numbers still travel
+   * on `AppearanceOverride` and are still what the descriptor pipeline reads
+   * to call a stranger "a towering, heavy-built figure" (D-201/D-539). They
+   * are now ROLLED from the seed rather than chosen, and "Roll a different
+   * face" re-rolls them. So a character still reads differently to strangers;
+   * the player simply no longer aims it. Restoring the choice means making
+   * the imported meshes deform, which is a real piece of work and an art
+   * judgement, not a slider.
+   */
   private buildControls(parent: HTMLElement): void {
-    // Build first: it is the silhouette, and silhouette is what strangers
-    // read (D-219). Picking one snaps the body sliders to its middle, which
-    // is a starting point rather than a cage — every slider stays free.
-    this.choice<ArchetypeName>(
-      parent,
-      'build',
-      ARCHETYPE_NAMES,
-      this.state.archetype,
-      (v) => {
-        this.state.archetype = v;
-        const a = ARCHETYPES[v];
-        const mid = (r: readonly [number, number]) => (r[0] + r[1]) / 2;
-        this.state.height = clamp(mid(a.height), APPEARANCE_LIMITS.height);
-        this.state.bulk = clamp(mid(a.bulk), APPEARANCE_LIMITS.bulk);
-        this.state.shoulder = clamp(mid(a.shoulder), APPEARANCE_LIMITS.shoulder);
-        this.state.limb = clamp(mid(a.limb), APPEARANCE_LIMITS.limb);
-        this.state.headScale = clamp(mid(a.headScale), APPEARANCE_LIMITS.headScale);
-        // The sliders below now disagree with the state; rebuild them all.
-        parent.innerHTML = '';
-        this.buildControls(parent);
-      },
-      (v) => v,
-    );
-    this.choice<'male' | 'female'>(
-      parent,
-      'body',
-      ['male', 'female'],
-      this.state.sex,
-      (v) => {
-        this.state.sex = v;
-        parent.innerHTML = '';
-        this.buildControls(parent);
-      },
-    );
-    const f2 = (v: number) => v.toFixed(2);
+    // Height is honoured by both casts: the imported body is scaled to it
+    // (D-577), and it is the one number a stranger's description reads that
+    // the art also obeys.
     this.slider(parent, 'height', 'height', (v) => `${v.toFixed(2)}m`);
-    this.slider(parent, 'bulk', 'bulk', f2);
-    this.slider(parent, 'shoulders', 'shoulder', (v) => v.toFixed(3));
-    this.slider(parent, 'limbs', 'limb', f2);
-    this.slider(parent, 'head', 'headScale', f2);
-    if (this.state.sex === 'female') this.slider(parent, 'bust', 'bust', f2);
-    this.choice<HairStyle>(parent, 'hair', HAIR_STYLES, this.state.hairStyle, (v) => {
-      this.state.hairStyle = v;
-    });
-    this.slider(parent, 'hair length', 'hairLen', f2);
-    this.swatches(parent, 'hair colour', HAIR_COLORS, 'hairColor');
-    this.swatches(parent, 'skin', SKIN_COLORS, 'skin');
-    this.swatches(parent, 'cloth', CLOTH_COLORS, 'cloth');
-    this.swatches(parent, 'trim', ACCENT_COLORS, 'accent');
-    this.choice<'yes' | 'no'>(
-      parent,
-      'cloak',
-      ['yes', 'no'],
-      this.state.hasCape ? 'yes' : 'no',
-      (v) => {
-        this.state.hasCape = v === 'yes';
-      },
-    );
-    this.swatches(parent, 'cloak colour', ACCENT_COLORS, 'capeColor');
+
     this.choice<'turn' | 'hold'>(parent, 'preview', ['turn', 'hold'], this.turntable ? 'turn' : 'hold', (v) => {
       this.turntable = v === 'turn';
     });

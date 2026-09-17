@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "Regnum Confractum \u2014 persistent-world roleplaying MMO. See CLAUDE.md and docs/.",
+  "description": "Regnum Confractum — persistent-world roleplaying MMO. See CLAUDE.md and docs/.",
   "engines": {
     "node": ">=22"
   },
@@ -31,7 +31,19 @@
     "fit:weapons": "tsx tools/src/fit-weapons.ts",
     "measure:hand": "tsx tools/src/measure-hand.ts",
     "name:parts": "tsx tools/src/name-parts.ts",
-    "name:environment": "tsx tools/src/name-environment.ts"
+    "name:environment": "tsx tools/src/name-environment.ts",
+    "map:generate": "python tools/src/build-round-map.py",
+    "map:tavern": "python tools/src/build-tavern.py",
+    "map:walls": "python tools/src/walls-to-assets.py",
+    "map:paint": "python tools/src/paint-areas.py",
+    "map:dress": "python tools/src/dress-areas.py",
+    "map:dress-town": "python tools/src/dress-ashfold.py",
+    "map:prune": "tsx tools/src/prune-unreachable.ts",
+    "map:rebake": "tsx tools/src/rebake-masks.ts",
+    "map:why": "tsx tools/src/why-unreachable.ts",
+    "build:audio": "python tools/src/build-audio.py",
+    "build:ground": "python tools/src/build-ground-textures.py",
+    "ingest:ground": "python tools/src/ingest-ground-textures.py"
   },
   "dependencies": {
     "pg": "^8.13.0",

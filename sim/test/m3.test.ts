@@ -124,7 +124,16 @@ describe('area transitions (D-103)', () => {
   it('walking onto the way-marker crosses to the linked area', async () => {
     const door = doorIn(walker);
     await walkTo(walker, door.x, door.y, { stepMs: TICK * 4, timeoutMs: 20_000 });
-    await waitUntil(() => walker.area?.id === 'broken-yard', 'walker crosses to the yard');
+    // ⚠ Crosses to SOMEWHERE, not to a named area. The tavern has two doors
+    // now (D-604) — the square and the yard — and a client cannot tell them
+    // apart: the snapshot carries where an exit IS and never where it leads,
+    // which is the property the next test leans on. Naming the destination
+    // here made the test depend on the order transitions happen to be written
+    // in, which is not a fact about the game.
+    await waitUntil(
+      () => walker.area !== null && walker.area.id !== 'hanged-ferryman',
+      'walker crosses out of the tavern',
+    );
     await sleep(TICK * 10); // drain residual move intents
     const you = walker.entities.get(walker.you!)!;
     // Wherever the door leads, you arrive somewhere you can stand.
@@ -166,6 +175,8 @@ describe('area transitions (D-103)', () => {
     // transition survive a restart. The coordinates within it ride the normal
     // dirty-flush cadence (D-106), so asserting them here would be asserting
     // the flush timer rather than the transition.
+    // Back in the tavern by now: the previous test walked out and the one
+    // before this walked back in.
     expect(record!.areaId).toBe('hanged-ferryman');
     const row = walker.area!.tiles[record!.y];
     const ch = row?.[record!.x];

@@ -52,8 +52,16 @@ function distancesFrom(a: AreaDef, start: { x: number; y: number }): Map<string,
 describe('the cross (D-529)', () => {
   it('is a hub with four spokes and a dungeon beneath the south', () => {
     const town = area(TOWN);
-    const out = new Set(town.transitions.map((t) => t.toArea));
+    // ⚠ The SPOKES, not every door. The town also opens on the tavern now
+    // (D-604) — an interior reached from the square, which is not a spoke and
+    // must not be counted as one. Comparing the whole exit set made the tavern
+    // door look like a fifth road out of town.
+    const out = new Set(
+      town.transitions.map((t) => t.toArea).filter((id) => (SPOKES as readonly string[]).includes(id)),
+    );
     expect([...out].sort()).toEqual([...SPOKES].sort());
+    // And the tavern is reachable, which is the point of putting it there.
+    expect(town.transitions.some((t) => t.toArea === 'hanged-ferryman')).toBe(true);
     for (const id of SPOKES) {
       expect(area(id).transitions.some((t) => t.toArea === TOWN)).toBe(true);
     }
@@ -140,7 +148,13 @@ describe('pacing: a spoke is 20-40 seconds out (D-530, re-measured by D-549)', (
   const fromSpawn = distancesFrom(town, town.spawn);
 
   it('puts every gate a comparable distance from the centre — equal exposure', () => {
-    const legs = town.transitions.map((t) => fromSpawn.get(`${t.x},${t.y}`) ?? Infinity);
+    // ⚠ The GATES, not every door. The tavern's door is a few steps from
+    // the spawn because D-549 put the tavern in the middle of the square,
+    // and counting it as a gate made the spread 20 tiles and this test a
+    // complaint about the town having an inn in it.
+    const legs = town.transitions
+      .filter((t) => t.toArea.startsWith('round-'))
+      .map((t) => fromSpawn.get(`${t.x},${t.y}`) ?? Infinity);
     expect(Math.min(...legs)).toBeGreaterThan(0);
     expect(Math.max(...legs)).toBeLessThan(Infinity);
     // No spoke may be meaningfully nearer than another, or the map collapses

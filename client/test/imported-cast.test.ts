@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CLIP, actionFor, clipFor } from '../src/render/imported-visual';
+import { CLIP, actionFor, clipFor, readinessTransition }
+  from '../src/render/imported-visual';
 import { animationSets, clipTable } from '../src/render/animation-sets';
 import { missingActions } from '@rc/shared';
 import * as THREE from 'three';
@@ -315,7 +316,54 @@ describe('which action a character is performing (D-578)', () => {
     // There is one: `unarmed-kneel` shipped with the library and nothing read
     // it. Sitting and kneeling are now two different things on screen.
     expect(actionFor({ dead: false, posture: 'kneeling', moving: false })).toBe('kneel');
-    expect(actionFor({ dead: false, posture: 'sitting', moving: false })).toBe('sitting');
+    // ⚠ A CHAIR sit, which is what `sitting` now means (D-615). On the
+    // ground it is a different action, because it is a different shape: the
+    // library's sit puts the hips 58cm up, round furniture.
+    expect(actionFor({ dead: false, posture: 'sitting', moving: false, seated: true }))
+      .toBe('sitting');
+  });
+
+  it('⚠ sits on the GROUND when there was no chair (D-615)', () => {
+    // The `*sits*` emote never mentions furniture, so it must not borrow the
+    // pose that assumes some. The server is the one that knows -- the `sit`
+    // verb finds a seat and the emote does not -- so the flag comes from it.
+    expect(actionFor({ dead: false, posture: 'sitting', moving: false, seated: false }))
+      .toBe('sit-ground');
+    // ⚠ And absent means the ground, not the chair. Anything that forgets
+    // to pass the flag should end up sitting on the floor, which looks odd in
+    // a tavern; the opposite default hides the bug by looking normal.
+    expect(actionFor({ dead: false, posture: 'sitting', moving: false })).toBe('sit-ground');
+  });
+
+  it('⚠ RUNS when the weapon is up (D-619)', () => {
+    // The server moves a fighting body at `RUN_SPEED`, so the walk cycle here
+    // would be a stride that does not match the ground going past -- the
+    // moonwalk every renderer with one locomotion clip eventually shows.
+    expect(actionFor({ dead: false, posture: 'standing', moving: true, combat: true }))
+      .toBe('run');
+    // ⚠ Standing still with a weapon up is still the IDLE, resolved through
+    // the combat cut of the stance (D-565). A guard stance is not a run on
+    // the spot, and there is no `combat-idle` in the vocabulary to reach for.
+    expect(actionFor({ dead: false, posture: 'standing', moving: false, combat: true }))
+      .toBe('idle');
+    // And a body that is not fighting walks, whatever else is true of it.
+    expect(actionFor({ dead: false, posture: 'standing', moving: true, combat: false }))
+      .toBe('walk');
+  });
+
+  it('falls back to the walk for a rig with no run bound', () => {
+    // ⚠ A missing clip must not freeze a moving character. Every authored
+    // set with a combat cut names a run; this is the floor for one nobody has
+    // bound, and a fast walk reads as wrong where a statue sliding along the
+    // ground reads as broken.
+    expect(clipFor(
+      { dead: false, posture: 'standing', moving: true, combat: true },
+      {},
+    )).toBe(CLIP.walk);
+    expect(clipFor(
+      { dead: false, posture: 'standing', moving: true, combat: true },
+      { run: 'one-handed-combat-run' },
+    )).toBe('one-handed-combat-run');
   });
 
   it('lets death outrank everything', () => {
@@ -359,8 +407,18 @@ describe('the layers a character resolves through (D-564, D-565, D-578)', () => 
     expect(peaceful.draw).toBe('bow-draw');
 
     const ready = clipTable({ rig: 'unreal', stance: 'bow', readiness: 'combat' });
-    expect(ready.idle).toBe('bow-combat-idle');
-    expect(ready.shoot).toBe('bow-combat-shoot');
+    // ⚠ Read from CONTENT, never hard-coded (D-110). This asserted the
+    // literal 'bow-combat-idle' and broke the moment somebody legitimately
+    // re-pointed that row in the creation tool — so a valid authoring change
+    // failed the build with a message about a clip name, which says nothing
+    // about what is actually wrong. What the LAYERING promises is that the
+    // combat set wins over the fall-through, and that is what is checked: the
+    // clip is whatever `combat-bow` names, and it is not the rig's own idle.
+    const combatBow = animationSets().find((set) => set.id === 'combat-bow');
+    expect(combatBow, 'the bow combat set is authored').toBeTruthy();
+    expect(ready.idle).toBe(combatBow!.clips.idle);
+    expect(ready.idle).not.toBe(peaceful.idle);
+    expect(ready.shoot).toBe(combatBow!.clips.shoot);
     // ⚠ Draw and sheathe belong to the STANCE layer, not either readiness
     // (D-565) — they are the transition between the two, and a character
     // whose combat set owned them could never draw.
@@ -409,5 +467,104 @@ describe('the layers a character resolves through (D-564, D-565, D-578)', () => 
       });
       expect(missingActions(table)).toEqual([]);
     }
+  });
+});
+
+describe('nobody is drawn as a goblin by accident (D-618)', () => {
+  const person = (id: string) => ({
+    id, model: `${id}.glb`, palette: null, animations: 'a.glb', rig: 'unreal',
+    variant: 'unreal', source: 'defined' as const, height: 1.7, parts: null,
+    kind: 'person' as const,
+  });
+  const creature = (id: string) => ({ ...person(id), kind: 'creature' as const });
+
+  it('⚠ draws the seed fallback from PEOPLE only', () => {
+    // ⚠ Reported as "one of the bots shows up as a goblin". Ten of the twelve
+    // built characters are monsters, and anybody who never chose a face — every
+    // bot, every NPC, every pre-creation character — was handed one of the
+    // thirteen at random. A goblin should be drawn when content SAYS a thing is
+    // a goblin (a roamer naming its look, D-594), never by a number.
+    const all = [
+      person('ashfold-guard'), creature('goblin'), creature('skeleton-soldier'),
+      person('polygon-hero-male'), creature('rock-golem'),
+    ];
+    const drawn = new Set<string>();
+    for (let seed = 0; seed < 500; seed++) drawn.add(pickOutfit(all, seed)!.id);
+    expect([...drawn].sort()).toEqual(['ashfold-guard', 'polygon-hero-male']);
+  });
+
+  it('⚠ falls back to everything rather than to nobody', () => {
+    // An unclassified checkout drawing the wrong bodies is a bug somebody can
+    // see; an empty tavern reads as the server being down.
+    const all = [creature('goblin'), creature('rock-golem')];
+    expect(pickOutfit(all, 7)).not.toBeNull();
+  });
+
+  it('keeps the same body for the same seed', () => {
+    // The seed is the server's (D-102) so every client agrees, and a character
+    // keeps its body between sessions. Filtering must not make it wobble.
+    const all = [person('a'), creature('c'), person('b')];
+    expect(pickOutfit(all, 991)!.id).toBe(pickOutfit(all, 991)!.id);
+  });
+});
+
+
+/**
+ * Weapons are only out in combat, and getting them out is a motion (D-620).
+ *
+ * ⚠ A weapon used to be welded to the fist from the moment it was equipped,
+ * so the whole cast stood about the tavern holding drawn steel -- and the
+ * twelve draw and sheathe clips D-564 fetched and D-565 put in the stance
+ * layer had never been played by anything at all.
+ */
+describe('drawing and sheathing (D-620)', () => {
+  it('puts the blade in the hand at the START of a draw', () => {
+    // The clip's hand reaches to the hip and comes back holding something.
+    // Nothing to hold makes the motion meaningless, so it is there from the
+    // first frame rather than from the last.
+    const step = readinessTransition({ toCombat: true, armed: true, clipSeconds: 1.1 });
+    expect(step.action).toBe('draw');
+    expect(step.weaponOut).toBe(true);
+    expect(step.stowAfter).toBe(0);
+  });
+
+  it('⚠ keeps it in the hand until the sheathe FINISHES', () => {
+    // The asymmetry is the whole point. Hiding it when combat ends is a sword
+    // that vanishes while the hand is still putting it away -- which reads as
+    // a missing model rather than as a bug in a flag.
+    const step = readinessTransition({ toCombat: false, armed: true, clipSeconds: 0.9 });
+    expect(step.action).toBe('sheathe');
+    expect(step.weaponOut).toBe(true);
+    expect(step.stowAfter).toBeCloseTo(0.9, 5);
+  });
+
+  it('plays nothing for an empty hand, and still tracks the flag', () => {
+    // ⚠ An unarmed character entering combat changes how they STAND --
+    // that is the readiness layer (D-565) and it happens either way. A draw
+    // with nothing to draw would be the renderer claiming something happened.
+    const up = readinessTransition({ toCombat: true, armed: false, clipSeconds: 1.1 });
+    expect(up.action).toBeNull();
+    // ⚠ The flag is still set, or somebody who equips mid-fight gets an
+    // invisible weapon and no event that would ever reveal it.
+    expect(up.weaponOut).toBe(true);
+    const down = readinessTransition({ toCombat: false, armed: false, clipSeconds: 1.1 });
+    expect(down.action).toBeNull();
+    expect(down.weaponOut).toBe(false);
+  });
+
+  it('stows immediately when no sheathe clip is bound', () => {
+    // A rig with no transition must not leave the blade out forever: the
+    // failure of a missing clip should be "it snapped away", not "combat
+    // never ends".
+    const step = readinessTransition({ toCombat: false, armed: true, clipSeconds: 0 });
+    expect(step.action).toBeNull();
+    expect(step.weaponOut).toBe(false);
+    expect(step.stowAfter).toBe(0);
+  });
+
+  it('draws with no clip bound, and the blade still appears', () => {
+    const step = readinessTransition({ toCombat: true, armed: true, clipSeconds: 0 });
+    expect(step.action).toBeNull();
+    expect(step.weaponOut).toBe(true);
   });
 });

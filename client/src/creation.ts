@@ -21,11 +21,9 @@ import {
   type SpellDef,
   raceHeightRange,
   racesForClass,
-  partsForSlot,
-  cutOfFace,
-  facesByCut,
+  faceRows,
+  defaultLookParts,
   partLabel as nameOfPart,
-  BODY_SLOTS,
   type CharacterLook,
   type CharacterSlot,
   type RaceDef,
@@ -456,6 +454,14 @@ export class CreationWizard {
    * creation tool rather than something to paper over here.
    */
   private renderFace(parent: HTMLElement, race: RaceDef): void {
+    const sex = this.appearancePanel().sex;
+    // ⚠ Which rows exist, and what fills the rest, are decided in `shared`
+    // and tested there (D-601). What is on this screen is the difference
+    // between a player being able to make a woman with a beard and not, and
+    // the doctrine is explicit that a decision only exercisable through a
+    // browser is a decision nothing checks.
+    this.look.parts = defaultLookParts(race, sex, this.look.parts);
+
     const heading = document.createElement('div');
     heading.className = 'create-hint';
     heading.style.marginTop = '10px';
@@ -463,75 +469,46 @@ export class CreationWizard {
       + 'These are the only faces this race has; another race has others.';
     parent.appendChild(heading);
 
-    // The slots a player picks a FACE from. Body slots are curated too, but a
-    // race offers one bare option per body and choosing between two identical
-    // torsos is not a choice — they are filled in from the head's own cut.
-    const FACE_SLOTS: { slot: CharacterSlot; label: string }[] = [
-      { slot: 'head', label: 'face' },
-      { slot: 'hair', label: 'hair' },
-      { slot: 'eyebrows', label: 'brows' },
-      { slot: 'ears', label: 'ears' },
-    ];
-
-    for (const { slot, label } of FACE_SLOTS) {
-      const offered = race.parts[slot] ?? [];
-      if (offered.length === 0) continue;
+    const rows = faceRows(race, sex);
+    for (const { slot, label, optional, options } of rows) {
       const row = document.createElement('div');
       row.className = 'app-row';
       const name = document.createElement('label');
       name.textContent = label;
       row.appendChild(name);
-      const chips = document.createElement('div');
-      chips.className = 'chips';
 
-      // ⚠ `hair`, `eyebrows` and `ears` can legitimately be NONE — a shaved
-      // head is a face. `head` cannot: something has to be there.
-      if (slot !== 'head') {
-        chips.appendChild(this.faceChip(race, slot, null, 'none'));
+      const select = document.createElement('select');
+      select.className = 'app-select';
+      if (optional) {
+        const none = document.createElement('option');
+        none.value = '';
+        none.textContent = 'none';
+        select.appendChild(none);
       }
-      // ⚠ The rule lives in `shared` and is tested, because it got this
-      // wrong: the HEAD must never be filtered by the cut the head decides,
-      // or picking a male face silently removes all 23 female ones for good.
-      const shown = partsForSlot(offered, slot, this.look.parts.head);
-      const byCut = facesByCut(shown);
-      // ⚠ A row showing BOTH cuts is grouped by cut, and naming the parts is
-      // what made that necessary. 20 of the 23 head names are shared across
-      // the two cuts — "Burnt" is a male face and a female face — so with all
-      // 46 on screen at once (which D-575 requires) the names alone give
-      // twenty pairs of identical chips, which is a worse row than the file
-      // stems were.
-      //
-      // ⚠ Keyed on what the row actually CONTAINS rather than on `head`,
-      // because the head is not the only row that can show both: until a face
-      // is picked nothing is filtered, and the brows row was offering
-      // "Flared", "Scruffy", "Stylish", "Normal" and "Angry" twice each. Once
-      // a face is chosen every other row holds one cut and no heading appears
-      // — the grouping is not a question put to the player, it is a label on
-      // an ambiguity that is genuinely on screen.
-      if (byCut.male.length > 0 && byCut.female.length > 0) {
-        for (const [cut, stems] of [
-          ['', byCut.common],
-          ['male', byCut.male],
-          ['female', byCut.female],
-        ] as const) {
-          if (stems.length === 0) continue;
-          if (cut) {
-            const head = document.createElement('div');
-            head.className = 'chip-group';
-            head.textContent = cut;
-            chips.appendChild(head);
-          }
-          for (const stem of stems) {
-            chips.appendChild(this.faceChip(race, slot, stem, this.partLabel(stem)));
-          }
-        }
-      } else {
-        for (const stem of shown) {
-          chips.appendChild(this.faceChip(race, slot, stem, this.partLabel(stem)));
-        }
+      for (const stem of options) {
+        const option = document.createElement('option');
+        option.value = stem;
+        option.textContent = this.partLabel(stem);
+        select.appendChild(option);
       }
-      row.appendChild(chips);
+      select.value = this.look.parts[slot] ?? '';
+      select.onchange = () => {
+        if (select.value) this.look.parts[slot] = select.value;
+        else delete this.look.parts[slot];
+        // Only the preview changes: every option in every row is already cut
+        // for the chosen body, so nothing else on screen becomes invalid.
+        this.pushLook();
+      };
+      row.appendChild(select);
       parent.appendChild(row);
+    }
+
+    if (rows.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'create-hint';
+      empty.textContent = `${race.name} curates one of everything, so there is `
+        + 'nothing to choose here yet.';
+      parent.appendChild(empty);
     }
 
     if (race.skinTones.length > 0) {
@@ -561,31 +538,6 @@ export class CreationWizard {
     }
   }
 
-  /** One choosable part, or the "none" that clears an optional slot. */
-  private faceChip(
-    race: RaceDef,
-    slot: CharacterSlot,
-    stem: string | null,
-    label: string,
-  ): HTMLElement {
-    const chip = document.createElement('span');
-    const on = (this.look.parts[slot] ?? null) === stem;
-    chip.className = `chip${on ? ' on' : ''}`;
-    chip.textContent = label;
-    chip.onclick = () => {
-      if (stem === null) delete this.look.parts[slot];
-      else this.look.parts[slot] = stem;
-      // ⚠ Changing the FACE can invalidate the hair and brows beside it: they
-      // are cut per body, and a face of the other cut leaves a mismatched set.
-      // Dropping them is visible; leaving them is a seam nobody chose.
-      if (slot === 'head') this.dropMismatchedFaceParts();
-      this.fillBodyFromFace(race);
-      this.pushLook();
-      this.render();
-    };
-    return chip;
-  }
-
   /**
    * What a player is told a part is called, or its file stem if nobody named it.
    *
@@ -602,39 +554,6 @@ export class CreationWizard {
    */
   private partLabel(stem: string): string {
     return nameOfPart(stem, this.content?.partNames ?? {});
-  }
-
-  private dropMismatchedFaceParts(): void {
-    // ⚠ Changing the face can orphan the hair and brows beside it. Asked
-    // through the same rule that decides what is OFFERED, so what survives a
-    // change and what is offered afterwards can never disagree.
-    for (const slot of ['hair', 'eyebrows', 'ears'] as CharacterSlot[]) {
-      const stem = this.look.parts[slot];
-      if (!stem) continue;
-      if (!partsForSlot([stem], slot, this.look.parts.head).includes(stem)) {
-        delete this.look.parts[slot];
-      }
-    }
-  }
-
-  /**
-   * A face arrives with a body to hang it on.
-   *
-   * ⚠ Not a choice the player is asked to make. A race curates ONE bare option
-   * per body for each of the eleven body slots (D-563), so offering them would
-   * be eleven rows of a single button. What matters is that the cut MATCHES
-   * the face — a female forearm on a male upper arm meets it at the wrong
-   * diameter (D-558) — so the body is filled from the face's own cut and
-   * refilled whenever that changes.
-   */
-  private fillBodyFromFace(race: RaceDef): void {
-    if (!cutOfFace(this.look.parts.head)) return;
-    for (const slot of BODY_SLOTS) {
-      if (slot === 'head') continue;
-      const fit = partsForSlot(race.parts[slot] ?? [], slot, this.look.parts.head)[0];
-      if (fit) this.look.parts[slot] = fit;
-      else delete this.look.parts[slot];
-    }
   }
 
   /** Hand the panel what to render, so the preview is the face being chosen. */
@@ -663,15 +582,51 @@ export class CreationWizard {
 
   private renderAppearance(parent: HTMLElement): void {
     const race = this.content?.races.find((r) => r.id === this.raceId);
-    if (race) this.renderFace(parent, race);
+    const panel = this.appearancePanel();
+
+    // ⚠ The look is seeded BEFORE the preview mounts (D-602). Mounting first
+    // rendered one frame with an empty look, and an empty look is what makes
+    // the panel fall back to the procedural body — so the creator opened on a
+    // cast the player will never play as and then swapped, which reads as the
+    // wrong character loading.
+    if (race) {
+      this.look.parts = defaultLookParts(race, panel.sex, this.look.parts);
+      this.pushLook();
+    }
+
+    // ⚠ The figure comes FIRST (D-601). Everything below it is a control
+    // for something visible in it, and the screen used to put the whole
+    // control stack above the preview -- so the first thing a player did was
+    // scroll to find out what they were making.
+    panel.mountPreview(parent);
+
+    // Then which body, because it decides which parts exist below.
+    const faceHost = document.createElement('div');
+    panel.mountSex(parent, () => {
+      // ⚠ Only the part rows are rebuilt, NOT the whole step. A full
+      // re-render re-mounts the panel, and re-mounting throws away the live
+      // preview to build another one -- visible as a flash, and a new WebGL
+      // context every time somebody toggles the control.
+      if (race) {
+        faceHost.replaceChildren();
+        this.renderFace(faceHost, race);
+        this.pushLook();
+      }
+    });
+
+    parent.appendChild(faceHost);
+    if (race) this.renderFace(faceHost, race);
+
     this.hint(
       parent,
       'Build, face and cloth. This is what strangers read before they are told a name, '
       + 'and a hood hides the face but never the frame — so choose a silhouette you are '
       + 'willing to be recognised by.',
     );
-    const panel = this.appearancePanel();
-    panel.mount(parent);
+
+    // Sliders and colours LAST: they tune the figure rather than choose it.
+    panel.mountControls(parent);
+
     const reroll = document.createElement('button');
     reroll.textContent = 'Roll a different face';
     reroll.addEventListener('click', () => {
@@ -682,7 +637,6 @@ export class CreationWizard {
     });
     parent.appendChild(reroll);
   }
-
   /**
    * The attribute step (D-546). Every calling starts at ten in all four with
    * ten to place, and the SAME ten regardless of calling — a class is access

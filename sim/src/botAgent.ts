@@ -1,5 +1,6 @@
 import {
   mulberry32,
+  type BotRoleId,
   type ObjectiveKind,
   type WireEntity,
 } from '@rc/shared';
@@ -38,19 +39,14 @@ import type { BotClient } from './botClient';
  *    behavioural, or the bots would only ever test the combat code.
  */
 
-export type BotRole =
-  /** Ore from the mine, and hatchets when it has timber. */
-  | 'gatherer'
-  /** Grain and herbs from the farm; bakes bread for the cast. */
-  | 'forager'
-  /** Timber and hides from the wood. */
-  | 'woodsman'
-  /** Herbs, bandages, and treating whoever is hurt (D-205). */
-  | 'physician'
-  /** The dungeon, for xp and gravebright (D-535/D-537). */
-  | 'delver'
-  /** Stays in town and talks. Useful as a victim and as a control. */
-  | 'idler';
+/**
+ * ⚠ The six roles are a CLOSED vocabulary in `shared` now (D-624), because
+ * `content/bots/` names one. This alias keeps every existing caller working
+ * and makes the agent and the content impossible to disagree: a seventh role
+ * in a file the agent does not implement is a companion that stands still,
+ * and `validate:content` refuses it rather than letting it ship.
+ */
+export type BotRole = BotRoleId;
 
 export interface BotAgentOptions {
   role: BotRole;
@@ -65,6 +61,12 @@ export interface BotAgentOptions {
   betrayChance?: number;
   /** How often the agent decides. Deliberately slower than the sim tick. */
   decisionMs?: number;
+  /**
+   * Shortest gap between two things this agent says (D-610). Defaults to
+   * thirty seconds; tests shrink it, the way every other pacing number in
+   * this project is an option (D-114).
+   */
+  speechIntervalMs?: number;
   log?: (msg: string) => void;
   /** Chatter about every decision. For tuning sessions, not for tests. */
   verbose?: boolean;
@@ -97,6 +99,26 @@ const TRUCE_LINES = [
   'Keep to pairs today. Nobody goes out alone.',
 ];
 
+/**
+ * How often one bot will speak, at most (D-610).
+ *
+ * ⚠ The old rule was a 6% roll per DECISION, and a decision is every 160ms
+ * — about one line every 2.7 seconds each, so three companions produced a line
+ * roughly every second and buried anything a person said. The stakeholder's
+ * ruling is thirty seconds, per bot.
+ */
+const SPEECH_INTERVAL_MS = 30_000;
+
+/**
+ * How far a `say` carries (`CHANNEL_RANGE.say` on the server).
+ *
+ * ⚠ Kept deliberately in step with the server's own number rather than
+ * guessed generously: a bot talking to an empty field is the other half of
+ * "they talk too much", and it is the half you cannot see, because the
+ * transcript fills up with lines nobody was there to hear.
+ */
+const EARSHOT_METRES = 10;
+
 export class BotAgent {
   /** Everything the agent did, in order. Tests read this. */
   readonly actions: string[] = [];
@@ -106,6 +128,13 @@ export class BotAgent {
   private timer: NodeJS.Timeout | null = null;
   private rng: () => number;
   private startedAt = 0;
+  /** When this agent last opened its mouth. Staggered at start (see `start`). */
+  private lastSpokeAtMs = 0;
+  /** The last thing it said, so it does not repeat itself straight back. */
+  private lastLine = '';
+  private get speechInterval(): number {
+    return this.opts.speechIntervalMs ?? SPEECH_INTERVAL_MS;
+  }
   private stopped = false;
   private busy = false;
 
@@ -149,6 +178,11 @@ export class BotAgent {
   start(): void {
     if (this.timer) return;
     this.startedAt = Date.now();
+    // ⚠ Staggered on the agent's OWN stream, so a cast that all arrived in
+    // the same second does not then speak in the same second forever after.
+    // Three bots chorusing every thirty seconds is a different bug wearing the
+    // same face as the one being fixed.
+    this.lastSpokeAtMs = Date.now() - Math.floor(this.rng() * this.speechInterval);
     this.stopped = false;
     const every = this.opts.decisionMs ?? 160;
     this.timer = setInterval(() => {
@@ -221,18 +255,123 @@ export class BotAgent {
     if (state && state.phase !== 'running') return;
     // The dawn truce (D-536): the clock is stopped and nobody can be hurt.
     // Bots talk through it, which is what the minute is for.
-    if (state && state.graceTicks > 0) {
-      if (this.rng() < 0.06) {
-        const line = TRUCE_LINES[Math.floor(this.rng() * TRUCE_LINES.length)]!;
-        this.bot.send({ t: 'say', channel: 'say', text: line });
-      }
-      return;
-    }
+    this.maybeSpeak(state !== null && state.graceTicks > 0);
+    if (state && state.graceTicks > 0) return;
 
     if (this.antagonist && this.considerBetrayal()) return;
     if (this.handleThreats()) return;
     if (this.handleNeeds()) return;
     this.work();
+  }
+
+  // --- talking -------------------------------------------------------------
+
+  /**
+   * Says one thing, at most every thirty seconds, and only to somebody who is
+   * there to hear it (D-610).
+   *
+   * ⚠ What it says is read off the agent's ACTUAL state — the need it is
+   * answering, the node it is stood at, the spoke it is walking to. The point
+   * is not flavour: a companion that announces where it is going is the only
+   * way a person playing alongside bots can form any picture of the round, and
+   * a canned line rotation tells them nothing while costing exactly as much
+   * screen space.
+   *
+   * ⚠ An antagonist says the SAME things as everybody else, drawn from the
+   * same cover work, and nothing here ever reads the objective. D-540 is
+   * explicit that the deception has to be behavioural; a bot whose chatter
+   * changed once it was dealt the role would be a tell in text, and a tell a
+   * person would learn in one round.
+   */
+  private maybeSpeak(inTruce: boolean): void {
+    const now = Date.now();
+    if (now - this.lastSpokeAtMs < this.speechInterval) return;
+    if (!this.someoneInEarshot()) return;
+    const line = inTruce
+      ? TRUCE_LINES[Math.floor(this.rng() * TRUCE_LINES.length)]!
+      : this.intentLine();
+    if (!line || line === this.lastLine) return;
+    this.lastSpokeAtMs = now;
+    this.lastLine = line;
+    this.bot.send({ t: 'say', channel: 'say', text: line });
+  }
+
+  /**
+   * Whether anybody is close enough to hear.
+   *
+   * ⚠ Players and bots only. NPCs and roamers do not listen, and counting
+   * them would put a companion in the tavern talking at the keeper all round.
+   */
+  private someoneInEarshot(): boolean {
+    const me = this.me;
+    if (!me) return false;
+    for (const e of this.bot.entities.values()) {
+      if (e.id === me.id || e.kind !== 'player') continue;
+      if (Math.hypot(e.x - me.x, e.y - me.y) <= EARSHOT_METRES) return true;
+    }
+    return false;
+  }
+
+  /** One of two phrasings, so a long round is not word-for-word repetition. */
+  private pick(a: string, b: string): string {
+    return this.rng() < 0.5 ? a : b;
+  }
+
+  /**
+   * What this agent is doing or about to do, in its own words.
+   *
+   * Ordered the way `decide()` is ordered, so the line matches what the agent
+   * will actually do next rather than describing a plan it has already
+   * abandoned.
+   */
+  private intentLine(): string {
+    const status = this.bot.status;
+    const where = this.bot.area?.name ?? 'here';
+    if (status && status.hp <= Math.max(4, status.maxHp * 0.35)) {
+      return this.pick(
+        'I took a bad one out there. I need to sit a while.',
+        'I am hurt. If anyone has a bandage I will not be proud about it.',
+      );
+    }
+    if (status?.thirst !== undefined && status.thirst !== 'sated') {
+      return this.pick(
+        'My throat is gone. I am for the well.',
+        'I need water before I do anything else.',
+      );
+    }
+    if (status?.hunger !== undefined && status.hunger !== 'sated') {
+      const hasFood = this.bot.inventory.some((i) => {
+        const t = this.bot.itemCatalogue.find((c) => c.id === i.templateId);
+        return t?.nourishes === 'hunger';
+      });
+      return hasFood
+        ? this.pick('I will eat, then get back to it.', 'Stopping to eat. Back shortly.')
+        : this.pick(
+            'I have nothing left to eat. I am going for grain.',
+            'The pack is empty. Someone needs to work the farm.',
+          );
+    }
+    const job = this.bot.work[this.bot.work.length - 1];
+    if (job && !job.done) {
+      return this.pick(
+        `Working here in ${where}. Give me a moment.`,
+        `I am in the middle of something in ${where}.`,
+      );
+    }
+    switch (this.opts.role) {
+      case 'gatherer':
+        return this.pick('I am for the mine. We will want iron before long.', 'Heading to the seams. Shout if the town needs me.');
+      case 'forager':
+        return this.pick('I am working the farm. Bread has to come from somewhere.', 'Off to the grain. We will all want feeding tonight.');
+      case 'woodsman':
+        return this.pick('I am for the wood, for timber.', 'Going to cut timber. I will keep to the road.');
+      case 'physician':
+        return this.pick('I have bandages. Come and find me if you are cut.', 'I will stay near the town in case anyone is hurt.');
+      case 'delver':
+        return this.pick('I am going down the stairs. Someone mark the hour.', 'I am for the dungeon. If I am not back by dark, I am not coming back.');
+      case 'idler':
+        return this.pick('I will keep to the square and watch the road.', 'I am staying put. Somebody should be where people can find them.');
+    }
   }
 
   // --- survival ------------------------------------------------------------

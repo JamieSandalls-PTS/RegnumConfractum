@@ -159,6 +159,19 @@ export async function loadOneAsset(
 export class WorldAssets {
   private readonly group = new THREE.Group();
   private disposed = false;
+  /**
+   * What stands on each tile, keyed `x,y` (D-622).
+   *
+   * ⚠ A chair is SCENERY, not an entity -- it is a placement in the area
+   * document, so nothing in the entity table can be asked about it. The hover
+   * outline needs the actual object to build a hull around, and `sit` already
+   * finds the seat by tile, so this is the same key from the other side.
+   *
+   * ⚠ Last placement on a tile wins, deliberately. Two things on one tile
+   * is one of them being scatter, and outlining the wrong one is a cosmetic
+   * miss where refusing to outline anything is a feature that looks broken.
+   */
+  private readonly byTile = new Map<string, THREE.Object3D>();
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -211,7 +224,13 @@ export class WorldAssets {
         mesh.material = mat;
       });
       this.group.add(object);
+      this.byTile.set(`${Math.round(a.x)},${Math.round(a.y)}`, object);
     }
+  }
+
+  /** The object standing on this tile, if one has finished loading (D-622). */
+  objectAt(x: number, y: number): THREE.Object3D | null {
+    return this.byTile.get(`${Math.round(x)},${Math.round(y)}`) ?? null;
   }
 
   /** How many are actually in the scene — a verification hook, not a feature. */
@@ -222,6 +241,7 @@ export class WorldAssets {
   dispose(): void {
     this.disposed = true;
     this.scene.remove(this.group);
+    this.byTile.clear();
     this.group.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh) return;

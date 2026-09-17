@@ -169,12 +169,13 @@ RECIPES = {
               ["wood"], gap=3.0),
         layer(D, ["sm-prop-candle-01", "sm-prop-candles-01"], 10, ["wood"],
               walkthrough=True),
-        layer(V, ["sm-env-grass-01", "sm-env-grasspatch-01"], 60, ["floor"],
-              walkthrough=True),
-        layer(K, ["sm-env-flower-01"], 20, ["floor"], walkthrough=True),
-        layer(V, ["sm-prop-bench-01", "sm-prop-logs-01", "sm-prop-crate-base-01"], 8,
-              ["floor"], gap=4.0),
-        layer(K, ["sm-env-tree-01", "sm-env-tree-02"], 8, ["floor"], gap=5.0),
+        # ⚠ The grass layer is GONE (D-604). It scattered 60 tufts on the
+        # `floor` kind, which used to be the yard outside the door; the area is
+        # now the room itself and there is no outdoors in it to dress.
+        # ⚠ And the benches, logs and TREES that stood on the same `floor`
+        # kind. A tavern with trees growing in it is what "it looks like it is
+        # outside" meant.
+        layer(V, ["sm-prop-bench-01"], 4, ["wood"], gap=4.0),
     ],
     "broken-yard": [
         layer(V, ["sm-env-grass-01", "sm-env-grass-02", "sm-env-grasspatch-01"], 90,

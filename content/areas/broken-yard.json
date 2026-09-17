@@ -60,8 +60,8 @@
       "x": 30,
       "y": 16,
       "toArea": "hanged-ferryman",
-      "toX": 2,
-      "toY": 16
+      "toX": 1,
+      "toY": 8
     },
     {
       "x": 2,
@@ -2045,7 +2045,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.536,
           "walkable": false,
           "opaque": false
         }
@@ -2072,7 +2072,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.536,
           "walkable": false,
           "opaque": false
         }
@@ -2099,7 +2099,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.536,
           "walkable": false,
           "opaque": false
         }
@@ -2126,7 +2126,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.536,
           "walkable": false,
           "opaque": false
         }
@@ -2153,7 +2153,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.476,
           "walkable": false,
           "opaque": false
         }
@@ -2180,7 +2180,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.315,
           "walkable": false,
           "opaque": true
         }
@@ -2207,7 +2207,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.476,
           "walkable": false,
           "opaque": false
         }
@@ -2234,7 +2234,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.536,
           "walkable": false,
           "opaque": false
         }
@@ -2261,7 +2261,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -2288,7 +2288,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -2315,7 +2315,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }

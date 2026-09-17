@@ -139,6 +139,13 @@ const INTERACTIONS: AnimationWish[] = [
   w('drink', 'unarmed', 'drinking', ['Drinking', 'Drinking From Bottle']),
   w('sit-down', 'unarmed', 'sitting down', ['Sitting Down', 'Stand To Sit']),
   w('sitting', 'unarmed', 'sitting idle', ['Sitting Idle', 'Seated Idle'], true),
+  // ⚠ A DIFFERENT clip from `sitting`, not a variant of it (D-615). The
+  // library's sit is a chair pose -- hips 58cm off the floor -- and the
+  // `*sits*` emote is somebody sitting down on the ground where they stand.
+  // Until this arrives the emote borrows the chair sit, which is the honest
+  // fallback rather than a kneel pretending to be a sit.
+  w('sit-ground', 'unarmed', 'sitting on ground',
+    ['Sitting On Ground', 'Sit Floor', 'Seated Ground Idle', 'Floor Sitting'], true),
   w('stand-up', 'unarmed', 'stand up', ['Stand Up', 'Standing Up']),
   w('kneel', 'unarmed', 'kneeling', ['Kneeling Down', 'Praying'], true),
   w('sleep', 'unarmed', 'laying idle', ['Laying Idle', 'Sleeping Idle'], true),

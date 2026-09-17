@@ -55,6 +55,13 @@ beforeAll(async () => {
     bleedIntervalTicks: 100_000,
     round: {
       enabled: true,
+      // ⚠ This fixture stands characters in a chosen area with
+      // `saveCharacterPosition` and asserts what they can see from there, so
+      // it opts OUT of D-608's rule that an arrival is placed at the round's
+      // opening point and reset. The rule is right for players joining a
+      // game and wrong for a fixture whose whole question is 'what happens
+      // to a body standing HERE'.
+      placeArrivals: false,
       lengthTicks: 200_000,
       minCast: 2,
       graceTicks: 0,

@@ -20,5 +20,6 @@
     "legR": "SK_Chr_LegRight_Male_11"
   },
   "texture": "PolygonFantasyHero_Texture_01_A",
-  "note": "Plain clothes, bare head. The contrast with the guard is the point: one is a face, the other is a helmet."
+  "note": "Plain clothes, bare head. The contrast with the guard is the point: one is a face, the other is a helmet.",
+  "kind": "person"
 }

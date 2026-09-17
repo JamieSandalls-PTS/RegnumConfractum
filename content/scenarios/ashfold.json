@@ -1,0 +1,20 @@
+{
+  "id": "ashfold",
+  "name": "Ashfold",
+  "areas": [
+    "round-town",
+    "round-farm",
+    "round-wood",
+    "round-mine",
+    "round-south",
+    "round-dungeon-1",
+    "round-dungeon-2",
+    "round-dungeon-3"
+  ],
+  "opensIn": "round-town",
+  "objectives": [],
+  "minCast": 3,
+  "maxCast": null,
+  "status": "live",
+  "notes": "The first scenario, and the one every round has been played on since D-549 — written down at last (D-627). ⚠ The area set is the ROUND'S EDGES, not a description of them: a transition out of this list is refused while the round runs. Before this file existed the round had no concept of an area at all, and the world graph ran round-town -> hanged-ferryman -> broken-yard -> sunken-crypt, which is zone 'endgame' and carries involuntary permadeath — the one thing D-523 says a round must never contain. Nothing stopped the walk. ⚠ `hanged-ferryman` is deliberately NOT here. It is the persistent world's first-slice tavern that D-608 borrowed as the round's opening room, and round-town already has a tavern of its own with the keeper `silence-the-keeper` names (D-593). Which tavern belongs to which product is a content decision for the stakeholder; until it is taken, the round opens in the town and the borrowed door stays shut. ⚠ `objectives` is empty, which means every live objective — the engine's behaviour before scenarios existed, kept so this file changes the boundary and nothing else. Naming ids here is how a second scenario gets a different flavour."
+}

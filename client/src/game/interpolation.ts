@@ -1,4 +1,4 @@
-import { WALK_SPEED } from '@rc/shared';
+import { WALK_SPEED, speedFor } from '@rc/shared';
 
 /**
  * Client-side interpolation of server-authoritative positions (D-104, D-567).
@@ -37,6 +37,18 @@ export const MOVE_GRACE_MS = 260;
  */
 export const TILE_SECONDS = 1 / WALK_SPEED;
 
+/**
+ * Seconds to cross a metre at a RUN (D-619).
+ *
+ * ⚠ The glide has to know about the run or it is not presentation any
+ * more. The server moves a fighting body at `RUN_SPEED` and reports the new
+ * position every tick; a client gliding at walking pace closes less ground
+ * each tick than arrives, so the visual falls steadily behind until the
+ * catch-up factor stops it about a metre back. What that looks like is the
+ * character sliding along a step behind their own sword.
+ */
+export const RUN_SECONDS = 1 / speedFor(true);
+
 /** Beyond this many tiles of error, snap instead of glide (area change,
  * teleport, or resync — gliding across the map would look absurd). */
 const SNAP_DISTANCE = 2.5;
@@ -57,6 +69,8 @@ export function stepToward(
   render: InterpolatedPosition,
   target: { x: number; y: number },
   dt: number,
+  /** Seconds per metre. Defaults to a walk; a fighter passes `RUN_SECONDS`. */
+  secondsPerMetre: number = TILE_SECONDS,
 ): InterpolatedPosition {
   const dx = target.x - render.x;
   const dy = target.y - render.y;
@@ -69,7 +83,7 @@ export function stepToward(
   }
   // Base speed crosses one tile in TILE_SECONDS; scale up slightly when
   // behind by more than a tile (diagonals, queued steps).
-  const speed = (1 / TILE_SECONDS) * (dist > 1 ? 1 + (dist - 1) * 0.8 : 1);
+  const speed = (1 / secondsPerMetre) * (dist > 1 ? 1 + (dist - 1) * 0.8 : 1);
   const step = speed * dt;
   if (step >= dist) {
     render.x = target.x;

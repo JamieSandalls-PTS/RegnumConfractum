@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DIRECTIONS, type Direction } from './types';
 import {
   VolumeSchema,
   transformVolume,
@@ -60,6 +61,20 @@ export const PlacedAssetSchema = z.object({
    */
   collision: z.array(VolumeSchema).default([]),
   /**
+   * A seat, and which way a sitter faces on it (D-605).
+   *
+   * ⚠ BAKED from the catalogue at placement time, exactly as the collision
+   * mask is and for the same reason: an area is self-describing, and the
+   * server answers "can somebody sit here" without loading 1,402 assets it
+   * otherwise never asks about.
+   *
+   * ⚠ The facing is the placement's own `rotation`, read as the direction a
+   * sitter LOOKS: a chair at 180 is a chair whose occupant faces south. That
+   * is the one thing a sit cannot guess — walk up to a chair from behind and
+   * sit without being turned, and the animation plays into the backrest.
+   */
+  seat: z.boolean().default(false),
+  /**
    * This placement's mask was edited ON PURPOSE and must not track the asset.
    *
    * ⚠ Without this the two halves of the stakeholder's ruling contradict each
@@ -118,6 +133,45 @@ export function assetVolumes(assets: readonly PlacedAsset[]): Volume[] {
  */
 export function assetCovers(a: PlacedAsset, p: { x: number; y: number }): boolean {
   return volumesCover(placedVolumes(a), p);
+}
+
+/**
+ * The compass direction a rotation points (D-605).
+ *
+ * ⚠ Degrees CLOCKWISE from north, which is how a placement already stores
+ * its rotation — so a seat's facing is the number that is already there
+ * rather than a second field that can disagree with the mesh.
+ *
+ * ⚠ Rounded to the nearest of the eight the wire carries. A character faces
+ * one of eight ways (D-104); a chair turned 22 degrees is still a chair you
+ * sit in facing roughly north, and inventing a ninth direction to be exact
+ * about it would break every renderer that switches on the eight.
+ */
+/**
+ * Which way somebody sitting on a seat is looking, given the seat's yaw
+ * (D-609).
+ *
+ * ⚠ A seat's `rotation` is its MESH YAW, exactly like every other placed
+ * asset in the game — the editor, the renderer and the drift checker all read
+ * it that way, and a field that means one thing for 2,800 objects and the
+ * opposite for 32 is a trap rather than a convention.
+ *
+ * ⚠ The half turn is a MEASURED fact about the art, not a guess: the pack's
+ * chair is modelled with its backrest at -Z and the seat opening toward +Z,
+ * so a chair whose mesh points north seats somebody looking south. The tavern
+ * was authored the other way round — `rotation` held the SITTER'S facing and
+ * the mesh was drawn at that same angle — which put all 32 chairs with their
+ * backs to the tables. The semantics were right and the picture was wrong,
+ * which is why `mr9-sitting` passed: it asserted the server against the
+ * convention rather than the convention against the room.
+ */
+export function sitterFacingFor(seatRotation: number): Direction {
+  return directionFromDegrees(seatRotation + 180);
+}
+
+export function directionFromDegrees(deg: number): Direction {
+  const step = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+  return DIRECTIONS[step]!;
 }
 
 /**

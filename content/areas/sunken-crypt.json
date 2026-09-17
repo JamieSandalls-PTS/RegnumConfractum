@@ -50,9 +50,9 @@
       "pack": "dungeon-pack",
       "x": 1.7,
       "y": 5.37,
-      "z": 0.0,
+      "z": 0,
       "rotation": 99.14676119721682,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -62,9 +62,9 @@
       "pack": "dungeon-pack",
       "x": 6.96,
       "y": 3.04,
-      "z": 0.0,
+      "z": 0,
       "rotation": 322.5254457722288,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -74,9 +74,9 @@
       "pack": "dungeon-pack",
       "x": 2.2,
       "y": 5.01,
-      "z": 0.0,
+      "z": 0,
       "rotation": 83.71162406088114,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -86,9 +86,9 @@
       "pack": "dungeon-pack",
       "x": 7.48,
       "y": 4.91,
-      "z": 0.0,
+      "z": 0,
       "rotation": 19.33904798054849,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -98,9 +98,9 @@
       "pack": "dungeon-pack",
       "x": 7.77,
       "y": 5.89,
-      "z": 0.0,
+      "z": 0,
       "rotation": 321.7482495772256,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -110,9 +110,9 @@
       "pack": "dungeon-pack",
       "x": 3.04,
       "y": 7.82,
-      "z": 0.0,
+      "z": 0,
       "rotation": 359.23223563517485,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -122,9 +122,9 @@
       "pack": "dungeon-pack",
       "x": 4.7,
       "y": 3.87,
-      "z": 0.0,
+      "z": 0,
       "rotation": 52.61330811722229,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -134,9 +134,9 @@
       "pack": "dungeon-pack",
       "x": 5.92,
       "y": 2.86,
-      "z": 0.0,
+      "z": 0,
       "rotation": 70.6314237845519,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -146,9 +146,9 @@
       "pack": "dungeon-pack",
       "x": 5.47,
       "y": 9.01,
-      "z": 0.0,
+      "z": 0,
       "rotation": 274.3979714555493,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -158,9 +158,9 @@
       "pack": "dungeon-pack",
       "x": 5.52,
       "y": 3.3,
-      "z": 0.0,
+      "z": 0,
       "rotation": 218.1990073567596,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -170,9 +170,9 @@
       "pack": "dungeon-pack",
       "x": 7.89,
       "y": 7.73,
-      "z": 0.0,
+      "z": 0,
       "rotation": 204.66142888870687,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -182,9 +182,9 @@
       "pack": "dungeon-pack",
       "x": 6.86,
       "y": 6.64,
-      "z": 0.0,
+      "z": 0,
       "rotation": 31.583237600669772,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -194,9 +194,9 @@
       "pack": "dungeon-pack",
       "x": 2.42,
       "y": 4.09,
-      "z": 0.0,
+      "z": 0,
       "rotation": 301.99511331174523,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -206,9 +206,9 @@
       "pack": "dungeon-pack",
       "x": 2.83,
       "y": 2.36,
-      "z": 0.0,
+      "z": 0,
       "rotation": 287.0610404792091,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -218,9 +218,9 @@
       "pack": "dungeon-pack",
       "x": 9.21,
       "y": 3.73,
-      "z": 0.0,
+      "z": 0,
       "rotation": 22.280078497879074,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -230,9 +230,9 @@
       "pack": "dungeon-pack",
       "x": 5.51,
       "y": 8.49,
-      "z": 0.0,
+      "z": 0,
       "rotation": 298.80423693022516,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -242,9 +242,9 @@
       "pack": "dungeon-pack",
       "x": 8.09,
       "y": 7.51,
-      "z": 0.0,
+      "z": 0,
       "rotation": 350.54227229465613,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -254,9 +254,9 @@
       "pack": "dungeon-pack",
       "x": 8.61,
       "y": 8.19,
-      "z": 0.0,
+      "z": 0,
       "rotation": 96.45942378453385,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -266,9 +266,9 @@
       "pack": "dungeon-pack",
       "x": 6.93,
       "y": 8.73,
-      "z": 0.0,
+      "z": 0,
       "rotation": 175.9945128269726,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -278,9 +278,9 @@
       "pack": "dungeon-pack",
       "x": 3.84,
       "y": 4.8,
-      "z": 0.0,
+      "z": 0,
       "rotation": 358.6761988418505,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -290,9 +290,9 @@
       "pack": "dungeon-pack",
       "x": 6.74,
       "y": 2.35,
-      "z": 0.0,
+      "z": 0,
       "rotation": 12.436023217164006,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -302,9 +302,9 @@
       "pack": "dungeon-pack",
       "x": 6.51,
       "y": 5.53,
-      "z": 0.0,
+      "z": 0,
       "rotation": 88.22193623634303,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -314,9 +314,9 @@
       "pack": "dungeon-pack",
       "x": 2.82,
       "y": 9.32,
-      "z": 0.0,
+      "z": 0,
       "rotation": 107.15184686703076,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -326,9 +326,9 @@
       "pack": "dungeon-pack",
       "x": 6.74,
       "y": 3.81,
-      "z": 0.0,
+      "z": 0,
       "rotation": 75.01017135988452,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -338,9 +338,9 @@
       "pack": "dungeon-pack",
       "x": 1.67,
       "y": 3.22,
-      "z": 0.0,
+      "z": 0,
       "rotation": 235.5986598707378,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -350,9 +350,9 @@
       "pack": "dungeon-pack",
       "x": 3.92,
       "y": 1.9,
-      "z": 0.0,
+      "z": 0,
       "rotation": 263.8316387023173,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -362,9 +362,9 @@
       "pack": "dungeon-pack",
       "x": 4.03,
       "y": 8.98,
-      "z": 0.0,
+      "z": 0,
       "rotation": 49.08717738259293,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -374,9 +374,9 @@
       "pack": "dungeon-pack",
       "x": 6.92,
       "y": 2.55,
-      "z": 0.0,
+      "z": 0,
       "rotation": 54.80893381838405,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -386,9 +386,9 @@
       "pack": "dungeon-pack",
       "x": 7.25,
       "y": 1.83,
-      "z": 0.0,
+      "z": 0,
       "rotation": 304.99398539376097,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -398,9 +398,9 @@
       "pack": "dungeon-pack",
       "x": 5.97,
       "y": 9.3,
-      "z": 0.0,
+      "z": 0,
       "rotation": 100.65999636826182,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -410,9 +410,9 @@
       "pack": "dungeon-pack",
       "x": 4.27,
       "y": 7.68,
-      "z": 0.0,
-      "rotation": 180.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -424,7 +424,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 7.667,
           "walkable": false,
           "opaque": true
         }
@@ -437,9 +437,9 @@
       "pack": "dungeon-pack",
       "x": 2.01,
       "y": 5.2,
-      "z": 0.0,
-      "rotation": 270.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -451,7 +451,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -464,9 +464,9 @@
       "pack": "dungeon-pack",
       "x": 9.44,
       "y": 2.29,
-      "z": 0.0,
-      "rotation": 270.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -478,7 +478,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -491,9 +491,9 @@
       "pack": "dungeon-pack",
       "x": 6.88,
       "y": 6.18,
-      "z": 0.0,
-      "rotation": 180.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -505,7 +505,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -518,9 +518,9 @@
       "pack": "dungeon-pack",
       "x": 5.59,
       "y": 2.12,
-      "z": 0.0,
-      "rotation": 90.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -532,7 +532,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -545,9 +545,9 @@
       "pack": "dungeon-pack",
       "x": 7.94,
       "y": 9.43,
-      "z": 0.0,
-      "rotation": 180.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -559,7 +559,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }

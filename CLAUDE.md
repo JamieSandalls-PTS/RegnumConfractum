@@ -940,9 +940,21 @@ fetched at module load. And the palette came out black and yellow from
 loaded separately onto FBX-exported UVs — it does not look like a bug, it
 looks like the artist chose black and yellow.
 
-⚠ **The procedural `CharacterVisual` is NOT deleted and must not be until the
-stakeholder says yes.** It is the cast that renders every appearance the
-server can describe, wears equipment and raises a hood.
+⚠ **The procedural `CharacterVisual` is DELETED (D-617, stakeholder's
+ruling).** There is one cast: the imported models. The two things only the
+procedural rig could do were built on the imported cast first — the hood is a
+head-covering part swap chosen by a `hood` tag in `content/parts/`, and the
+five emotes play the clips the library already shipped — and the Settings
+toggle went with it, because a switch that silently changed which renderer
+somebody was judging is a way to report a bug about the wrong one.
+
+⚠ **What went with it:** `/imported.html` (an A/B page with nothing left to
+compare), `/creator.html` (a preview of the deleted rig), the viewer's cast
+grid, seed filters, gear toggles and per-part colour editor, and two tests that
+measured generated geometry (`garment-scale`, `walk-grounding`). The **cloth
+workbench survives on a placeholder** — `WorkbenchBody`, a jointed stand-in at
+roughly human proportions — so a garment tuned there is tuned against an
+approximation until something rigged replaces it.
 
 **Creation rules are content, and the art bounds them (D-560).**
 ⚠ **Course correction from the stakeholder, recorded because it is the reason
@@ -1592,7 +1604,93 @@ whether they know each other; minimum party size to enter the dungeon at low
 cast counts; whether an objective may ever sit *inside* the dungeon; what a revived
 player returns with.
 
-⚠ **Unratified balance awaiting the stakeholder:** creation
+**Ten notes from playing, answered (D-618 -> D-624).** The tavern's walls,
+tables and hearth were TILE KINDS drawn as generated geometry -- the last
+procedural world indoors -- and are pack meshes now; ⚠ the rest of the world
+is **17,000+ wall tiles across eleven areas**, flagged rather than quietly
+narrowed. Corpses survived the reset and replayed their deaths forever;
+`sweepTheDead()` clears bodies AND their item rows, or the rows are owned by
+nothing and still counted by D-114. A bot showed up as a goblin because the
+appearance lottery drew from all twelve built characters and **ten are
+monsters**; a definition DECLARES `kind: 'person' | 'creature'` now, defaulting
+to `creature` so an unclassified one stays out of the pool.
+
+**Combat has a pace (D-619, every magnitude unratified).** A weapon up is a
+**run** -- `RUN_SPEED` 4.2 against a walk of 2.9, off the server's own combat
+flag, so one fact drives the server's movement, the client's glide and the
+clip. ⚠ 1.45x rather than 2x: at double speed a body crosses the whole gap
+between two swings and back, which turns a non-twitch game (D-104) into
+kiting. The watch was **capped below a walking player** -- a roamer lays one
+metre of route every `moveCooldownTicks`, so 4 held a guard to 2.5 m/s and it
+could never catch anybody who simply left. And a named objective had **ten hit
+points**: not a content decision but the world's `spawn` default, which no
+content file could reach. `NpcDefSchema` has `hp` now, defaulting to ten so
+nothing unauthored moves, and both keepers are 40.
+
+**Weapons are put away (D-620), the dead see a pale world (D-621), and what
+you can use lights up (D-622).** A hover outline is an inverted hull pushed
+along the vertex normal BEFORE skinning -- scaling the object leaves the
+outline welded to the bind pose while the body walks out of it. ⚠ The veil's
+look is unratified, and its colour space was wrong in a way that looked like a
+taste problem: every veiled pixel a third too dark until the pass encoded its
+output.
+
+**Two things nobody could edit became content.** Which mesh the hood is
+(D-623) is a picker in the creation tool rather than a tag typed into JSON, and
+the **cast that fills a lobby** (D-624) is `content/bots/` rather than eleven
+names hardcoded in the server. ⚠ Draw order is an authored field, not the
+file listing: alphabetically the first three companions are a woodsman, a
+delver and a gatherer, with nobody on the farm -- and an unworked arm makes
+hunger look broken when it is merely unattended.
+
+**The taproom is furnished, and it was invisible (D-625).** D-618 turned the
+tavern's walls, tables and hearth into pack meshes and stopped one step short:
+⚠ **three of the four had never been BUILT.** `build:environment` ships only
+what the world places and was not re-run, so they validated, flooded and drew
+nothing -- one `console.warn` each and bare boards with chairs on them. A test
+now asserts every mesh every AREA places is built, naming the map. ⚠ The wall
+was also from POLYGON's **modern** kit (its atlas ships tyre decals and dollar
+signs); the room is one pack now -- boarded timber walls, trestle tables,
+stools, barrels, candles and a stone hearth. ⚠ **A collision mask is authored
+in the MESH'S frame:** `transformVolume` multiplies it by the placement's scale
+and adds its rotation, so masks written in world metres came out a quarter too
+big and narrowed the doorway to 69cm against a body radius of 30 -- the room
+was sealed, and `map:why` blamed a wall two panels away that had grown.
+
+⚠ **A pack mesh may have no BACK (D-626).** The taproom's wall panel is an
+open shell -- measured: 94 of its 208 triangles face +z and **none** face -z --
+and glTF culls backfaces by default, so from outside you looked straight
+through the wall. It is placed TWICE now, a half turn apart, because a
+double-sided material would draw the same face lit by a normal pointing the
+wrong way. ⚠ The twin is 0.998 scale: back to back the tops and end caps are
+coplanar and z-fight, and no offset fixes that -- a shift along the normal
+leaves the horizontal tops where they were. ⚠ Only that one mesh is
+one-sided; every other thing in the room is a closed solid. The general case
+is open: "one-sided" belongs in the asset catalogue beside the measured size,
+and the other eleven areas' walls have not been checked.
+
+**The Round has EDGES, and they are data (D-627, D-628).** The scope changed in
+D-521 and nothing in the repo recorded which game an area, a verb or a
+definition belonged to — so the two products ran as one world. ⚠ The proof:
+`RoundEngine` had **no concept of an area at all**, while the live graph ran
+`round-town -> hanged-ferryman -> broken-yard -> sunken-crypt`, which is
+`zone: endgame` and carries involuntary permadeath — the one thing D-523 says a
+round must never contain. Nothing gated it. A **scenario**
+(`content/scenarios/`) now declares the areas a round is played in; a
+transition out of the set is refused, and CI refuses a scenario containing an
+endgame area. ⚠ The map was the smallest of three holes: the cast was only
+gathered at a RESET (so every server's first round began wherever people logged
+in, which is out of bounds), and a latecomer arrived at `defaultAreaId`. Three
+sites each answered "where is the round?" with a global default — that is what
+no boundary looks like from the inside. ⚠ `retire` and `pay` were ungated
+inside a round; `speak_dead` deliberately stays open, because the MR gate names
+"question a corpse" as something a good round contains.
+⚠ **Read `docs/SYSTEM_INVENTORY.md`** for what belongs to which product, what
+is wired, and what is authored and read by nothing.
+
+⚠ **Unratified balance awaiting the stakeholder:** the run multiplier, the
+watch's damage and cadence and the keepers' 40 hit points (D-619); the veil's
+palette (D-621); creation
 budget (D-515), combat window / attack roster / carry formula (D-516),
 Legacy class pricing (D-512), zero-award endgame death (D-513),
 **every magnitude in the attribute chain (D-546)** — the four level-up

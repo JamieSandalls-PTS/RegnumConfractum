@@ -211,6 +211,19 @@ export class RoundEngine {
     this.cast = this.cast.filter((c) => c.characterId !== characterId);
   }
 
+  /**
+   * Whether this character was dealt into the running round.
+   *
+   * ⚠ Not the same question as "are they connected". It separates a player
+   * RECONNECTING to a round they are already in — who comes back where they
+   * left off, still carrying whatever they were given (D-579), and still dead
+   * if they were dead (D-521) — from somebody arriving for the first time,
+   * who is placed at the round's opening point and reset (D-608).
+   */
+  inCast(characterId: string): boolean {
+    return this.cast.some((c) => c.characterId === characterId);
+  }
+
   livingCast(): string[] {
     return this.cast.map((c) => c.characterId).filter((id) => !this.dead.has(id));
   }

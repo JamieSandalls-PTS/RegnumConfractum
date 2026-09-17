@@ -40,6 +40,7 @@ function roamer(over: Partial<RoamerDef> = {}): RoamerDef {
     id: 'thing',
     descriptor: 'something in the dark',
     hp: 12,
+    armourClass: 10,
     damageMin: 1,
     damageMax: 3,
     aggroMetres: 9,

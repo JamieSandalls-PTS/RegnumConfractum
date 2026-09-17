@@ -175,6 +175,8 @@ export function blankAsset(kind: AssetKind, pack: string, mesh: string, scale: n
       // Unauthored: `defaultMask` derives a box from the measured size until
       // somebody draws the real shape (D-567).
       collision: [],
+      // Nothing is a seat until a person says so (D-605).
+      seat: false,
     } satisfies EnvironmentAsset;
   }
   return {

@@ -150,6 +150,12 @@ describe.skipIf(!built)('re-assembling a character from part files (D-571)', () 
      * decides. `ashfold-guard` happens to match and `ashfold-townsfolk` does
      * not (`neck_01` against `clavicle_l` at index 4).
      *
+     * ⚠ That last clause was EVIDENCE and it was read as trivia. A neck
+     * sitting beside a clavicle in the array was the visible edge of the neck
+     * being parented to one. Ordering was the innocent explanation and it was
+     * taken without checking the other one. Noticing an anomaly and
+     * explaining it is not the same as measuring it.
+     *
      * It does not matter, and this is what says so rather than an argument:
      * `skinIndex` is remapped into whatever order results, and animation
      * tracks bind by NAME. So both figures are posed by name exactly as a
@@ -173,6 +179,20 @@ describe.skipIf(!built)('re-assembling a character from part files (D-571)', () 
         bend(root, 'spine_02', 0.6);
         bend(root, 'UpperArm_R', -0.9);
         bend(root, 'Thigh_L', 0.4);
+        // ⚠ The NECK and the CLAVICLE, added after this test watched a real
+        // bug walk past it. `neck_01` was being parented to `clavicle_r`,
+        // because the head part ships it as a root and the head is assembled
+        // first. Every bone still landed correctly at REST, so the comparison
+        // above passed; and the three bends chosen here rotate the spine, the
+        // upper arm and the thigh, none of which is the neck's wrong parent.
+        // The head was 84 degrees out of true in play and this file said the
+        // assembly was identical.
+        //
+        // ⚠ The clavicle is bent as well as the neck on purpose: bending only
+        // the neck catches a wrong LOCAL transform, and what was wrong was
+        // which bone it hung FROM — which shows only when that bone moves.
+        bend(root, 'neck_01', 0.5);
+        bend(root, 'clavicle_r', 0.4);
         root.updateMatrixWorld(true);
       }
 

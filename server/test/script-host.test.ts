@@ -20,6 +20,10 @@ function fakeGateway(calls: Call[]): ScriptGateway {
       calls.push({ fn: 'spawnNpc', args: [areaId, opts] });
       return nextId++;
     },
+    findNpc: (areaId, type) => {
+      calls.push({ fn: 'findNpc', args: [areaId, type] });
+      return nextId++;
+    },
     despawnEntity: (id) => {
       calls.push({ fn: 'despawn', args: [id] });
       return true;

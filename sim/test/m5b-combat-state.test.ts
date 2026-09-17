@@ -248,7 +248,12 @@ describe('carrying the dead', () => {
       }
       // The yard is wilderness (D-206), so the bearer may simply cut them
       // down — no declaration needed, and it exercises the real death path.
-      for (let blow = 0; blow < 14; blow++) {
+      // ⚠ Generous, because a blow can MISS now (D-606). Fourteen swings was
+      // certain to kill when every one of them landed for 2-6; against Armour
+      // Class it is a coin-flip run that sometimes leaves the victim standing,
+      // and the failure surfaced two screens away as "both bodies are on the
+      // ground: expected 0 to be at least 2".
+      for (let blow = 0; blow < 300; blow++) {
         carrier.bot.send({ t: 'attack', targetEntityId: v.entityId });
         await sleep(TICK * 4);
         if (!carrier.bot.entities.has(v.entityId)) break;

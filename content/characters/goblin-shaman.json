@@ -5,5 +5,6 @@
   "sex": "male",
   "parts": {},
   "mesh": "Character_Goblin_Shaman",
-  "note": "A finished body from the pack rather than an assembly (D-594). On the Unreal humanoid rig, so the existing clip library retargets onto it unchanged."
+  "note": "A finished body from the pack rather than an assembly (D-594). On the Unreal humanoid rig, so the existing clip library retargets onto it unchanged.",
+  "kind": "creature"
 }

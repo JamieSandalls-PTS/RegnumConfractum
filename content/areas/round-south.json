@@ -3305,7 +3305,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3332,7 +3332,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3359,7 +3359,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3398,7 +3398,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3425,7 +3425,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3452,7 +3452,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3479,7 +3479,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3518,7 +3518,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3545,7 +3545,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3620,7 +3620,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3647,7 +3647,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3674,7 +3674,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3701,7 +3701,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3788,7 +3788,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3863,7 +3863,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3902,7 +3902,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -3941,7 +3941,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.702,
           "walkable": false,
           "opaque": false
         }
@@ -3980,7 +3980,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.766,
           "walkable": false,
           "opaque": false
         }
@@ -4007,7 +4007,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4034,7 +4034,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4061,7 +4061,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4088,7 +4088,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4115,7 +4115,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4142,7 +4142,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4169,7 +4169,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4196,7 +4196,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4223,7 +4223,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4250,7 +4250,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4277,7 +4277,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4304,7 +4304,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4331,7 +4331,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4358,7 +4358,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 5.015,
           "walkable": false,
           "opaque": true
         }
@@ -4409,7 +4409,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4448,7 +4448,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4523,7 +4523,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4550,7 +4550,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.179,
           "walkable": false,
           "opaque": false
         }
@@ -4577,7 +4577,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.179,
           "walkable": false,
           "opaque": false
         }
@@ -4616,7 +4616,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.179,
           "walkable": false,
           "opaque": false
         }
@@ -4643,7 +4643,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4670,7 +4670,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4697,7 +4697,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.179,
           "walkable": false,
           "opaque": false
         }
@@ -4724,7 +4724,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4763,7 +4763,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4790,7 +4790,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.418,
           "walkable": false,
           "opaque": false
         }
@@ -4817,7 +4817,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.902,
           "walkable": false,
           "opaque": false
         }
@@ -4844,7 +4844,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.902,
           "walkable": false,
           "opaque": false
         }
@@ -4871,7 +4871,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.327,
           "walkable": false,
           "opaque": true
         }
@@ -4898,7 +4898,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.902,
           "walkable": false,
           "opaque": false
         }
@@ -4925,7 +4925,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.327,
           "walkable": false,
           "opaque": true
         }
@@ -4952,7 +4952,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.902,
           "walkable": false,
           "opaque": false
         }
@@ -4979,7 +4979,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.327,
           "walkable": false,
           "opaque": true
         }
@@ -5006,7 +5006,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.327,
           "walkable": false,
           "opaque": true
         }
@@ -5033,7 +5033,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.902,
           "walkable": false,
           "opaque": false
         }
@@ -5060,7 +5060,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.327,
           "walkable": false,
           "opaque": true
         }
@@ -5087,7 +5087,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.327,
           "walkable": false,
           "opaque": true
         }
@@ -5114,7 +5114,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.902,
           "walkable": false,
           "opaque": false
         }
@@ -5141,7 +5141,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.327,
           "walkable": false,
           "opaque": true
         }
@@ -5168,7 +5168,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 3.392,
           "walkable": false,
           "opaque": true
         }
@@ -5195,7 +5195,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 3.392,
           "walkable": false,
           "opaque": true
         }
@@ -5222,7 +5222,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 3.392,
           "walkable": false,
           "opaque": true
         }
@@ -5249,7 +5249,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 3.392,
           "walkable": false,
           "opaque": true
         }
@@ -5276,7 +5276,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.007,
           "walkable": false,
           "opaque": false
         }

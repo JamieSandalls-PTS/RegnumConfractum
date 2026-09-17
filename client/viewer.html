@@ -72,77 +72,12 @@
     <h1>Character Viewer</h1>
     <div class="sub">one live scene — each tab configures a different part</div>
 
-    <div id="tabs">
-      <button class="tab active" data-tab="cast">Cast</button><button class="tab" data-tab="anim">Animation</button><button class="tab" data-tab="cloth">Cloth</button><button class="tab" data-tab="render">Render</button>
-    </div>
-
-    <section data-panel="anim" class="hidden">
-    <label>animation</label>
-    <select id="in-anim">
-      <option value="cycle">cycle everything</option>
-      <option value="idle">idle</option>
-      <option value="walk">walk</option>
-      <option value="sitting">sit</option>
-      <option value="kneeling">kneel</option>
-      <option value="bow">bow</option>
-      <option value="wave">wave</option>
-      <option value="laugh">laugh</option>
-      <option value="point">point</option>
-      <option value="shrug">shrug</option>
-      <optgroup label="combat">
-        <option value="combat-idle">combat: ready stance</option>
-        <option value="combat-walk">combat: advance</option>
-        <option value="draw">combat: draw &amp; sheathe (loop)</option>
-        <option value="attack0">attack: overhead chop</option>
-        <option value="attack1">attack: horizontal slash</option>
-        <option value="attack2">attack: thrust</option>
-        <option value="attack3">attack: backhand cut</option>
-        <option value="attack-cycle">attack: all four in turn</option>
-        <option value="cast">attack: cast (needs staff)</option>
-        <option value="death">death: struck down (loop)</option>
-        <option value="death-collapse">death: bleed out, no blow (loop)</option>
-      </optgroup>
-    </select>
-    <div class="check"><input id="in-slow" type="checkbox"> slow motion (½ speed)</div>
-    </section>
-
-    <section data-panel="cast">
-    <label>bodies shown</label>
-    <select id="in-filter">
-      <option value="all">both sexes, all styles</option>
-      <option value="female">female only</option>
-      <option value="male">male only</option>
-      <option value="hair:crop">hair: crop</option>
-      <option value="hair:bob">hair: bob</option>
-      <option value="hair:tail">hair: tail</option>
-      <option value="hair:long">hair: long</option>
-    </select>
-
-    <label>seed base</label>
-    <div class="row">
-      <input id="in-seed" type="number" value="1000">
-      <button id="btn-reroll" style="width:110px">Reroll</button>
-    </div>
-
-    <label>weapon</label>
-    <select id="in-weapon">
-      <option value="seed">from seed (sword)</option>
-      <option value="sword">sword (forced on everyone)</option>
-      <option value="staff">staff (planted idle)</option>
-      <option value="none">none</option>
-    </select>
-    <div class="check"><input id="in-hood" type="checkbox"> hoods up</div>
-    <div class="check"><input id="in-robe" type="checkbox"> robes on</div>
-    <div class="check"><input id="in-gear" type="checkbox" checked> seed equipment</div>
-
-    <label>model editor (solo a seed first)</label>
-    <button id="btn-edit">Open editor on seed below</button>
-    <input id="in-solo" type="number" placeholder="seed to solo/edit" value="1005">
-    <div id="editor" class="hidden" style="margin-top:8px"></div>
-    <div id="seeds"></div>
-    </section>
-
-    <section data-panel="cloth" class="hidden">
+    <!-- ⚠ A PLACEHOLDER body (D-617). The procedural cast this page was
+         built to browse is deleted; what is tuned here is tuned against a
+         jointed stand-in at roughly human proportions, not against the art. -->
+    <p class="note">Tuning against a <b>placeholder</b> body — a jointed stand-in,
+       not the cast.</p>
+    <section data-panel="cloth">
       <label>all garments — fidelity (segments; rebuilds)</label>
       <div class="sl"><input id="in-clothfid" type="range" min="0.5" max="2.5" step="0.1" value="1"><b id="v-clothfid">1.0×</b></div>
       <label>all garments — floppiness (fewer passes = looser)</label>
@@ -150,28 +85,14 @@
       <div id="cloth-panel"></div>
     </section>
 
-    <section data-panel="render" class="hidden">
-    <label>lighting</label>
+    <section data-panel="render">
+      <label>lighting</label>
     <select id="in-light">
       <option value="overcast">overcast (outdoor)</option>
       <option value="interior">interior</option>
       <option value="underground">underground</option>
       <option value="night">night</option>
     </select>
-
-    <label>render style (stakeholder A/B)</label>
-    <select id="in-style">
-      <option value="uniform">uniform pixel (current game look)</option>
-      <option value="split">crisp world + pixel characters</option>
-      <option value="palette-full">palette colours, full resolution</option>
-      <option value="raw">raw (no shader)</option>
-    </select>
-    <input id="in-pixel" type="checkbox" checked class="hidden">
-    <label>character pixelation (1 = fine, 6 = chunky; game uses 4)</label>
-    <input id="in-pixelscale" type="range" min="1" max="6" step="1" value="4">
-    <label>world pixelation (split mode; 1 = crisp)</label>
-    <input id="in-envscale" type="range" min="1" max="6" step="1" value="1">
-    <div class="check"><input id="in-envpal" type="checkbox"> palette colours on the world (split mode)</div>
     </section>
 
     <div class="hint">

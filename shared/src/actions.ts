@@ -158,6 +158,16 @@ export const INTERACTION_ACTIONS = [
   'drink',
   'sit-down',
   'sitting',
+  /**
+   * Sitting on the GROUND, as opposed to on a seat (D-615).
+   *
+   * ⚠ Two different things were one action. `sitting` is the chair pose --
+   * measured, its hips are 58cm off the floor, which is a seat -- and the
+   * `*sits*` emote resolved to it as well, so anybody sitting down in a field
+   * hovered at chair height with their legs bent round furniture that was not
+   * there.
+   */
+  'sit-ground',
   'stand-up',
   'kneel',
   'sleep',

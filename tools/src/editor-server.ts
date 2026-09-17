@@ -92,6 +92,19 @@ function otherAreas(exceptId: string): AreaDef[] {
   return out;
 }
 
+/** The ground images actually on disk, which is what a material may name. */
+function groundTextures(): string[] {
+  const dir = path.join(contentDir, '..', 'client', 'public', 'textures', 'ground');
+  try {
+    return fs
+      .readdirSync(dir)
+      .filter((f) => /\.(png|jpg|jpeg)$/i.test(f))
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
 function backup(id: string, file: string): void {
   if (!fs.existsSync(file)) return;
   fs.mkdirSync(backupDir, { recursive: true });
@@ -167,7 +180,102 @@ http
       ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) =>
         GroundMaterialSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))))
       : [];
-    return send(res, 200, { ground: mats });
+    // ⚠ The texture FILES as well as the materials. A material naming an
+    // image that is not there renders as its tint and looks like a material
+    // somebody has not finished, so what the editor offers is what is on disk
+    // — the same rule the ambience list follows, and the reason neither is a
+    // text box.
+    return send(res, 200, { ground: mats, textures: groundTextures() });
+  }
+
+  // PUT /api/ground/:id — write one material.
+  //
+  // ⚠ Ground materials were the last thing in `content/` that could be
+  // PAINTED WITH and never authored: thirteen shipped, a fourteenth meant
+  // hand-writing JSON beside a file nothing listed. The map editor owns this
+  // rather than the studio for the reason D-585 already gives — painting
+  // ground is map work.
+  if (req.method === 'PUT' && parts[1] === 'ground' && parts.length === 3) {
+    let body = '';
+    req.on('data', (c: Buffer) => (body += c.toString()));
+    req.on('end', () => {
+      let doc: unknown;
+      try {
+        doc = JSON.parse(body || '{}');
+      } catch (err) {
+        return send(res, 400, { ok: false, errors: [`invalid JSON: ${String(err)}`] });
+      }
+      const parsed = GroundMaterialSchema.safeParse(doc);
+      if (!parsed.success) {
+        return send(res, 200, {
+          ok: false,
+          errors: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+        });
+      }
+      const mat = parsed.data;
+      if (mat.id !== parts[2]) {
+        return send(res, 200, { ok: false, errors: ['id does not match the url'] });
+      }
+      // ⚠ The texture has to BE there. CI cannot check this — it is an image
+      // under `client/public/`, not content — so the one place that can see
+      // both is here, which is exactly why the check lives in the editor
+      // server and not in the schema.
+      if (mat.texture && !groundTextures().includes(mat.texture)) {
+        return send(res, 200, {
+          ok: false,
+          errors: [`no such texture '${mat.texture}' under client/public/textures/ground`],
+        });
+      }
+      const dir = path.join(contentDir, 'ground');
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+        const file = path.join(dir, `${mat.id}.json`);
+        if (fs.existsSync(file)) backup(`ground-${mat.id}`, file);
+        fs.writeFileSync(file, `${JSON.stringify(mat, null, 2)}
+`, 'utf8');
+      } catch (err) {
+        return send(res, 500, { ok: false, errors: [`could not write: ${String(err)}`] });
+      }
+      return send(res, 200, { ok: true });
+    });
+    return;
+  }
+
+  // DELETE /api/ground/:id — refused while a map is painted with it.
+  //
+  // ⚠ Refused BY NAME rather than left to the build. `groundMaterials` is the
+  // channel order for the masks (D-588): remove a material an area lists and
+  // every surface painted after it shifts one channel along, which is not an
+  // error anywhere — the map simply comes back wearing the wrong ground.
+  if (req.method === 'DELETE' && parts[1] === 'ground' && parts.length === 3) {
+    const id = parts[2]!;
+    if (!/^[a-z0-9-]+$/.test(id)) return send(res, 400, { ok: false, errors: ['bad id'] });
+    const used: string[] = [];
+    try {
+      const adir = path.join(contentDir, 'areas');
+      for (const f of fs.readdirSync(adir).filter((n) => n.endsWith('.json'))) {
+        const doc = JSON.parse(fs.readFileSync(path.join(adir, f), 'utf8')) as
+          { id?: string; groundMaterials?: string[] };
+        if ((doc.groundMaterials ?? []).includes(id)) used.push(doc.id ?? f);
+      }
+    } catch {
+      // No areas directory is not a reason to refuse a delete.
+    }
+    if (used.length > 0) {
+      return send(res, 200, {
+        ok: false,
+        errors: [`${id} is painted into ${used.join(', ')} — repaint those first`],
+      });
+    }
+    const file = path.join(contentDir, 'ground', `${id}.json`);
+    if (!fs.existsSync(file)) return send(res, 404, { ok: false, errors: ['no such material'] });
+    try {
+      backup(`ground-${id}`, file);
+      fs.unlinkSync(file);
+    } catch (err) {
+      return send(res, 500, { ok: false, errors: [`could not delete: ${String(err)}`] });
+    }
+    return send(res, 200, { ok: true });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/palette') {
@@ -182,7 +290,41 @@ http
           return [];
         }
       };
-      return send(res, 200, { stations: ids('stations'), nodes: ids('nodes') });
+      // ⚠ Cues and scripts too, because the map-level panel offers them and
+      // a free-text box would be a way to author a dangling reference. An
+      // `ambience` naming a cue that does not exist fails CI (D-541); a
+      // `scripts` entry naming no file fails it too. What the editor lets a
+      // person pick should be exactly what the build accepts — which is the
+      // promise D-543 makes and the reason this is a list rather than a field.
+      //
+      // Ambience cues only: an `effect` cue is a sword hitting somebody and
+      // naming one as an area's bed would loop it forever.
+      let cues: string[] = [];
+      try {
+        const file = path.join(contentDir, 'audio', 'sounds.json');
+        const parsed = JSON.parse(fs.readFileSync(file, 'utf8')) as
+          { id: string; kind: string }[];
+        cues = parsed.filter((c) => c.kind === 'ambience').map((c) => c.id).sort();
+      } catch {
+        cues = [];
+      }
+      let scripts: string[] = [];
+      try {
+        scripts = fs
+          .readdirSync(path.join(contentDir, 'scripts'))
+          .filter((f) => f.endsWith('.lua'))
+          .map((f) => f.slice(0, -4))
+          .sort();
+      } catch {
+        scripts = [];
+      }
+      return send(res, 200, {
+        stations: ids('stations'),
+        nodes: ids('nodes'),
+        npcs: ids('npcs'),
+        cues,
+        scripts,
+      });
     }
 
     if (req.method === 'GET' && url.pathname === '/api/areas') {

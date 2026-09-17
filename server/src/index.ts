@@ -20,13 +20,32 @@ const gameServer = new GameServer({
   port: config.port,
   defaultAreaId: config.defaultAreaId,
   round: config.round.enabled ? config.round : undefined,
+  allowBots: config.round.enabled && config.allowBots,
   log: (msg) => console.log(`[server] ${msg}`),
 });
 if (config.round.enabled) {
+  // ⚠ The SCENARIO decides where a round is played, not `defaultAreaId`
+  // (D-627). This line used to print the default and was the operator's only
+  // view of it — so it advertised `hanged-ferryman`, the persistent world's
+  // tavern, for a round played in `round-town`. A log that answers a question
+  // wrongly is worse than one that does not answer it.
+  const scenario = content.scenarios.find((sc) => sc.status === 'live');
   console.log(
     `[server] ROUND MODE (D-521): min cast ${config.round.minCast ?? 3}. ` +
-    'No respawn, no death debt, recognition wipes each round.',
+    (scenario
+      ? `Scenario '${scenario.id}' over ${scenario.areas.length} area(s), `
+        + `opening in ${scenario.opensIn}.`
+      : '⚠ NO SCENARIO AUTHORED — the round has no edges and opens at '
+        + `${config.defaultAreaId} (see content/scenarios/, D-627).`) +
+    ' No respawn, no death debt, recognition wipes each round.',
   );
+  console.log(
+    config.allowBots
+      ? '[server] the lobby may summon bots to fill the cast (ALLOW_BOTS=0 to forbid).'
+      : '[server] bots are FORBIDDEN here — the cast must be people.',
+  );
+} else {
+  console.log('[server] persistent world (ROUND_MODE=0). No round will start.');
 }
 // DM event engine (D-216): interprets editor-authored event documents.
 const eventEngine = new EventEngine(gameServer, store, (msg) => console.log(`[events] ${msg}`));

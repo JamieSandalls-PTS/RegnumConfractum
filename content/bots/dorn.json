@@ -1,0 +1,8 @@
+{
+  "id": "dorn",
+  "name": "Dorn",
+  "role": "gatherer",
+  "order": 0,
+  "appearanceSeed": 10000,
+  "notes": "The first three summoned cover the mine, the farm and the wood (D-624, carrying D-607's rule into content): a cast of three is the floor (D-522), and if one of D-529's arms goes unworked, hunger looks broken when it is merely unattended. ⚠ Draw order is the `order` field, not the file listing — definitions are read alphabetically, which would put a woodsman, a delver and a gatherer first and nobody on the farm."
+}

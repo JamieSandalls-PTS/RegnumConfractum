@@ -5,6 +5,8 @@ import {
   ClassSchema,
   FeatsFileSchema,
   ItemTemplateSchema,
+  BotDefSchema,
+  NpcDefSchema,
   ObjectiveSchema,
   ROUND_MIN_CAST,
   canStandAt,
@@ -20,6 +22,8 @@ import {
   recipeProblems,
   roamerProblems,
   objectiveProblems,
+  ScenarioSchema,
+  scenarioProblems,
   castCoverageProblem,
   SkillsFileSchema,
   SoundsFileSchema,
@@ -342,13 +346,75 @@ export function validateContent(contentDir: string): ValidationResult {
    * built by concatenation would be missed, which is why what it feeds is a
    * check on LIVE objectives only.
    */
-  const npcDescriptors = new Set<string>();
+  /**
+   * The declared cast (D-598), and every descriptor they wear.
+   *
+   * ⚠ This is what finally makes a `kill_npc` objective CHECKABLE. D-569
+   * had to scrape descriptors out of Lua with a regular expression and said so
+   * at length: NPCs came only from scripts, a descriptor built by
+   * concatenation would be missed, and a partial scan treated as complete
+   * would reject every DM-spawned target. A declared NPC is a document, so for
+   * the ones that are declared the answer is exact rather than approximate.
+   *
+   * ⚠ The Lua scrape STAYS beside it. Scripts and DM events can still spawn
+   * an NPC directly and should be able to — an event that conjures somebody
+   * for one scene should not need a permanent entry in the world's cast.
+   */
+  const npcIds = new Set<string>();
+  const npcPlacements = new Map<string, Set<string>>();
+  const npcDefDescriptors = new Map<string, string>();
+  for (const file of listJson(join(contentDir, 'npcs'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = NpcDefSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    const def = parsed.data;
+    if (npcIds.has(def.id)) {
+      errors.push(`${file}: duplicate npc id '${def.id}'`);
+      continue;
+    }
+    npcIds.add(def.id);
+    npcDefDescriptors.set(def.id, def.descriptor);
+    if (!file.replace(/\\/g, '/').endsWith(`/${def.id}.json`)) {
+      errors.push(`${file}: npc id '${def.id}' does not match its filename`);
+    }
+  }
+
+  const npcDescriptors = new Set<string>(npcDefDescriptors.values());
+  /**
+   * Every character a shipped script says an NPC LOOKS like (D-596).
+   *
+   * ⚠ Checked as a LITERAL, which is the half of this that a build can be
+   * sure about. The server refuses an unresolvable id at spawn with the list
+   * of what exists, so nothing gets through either way — but a scripted NPC
+   * spawns when its area first loads, which in the round map is the moment a
+   * round starts, and finding a typo then means the keeper is missing from a
+   * round somebody is playing. This finds it at build time instead.
+   */
+  const scriptCharacters: { file: string; id: string }[] = [];
+  const scriptNpcs: { file: string; id: string }[] = [];
   try {
     const dir = join(contentDir, 'scripts');
     for (const f of readdirSync(dir).filter((n) => n.endsWith('.lua'))) {
       const src = readFileSync(join(dir, f), 'utf8');
       for (const m of src.matchAll(/descriptor\s*=\s*"([^"]+)"/g)) {
         npcDescriptors.add(m[1]!);
+      }
+      for (const m of src.matchAll(/\bcharacter\s*=\s*"([^"]+)"/g)) {
+        scriptCharacters.push({ file: f, id: m[1]! });
+      }
+      // Who this script expects the world to have put somewhere (D-598).
+      for (const m of src.matchAll(/\bnpc\(\s*"([^"]+)"\s*\)/g)) {
+        scriptNpcs.push({ file: f.replace(/\.lua$/, ''), id: m[1]! });
       }
     }
   } catch {
@@ -825,6 +891,61 @@ export function validateContent(contentDir: string): ValidationResult {
     }
   }
 
+  /**
+   * Scenarios: does this round have edges, and can it be won (D-627)?
+   *
+   * ⚠ Checked HERE, at the end, because it needs the whole area graph and
+   * every objective, and those are read in two different passes. The same
+   * reason the class gates are checked down here.
+   *
+   * ⚠ The check that matters is the ENDGAME one. A scenario naming an
+   * endgame area is a round where death is permanent, which D-523 forbids in
+   * terms -- and before scenarios existed there was no boundary at all, so the
+   * live map let a player walk `round-town -> hanged-ferryman -> broken-yard
+   * -> sunken-crypt` and out of the round into permadeath entirely.
+   */
+  const zones = new Map<string, string>();
+  const exits = new Map<string, string[]>();
+  for (const file of listJson(join(contentDir, 'areas'))) {
+    const parsed = AreaSchema.safeParse(JSON.parse(readFileSync(file, 'utf8')));
+    if (!parsed.success) continue;
+    zones.set(parsed.data.id, parsed.data.zone);
+    exits.set(parsed.data.id, parsed.data.transitions.map((t) => t.toArea));
+  }
+  const scenarioIds = new Set<string>();
+  for (const file of listJson(join(contentDir, 'scenarios'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON \u2014 ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = ScenarioSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    const sc = parsed.data;
+    if (scenarioIds.has(sc.id)) {
+      errors.push(`${file}: duplicate scenario id '${sc.id}'`);
+      continue;
+    }
+    scenarioIds.add(sc.id);
+    if (!file.replace(/\\/g, '/').endsWith(`/${sc.id}.json`)) {
+      errors.push(`${file}: scenario id '${sc.id}' does not match its filename`);
+    }
+    for (const problem of scenarioProblems(sc, { zones, exits, objectives })) {
+      // ⚠ An edge report is a NOTE, not a fault. A door out of the set is
+      // legal and expected -- the tavern's west door belongs to the persistent
+      // world and is simply shut for the round's duration. What is not
+      // acceptable is not knowing where the edges are.
+      if (problem.startsWith('NOTE ')) warnings.push(`scenario '${sc.id}' ${problem.slice(5)}`);
+      else errors.push(`scenario '${sc.id}' ${problem}`);
+    }
+  }
+
   const sounds = readArray<SoundCueDef>('audio', SoundsFileSchema);
   dupes(sounds.map((c) => c.id), 'sound cue');
   const audioRoot = resolve(contentDir, '..', 'client', 'public', 'audio');
@@ -886,6 +1007,46 @@ export function validateContent(contentDir: string): ValidationResult {
         errors.push(`area '${area.id}': references missing script '${scriptId}'`);
       }
     }
+    // Who this area says stands here (D-598).
+    for (const placed of area.npcs ?? []) {
+      if (!npcIds.has(placed.type)) {
+        errors.push(`area '${area.id}': places an npc '${placed.type}' that is not in content/npcs`);
+        continue;
+      }
+      if (!npcPlacements.has(area.id)) npcPlacements.set(area.id, new Set());
+      npcPlacements.get(area.id)!.add(placed.type);
+      // ⚠ SOMEWHERE TO STAND, checked with the same rule the game uses. The
+      // Ashfold keeper is at the tavern DOOR and not behind a bar precisely
+      // because every tile of that tavern's footprint fails this (D-593) — a
+      // person placed inside a solid mesh is silently moved to the area's
+      // spawn, so the keeper an objective names would be standing somewhere
+      // nobody thought to look for him.
+      if (!canStandAt(area, { x: placed.x, y: placed.y })) {
+        errors.push(
+          `area '${area.id}': npc '${placed.type}' at (${placed.x},${placed.y}) `
+          + 'has nowhere to stand',
+        );
+      }
+    }
+  }
+
+  // ⚠ A script's `npc("<id>")` must be placed in an area that RUNS that
+  // script. The handle throws at runtime when it is not, and a script that
+  // throws on its first line leaves an area with no keeper and a line in a log
+  // nobody is reading — which is the shape of the failure D-593 was about.
+  for (const ref of scriptNpcs) {
+    const runners = [...parsedAreas.values()].filter((a) => a.scripts.includes(ref.file));
+    if (runners.length === 0) {
+      errors.push(`scripts/${ref.file}.lua: asks for npc '${ref.id}' but no area runs this script`);
+      continue;
+    }
+    const placed = runners.some((a) => (npcPlacements.get(a.id) ?? new Set()).has(ref.id));
+    if (!placed) {
+      errors.push(
+        `scripts/${ref.file}.lua: asks for npc '${ref.id}', which `
+        + `${runners.map((a) => `'${a.id}'`).join(' / ')} does not place`,
+      );
+    }
   }
 
   /**
@@ -944,6 +1105,16 @@ export function validateContent(contentDir: string): ValidationResult {
     }
   }
 
+  // The literals scraped out of the Lua above, now that there is something to
+  // check them against.
+  for (const ref of scriptCharacters) {
+    if (!characterIds.has(ref.id)) {
+      errors.push(
+        `scripts/${ref.file}: spawns a character '${ref.id}' that is not in content/characters`,
+      );
+    }
+  }
+
   /**
    * What a pack's parts are CALLED, and what a player may be (D-560).
    *
@@ -977,6 +1148,22 @@ export function validateContent(contentDir: string): ValidationResult {
     // ambiguous, and neither is a male "Angry" brow beside a female one —
     // the lists are filtered by body. Warning about those teaches people to
     // ignore the warning that matters.
+    // ⚠ Exactly one part may be the hood (D-623). `hoodStem()` scans the
+    // tags and returns the FIRST match, so two tagged parts is an
+    // ordering-dependent answer -- stable until somebody renames a part, and
+    // then the whole cast changes hood with nothing in any log. The creation
+    // tool moves the tag rather than adding one; this is the guard for a hand
+    // edit and a merge.
+    const hooded = Object.entries(parsed.data.tags)
+      .filter(([, tags]) => tags.includes('hood'))
+      .map(([stem]) => stem);
+    if (hooded.length > 1) {
+      errors.push(
+        `${file}: ${hooded.length} parts are tagged 'hood' (${hooded.join(', ')}) `
+        + '— exactly one is the hood D-219 describes, and which one must not '
+        + 'depend on key order',
+      );
+    }
     const named = Object.entries(parsed.data.names).map(([stem, name]) => ({
       stem,
       name,
@@ -1127,6 +1314,53 @@ export function validateContent(contentDir: string): ValidationResult {
           + 'which no content/stations file defines',
         );
       }
+    }
+  }
+
+  /**
+   * The companions a lobby can summon (D-624).
+   *
+   * ⚠ Checked HERE rather than where they are read, because it needs the
+   * classes AND the races, which are read in two different passes. A companion
+   * naming a calling that no longer exists parses cleanly and fails at the
+   * moment somebody presses the button to fill a lobby -- which is the one
+   * moment the mode has to work, because it is how a round starts at all
+   * (D-607).
+   *
+   * ⚠ The roster may be EMPTY without being an error. A checkout with no
+   * companions authored is a game with no lobby fill, which is a decision
+   * somebody might make; the gateway refuses the button out loud rather than
+   * pretending. What is an error is a companion that cannot be created.
+   */
+  const botIds = new Set<string>();
+  for (const file of listJson(join(contentDir, 'bots'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON \u2014 ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = BotDefSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    const bot = parsed.data;
+    if (botIds.has(bot.id)) {
+      errors.push(`${file}: duplicate bot id '${bot.id}'`);
+      continue;
+    }
+    botIds.add(bot.id);
+    if (!file.replace(/\\/g, '/').endsWith(`/${bot.id}.json`)) {
+      errors.push(`${file}: bot id '${bot.id}' does not match its filename`);
+    }
+    if (bot.classId && !classIds.has(bot.classId)) {
+      errors.push(`bot '${bot.id}': unknown calling '${bot.classId}'`);
+    }
+    if (bot.raceId && !raceIds.has(bot.raceId)) {
+      errors.push(`bot '${bot.id}': unknown race '${bot.raceId}'`);
     }
   }
 

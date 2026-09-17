@@ -11,12 +11,16 @@ import type {
   TransientAnim,
 } from '@rc/shared';
 import { clipTable } from './animation-sets';
-import type { EquipmentState } from './character';
+import { HOOD_ID } from './hood';
+import { gripFor } from './held-items';
+import { loadOneAsset } from './world-assets';
+import type { EquipmentState } from './equipment-state';
 import {
   available,
   loadDressed,
   loadLook,
   outfitFor,
+  outfitForPack,
   outfitById,
   sexOfLook,
   type ImportedOutfit,
@@ -64,6 +68,16 @@ export const CLIP = {
   sit: 'stand-to-sit',
 } as const;
 
+/**
+ * The pack a player-chosen face is cut from.
+ *
+ * ⚠ One constant because two places need the same answer: which outfit's
+ * ATLAS to paint the face with, and which pack to fetch the part meshes
+ * from. They disagreed, and the disagreement is what made every skin tone
+ * a no-op.
+ */
+const LOOK_PACK = 'modular-fantasy-hero';
+
 /** How long a cross-fade takes. Matches the procedural rig's feel (D-514). */
 const FADE = 0.22;
 
@@ -84,6 +98,10 @@ export function actionFor(state: {
   dead: boolean;
   posture: Posture;
   moving: boolean;
+  /** On a real seat rather than the ground (D-615). */
+  seated?: boolean;
+  /** Weapon up. A fighting body RUNS (D-619). */
+  combat?: boolean;
 }): Action {
   // Death outranks everything. A body on the floor is not standing, sitting
   // or walking, whatever else the server last said about it.
@@ -92,8 +110,19 @@ export function actionFor(state: {
   // sit, because there is no kneel" — there is: `unarmed-kneel` shipped in
   // D-564's library and nothing read it. A figure praying now kneels.
   if (state.posture === 'kneeling') return 'kneel';
-  if (state.posture === 'sitting') return 'sitting';
-  return state.moving ? 'walk' : 'idle';
+  // ⚠ A chair and the ground are two different actions (D-615). `sitting`
+  // is the chair pose -- measured, its hips sit 58cm off the floor -- and the
+  // `*sits*` emote used to resolve to it too, so anybody sitting down in a
+  // field hovered at chair height with their legs round furniture that was
+  // not there. The server says which, because only the server knows: the
+  // `sit` verb finds a seat, the emote says nothing about furniture.
+  if (state.posture === 'sitting') return state.seated ? 'sitting' : 'sit-ground';
+  // ⚠ A weapon up means a run, not a faster walk (D-619). The server moves
+  // a fighting body at `RUN_SPEED`, so playing the walk here would be a
+  // stride that does not match the ground going past -- the moonwalk every
+  // renderer with a single locomotion clip eventually shows.
+  if (state.moving) return state.combat ? 'run' : 'walk';
+  return 'idle';
 }
 
 /**
@@ -106,10 +135,30 @@ export function actionFor(state: {
  * existed remain the floor.
  */
 export function clipFor(
-  state: { dead: boolean; posture: Posture; moving: boolean },
+  state: {
+    dead: boolean;
+    posture: Posture;
+    moving: boolean;
+    seated?: boolean;
+    combat?: boolean;
+  },
   table: Partial<Record<Action, string>> = {},
 ): string {
   const action = actionFor(state);
+  // ⚠ `sit-ground` falls back to the CHAIR sit, and that is deliberate
+  // (D-615). There is no ground-sitting clip in the library -- measured: the
+  // closest are `unarmed-sitting` at 58cm hips (a seat) and `unarmed-kneel` at
+  // 43cm (a kneel), and hips on the floor would be around 20cm. Binding
+  // either would be the substitution D-564 warns about, where a crouch shipped
+  // as an idle because a search fell back to its first result.
+  //
+  // ⚠ So the SPLIT ships and the clip is wished for: `sit-ground` is in the
+  // wishlist, and the day somebody fetches one it binds with no code change.
+  // Until then an emote sit looks exactly as it does today rather than looking
+  // wrong in a new way.
+  if (action === 'sit-ground') {
+    return table['sit-ground'] ?? table.sitting ?? FALLBACK.sitting ?? CLIP.idle;
+  }
   return table[action] ?? FALLBACK[action] ?? CLIP.idle;
 }
 
@@ -117,6 +166,11 @@ export function clipFor(
 const FALLBACK: Partial<Record<Action, string>> = {
   idle: CLIP.idle,
   walk: CLIP.walk,
+  // ⚠ A rig with no run clip walks rather than freezing (D-619). Every
+  // authored set that has a combat cut names one, so this is the floor for a
+  // rig nobody has bound -- and a fast walk reads as wrong where standing
+  // still while the ground moves reads as broken.
+  run: CLIP.walk,
   death: CLIP.death,
   sitting: CLIP.sit,
   // Borrowing the sit for a kneel is what D-559 had to do; it stays as the
@@ -124,6 +178,59 @@ const FALLBACK: Partial<Record<Action, string>> = {
   kneel: CLIP.sit,
   'attack-1': CLIP.attack,
 };
+
+
+/**
+ * What happens to the weapon when readiness changes (D-620).
+ *
+ * Pure, and exported, for the reason `actionFor` is: this is the whole of the
+ * decision, and the rest of `crossReadiness` is three.js parenting. "The sword
+ * disappeared halfway through putting it away" is a bug you can only see by
+ * looking, and looking is not the reviewer (D-114).
+ *
+ * ⚠ The two halves are NOT symmetrical, and that is the design rather than
+ * an oversight. The blade appears at the START of a draw -- the clip's hand
+ * reaches to the hip and comes back holding something, and nothing to hold
+ * makes the motion meaningless -- and leaves at the END of a sheathe, which is
+ * the same sentence read backwards.
+ *
+ * ⚠ Nothing plays for an empty hand. An unarmed character entering combat
+ * still changes how they STAND, because that is the readiness layer (D-565),
+ * but a draw with nothing to draw is the renderer claiming something happened.
+ */
+export function readinessTransition(input: {
+  /** Entering combat rather than leaving it. */
+  toCombat: boolean;
+  /** Is there anything in the hand at all? */
+  armed: boolean;
+  /** How long the bound draw/sheathe clip runs. Zero when none is bound. */
+  clipSeconds: number;
+}): {
+  /** The action to play, or null to play nothing. */
+  action: 'draw' | 'sheathe' | null;
+  /** Whether the weapon is in the hand the moment this returns. */
+  weaponOut: boolean;
+  /** Seconds until the weapon leaves the hand; 0 means "not pending". */
+  stowAfter: number;
+} {
+  if (!input.armed) {
+    // Keep the flag honest anyway, or the day somebody equips mid-fight the
+    // blade arrives invisible.
+    return { action: null, weaponOut: input.toCombat, stowAfter: 0 };
+  }
+  if (input.toCombat) {
+    return {
+      action: input.clipSeconds > 0 ? 'draw' : null,
+      weaponOut: true,
+      stowAfter: 0,
+    };
+  }
+  if (input.clipSeconds > 0) {
+    // Still in the fist until the hand has finished putting it away.
+    return { action: 'sheathe', weaponOut: true, stowAfter: input.clipSeconds };
+  }
+  return { action: null, weaponOut: false, stowAfter: 0 };
+}
 
 export class ImportedVisual {
   readonly root = new THREE.Group();
@@ -133,15 +240,44 @@ export class ImportedVisual {
   private current: THREE.AnimationAction | null = null;
   private currentName = '';
   private hand: THREE.Object3D | null = null;
+  /** What the hand should hold, as `pack/asset` (D-614). */
+  private heldWanted: string | undefined;
+  /** What it actually holds, so a repeat does not reload the mesh. */
+  private heldShown: string | null = null;
+  /** ⚠ Which request owns the hand. Two quick equips would otherwise
+   * leave the slower weapon parented on top of the faster one. */
+  private heldToken = 0;
+  private held: THREE.Object3D | null = null;
   private disposed = false;
 
   private targetAngle = 0;
   private angle = 0;
   private posture: Posture = 'standing';
+  private seated = false;
   private dead = false;
   private lootable = true;
   private inCombat = false;
   private attackUntil = 0;
+  /**
+   * Is the weapon in the hand right now (D-620)?
+   *
+   * ⚠ NOT the same question as `inCombat`. A sheathe takes about a second,
+   * and the blade has to stay in the fist for the whole of it or the hand
+   * puts away something that vanished when the clip started. So this follows
+   * combat on the way UP and the clip on the way DOWN.
+   */
+  private weaponOut = false;
+  /**
+   * While a draw or a sheathe is playing, in `performance.now()` ms.
+   *
+   * ⚠ Milliseconds and this clock, to match `emotingUntil` rather than
+   * `attackUntil`. The two were already on different clocks in this file and
+   * joining a third to the wrong one is how a transition either never holds
+   * or holds forever.
+   */
+  private transitionUntil = 0;
+  /** When the blade should leave the hand, in the same ms (D-620). */
+  private stowAt = 0;
   /** What is in hand, per the server (D-578). Undefined is empty-handed. */
   private stance: Stance | undefined;
   /** `rig ← race ← stance ← readiness`, flattened. Rebuilt when an input moves. */
@@ -150,6 +286,15 @@ export class ImportedVisual {
   private readonly outfit: ImportedOutfit | null;
   private model: THREE.Object3D | null = null;
   private wearing: string[] = [];
+  /** Hood up (D-616). Kept apart from `wearing`: it is not equipment. */
+  private hooded = false;
+  /** While an emote is playing, in `performance.now()` terms (D-616). */
+  private emotingUntil = 0;
+
+  /** Which clip is playing. Verification only (D-616). */
+  get playing(): string {
+    return this.currentName;
+  }
   private dressToken = 0;
   private readonly appearanceHeight: number;
 
@@ -188,7 +333,15 @@ export class ImportedVisual {
     // failing to draw. An enemy nobody can see is worse than one that looks
     // like a townsman, and the build is what should have caught the missing
     // model — not the frame in front of a player.
-    this.outfit = (model ? outfitById(model) : null) ?? outfitFor(seed);
+    // ⚠ A chosen face picks its outfit by PACK, not by seed (D-602). The
+    // outfit is what names the clip library AND the palette, and a seed-drawn
+    // one painted a player's face from whichever of the twelve atlases the
+    // number landed on. The seed remains the answer for everybody who chose
+    // nothing — strangers, roamers, corpses — which is almost everybody.
+    const forLook = look && Object.keys(look.parts).length > 0
+      ? outfitForPack(LOOK_PACK)
+      : null;
+    this.outfit = (model ? outfitById(model) : null) ?? forLook ?? outfitFor(seed);
     if (!this.outfit) return;
     // ⚠ Resolve the layers UP FRONT, not on the first change of kit. Nearly
     // everybody in the world never equips anything and never draws a weapon —
@@ -228,21 +381,32 @@ export class ImportedVisual {
     this.targetAngle = FACING_ANGLE[dir];
   }
 
-  setPosture(posture: Posture): void {
+  setPosture(posture: Posture, seated = false): void {
     this.posture = posture;
+    // ⚠ On a seat or on the ground (D-615). Two different clips, and the
+    // only thing that knows which is the server.
+    this.seated = seated;
   }
 
   /**
-   * ⚠ Does nothing, and that is a REGRESSION worth stating.
+   * Raise or drop the hood (D-219, built on this cast in D-616).
    *
-   * D-219's hooded presentation is a distinct silhouette that the procedural
-   * rig draws and the recognition system depends on being visible: a hood
-   * dropping in view is what merges two identity threads. A fixed mesh has
-   * no hood to raise, so on the imported cast a hooded figure looks exactly
-   * like an unhooded one. Reconciling the imported meshes with presentation
-   * is part of what a yes to this art commits to.
+   * ⚠ This was an empty method whose own comment called it a regression,
+   * and the regression was load-bearing: recognition depends on the hood being
+   * VISIBLE -- a hood dropping in view is what merges two identity threads --
+   * so on the cast that actually ships, the mechanic rested on nothing.
+   *
+   * ⚠ It re-assembles rather than toggling a mesh, because that is what
+   * this cast is: a body built from part files (D-571). The hood is a head
+   * COVERING swapped into the assembly, which is why it conceals hair the way
+   * the pack intends and why it costs no new machinery.
    */
-  setPresentation(_presentation: Presentation): void {}
+  setPresentation(presentation: Presentation): void {
+    const hooded = presentation === 'hooded';
+    if (hooded === this.hooded) return;
+    this.hooded = hooded;
+    this.redress();
+  }
 
   /**
    * Put a garment on, or take one off (D-571).
@@ -264,6 +428,14 @@ export class ImportedVisual {
    * because the server repeated itself would drop the animation mid-stride.
    */
   setEquipment(next: Partial<EquipmentState>): void {
+    // ⚠ Handled BEFORE the garment early-return below, exactly as the
+    // stance is and for the same reason: swapping one sword for another
+    // changes no mesh on the BODY, so a weapon change parked under the garment
+    // check would never be seen.
+    if ('weaponArt' in next && next.weaponArt !== this.heldWanted) {
+      this.heldWanted = next.weaponArt;
+      void this.refreshHeld();
+    }
     // ⚠ The stance is handled BEFORE the early return below. Drawing a
     // different weapon need not change a single mesh — a bow and a sword are
     // both `art`, not garments — so a character who swapped one for the other
@@ -300,6 +472,16 @@ export class ImportedVisual {
    * and everything else through `loadDressed`; both return the same shape and
    * both cache by combination, so a crowd still shares one assembly.
    */
+  /**
+   * ⚠ The hood is layered on at MODEL time, not folded into `wearing`.
+   * `wearing` is compared to decide whether a change of clothes needs a
+   * rebuild, so a hood living in it would be dropped by the next equipment
+   * update -- and it is not equipment, which is the whole distinction.
+   */
+  private dressing(wearing: readonly string[]): readonly string[] {
+    return this.hooded ? [...wearing, HOOD_ID] : wearing;
+  }
+
   private modelFor(
     wearing: readonly string[],
   ): Promise<{
@@ -313,10 +495,10 @@ export class ImportedVisual {
         this.look as { parts: Record<string, string>; skin?: string; markings?: string },
         this.lookPack(),
         this.outfit!,
-        wearing,
+        this.dressing(wearing),
       );
     }
-    return loadDressed(this.outfit!, wearing);
+    return loadDressed(this.outfit!, this.dressing(wearing));
   }
 
   /**
@@ -329,7 +511,7 @@ export class ImportedVisual {
    * better to have one obvious place than a guess spread over three.
    */
   private lookPack(): string {
-    return this.outfit?.parts?.pack ?? 'modular-fantasy-hero';
+    return this.outfit?.parts?.pack ?? LOOK_PACK;
   }
 
   private redress(): void {
@@ -388,6 +570,14 @@ export class ImportedVisual {
       ?? model.getObjectByName('Hand_R')
       ?? model.getObjectByName('hand_r')
       ?? null;
+    // ⚠ The weapon hangs off a bone of the model that was just replaced, so
+    // it has to be hung again (D-614). Re-dressing rebuilds the whole
+    // character (D-571); without this, changing coat disarmed you -- which is
+    // what the comment on this function warned about in the abstract ("a
+    // character that changes coat loses its sword") before there was a sword
+    // to lose.
+    this.heldShown = null;
+    void this.refreshHeld();
 
     this.mixer = new THREE.AnimationMixer(model);
     this.clips.clear();
@@ -402,8 +592,34 @@ export class ImportedVisual {
     if (resumed && wasPlaying) resumed.time = wasAt;
   }
 
-  /** ⚠ No emotes in the drop, so a bow or a wave is not performed. */
-  playTransients(_names: readonly TransientAnim[]): void {}
+  /**
+   * Perform an emote (D-506, built on this cast in D-616).
+   *
+   * ⚠ The comment here used to read "no emotes in the drop", and it had
+   * been out of date since D-564: `unarmed-bow`, `-wave`, `-laugh`, `-point`
+   * and `-shrug` all shipped with the library and `rig-unreal.json` binds
+   * every one of them by name. Nothing played them. The clips, the bindings
+   * and the lexicon were all in place and the method was empty, so an emote
+   * reached every other player as text and as nothing on screen.
+   *
+   * ⚠ One-shot, and it does NOT become the resting animation: `emoting`
+   * holds the name only while it runs, and `update` puts the idle or the walk
+   * back when it finishes. Leaving it as `currentName` would freeze a
+   * character mid-wave until they next moved.
+   */
+  playTransients(names: readonly TransientAnim[]): void {
+    const name = names[0];
+    if (!name || !this.mixer) return;
+    const clip = this.table[name as Action];
+    if (!clip || !this.clips.has(clip)) return;
+    const action = this.play(clip, 0.12, THREE.LoopOnce);
+    if (!action) return;
+    // ⚠ Held open by TIME rather than by the mixer's `finished` event. The
+    // event fires on the mixer, which is shared by every action on this
+    // character, so a listener would have to be added and removed per emote
+    // and would fire for the walk cycle as well.
+    this.emotingUntil = performance.now() + action.getClip().duration * 1000;
+  }
 
   setCombat(inCombat: boolean): void {
     if (inCombat === this.inCombat) return;
@@ -412,6 +628,59 @@ export class ImportedVisual {
     // and the attacks for the combat cut of the same stance, and lowering it
     // removes the override rather than applying a `peaceful` one.
     this.retable();
+    this.crossReadiness(inCombat);
+  }
+
+  /**
+   * Draws or sheathes, and decides when the blade is in the hand (D-620).
+   *
+   * ⚠ A weapon is only VISIBLE in combat. It used to be welded to the fist
+   * from the moment it was equipped, so the whole cast stood about the tavern
+   * holding drawn steel -- and the draw and sheathe clips D-564 fetched and
+   * D-565 put in the stance layer had never been played by anything.
+   *
+   * ⚠ The two halves are NOT symmetrical, and that is the whole of it. The
+   * blade appears at the START of a draw, because the clip's hand reaches to
+   * the hip and comes back holding something -- nothing to hold makes the
+   * motion meaningless. It leaves at the END of a sheathe, for the same
+   * reason read backwards.
+   *
+   * ⚠ Nothing plays for an empty hand. An unarmed character entering combat
+   * still changes how they stand, because that is the readiness layer, but a
+   * draw with nothing to draw is the renderer claiming something happened.
+   */
+  private crossReadiness(inCombat: boolean): void {
+    if (this.dead) return;
+    const clipName = this.table[inCombat ? 'draw' : 'sheathe'];
+    const seconds = (clipName ? this.clips.get(clipName)?.duration : undefined) ?? 0;
+    const step = readinessTransition({
+      toCombat: inCombat,
+      armed: this.heldWanted !== undefined,
+      clipSeconds: seconds,
+    });
+    this.weaponOut = step.weaponOut;
+    this.stowAt = step.stowAfter > 0 ? performance.now() + step.stowAfter * 1000 : 0;
+    this.applyWeaponVisibility();
+    if (step.action === null || !clipName) return;
+    this.transitionUntil = performance.now() + seconds * 1000;
+    this.play(clipName, FADE * 0.5, THREE.LoopOnce);
+  }
+
+  /** Is the blade in the hand? Verification only (D-620). */
+  get weaponDrawn(): boolean {
+    return this.weaponOut;
+  }
+
+  /**
+   * Shows or hides what is in the hand.
+   *
+   * ⚠ `visible`, not attach and detach. The mesh is loaded asynchronously
+   * and parented to a BONE; tearing it off on every sheathe would make
+   * entering combat a network round trip, and two quick changes would race
+   * the way D-614's token exists to stop.
+   */
+  private applyWeaponVisibility(): void {
+    if (this.held) this.held.visible = this.weaponOut;
   }
 
   /**
@@ -438,7 +707,16 @@ export class ImportedVisual {
       readiness: this.inCombat ? 'combat' : 'peaceful',
     });
     if (this.dead || performance.now() / 1000 < this.attackUntil) return;
-    const wanted = this.wanted(this.currentName === (this.table.walk ?? CLIP.walk));
+    // ⚠ A draw or a sheathe owns the body while it plays (D-620). Without
+    // this the re-table that RAISED the weapon immediately replaces the draw
+    // with the combat idle, and the clip is never seen.
+    if (performance.now() < this.transitionUntil) return;
+    // ⚠ Locomotion is TWO clips now (D-619), and asking only about the walk
+    // is how raising a weapon mid-stride drops a running character into the
+    // idle: the clip playing was the run, which is not the walk, so "am I
+    // moving" answered no and the whole thing was re-tabled as standing still.
+    const locomotion = new Set([this.table.walk ?? CLIP.walk, this.table.run ?? CLIP.walk]);
+    const wanted = this.wanted(locomotion.has(this.currentName));
     if (wanted !== this.currentName) this.play(wanted, FADE);
   }
 
@@ -505,6 +783,80 @@ export class ImportedVisual {
    * is exactly the right answer; a character without one falls back to the
    * hand, and one that has not loaded yet to its own chest.
    */
+  /**
+   * Puts the weapon in the hand, or takes it out (D-614).
+   *
+   * ⚠ The grip comes from CONTENT, not from a guess. D-564 fitted 163
+   * weapons by measurement and recorded that "a weapon can be wrong in a way
+   * no geometric test sees" -- an un-rotated blade stands upright out of the
+   * fist, hits nothing, and measures correctly. So the offset, the rotation
+   * and the scale are the ones a person set while looking at it.
+   */
+  private async refreshHeld(): Promise<void> {
+    const want = this.heldWanted ?? null;
+    if (want === this.heldShown) return;
+    const mine = ++this.heldToken;
+    if (this.held) {
+      this.held.parent?.remove(this.held);
+      this.held = null;
+    }
+    this.heldShown = want;
+    if (!want || !this.model) return;
+
+    const grip = gripFor(want);
+    if (!grip) return;
+    const [pack, asset] = want.split('/');
+    if (!pack || !asset) return;
+    const object = await loadOneAsset(pack, asset);
+    // ⚠ A token, like the one guarding the body's own load. Equipping twice
+    // quickly would otherwise leave the slower weapon parented on top of the
+    // faster one -- two swords in one fist, and the caption right.
+    if (!object || mine !== this.heldToken || !this.model) return;
+
+    // The bone the fitting names, and only then a hand as a fallback: rigs
+    // disagree about what the right hand is called, and the fitted transform
+    // was measured against this specific bone.
+    const bone = this.model.getObjectByName(grip.attach) ?? this.hand;
+    if (!bone) return;
+
+    const holder = new THREE.Group();
+    const t = grip.transform;
+    holder.rotation.set(
+      THREE.MathUtils.degToRad(t.rotation[0]),
+      THREE.MathUtils.degToRad(t.rotation[1]),
+      THREE.MathUtils.degToRad(t.rotation[2]),
+    );
+    // ⚠ MEASURE the bone's world scale, never assume it (D-563). The body
+    // is scaled because the art is centimetres, but a bind matrix can carry
+    // scale of its own, so what a child inherits is not simply that factor --
+    // and getting it wrong by a little makes a sword a dot in a fist. Dividing
+    // by what the bone actually is makes the stored offsets mean metres,
+    // whatever the rig does.
+    this.model.updateMatrixWorld(true);
+    const boneScale = new THREE.Vector3();
+    bone.getWorldScale(boneScale);
+    const inherited = Math.max(1e-6, boneScale.x);
+    holder.scale.setScalar(t.scale / inherited);
+    // ⚠ The POSITION is divided by the same factor, not only the scale. A
+    // child's position is in its parent's local space, so a bone at a world
+    // scale of 0.01 turns a stored offset of 12cm into 1.2mm -- a hilt welded
+    // to the wrist. Caught by comparing against the fitting tool, which has
+    // divided both since D-563; the offsets were MEASURED through that
+    // division, so anything reading them has to undo it the same way.
+    holder.position.set(
+      t.position[0] / inherited,
+      t.position[1] / inherited,
+      t.position[2] / inherited,
+    );
+    holder.add(object);
+    // ⚠ Hidden unless the weapon is OUT (D-620). A character who equips a
+    // sword out of combat -- which is every character, every round, at the
+    // moment their kit lands -- must not be standing in the tavern holding it.
+    holder.visible = this.weaponOut;
+    bone.add(holder);
+    this.held = holder;
+  }
+
   weaponMuzzle(out: THREE.Vector3): THREE.Vector3 {
     if (this.hand) return this.hand.getWorldPosition(out);
     return out.set(this.root.position.x, 1.2, this.root.position.z);
@@ -523,7 +875,16 @@ export class ImportedVisual {
 
   /** The clip this character should be playing right now. */
   private wanted(moving: boolean): string {
-    return clipFor({ dead: this.dead, posture: this.posture, moving }, this.table);
+    return clipFor(
+      {
+        dead: this.dead,
+        posture: this.posture,
+        moving,
+        seated: this.seated,
+        combat: this.inCombat,
+      },
+      this.table,
+    );
   }
 
   /** Returns the action now playing, so a caller can seek it. */
@@ -556,7 +917,20 @@ export class ImportedVisual {
     this.angle += delta * Math.min(1, dt * 12);
     this.root.rotation.y = this.angle;
 
-    if (t >= this.attackUntil) {
+    // ⚠ An emote holds the body the same way a swing does (D-616), and is
+    // checked alongside it rather than instead: a character who waves and is
+    // then struck should play the blow, and one who is mid-swing should not
+    // have a wave cut it short. Whichever is still running wins.
+    // ⚠ The blade leaves the hand when the SHEATHE ends, not when combat
+    // does (D-620). Checked here rather than on a timer, because a timer that
+    // outlives the character is a callback into a disposed visual.
+    const now = performance.now();
+    if (this.stowAt > 0 && now >= this.stowAt) {
+      this.stowAt = 0;
+      this.weaponOut = false;
+      this.applyWeaponVisibility();
+    }
+    if (t >= this.attackUntil && now >= this.emotingUntil && now >= this.transitionUntil) {
       this.play(this.wanted(moving), FADE);
     }
     this.mixer?.update(dt);

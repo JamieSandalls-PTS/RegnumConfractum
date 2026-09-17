@@ -142,13 +142,12 @@
       "rig": "unreal",
       "variant": "unreal-19qg3fd",
       "source": "defined",
-      "height": 1.7,
+      "height": 1.572,
+      "kind": "person",
       "parts": {
         "pack": "modular-fantasy-hero",
         "sex": "male",
         "parts": {
-          "helmet": "SK_Chr_Head_No_Elements_Male_04",
-          "helmetCrest": "SK_Chr_HelmetAttachment_03",
           "torso": "SK_Chr_Torso_Male_04",
           "hips": "SK_Chr_Hips_Male_04",
           "armUpperL": "SK_Chr_ArmUpperLeft_Male_04",
@@ -159,9 +158,10 @@
           "handR": "SK_Chr_HandRight_Male_04",
           "legL": "SK_Chr_LegLeft_Male_04",
           "legR": "SK_Chr_LegRight_Male_04",
+          "helmet": "SK_Chr_Head_No_Elements_Male_09",
+          "back": "SK_Chr_BackAttachment_03",
           "shoulderL": "SK_Chr_ShoulderAttachLeft_04",
-          "shoulderR": "SK_Chr_ShoulderAttachRight_04",
-          "back": "SK_Chr_BackAttachment_03"
+          "shoulderR": "SK_Chr_ShoulderAttachRight_04"
         }
       }
     },
@@ -174,6 +174,7 @@
       "variant": "unreal-19qg3fd",
       "source": "defined",
       "height": 1.7,
+      "kind": "person",
       "parts": {
         "pack": "modular-fantasy-hero",
         "sex": "male",
@@ -196,6 +197,35 @@
       }
     },
     {
+      "id": "tavern-keeper",
+      "model": "tavern-keeper.glb",
+      "palette": "tavern-keeper.png",
+      "animations": "animations-unreal-19qg3fd.glb",
+      "rig": "unreal",
+      "variant": "unreal-19qg3fd",
+      "source": "defined",
+      "height": 1.7,
+      "kind": "person",
+      "parts": {
+        "pack": "modular-fantasy-hero",
+        "sex": "male",
+        "parts": {
+          "head": "SK_Chr_Head_Male_03",
+          "torso": "SK_Chr_Torso_Male_28",
+          "hips": "SK_Chr_Hips_Male_27",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_20",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_20",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_18",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_18",
+          "handL": "SK_Chr_HandLeft_Male_00",
+          "handR": "SK_Chr_HandRight_Male_00",
+          "legL": "SK_Chr_LegLeft_Male_19",
+          "legR": "SK_Chr_LegRight_Male_19",
+          "hair": "SK_Chr_Hair_01"
+        }
+      }
+    },
+    {
       "id": "drowned-shade",
       "model": "drowned-shade.glb",
       "palette": "drowned-shade.png",
@@ -204,6 +234,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -215,6 +246,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -226,6 +258,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -237,6 +270,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -248,6 +282,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -259,6 +294,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -270,6 +306,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -281,6 +318,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -292,6 +330,7 @@
       "variant": "unreal-19qg3fd",
       "source": "mesh",
       "height": 1.7,
+      "kind": "creature",
       "parts": null
     },
     {
@@ -303,6 +342,7 @@
       "variant": "unreal-19qg3fd",
       "source": "fbx",
       "height": 1.667,
+      "kind": "person",
       "parts": null
     }
   ],

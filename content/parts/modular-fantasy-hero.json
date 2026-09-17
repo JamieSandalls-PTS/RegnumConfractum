@@ -2611,7 +2611,8 @@
       "leather"
     ],
     "SK_Chr_HeadCoverings_No_Hair_08": [
-      "base"
+      "base",
+      "hood"
     ]
   }
 }

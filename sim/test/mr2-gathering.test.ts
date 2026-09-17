@@ -114,6 +114,12 @@ beforeAll(async () => {
       seed: 'mr2-test',
       objectives: [SURVIVE],
       resolutionTicks: 10,
+      // ⚠ Arrivals stay where they are put (D-608's opt-out, which seven other
+      // fixtures already use). This suite needs its miners IN THE MINE, and a
+      // round's opening area is the scenario's now rather than the server's
+      // `defaultAreaId` (D-627) — so without this the cast joins in the town
+      // and waits forever for veins that are two areas away.
+      placeArrivals: false,
     },
   });
   await server.start();
@@ -201,17 +207,56 @@ describe('harvesting', () => {
     // cancelled itself with "you moved" before the blow ever landed. The
     // failure named harvesting and the cause was the walker.
     await settle(miner);
+    // ⚠ And say so to the SERVER. `settle` waits until the miner has stopped
+    // moving, which is not the same as the server having stopped steering
+    // them: a stale intent or the tail of a route makes the first drift read
+    // as walking away, and the job cancels itself with "you moved" before the
+    // blow lands. This is the third time that string has been the reported
+    // cause of a failure about harvesting.
+    miner.send({ t: 'move_stop' });
+    thug.send({ t: 'move_stop' });
+    await sleep(TICK * 6);
     miner.send({ t: 'harvest', targetEntityId: node.id });
-    await sleep(TICK * 4);
-    // ONE blow. A loop of them interrupts on the first swing and then keeps
-    // going until the miner is dead, which quietly breaks every test after
-    // this one — the dead craft nothing.
-    thug.send({ t: 'attack', targetEntityId: miner.you! });
+    await sleep(TICK * 2);
+    // ⚠ What this asserts is a CONSEQUENCE, not a coincidence of timing:
+    // when a blow actually lands on a worker, the work ends. Every earlier
+    // version asserted that a particular swing, issued at a particular moment,
+    // interrupted a particular job -- and then chased the three different ways
+    // that can fail to line up:
+    //
+    //   * `iron-vein` takes 40 ticks and a combat round is 40 ticks (D-550),
+    //     so whether the swing was even ALLOWED before the job finished was a
+    //     coin flip on the global beat;
+    //   * a blow can miss now (D-606), so a swing that was allowed still lands
+    //     only rather over half the time;
+    //   * and a job that completed untouched is not evidence either way.
+    //
+    // So: keep the miner working and the thug swinging until the thug is seen
+    // to CONNECT, then assert the work ended because of it. The loop stops the
+    // moment either happens, and stops early if the miner is getting hurt --
+    // the point is that work is interrupted, not that the worker dies, and
+    // every test after this one needs them alive.
+    const struck = (): boolean => miner.work.some((w) => w.interrupted === 'you were struck');
+    const landed = (): boolean =>
+      thug.attacks.some((at) => at.targetId === miner.you && at.hit);
+    const healthy = (): boolean => (miner.status?.hp ?? 0) > 8;
     try {
-      await waitUntil(
-        () => miner.work.some((w) => w.interrupted === 'you were struck'),
-        'the blow ends the work',
-      );
+      for (let swing = 0; swing < 40 && !struck() && healthy(); swing++) {
+        // Keep a job running for the blow to land on.
+        if (!miner.work.some((w) => !w.done)) {
+          miner.send({ t: 'harvest', targetEntityId: node.id });
+          await sleep(TICK * 2);
+        }
+        thug.send({ t: 'attack', targetEntityId: miner.you! });
+        await sleep(TICK * 10);
+      }
+      if (!struck()) {
+        throw new Error(
+          landed()
+            ? 'a blow landed on the worker and the work carried on'
+            : 'the thug never connected in 40 swings',
+        );
+      }
     } catch (err) {
       const a = miner.entities.get(miner.you!)!;
       const b = thug.entities.get(thug.you!)!;

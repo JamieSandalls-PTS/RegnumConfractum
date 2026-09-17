@@ -6,6 +6,8 @@ import {
   type StationDef,
   type CharacterItem,
   AreaSchema,
+  CharacterDefSchema,
+  type CharacterDef,
   ClassSchema,
   RaceSchema,
   PartNamesSchema,
@@ -17,7 +19,13 @@ import {
   FeatsFileSchema,
   ItemTemplateSchema,
   LanguagesFileSchema,
+  BotDefSchema,
+  NpcDefSchema,
+  type BotDef,
+  type NpcDef,
+  type ScenarioDef,
   ObjectiveSchema,
+  ScenarioSchema,
   RecipeSchema,
   ResourceNodeSchema,
   RoamerSchema,
@@ -66,6 +74,33 @@ export interface Content {
    */
   races: Map<string, RaceDef>;
   /**
+   * The imported cast, as authored (D-558).
+   *
+   * ⚠ The server loads this for one reason: a script may now say what an
+   * NPC LOOKS like (D-596), and an id nothing can resolve has to be refused
+   * where it is written. Without the set here the only other outcome is a
+   * `model` field the client cannot match, which falls back to the seed and
+   * draws a plausible stranger — so the keeper an objective names would go on
+   * standing at the door looking like somebody else, and nothing anywhere
+   * would say so.
+   *
+   * ⚠ It is also the fourth directory found in exactly D-576's position:
+   * authored, schema-valid, CI-checked, read by the build and the three
+   * authoring tools, and never once loaded by the game.
+   */
+  characters: Map<string, CharacterDef>;
+  /** Who stands in the world, by id (D-598). Placement is on the areas. */
+  npcs: Map<string, NpcDef>;
+  /**
+   * The companions a lobby can summon, IN DRAW ORDER (D-624).
+   *
+   * ⚠ An array, not a map, and the order is a decision. A cast of three is
+   * the floor (D-522), so the first three definitions have to cover the mine,
+   * the farm and the wood; a map keyed by id would make the draw depend on
+   * insertion order nobody can see.
+   */
+  bots: BotDef[];
+  /**
    * Part file stem → the name a player is told it is called (D-560).
    *
    * ⚠ Loaded here because it had never been loaded ANYWHERE the game could
@@ -87,6 +122,16 @@ export interface Content {
   /** The antagonist's possible orders (D-521). Empty means no round can
    * start — the lobby fills and waits rather than starting without one. */
   objectives: ObjectiveDef[];
+  /**
+   * The playable rounds, and their EDGES (D-627).
+   *
+   * ⚠ A scenario declares which areas a round is played in. Before this
+   * existed the round had no concept of an area at all, so it had no boundary:
+   * the world graph ran `round-town -> hanged-ferryman -> broken-yard ->
+   * sunken-crypt`, and the last of those is `zone: endgame`, which carries
+   * involuntary permadeath. D-523 forbids exactly that and nothing enforced it.
+   */
+  scenarios: ScenarioDef[];
   /** Resource node behaviour, keyed by id; areas place them (MR2). */
   nodes: Map<string, ResourceNodeDef>;
   /** What may be made, keyed by id. */
@@ -233,6 +278,30 @@ export function loadContent(contentDir: string): Content {
     races.set(parsed.data.id, parsed.data);
   }
 
+  const npcs = new Map<string, NpcDef>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'npcs'))) {
+    const parsed = NpcDefSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (npcs.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate npc id '${parsed.data.id}'`);
+    }
+    npcs.set(parsed.data.id, parsed.data);
+  }
+
+  const characters = new Map<string, CharacterDef>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'characters'))) {
+    const parsed = CharacterDefSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (characters.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate character id '${parsed.data.id}'`);
+    }
+    characters.set(parsed.data.id, parsed.data);
+  }
+
   const ground = new Map<string, GroundMaterial>();
   for (const { file, data } of readJsonFiles(join(contentDir, 'ground'))) {
     const parsed = GroundMaterialSchema.safeParse(data);
@@ -274,6 +343,20 @@ export function loadContent(contentDir: string): Content {
   const feats = readArrayFile<FeatDef>('feats', FeatsFileSchema);
   const spells = readArrayFile<SpellDef>('spells', SpellsFileSchema);
 
+  const scenarios: ScenarioDef[] = [];
+  const scenarioIds = new Set<string>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'scenarios'))) {
+    const parsed = ScenarioSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (scenarioIds.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate scenario id '${parsed.data.id}'`);
+    }
+    scenarioIds.add(parsed.data.id);
+    scenarios.push(parsed.data);
+  }
+
   const objectives: ObjectiveDef[] = [];
   const objectiveIds = new Set<string>();
   for (const { file, data } of readJsonFiles(join(contentDir, 'objectives'))) {
@@ -309,6 +392,25 @@ export function loadContent(contentDir: string): Content {
     }
     recipes.set(parsed.data.id, parsed.data);
   }
+
+  const bots: BotDef[] = [];
+  const botIds = new Set<string>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'bots'))) {
+    const parsed = BotDefSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (botIds.has(parsed.data.id)) {
+      throw new Error(`${file}: duplicate bot id '${parsed.data.id}'`);
+    }
+    botIds.add(parsed.data.id);
+    bots.push(parsed.data);
+  }
+  // ⚠ Sorted by the AUTHORED order, ties broken on id. Files are read
+  // alphabetically, and which companions a cast of three gets is a design
+  // decision (see `order` on the schema) rather than a property of what
+  // somebody happened to call the file.
+  bots.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 
   const roamers: RoamerDef[] = [];
   const roamerIds = new Set<string>();
@@ -383,14 +485,18 @@ export function loadContent(contentDir: string): Content {
     languages,
     classes,
     races,
+    characters,
+    npcs,
     partNames,
     ground,
     skills,
     feats,
     spells,
     objectives,
+    scenarios,
     nodes,
     recipes,
+    bots,
     roamers,
     sounds,
     scripts,

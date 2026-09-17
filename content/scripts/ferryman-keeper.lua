@@ -2,8 +2,10 @@
 -- Everything here runs through the sandboxed area API; there is no other way
 -- for a script to touch the world.
 
--- Behind the bar, in the rebuilt 32x32 room (D-544).
-local keeper = spawn_npc{ x = 27, y = 14, descriptor = "a heavyset keeper with scarred knuckles", seed = 4242 }
+-- Behind the bar, in the rebuilt 32x32 room (D-544). Who he is lives in
+-- `content/npcs/ferryman-keeper.json` and where he stands is a placement on
+-- this area (D-598); this file is only what he does.
+local keeper = npc("ferryman-keeper")
 
 local greeted_recently = false
 

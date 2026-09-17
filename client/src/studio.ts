@@ -377,6 +377,10 @@ function currentDef(): CharacterDef {
     name: ($('in-name') as HTMLInputElement).value.trim(),
     pack,
     sex: currentSex(),
+    // ⚠: the studio assembles PEOPLE (D-618) -- it is the slot-by-slot
+    // editor, and a creature in these packs is a finished mesh with no slots
+    // to pick. The Enemies tab is where a creature is named.
+    kind: 'person' as const,
     parts: parts as CharacterDef['parts'],
     ...(texStem ? { texture: texStem } : {}),
     ...(($('in-note') as HTMLTextAreaElement).value.trim()

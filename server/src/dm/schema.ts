@@ -47,6 +47,15 @@ export const EventActionSchema = z.discriminatedUnion('type', [
     descriptor: z.string().min(1).max(120),
     alias: AliasSchema.optional(),
     seed: z.number().int().nonnegative().optional(),
+    /**
+     * What it looks like (D-596) — an id in `content/characters/`.
+     *
+     * ⚠ Not validated by this schema, and deliberately. The DM console runs
+     * against a live server that has the cast loaded, so the check belongs
+     * there where it can list what exists; a schema here would have to be
+     * regenerated every time somebody authors a character in the studio.
+     */
+    character: z.string().min(1).max(64).optional(),
   }),
   z.object({
     type: z.literal('npc_say'),

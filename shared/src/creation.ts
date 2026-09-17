@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { CHARACTER_SEXES, CharacterSlotSchema, type CharacterSlot } from './characters';
+import {
+  CHARACTER_SEXES,
+  BODY_SLOTS,
+  CHARACTER_SLOTS,
+  CharacterSlotSchema,
+  type CharacterSlot,
+} from './characters';
 
 /**
  * What a player may BE, as content (D-560).
@@ -150,6 +156,31 @@ export function raceProblems(
   }
   const ids = race.skinTones.map((t) => t.id);
   if (new Set(ids).size !== ids.length) problems.push(`${race.id}: duplicate skin tone id`);
+
+  // ⚠ A BODY has to exist for each body this race admits.
+  //
+  // This is not hypothetical tidying: `human` curated one torso and it was the
+  // FEMALE cut, so a male human rendered with no chest — a head, arms and legs
+  // and a hole between them. Nothing errored. The creation screen filled the
+  // body from the chosen face's cut, found nothing for that slot, and left it
+  // out, which is indistinguishable from a part that failed to load.
+  //
+  // ⚠ A part with no body word in its name belongs to both, so a race that
+  // curates unisex meshes passes without needing one per body.
+  for (const sex of race.sexes) {
+    for (const slot of BODY_SLOTS) {
+      const offered = race.parts[slot] ?? [];
+      if (offered.length === 0) continue; // an uncurated slot is its own question
+      const fits = offered.some((stem) => !/_(Male|Female)_/i.test(stem)
+        || new RegExp(`_${sex}_`, 'i').test(stem));
+      if (!fits) {
+        problems.push(
+          `${race.id}: curates ${slot} but nothing cut for a ${sex} body, `
+          + `so a ${sex} ${race.id} would render without one`,
+        );
+      }
+    }
+  }
 
   // Only checkable where the art is present. `assets/source/` is gitignored,
   // so in CI this half simply does not run.
@@ -381,6 +412,124 @@ export function cutOfFace(head: string | undefined): 'male' | 'female' | null {
  * Parts the pack cuts once — hair, ears — carry no body word and belong to
  * both.
  */
+
+/**
+ * Slots a face may simply not have (D-601).
+ *
+ * ⚠ `head` is not here. Something has to be there: a look with no head is
+ * not a shaved character, it is a missing file.
+ */
+export const OPTIONAL_FACE_SLOTS: readonly CharacterSlot[] = [
+  'hair', 'eyebrows', 'facialHair', 'ears',
+];
+
+/** The order the rows read in, top to bottom. */
+const FACE_ROW_ORDER: { slot: CharacterSlot; label: string }[] = [
+  { slot: 'head', label: 'face' },
+  { slot: 'hair', label: 'hair' },
+  { slot: 'eyebrows', label: 'brows' },
+  { slot: 'facialHair', label: 'beard' },
+  { slot: 'ears', label: 'ears' },
+  { slot: 'torso', label: 'torso' },
+  { slot: 'hips', label: 'hips' },
+  { slot: 'armUpperL', label: 'arms' },
+  { slot: 'legL', label: 'legs' },
+  { slot: 'handL', label: 'hands' },
+];
+
+export interface FaceRow {
+  slot: CharacterSlot;
+  label: string;
+  /** May be set to nothing, so the control carries a "none". */
+  optional: boolean;
+  options: string[];
+}
+
+/**
+ * The rows a player is actually offered, for one race and one body (D-601).
+ *
+ * ⚠ A row exists only where there is something to DECIDE. A race curates
+ * one bare option per limb (D-563), so arms, legs and hands have exactly one
+ * part each -- and a control listing one thing reads as a choice the screen is
+ * refusing to let you make.
+ *
+ * ⚠ Derived from what the race CURATES, not from a hard-coded list of
+ * slots. The screen named head/hair/brows/ears, so `facialHair` -- which the
+ * human race curates EIGHTEEN of -- was authored, named, built and offered to
+ * nobody. Deriving the rows is what stops that recurring the next time
+ * somebody curates a slot.
+ *
+ * Pure, because the doctrine says the decisions must be checkable without a
+ * browser: what is on this screen is the difference between a player being
+ * able to make a woman with a beard and not.
+ */
+export function faceRows(race: RaceDef, sex: 'male' | 'female'): FaceRow[] {
+  const rows: FaceRow[] = [];
+  for (const { slot, label } of FACE_ROW_ORDER) {
+    const options = partsForSex(race.parts[slot] ?? [], sex);
+    const optional = OPTIONAL_FACE_SLOTS.includes(slot);
+    if (options.length + (optional ? 1 : 0) < 2) continue;
+    rows.push({ slot, label, optional, options });
+  }
+  return rows;
+}
+
+/**
+ * Fill in everything the player has not chosen, for the body they have chosen.
+ *
+ * ⚠ Returns a NEW parts map rather than editing one. The caller holds the
+ * look that is about to go on the wire, and a function that quietly rewrote it
+ * would make "what did the player actually pick" unanswerable.
+ *
+ * ⚠ Optional slots are left EMPTY rather than filled with the first thing
+ * in the list: a shaved head and a clean chin are faces, and choosing a beard
+ * on somebody's behalf is the screen making a decision nobody asked for. The
+ * body, which cannot be absent, is filled.
+ *
+ * ⚠ Anything still valid for the chosen body SURVIVES. Switching body keeps
+ * every part cut for both (hair, brows) and replaces only what is not.
+ */
+export function defaultLookParts(
+  race: RaceDef,
+  sex: 'male' | 'female',
+  current: Readonly<Partial<Record<CharacterSlot, string>>> = {},
+): Partial<Record<CharacterSlot, string>> {
+  const out: Partial<Record<CharacterSlot, string>> = {};
+  for (const slot of CHARACTER_SLOTS) {
+    const offered = partsForSex(race.parts[slot] ?? [], sex);
+    const kept = current[slot];
+    if (kept && offered.includes(kept)) {
+      out[slot] = kept;
+      continue;
+    }
+    if (OPTIONAL_FACE_SLOTS.includes(slot)) continue;
+    if (offered.length > 0) out[slot] = offered[0]!;
+  }
+  return out;
+}
+
+/**
+ * The parts cut for one body (D-601).
+ *
+ * ⚠ This is what an EXPLICIT body selector filters by, and it is allowed to
+ * filter the HEAD row, which `partsForSlot` must never do. The difference is
+ * reversibility, not taste: D-575's bug was that choosing a male face silently
+ * removed all 23 female ones **with no way back** — a one-way door that read
+ * as "I cannot make a woman". A selector the player can move is the way back,
+ * so filtering every row by it is safe precisely because the control exists.
+ *
+ * ⚠ A stem with no `_Male_`/`_Female_` in it belongs to BOTH. Hair, capes
+ * and crests are cut once and worn by either body (D-558), and dropping them
+ * from a filtered list would empty three rows that have nothing to do with
+ * which body is selected.
+ */
+export function partsForSex(offered: readonly string[], sex: 'male' | 'female'): string[] {
+  return offered.filter((stem) => {
+    if (!/_(Male|Female)_/i.test(stem)) return true;
+    return new RegExp(`_${sex}_`, 'i').test(stem);
+  });
+}
+
 export function partsForSlot(
   offered: readonly string[],
   slot: CharacterSlot,

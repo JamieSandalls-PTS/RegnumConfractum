@@ -36,7 +36,13 @@ export interface Assembled {
 /** What we learn about one bone, gathered before anything is built. */
 interface BoneSpec {
   readonly name: string;
-  readonly parent: string | null;
+  /**
+   * The bone above it, once every part has had its say.
+   *
+   * ⚠ MUTABLE, because the first part to mention a bone is often the one
+   * that knows least about it. See `gather`.
+   */
+  parent: string | null;
   readonly src: Object3D;
   /** Present only for bones some mesh is actually weighted to. */
   inverse: Matrix4 | null;
@@ -72,6 +78,28 @@ export function assemble(files: readonly { slot: string; mesh: SkinnedMesh }[]):
     if (existing) {
       if (inverse && !existing.inverse) existing.inverse = inverse;
       else if (inverse && existing.inverse) checkAgrees(src.name, existing.inverse, inverse);
+      // ⚠ A part that knows this bone's PARENT upgrades one recorded as a
+      // root. Each part file carries only the ancestors it needs, so the head
+      // ships `neck_01` with nothing above it while the torso ships the same
+      // bone under `spine_03` -- and slot order puts the head first. Taking
+      // the first answer and never revisiting it left the neck parentless, the
+      // orphan rule below (written for capes) adopted it onto the nearest body
+      // bone, and that bone was `clavicle_r`.
+      //
+      // ⚠ The result was a head mounted on a SHOULDER. It is invisible at
+      // rest, because the bind matrices still place every bone correctly, and
+      // it appears the moment a clip rotates the neck: measured 84 degrees out
+      // of true, swinging with the arm. It affected every re-assembled body --
+      // every player-chosen face and every garment worn in the world (D-571),
+      // not only the creation screen where it was noticed.
+      if (existing.parent === null) {
+        let above: Object3D | null = src.parent;
+        while (above && (above as Bone).isBone && above.name === src.name) above = above.parent;
+        if (above && (above as Bone).isBone) {
+          existing.parent = above.name;
+          gather(above, null);
+        }
+      }
       return;
     }
     // Walk past a bone that is merely its own duplicate under another copy of

@@ -178,6 +178,15 @@ export const RoamerSchema = z
     id: ContentIdSchema,
     descriptor: z.string().min(1),
     hp: z.number().int().min(1),
+    /**
+     * How hard it is to hit (D-606). Ten is an unarmoured, unremarkable body.
+     *
+     * ⚠ Content, not derived. A roamer has no attributes and no gear to
+     * read an AC off, and giving every creature the same number would make a
+     * rock golem as easy to hit as a rat — which is exactly what the
+     * dungeon's difficulty gradient (D-537) exists to express.
+     */
+    armourClass: z.number().int().min(1).max(40).default(10),
     damageMin: z.number().int().min(0),
     damageMax: z.number().int().min(1),
     /** How far it notices a living player, in tiles. */

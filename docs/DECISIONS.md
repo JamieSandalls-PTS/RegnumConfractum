@@ -8672,3 +8672,2178 @@ collision hull never reaches the scenery shelf. ⚠ It skips when
 `assets/source/` is empty, which is every clean checkout — the packs are
 licensed art and gitignored (D-555), so this checks the art that is present
 rather than being a reason CI cannot run without it.
+
+---
+
+## D-596 — A scripted NPC has a face, and one place holds the stage
+
+**2026-09-13.** Two things: the tavern keeper is drawn as an authored
+character, and the creation tool stops leaving the last tab's model standing on
+the stage.
+
+### The keeper was a stranger with a fixed name
+
+D-594 gave ROAMERS a look and stopped there. `spawn_npc` took a position, a
+descriptor and a seed, so every scripted NPC was drawn from the seed — as a
+random townsman. The one that matters is the tavern keeper: D-593 put him at
+Ashfold's door because `silence-the-keeper` is live and D-526 calls it the
+low-cast workhorse. The cast is asked to keep one particular man alive, and
+he looked like a different stranger on every seed.
+
+`spawn_npc` now takes an optional `character`, an id in
+`content/characters/`. Ashfold's keeper and the Hanged Ferryman's both name
+`ashfold-townsfolk`.
+
+⚠ **`content/characters/` had never been loaded by a server.** It is read by
+`build:characters` and by all three authoring tools, and by nothing that runs
+a game. This is D-576 exactly — 720 authored part names that reached no player
+because only the tools read them — and it is now the fourth directory found in
+that position. A `model` the server cannot resolve is not a fault a renderer
+can report: it falls back to the seed and draws a perfectly plausible
+stranger. So the server loads the cast and **refuses an unknown id at spawn,
+naming what exists**, and `validate:content` refuses the literal at build
+time as well, because a scripted NPC spawns when its area first loads — which
+in the round map is the moment somebody starts a round.
+
+⚠ **Also authored and unread: the watch.** `ashfold-guard` exists, is built,
+and its own note says it is the uniform for D-552's watchmen — and
+`town-guard.json` named no character, so the guard was seed-drawn too. One
+line of content.
+
+⚠ **The look is optional and must stay so.** Almost every scripted NPC should
+go on being a stranger; a gateway that invented an appearance for everything
+would be authoring content nobody wrote. Asserted.
+
+⚠ **`ashfold-townsfolk` is a placeholder for the keeper and says so in the
+script.** He is the only authored human who is not in a helmet. A keeper of
+his own is one file in the studio and one word in the Lua, and choosing his
+parts is an art judgement, which is not mine (D-114).
+
+⚠ **The face is behind the cast toggle.** `useImportedCast()` defaults to
+`procedural` (D-559), so none of this is visible until Settings says
+`imported`. That default is the stakeholder's to flip and the reason for it —
+the imported cast is under evaluation, not shipped — has not changed.
+
+### One mount, or the same bug a fourth time
+
+Reported by the stakeholder: the render window "sometimes does not clear the
+old model when you switch tool tabs and select a different model in a
+different tab."
+
+It did. Every preview added straight to the scene and removed its OWN object,
+and there were two owners — `shown` and `creaturePreview` — so there were four
+places to forget. This is the third and fourth sighting of one bug: D-570 in
+the garment editor ("selecting a garment did not show it"), D-594's player
+head floating inside every roamer, and now across tabs and across sections.
+
+⚠ **Patching the call site is what let it come back twice.** Nothing is added
+to the scene after boot any more. One `mount` group holds everything on the
+stage and `clearStage()` empties it, so a new preview *cannot* forget to clear
+the old one — there is nowhere else to put anything. The ground stays on the
+scene: it is the floor, not something being judged.
+
+⚠ **Clearing alone would be half a fix.** An empty stage after every tab
+change is the same complaint in a politer form, so each tab records how to
+show what it has selected. The caption is cleared too: an empty stage still
+labelled `skeleton-knight` reads as a model that failed to draw.
+
+⚠ **Two bugs found while wiring it, neither of which threw.** `creatureShown`
+is documented as "what is on the stage, so re-rendering the form does not
+reload it" and **nothing ever assigned it** except one stray line in
+`createClass`, an editor away — so the guard never held and the form re-fetched
+a body on every render, and the one write it did get was from a different
+editor entirely. The guard also compared an optional `character` against a
+`null`, so it could not have held anyway.
+
+### ⚠ The guard that shipped as a no-op, caught by breaking it
+
+The new `validate:content` check for script character ids passed a
+deliberately misspelled id. The regex had been written with a literal
+**backspace byte** where `\b` was meant — `0x08` followed by `character` —
+which matches nothing, so the check ran on every build and found nothing,
+forever. Nothing in a diff, a log, a typecheck or a test run shows this; it is
+invisible in every terminal that renders the file.
+
+The only reason it is not in the repo right now is the standing practice of
+breaking each new guard on purpose before believing it. That practice has now
+paid for itself twice in two sessions.
+
+### Verified
+
+`sim/test/mr9-npc-looks.test.ts`: the keeper arrives on the wire carrying the
+character its script names, found by DESCRIPTOR rather than "the first NPC with
+a model" (the watch now has one too, so the loose version would pass on a guard
+and say nothing about the keeper); the descriptor is untouched by the look; an
+unresolvable id is refused by name; and an NPC spawned without one still
+carries no model. Proved by deliberate break: dropping `model` in the gateway
+fails the first assertion and nothing else.
+
+The stage is verified by **counting what is on it** in the browser, not by
+looking at it — through six transitions (parts → environment → worn item →
+parts → environment → round → core) the mount holds exactly one subject every
+time, and the head, the arrow and the bow leave when they should.
+
+---
+
+## D-597 — The three things the map tools could not author
+
+**2026-09-13.** Asked whether the tools exist to build the game's
+infrastructure. Measured rather than answered from memory: all 22 content types
+have a schema and a CI validator, and fourteen have an editor. Three gaps, all
+closed here.
+
+### ⚠ An area's own properties were unauthorable, and every default is quiet
+
+The map editor edited what is IN an area and nothing ABOUT it. `outdoor`
+defaults false, `zone` defaults settled, `lighting` defaults overcast,
+`ambience` and `scripts` default empty — so a wilderness area drawn in the
+editor and saved paid no night bonus (D-528), carried the settled zone's
+hostility and corpse rules (D-206), and was silent (D-541). None of it visible
+on the map, all of it hand-edited JSON.
+
+⚠ **The defaults are NOT changed.** D-527 chose their direction deliberately:
+forgetting `outdoor` on open ground is wrong and visible in play, while the
+opposite default pays every cellar the night bonus and is wrong and invisible.
+The fix is to make them askable, not to guess better.
+
+They live in the panel that already held the live/test flag, because that panel
+is already "what this file IS" and everything else is its contents. Lighting is
+applied to the VIEW as well as the file: the editor renders through the game's
+own lighting (D-543), so choosing `night` should look like night, or the
+profile is a word in a form.
+
+⚠ **Ambience and scripts are picked from a LIST, not typed.** A bed naming a
+cue that does not exist fails CI, and an `effect` cue named as a bed would loop
+a sword-hit forever — so the endpoint offers `ambience` cues only.
+
+### ⚠ Ground materials could be painted with and never authored
+
+Thirteen shipped; a fourteenth meant hand-writing JSON beside an image nothing
+listed, in the one tool whose whole premise is that what you place is what you
+get. The painter now edits the material it is painting with: name, texture,
+repeat, tint, wash, walkable, notes.
+
+⚠ **`tint` and `wash` are two controls because they are two jobs** (D-590) —
+the tint stands in for art that is missing, the wash multiplies art that is
+there, and one field doing both is what rendered mud at an albedo of 0.107 and
+made the whole town read as bad lighting.
+
+⚠ **The texture is chosen from what is on disk.** Nothing in CI can see under
+`client/public/`, so the editor server is the only thing that can check it
+exists — and a material naming a missing image renders as its tint, which looks
+unfinished rather than wrong.
+
+⚠ **A delete is refused by name while any map is painted with it.**
+`groundMaterials` is the channel order for the masks (D-588): remove one an
+area lists and every surface after it shifts a channel along. That is not an
+error anywhere — the map simply comes back wearing the wrong ground.
+
+### The map pipeline had no npm entries
+
+`paint-areas.py`, `dress-areas.py`, `build-round-map.py`, `prune-unreachable`,
+`why-unreachable`, `build-audio` and the ground-texture scripts are how all
+twelve areas were painted and dressed, and none was reachable through
+`npm run`. They are now `map:generate`, `map:walls`, `map:paint`, `map:dress`,
+`map:dress-town`, `map:prune` and `map:why`, named so that `npm run` lists them
+in the order they run.
+
+### Verified
+
+The area panel round-trips to disk — every control read back from Ashfold's own
+file, and three fields written to `proving-ground` and confirmed in the diff.
+Every material guard was broken on purpose before being believed: an absent
+texture, an id/url mismatch, a colour that is not a colour, and a delete of
+`grass` (refused, naming all eight maps it is painted into). A material was
+created, validated by CI, and deleted, leaving a clean tree.
+
+---
+
+## D-598 — A person who stands somewhere is content, not code
+
+**2026-09-13.** An NPC could only be born inside a Lua script. That made every
+question about the world's cast a question about source code: `kill_npc`
+objectives had to be checked against descriptors SCRAPED out of the Lua with a
+regular expression and could only ever be half-checked (D-569), nothing could
+list who was in the world, and putting a blacksmith in the square meant writing
+a script.
+
+`content/npcs/<id>.json` declares WHO — name, descriptor, what they look like
+(D-596), an optional fixed seed. `AreaDef.npcs` declares WHERE. A script still
+decides what they DO, and reaches one with `npc("<id>")`.
+
+⚠ **The split is the one stations and nodes already use** (D-530, D-583): the
+definition is content and the placement is map data, so the same keeper can be
+stood in two taverns without his descriptor being written twice, and the map
+editor is where you decide where he stands. A new `npc` tool places them, and
+they draw as person-sized markers rather than floor plates — where somebody
+stands is judged against the doorway they block and the crowd that has to get
+past them, and a flat square answers neither.
+
+⚠ **Behaviour stays Lua on purpose.** Greeting, counting the room and reacting
+to a death are behaviour, and a form is a bad place to write behaviour.
+
+⚠ **Spawning is IDEMPOTENT and runs at every round start.** A round must not be
+the reason the next round has no keeper: `silence-the-keeper` is live and dealt
+at random, so an antagonist who won it once would otherwise have deleted the
+objective for everybody until somebody restarted the server. It matches on
+`npcType`, never on the descriptor — that is prose somebody edits, and the
+question being asked is "is this placement filled".
+
+⚠ **`npcType` is server-side and never on the wire.** What a player learns about
+somebody is the descriptor; an id beside it is a name the game hands out free.
+
+### What this finally makes checkable
+
+`kill_npc` objectives now compare against descriptors read from DOCUMENTS
+rather than scraped from Lua. Four new refusals, each broken on purpose before
+being believed: an area placing an id nothing declares (at server construction,
+not at spawn — the round map first loads when somebody starts a round); a
+script asking for somebody its own area does not place; an objective naming a
+descriptor no declared NPC wears; and renaming a descriptor a live objective
+targets, refused in the studio by name.
+
+⚠ **The "nowhere to stand" check caught a live defect on its first run.** The
+Hanged Ferryman's keeper stood at (27,14), which no body can occupy — so the
+server had been silently moving him to the area's spawn on every load, in the
+persistent world's default starting area. Measured: 695 standable tiles in that
+tavern and his was not one of them. He is at (26,14).
+
+### ⚠ Two tests were passing for a reason that was never true
+
+Both said "the only other entity here is the one I am looking at". `mr4-gear`
+took *the first entity that is not me* as the wearer, and `m3b-events` asserted
+that after a rollback there were *no NPCs at all* in the tavern. Both held only
+while the world was empty of anybody else, and both broke the moment the tavern
+gained a keeper — on a man with no part in either test. They now name the
+wearer by id and the warband by descriptor.
+
+### ⚠ And one in the editor, found by counting rather than by looking
+
+Placing a person put them in the file and drew nothing until a reload: the npc
+tool did not rebuild the markers, exactly as the node tool one branch below it
+does. Placed, saved and invisible is the class of bug the editor exists to
+prevent, and one missing figure among three hundred objects is not something an
+eye reports — so the editor's `counts()` hook now returns the markers actually
+in the scene beside the placements in the file, and the two disagreeing is the
+assertion. The same measurement caught the placement guard testing the legend's
+`walkable` rather than `canStandAt`, which let somebody be stood inside the
+palisade.
+
+### Verified
+
+`sim/test/mr9-declared-cast.test.ts`: somebody stands there with NO script host
+running at all (every earlier NPC test had to start one, because the NPC did
+not exist until Lua made it); a script reaches the same person rather than a
+second copy; a killed NPC is back after the spawner runs again with a NEW entity
+id; running it twice does not make two; and a bad placement refuses at
+construction. Proved by deliberate break — removing the boot call fails three of
+the five and nothing else. 956 tests pass; content validates over 144 files.
+
+---
+
+## D-599 — Every solid thing knows how tall it is
+
+**2026-09-13.** D-581 recorded that "every asset uses a PLACEHOLDER mask: 0 of
+1,402 has a drawn shape, so all fall back to a box of the measured footprint ×
+a default 3m height (`size` is missing on all of them too)". Measured again
+before touching anything: **1,402 catalogued environment assets, 0 carrying a
+size.** The field was added to the schema by D-567 and written only for assets
+drafted after it existed — which was none of them.
+
+So `defaultMask` gave a barrel and a gatehouse the same height to walk into,
+and the one number the schema's own comment says decides whether a thing is
+walked over, under or into was the constant `3`.
+
+`name:environment` already measured every mesh — the loop needs the size to
+decide the pack's unit convention — and threw the number away for anything
+already catalogued. It now backfills it.
+
+⚠ **ONLY `size`.** `solid`, `opaque`, `footprint` and the name may all have been
+corrected by a person since they were drafted, and re-deriving them from the
+mesh would silently undo that work — the same reason `name:assets` skips a mesh
+somebody has already catalogued (D-568). A backfill fills a hole; it does not
+re-run a decision.
+
+⚠ **Rounded to the millimetre.** The raw float is seventeen digits, which makes
+every re-run a diff against itself, and a diff that is always dirty is one
+nobody reads. A millimetre is finer than anything `STEP_UP` (0.35m) can act on.
+
+### What the real heights change, measured rather than assumed
+
+Median solid height **2.13m**. 892 assets were being drawn too tall and 520 too
+short.
+
+- **67 solid assets measure 0.35m or less** and therefore stop blocking
+  movement: `blocks` is `surfaceHeight > feetZ + STEP_UP`. Pebbles, roof caps,
+  a saw rail. Correct — they are things you walk over.
+- **94 opaque assets measure between 1.2m and 1.6m**, and those stop blocking
+  SIGHT. ⚠ That band exists because `SIGHT_HEIGHT` (which decides `opaque`) is
+  1.2 and `EYE_HEIGHT` (which tests it) is 1.6. It is coherent — `opaque` means
+  "stops an eye at its own height", and the mask's top does the rest — but it
+  is worth knowing the two constants are not the same number.
+- **Six of those 94 are actually placed**: a log, a gravestone, a torchstick,
+  two stalagmites and a small mushroom. Every one of them used to block line of
+  sight at eye height because its box was 3m tall. This is a correction to
+  D-217: a murder behind a gravestone was unwitnessed, and is not any more.
+
+Nothing got *harder* to walk through: a box that grew taller still blocks a
+walker exactly as a 3m one did.
+
+### ⚠ 727 placements drifted, and the only remedy CI named was "by hand"
+
+A placement carries a COPY of its asset's mask (D-567) so an area is
+self-describing. The cost is drift, which `placedAssetDrift` reports and CI
+fails on — and the message said "re-place it", once per placement. Filling one
+field in the catalogue produced 727 of them.
+
+`npm run map:rebake` re-bakes them. ⚠ **It never touches a placement marked
+`overrideCollision`** — that flag is the other half of the stakeholder's ruling
+(per-asset, overridable per placement) and the only thing distinguishing a copy
+that should track the catalogue from a doorway somebody deliberately knocked a
+gap in.
+
+⚠ **Proved by removing the guard rather than by reading it: 609 hand-authored
+masks would have been overwritten, including all four of Ashfold's castle gate
+arches.** Sealing those turns the town's gates into walls — a map that still
+validates, still renders, and has no way in.
+
+⚠ **It is deliberately NOT part of `validate:content`.** A build that repaired
+its own inputs would make the drift check unfalsifiable, including in the case
+where the catalogue is what changed by mistake.
+
+### ⚠ The verification lied first, and by one character
+
+Checking that no override had moved, comparing the JSON *text* against `HEAD`
+reported four changes — all four gates. They were `-2.0` against `-2`: the tool
+rewrites the document through Node's serialiser, and JavaScript has no
+int/float distinction. Compared by VALUE, zero of 2,208 overrides differ.
+Comparing text answers a question about formatting when the question was about
+volumes, and it answered it alarmingly.
+
+### Exposed, not fixed
+
+- **The `generic` pack drafted 461 environment assets** (and one in
+  bow-crossbow). That pack was invisible to every tool until D-595 fixed
+  `allPacks()`, so this is the first time `name:environment` has ever seen it.
+  Machine-drafted names, tagged `draft`.
+- ⚠ **Two dungeon-pack meshes are catalogued as solid 24×24 scenery and are
+  particle emitters**: `SM_Prop_Candle_Chandelier_02_Particle` measures 95.5m
+  and `SM_Prop_Candle_Stand_01_Particle` 32.5m. Neither is placed anywhere.
+  They were miscatalogued long before this and the measurement is what made
+  them visible. Left for a person, per D-595's ruling that English is not a
+  classifier and the oddities are filed by hand.
+- **Skydomes, background mountains and cloud rings measure 30–185m.** Correct,
+  and a reminder that the palette contains set dressing nobody should place as
+  collidable.
+- ⚠ **No asset has a DRAWN mask, and this does not change that.** A gatehouse
+  still blocks a solid rectangle rather than leaving its arch open, and nothing
+  can be walked under. That is authoring with eyes on it, not arithmetic — the
+  four gates in Ashfold are what it looks like when somebody does it.
+
+### Verified
+
+`tools/test/environment-assets.test.ts` gains three assertions: every solid
+asset knows its height, no solid asset is zero-height (a box with top 0 blocks
+nothing and would be a ghost the reachability flood still counts), and heights
+are rounded. Proved by deliberate break — deleting one `size` fails the first
+and nothing else. 959 tests pass; content validates over 146 files; a re-run of
+the re-bake reports nothing left to do.
+
+---
+
+## D-607 — The mode nobody could reach
+
+**Status:** implemented
+**Supersedes:** the `ROUND_MODE` default in D-521's configuration (off → on)
+
+### The report
+
+> "I can't play a proper round at the moment after logging in. Make this
+> possible. Also, when in the lobby, add the option to add bots while waiting
+> in game."
+
+### What was actually wrong
+
+Nothing in the round was broken. The round was **off**.
+
+`ROUND_MODE` defaulted to unset, so `npm run dev:server` booted the persistent
+world — respawn, death debt, enduring recognition, no clock, no antagonist, no
+lobby. D-521 moved the shipping target to the Round in August and the default
+never followed it. A server that boots the mode that is not being shipped is a
+server whose only symptom is that nothing happens, and the only way to find
+that out is to log in and wait.
+
+⚠ **The default area was a second switch that could disagree with the first.**
+`DEFAULT_AREA_ID` defaulted to `hanged-ferryman` independently of the mode, so
+turning round mode on by itself would have started the cast in the persistent
+world's tavern. It now FOLLOWS the mode — `round-town` in a round — with the
+env var still overriding both. Two independent settings that have to agree fail
+silently, and this pair fails in the least legible way there is: a player
+standing in a room the round never reaches.
+
+### Three bots are a command in another terminal, which is not a feature
+
+The cast floor is three (D-522). The go/no-go gate is one person playing a
+round and judging how it feels (D-114, BUILD_PLAN). D-540 built bots that can
+fill a round and `npm run bots` to launch them — and left the distance between
+"logged in" and "playing" as a second terminal and a command that is invisible
+from inside the game. **A mode that cannot be started by the person it is for
+is not shipped.**
+
+The lobby panel now offers `+1`, `fill the cast` and `send home`.
+
+⚠ **They are ORDINARY CLIENTS, and that is load-bearing rather than
+convenient.** Each one opens a real WebSocket to the server's own port,
+registers, creates a character and is dealt a role by the same code that deals
+one to a person — so a bot can be the antagonist, and D-540's property that a
+bot round is evidence about the GAME rather than about the harness survives. An
+in-process shortcut past the gateway would have satisfied every assertion about
+cast size while quietly making every bot round test the wrong thing.
+
+⚠ **The count is public; which ones are bots is not.** `round_state` carries
+how many of the cast are bots and never which. A bot can be dealt the objective
+exactly as a player can, and a round whose antagonist can be read off a HUD is
+not a round (D-521, D-217).
+
+⚠ **Off in production, and refused OUT LOUD.** The verb registers accounts and
+creates characters on demand; exposed publicly it is an account-creation hole
+wearing a lobby button. `ALLOW_BOTS` gates it, the client only draws the
+controls when the server says it allows them, and a server that forbids them
+answers `not_allowed` rather than ignoring the message — a control the client
+draws and the server silently drops is indistinguishable from a broken one.
+
+### ⚠ A round could not be played TWICE, and no test could have seen it
+
+Everything MR1 asserts is about one round. Two things crossed the reset and
+both of them made the next round unplayable:
+
+- **The dead stayed dead.** Round death is not permadeath (D-522) and `respawn`
+  is refused outright while a round runs — correctly. Nothing stood anybody up
+  at the reset, so a killed player spent every subsequent round as a ghost.
+  That presents as a bug in *death*, which is where anybody would look, and it
+  is a missing line in *reset*.
+- **The living stood where they stopped.** D-536's opening truce says "you have
+  all woken in the same place". From the second round on that was simply false:
+  the cast opened scattered across six areas, some of them underground, with a
+  minute of enforced peace to spend walking back to each other.
+
+`gatherForNewRound` stands everybody up at the round's opening point. ⚠ The
+living are moved by the same despawn-and-respawn the dead are, rather than by a
+quiet position edit — a living character moved without leaving would leave a
+copy of themselves standing in the area they came from for every observer still
+in it.
+
+### ⚠ The reset was losing its lobby broadcast, two runs in three
+
+`onTick` is async on an interval, so a later tick begins while an earlier one
+is still inside an await. The reset is a long chain of them and the engine's
+phase flips to `lobby` PART WAY THROUGH — so a tick landing mid-reset saw a
+lobby with a full cast and started the next round before the last one had
+finished clearing. The lobby state was never broadcast at all: the HUD went
+from "the round is over" straight to a running clock.
+
+That was invisible while the lobby had nothing in it. It is not invisible now:
+the lobby is where the bot controls live, so between rounds the panel would
+never have appeared. The reset is now atomic with respect to the tick.
+
+### What was tried and NARROWED
+
+The first cut also relocated a character on `enter_world` whenever round mode
+was on, on the reasoning that the area saved on their record is a fact about a
+round that no longer exists. **Two suites rightly refused it**: `mr2-roamers`
+and `mr2-dungeon` place a character somewhere deliberately and assert what they
+can see from there, and the relocation silently moved one of them out of the
+settled town into the wilderness — where it saw eleven roamers and reported
+that the town is not a refuge.
+
+They were right and the change was wrong. The server moving people around
+unasked is its own class of bug. What survives is one narrow case that cannot
+misfire: **a round never begins in an `endgame` area.** An endgame tier carries
+involuntary permadeath (D-513) and D-523 is explicit that a round death must
+never cost a character levelled across fifty rounds, so logging out in the
+crypt and logging in to a round would quietly convert every round death into a
+real one.
+
+### ⚠ And then the server EXITED the instant a round began
+
+With the mode finally on, the first real round killed the process:
+
+```
+error: column "owner_store_id" of relation "items" does not exist
+  at PgStore.grantItemToStore
+  at GameServer.stockCommonStores
+  at GameServer.startRound
+```
+
+`grantItemToStore` is the one route into a store that does not go through
+somebody's pack — D-593's larder, the thing that "was a SYSTEMS gap as well as
+a content one" — and it named a column that has never existed. The schema says
+`owner_store`; every other query in the file says `owner_store`; this one
+insert said `owner_store_id`.
+
+⚠ **All 1015 tests passed against it.** Every sim test uses `MemoryStore`,
+which has no columns to disagree about. This is the third time this repo has
+been bitten by the fake being more permissive than the real store, and D-572
+wrote the warning down in as many words: *"a column added to the type but not
+to the INSERT passes every in-memory test and the fake being more permissive
+than the real one has cost a login before."*
+
+⚠ **The reason nobody caught it is worse than the bug.** `persistence.pg` and
+`stores.pg` are `skipIf(!DATABASE_URL)`. The server reads `.env`; **vitest did
+not** — so on a developer machine the only two suites standing between the code
+and the real schema were skipped every single run, and vitest prints a skipped
+file in **green**. `vitest.config.ts` now reads `.env`, which took the skip
+count from 11 to 1 and immediately turned up a second genuine failure: D-592's
+dressing pass put a twisted tree with a 3×3 collision volume five tiles from
+the broken yard's spawn, and the M0 persistence test walks four tiles east.
+That test now MEASURES how far there is room for. ⚠ It would have failed CI on
+the next push.
+
+### ⚠ One rejected query took the whole world down with it
+
+The tick driver was `setInterval(() => void this.onTick(), …)`. `void`
+discards the promise, so anything that rejected inside a tick became an
+unhandled rejection and Node ended the process.
+
+That is the wrong trade for what this server holds — a round with no respawn
+and a cast who cannot rejoin what has ended. A tick now fails **loudly and
+alone**: logged with its stack, counted, and throttled by message (1st, 10th,
+100th…, because the same fault fires ten times a second and ten thousand
+identical lines is a log nobody reads). ⚠ It is caught, never quietly: a tick
+that threw has by definition left something half-done, and a server that hides
+that is worse than one that stops. What it must not do is take the world with
+it.
+
+### ⚠ A lone player waited five seconds for the lobby to exist
+
+A waiting lobby broadcast every fifty ticks. Somebody who had just logged in
+therefore stood in the town with no HUD at all, which is indistinguishable from
+a server that has not noticed them — and it is worse now than it was, because
+the lobby is where the controls for filling the cast live, so the first thing a
+lone player needs was the last thing to appear. `round_state` is now sent on
+arrival, beside the role message D-579 already sent there.
+
+### Verified
+
+- `sim/test/stores.pg.test.ts` gains the round-opening path — stocking a store
+  with no pack involved, reading it back through `getItem`, and taking it out
+  again. Proved by deliberate break: restoring `owner_store_id` fails it with
+  the exact error that killed the server.
+- `sim/test/mr10-lobby-bots.test.ts` — bots arrive over the wire, the cast
+  reaches three, the round starts, they can be sent home, and a server that
+  forbids them says so. Proved by deliberate break: removing the refusal fails
+  the third case.
+- `sim/test/mr10-second-round.test.ts` — kills a member of the cast, lets the
+  round resolve and reset, and asserts the fallen stand up, everyone is at the
+  opening point, and a second round begins. Proved by deliberate break:
+  removing `gatherForNewRound` fails on "the dead are standing again".
+- `client/test/round-hud.test.ts` — the panel is never offered during a running
+  round or on a server that forbids bots, the note counts bots and names none,
+  and the buttons ask for the shortfall.
+
+⚠ **Three defects here were found by RUNNING rather than by reading, and two of
+them were first reported by the test as something else entirely.** A protocol
+violation (`entity_left` for an entity the receiving mirror had already
+dropped) is silent in a real client and only a headless bot flags it. A kill
+loop budgeted in attempts rather than in outcome reported "nobody died" when
+what had happened was "the watch killed the attacker first" — the most
+misleading sentence it could have printed. And the lost lobby broadcast
+presented as a test timing out on a phase, not as a race.
+
+1025 tests pass, 1 skipped — ten of the eleven skips were the Postgres
+suites, which now run locally. Content validates over 146 files. ⚠ `mr2-gathering`
+remains intermittent under full-suite load and passes on its own.
+
+---
+
+## D-608 — A round opens in the tavern, and it opens you whole
+
+**Status:** implemented
+**Supersedes:** D-607's round-mode default area (`round-town` → `hanged-ferryman`),
+and its ruling that an arrival keeps the position on its record
+
+### The report
+
+> "Upon joining a game, all players should be placed in the tavern. At the end
+> of a round, all players should be placed in a tavern. At the moment, when I
+> log in to an existing character, I am dead, and in the wrong location. A
+> round should be a complete reset of player statuses and position."
+
+### ⚠ Two defects, and only one of them looked like a bug
+
+Measured against the stakeholder's own characters in the dev database:
+
+| character | area | hp |
+|---|---|---|
+| James | `proving-ground` | **0** / 20 |
+| Jameson | `round-south` | **0** / 20 |
+| Jayyyyy | `round-south` | **7** / 20 |
+| Aldous Vane | `broken-yard` | **2** / 20 |
+
+**The wrong room is visible immediately.** The area saved on a record is a fact
+about a round that no longer exists, and honouring it drops a character into
+the proving ground while the round is using a map they cannot reach.
+
+**The health was the "I am dead" half, and it was silent.** Entry restored
+health with `if (character.hp <= 0)` — so a character stored at **7 of 20**,
+which is the normal state of anybody who logged out after a bad night, walked
+into the next round nearly dead and was killed by the first thing that touched
+them. That is not a bug in death. It is a reset that only ever covered one of
+its cases, and the symptom it produces is a report about death.
+
+`wipeRoundStatus` is now one place holding everything a round resets about a
+*person* — health, mana, wounds, hunger and thirst — called both on arrival and
+at the reset between rounds. ⚠ Needs included, or a round opens with somebody
+already starving on a clock belonging to a round that finished (D-526).
+
+### The tavern, not the square
+
+D-607 started rounds at `round-town`, which is the open square. D-549 said the
+round starts at the tavern in the middle of town and D-604 made the Hanged
+Ferryman that tavern — one door off the square. It is also the room D-536's
+opening truce actually describes: *"you have all woken in the same place."* The
+default is now `hanged-ferryman` in both modes, so there is one answer to
+"where does a character begin" rather than two that can disagree.
+
+### ⚠ The one carve-out: rejoining a round you are already in
+
+A player reconnecting to a running round they are in the cast of is **not**
+moved and **not** reset. Two things depend on it. Moving them would undo
+whatever they had walked into, and for the antagonist it would be a public
+relocation in the middle of their own plan (D-579). More seriously, a "complete
+reset" applied to a reconnecting corpse would be a **respawn button made of
+wifi** — and the dead staying down until the round ends is the mode's central
+rule (D-521, D-522).
+
+### ⚠ What the tests objected to, and why the objection was answered rather than overruled
+
+D-607 tried this same relocation and backed it out because two suites refused
+it. Nine fixtures across six files stand a character in a chosen area with
+`saveCharacterPosition` and assert what they can see from there — a body in the
+wilderness at dusk, at the well, on the gate road. They are not testing
+arrival, and they are right that the server moving people around unasked is its
+own class of bug.
+
+So the rule ships with `placeArrivals`, default true, and those six suites say
+out loud that they are asking a different question. A flag that names which
+question a fixture is asking is honest; quietly weakening the rule so the
+fixtures pass would not have been.
+
+### ⚠ And a round the players had all left ran on with nobody in it
+
+`abandoned` has been a documented outcome since D-521 — *"too few players
+remained connected to continue"* — and **nothing ever produced one** except the
+DM's restart button. A round whose cast had all disconnected kept counting down
+its full twenty-five minutes, so the next person to log in did not arrive in a
+lobby: they arrived as a latecomer in a round that could not be won, with the
+bot controls hidden **because the controls are a lobby thing**. A dead end with
+no way out from inside the game, and the exact one this work exists to remove.
+
+A round below the minimum cast for `ROUND_THIN_CAST_TICKS` (30s, unratified) is
+now abandoned. ⚠ It waits rather than firing on the first missing player —
+ending a round on a flicker of somebody's wifi is a worse failure than the one
+it fixes — and it counts who is CONNECTED, never who is alive, because dying is
+how a round is supposed to shrink.
+
+### Verified
+
+- `sim/test/mr10-second-round.test.ts` gains the reported case, planted exactly:
+  a character saved out in `round-south` at 3 hit points arrives in the tavern
+  at full health, sated, unwounded. Proved by two deliberate breaks — restoring
+  `if (character.hp <= 0)` fails on *"whole, not merely alive: expected 3 to be
+  20"*, and never moving arrivals fails on *"placed in the tavern"*.
+- The same file asserts the carve-out: somebody rejoining a running round they
+  are in is left exactly where they were.
+- `sim/test/mr10-lobby-bots.test.ts` gains the deserted round. Proved by
+  deliberate break: removing the check times out on *"the round gives up"*.
+- Live, against real Postgres: the failing state replanted on a throwaway
+  character now logs in to `hanged-ferryman` at 20/20 in a lobby reading 1/3;
+  two bots later the round runs with all three standing in the tavern together.
+
+1029 tests pass, 1 skipped — every file green, including `mr2-gathering`.
+Content validates over 146 files.
+
+---
+
+## D-609 — Chairs with their backs to the table, and buttons nobody could press
+
+**Status:** implemented
+**Supersedes:** D-605's ruling that a seat's `rotation` is the sitter's facing
+
+### The report
+
+> "The chairs are backwards in the tavern, and the buttons to fill the cast are
+> not working."
+
+Two unrelated bugs, and both were invisible to a green test suite for the same
+underlying reason: each test asserted the code against its own convention
+rather than against the thing a person would see.
+
+### ⚠ The chair's backrest is at −Z, and that is measured
+
+D-605 stored a seat's `rotation` as **the direction a sitter looks** and drew
+the mesh at that same angle. Measuring the pack's chair
+(`generic/sm-gen-prop-chair-01`) settles what that produces: of the vertices
+above seat height, the centroid sits at **z = −0.228** against a model centre of
+0 — the backrest is at −Z, the seat opens toward +Z. Map +y is south and the
+renderer places map y on three's z, so a chair drawn at yaw 0 has its back to
+the **north** and seats somebody looking **south**.
+
+Written as "the sitter looks north", then, the mesh was drawn exactly half a
+turn wrong — which around a table means all 32 chairs had their **backs to the
+table**.
+
+`rotation` now means what it means for the other ~2,800 placed objects in the
+world: **which way the model points**. The sitter's facing is derived from it by
+`sitterFacingFor()`, and the half turn is documented where the measurement is.
+⚠ That is the right home for it: the editor, `world-assets` and the drift
+checker all already read `rotation` as mesh yaw, so a field that meant the
+opposite for 32 objects was a trap, not a convention.
+
+### ⚠ Why the sitting suite could not see it
+
+`mr9-sitting` asserted `facing === directionFromDegrees(seat.rotation)` — the
+server against the convention. That stays true **whichever way round the
+convention is**. It can tell you the server is consistent; it cannot tell you
+the convention disagrees with the art.
+
+The new assertion checks the convention against the **room**: every chair is
+drawn up to a `table` tile, so the person sitting in it must end up looking at
+one. Turn either the mesh or the sitter alone and it fails on all 32; turn both
+and it is genuinely still a chair at a table. Proved by deliberate break.
+
+### ⚠ The buttons were unclickable, and looked perfect
+
+`#round-hud` is `pointer-events: none` — correctly. It floats over the world and
+must not swallow a click meant for the ground beneath it. Everything in it had
+always been read-only, so nothing had ever noticed; the first controls put
+inside it (D-607) inherited the rule and could not be reached. Hit-testing in
+the browser: a click at each button's own centre landed on `#overlay`.
+
+They were styled, enabled and hovering. There is no visual difference between a
+button that does nothing and a button that is not receiving the click.
+
+⚠ **And the HUD test could not see it either, for a reason worth keeping.** It
+calls the handler on a fake element. **Dispatching a handler proves the
+handler; it says nothing about whether a person can reach it.** The guard added
+here asserts the opt-in against the stylesheet — and asserts that `#round-hud`
+really is click-through, so it cannot quietly become a test of nothing — while
+checking that the clock and the objective card stay click-through, because
+making those solid would put a dead rectangle over the world for
+twenty-five minutes.
+
+⚠ **Verified by hit-testing, not by eye.** `document.elementFromPoint` at each
+button's centre returns the button; with the opt-in removed it returns
+`#overlay`; a click dispatched at those coordinates reaches the handler.
+⚠ The OS-level mouse could not be used — the app window would not draw while
+minimized — so this is the full path minus the physical click.
+
+### Verified
+
+1032 tests pass, 1 skipped. Content validates over 146 files. Both fixes proved
+by deliberate break, each failing on the assertion that names the defect.
+
+---
+
+## D-610 — Four reports, and the one nobody could have reported
+
+**Status:** implemented
+
+### 1. The companions talked over everybody
+
+Measured rather than estimated: the only speech bots had was a **6% roll per
+decision**, and a decision is every **160ms** — about one line every 2.7
+seconds each, so three companions produced a line roughly every second. In a
+mode whose entire point is people talking to each other (D-521), the
+companions were burying the conversation.
+
+Now: **at most one line per bot per thirty seconds**, **never with nobody in
+earshot** (10m, the server's own `say` range), and what it says is **read off
+the agent's actual state** — the need it is answering, the node it is stood at,
+the spoke it is walking to. ⚠ That last part is the point rather than flavour:
+a companion that announces where it is going is the only way somebody playing
+alongside bots can form a picture of the round.
+
+⚠ **An antagonist says the same things as everybody else**, drawn from the same
+cover work, and nothing in the speech code reads the objective. D-540 is
+explicit that the deception must be behavioural; chatter that changed once a
+bot was dealt the role would be a tell learnable in one round.
+
+⚠ **The first version of the throttle test passed with the throttle deleted.**
+Twice. It counted lines in a window, and the "do not repeat yourself" check was
+quietly doing the work — then, once that was fixed, the talker was a *gatherer*
+who walked to the mine within a second and had nobody in earshot, so the test
+was measuring "the bot left the room". It now keeps an idler in the room and
+asserts the **gap between consecutive lines**. With the throttle removed it
+fails with 55 lines at ~31ms apart.
+
+### 2. "I tried to attack a bot and nothing happened"
+
+The server was answering every time — *out of reach*, *you have swung all you
+can this round*, *not now, the day has not started*. **`#status-msg` lives
+inside the login overlay**, which is hidden the moment you enter play, so every
+in-world refusal was written into an invisible element.
+
+⚠ An action that is refused must LOOK different from an action that was never
+sent. In-world refusals now go to the chat log; auth and creation errors still
+go to the overlay, where the player is actually looking.
+
+### 3. A door undressed you
+
+`worn` (D-554, D-571, D-578) lives on the **entity**, and a transition despawns
+one entity and spawns another — carrying `facing`, `ghost` and `presentation`
+across but not this. ⚠ The line above it reads *"the hood survives the door"*,
+so the question had been asked once and never revisited when equipment arrived
+three decisions later. ⚠ `publishWorn` could not repair it either: it compares
+against the previous value and a fresh entity has none, so the wearer simply
+stood there undressed until the next time they changed kit. Fixed for doors and
+for the round reset, which despawns the same way.
+
+### 4. ⚠ "The bots seem to be duplicating" — they were not, and the real bug was worse
+
+Measured: the cast stayed at **three** every round. What grew was the **town
+watch** — four more guards each round, never removed: 17 NPCs became 41 over
+four rounds.
+
+`despawnRoamers()` carefully **skips** guards in its loop, because the watch is
+not a night thing (D-552) — and then ended with `this.roamers.clear()`, which
+threw away the handles to the very guards it had just spared. Two consequences,
+and **only one of them is visible**:
+
+- `despawnGuards` then found nothing to stand down, so every round left its
+  watch behind and spawned four more; and
+- ⚠ **`witnessCrime` walks that same map, so the watch went BLIND.** Every
+  watchman on the map became scenery — still standing there, still drawn,
+  incapable of seeing a murder committed in front of them. D-552's whole
+  mechanic, and D-217's witness invariant with it, silently dead.
+
+⚠ **And it fired at every DAWN, not only at a reset (D-551) — so the watch was
+blind from the first morning of the very first round.** Nothing errors, nothing
+looks wrong, and the only symptom is a town that is quietly lawless. Reported
+as cosmetic duplication; the duplication was the half you could see.
+
+Both halves are now tested: the watch is the **same size** every round
+(asserted as equality across rounds, not against a ceiling — a cap would pass
+while the leak was merely slower, and the number is unratified), and it still
+**witnesses a killing after a night has passed**. Reinstating the `clear()`
+fails both, the second with *"the watch is still watching after the sun came
+up: expected false to be true"*.
+
+### ⚠ Two tests that were asserting the wrong thing
+
+- `client/test/imported-cast.test.ts` hard-coded the clip name
+  `bow-combat-idle`, and broke the moment that row was legitimately re-pointed
+  in the creation tool. A valid authoring change failed the build with a
+  message about a clip name (D-110: content is data). It now reads the value
+  from content and asserts the **layering** — the combat set wins, and its idle
+  is not the rig's fall-through.
+- `sim/test/mr1-round.test.ts` staged its murder in the **open square**, which
+  is where the watch walks. Once the watch was repaired it began arresting the
+  murderer partway through four hundred swings; both innocents died, the round
+  resolved `cast_wiped`, and the next assertion found the round already over.
+  ⚠ That is the watch being **correct**. What was wrong is a test of the
+  round's rules staging its fixture in front of a mechanic it is not testing —
+  moved to the tavern, which is equally settled and has no guards.
+
+### Verified
+
+1037 tests pass, 1 skipped, every file green. Content validates over 147 files.
+Every fix proved by deliberate break, each failing on the assertion that names
+the defect.
+
+---
+
+## D-611 — Three UI faults, all of them one class name too few
+
+**Status:** implemented
+
+### 1. Every pre-game screen was pinned to the right edge
+
+Measured: the login card sat at **x=968, centre 1118** in a 1280 viewport —
+478px right of centre, and squeezed from its intended 340px to 300px. The
+overlay around it was a perfectly good centred flexbox with one child.
+
+There are **two `.panel` rules**. The first, at the top of the file, is the
+centred card the login screen, the character wizard and the level-up screen are
+all built from. The second, three hundred lines later, is the in-game side
+panel: `position: absolute; top: 64px; right: 12px`. Same class, later rule, so
+it won — for all four users of the class, including two that live inside the
+centred overlay.
+
+⚠ **Exactly D-576's shape**: two surfaces sharing one class vocabulary, where
+the one that got there second silently redefines the first. The in-game panels
+are now `.dock`. The card measures dead centre (640, 360) and the wizard's wide
+variant centres at 720px.
+
+### 2. Two pairs of elements were drawn on top of each other
+
+Measured with real content in both:
+
+- **`#round-bar` ∩ `#target-frame` = 264×30px.** Both declared `top: 12px;
+  left: 50%`. ⚠ The top centre is a **column owned by the round** — clock, then
+  the objective card, then the lobby controls — and its height changes with
+  what is showing, so nothing else can share that space without moving whenever
+  the round does. The target frame goes top-left, which is empty.
+- **`#dials` ∩ `#btn-settings` = 77×25px.** Both `right: 12px` near the top.
+  The right column now reads compass-and-clock at the edge, the settings button
+  to their left, and everything that *opens* below both — which also fixes a
+  132×12 clip of the compass by any docked panel, since `.dock` opened at
+  `top: 64px` and the dials reach to y=76.
+
+After: **no overlap between any pair of HUD elements**, measured with every one
+of them visible and filled.
+
+### 3. Talk and what you notice were one scrollback
+
+⚠ A line of dialogue could be pushed off the top by four refusals and a change
+in the weather — in a mode whose entire point is people talking to each other
+(D-521). Two logs now, stacked in the left column with captions: **what you
+notice** (narration, the world's answers, refusals, sounds carried through
+walls, documents) and **talk** (speech and its impression). They scroll
+independently, so a busy minute of events cannot bury a sentence.
+
+⚠ Every log style was keyed on `#chat-log`, so styling had to move to a `.log`
+class shared by both — a rule left naming `#chat-log` would have left the new
+panel unstyled, which is D-576's failure repeated inside the fix for it. The
+test asserts no `#chat-log .` selector survives.
+
+⚠ Also fixed here: the log was **396px wide, not 460px**. The hotbar starts at
+x=412 and the log ran to x=472, so the last sixty pixels of every line sat
+underneath it.
+
+### Verified
+
+`client/test/hud-layout.test.ts` pins all five facts. ⚠ It is honest about what
+a source assertion can prove: a stylesheet cannot be laid out in node, so what
+is checked is the **anchor each element declares**, not the box it occupies —
+the boxes were measured in the browser, which is the only place they exist.
+Reinstating all four original mistakes fails five of the six tests.
+
+1043 tests pass, 1 skipped, every file green.
+
+---
+
+## D-612 — Two columns, a world clock on every line, and the combat nobody could see
+
+**Status:** implemented
+
+### The logs sit abreast, and they are wide enough to read
+
+Stacked, each log was a letterbox. Side by side needs width, and the bottom
+strip has none left — hotbar at x 412-868, vitals at 1024-1268, the work bar
+centred at 510-770. So the pair moved **up**, clear of all three, at 620px:
+two columns of 306px each, which also clears the craft panel's left edge at
+x=646 when it is open. Measured: no overlap between any pair of HUD elements.
+
+### ⚠ The stamp is the ROUND's clock, not the wall clock
+
+A round runs a game hour every twenty-five seconds (D-527), so a real timestamp
+would read the same minute for an entire round and tell nobody anything. What
+places an event for a player is the hour the WORLD was at — *"it happened just
+before dusk"* is a thing two people can argue about; *"14:52:03"* is not.
+
+⚠ Minutes are interpolated from how long the current hour has been running, the
+same way the dial's minute hand is. Stamping whole hours would give twenty-five
+seconds of identical stamps, which reads as a frozen log.
+
+### ⚠ Both logs empty when a round resets
+
+Not tidiness. D-525 wipes recognition precisely so the cast meets as strangers
+every round, and a scrollback still holding last round's accusations,
+confessions and dying words hands back exactly what that ruling took away. It
+is also the one piece of round state a player can re-read at leisure.
+
+⚠ Keyed on the TRANSITION into lobby, not on the phase being lobby: lobby state
+is broadcast every fifty ticks, so clearing on the value would wipe the log
+five times a second while people stood around waiting — including anything they
+had just said to each other.
+
+### ⚠ Combat animations: the world code was picking a cast
+
+`playAttack` opened with `if (!attacker || !(attacker.visual instanceof
+CharacterVisual)) return;`. `CharacterVisual` is the **procedural** cast;
+anybody rendered by `ImportedVisual` — which is now everybody who made a
+character through creation (D-574) — returned before the animation. And before
+the sound, which is below that line.
+
+`ImportedVisual.playAttack` has been a real implementation since D-559, not a
+stub. The call simply never reached it.
+
+Five sites, all the same mistake, each switching something off for half the
+cast: **`playAttack`** (the swing), **`entity_combat`** (the entire readiness
+layer — sheathe, draw, guard stance), **`voiceCue`** (a modelled character took
+a blow in silence), **`entity_lootable`** (a modelled corpse never drew the
+pack that says it is worth searching), and the **carried body** (which dragged
+along the floor instead of riding at the shoulder). `pendingBolts` was typed to
+the procedural cast too, which stopped a modelled caster's bolt.
+
+⚠ **This was found, fixed and written down once already.** D-571 records
+`entity_worn` doing exactly this, and the comment recording it sits fifteen
+lines above two of the five. A rule that must be remembered at each call site
+is not a rule — there is now one `isPerson()` predicate, and a test that fails
+if any site narrows to a single cast.
+
+### ⚠ Two intermittents, both made worse by a correct change, both now fixed
+
+- `mr3-bots` waited until one agent had visited two areas and then sampled
+  where everybody was — a **proxy** for dispersal rather than dispersal. Once
+  the cast started a round together in the tavern (D-608) rather than spread
+  around the square, they all went through the one door at once and the sample
+  caught them co-located. It failed about one run in two saying *"expected 1 to
+  be greater than 1"*, which describes nothing. It now waits for the property
+  itself. ⚠ And the walking check needed its own wait: the agent's map memory
+  lags the client mirror by one decision, so at the instant the cast first
+  occupies two areas, nobody has recorded the second one yet.
+- `mr2-gathering` remains the known flake and passes on its own.
+
+### Verified
+
+1046 tests pass, 1 skipped, every file green — including both intermittents.
+`client/test/hud-layout.test.ts` pins the layout anchors and the both-casts
+rule; reinstating the `instanceof CharacterVisual` in `playAttack` fails it by
+name. ⚠ Source assertions, and honest about it: a stylesheet cannot be laid out
+in node, so the boxes were measured in the browser and what the tests pin is
+the anchor each element declares.
+
+
+---
+
+## D-613 — Seventeen finished people nobody could reach
+
+**Status:** implemented
+
+### The report
+
+> "Currently there is no proper way to create enemies in the character creator.
+> The Goblin meshes etc do not show up in that tool. I think there should be a
+> separate tab in the character creator for enemies/non-modular characters."
+
+### ⚠ Every piece was already built except the one that lets a person see it
+
+- `CharacterDefSchema.mesh` has said **"this is how enemies get in"** since
+  D-594, and `goblin.json`, the skeletons and the rock golem already use it.
+- `meshShelf` has classified whole rigged bodies as `'character'` since D-595,
+  and is TOTAL by construction precisely so nothing can fall out of it.
+- The studio server has validated and written these definitions the whole time.
+
+The creation tool simply **had no tab for that shelf**. Measured across the
+ingested packs: 1,456 body-part meshes, 1,858 environment, 167 weapons, 36
+pickups, 4 unfiled — and **17 characters that appeared in no tab at all**. Six
+of them goblins. The classifier was right; the menu was one entry short.
+
+### A separate tab, because it is a different SHAPE of content
+
+Not a different subject. A modular character is an assembly chosen slot by slot
+out of hundreds of part files (D-560); one of these is a single rigged FBX that
+IS the body. Forcing the second through the first would mean inventing a "whole
+body" slot and pretending an assembler ran — which is the reasoning D-594 wrote
+down when it added the field, and the reason the two belong on separate tabs
+rather than in one list.
+
+The tab lists a pack's whole bodies, says how many are named, previews the raw
+mesh on the stage, and writing a name creates the definition.
+
+### ⚠ Four things that would each have made it useless
+
+- **It previews the RAW pack mesh, not the built `.glb`.** The creature editor
+  loads from the models manifest, which is right there — the question is "what
+  will the game draw" — and useless here, where the question is "what is this
+  mesh". A body nobody has named has never been built and never will be until
+  somebody names it, so previewing only built characters would leave the tab
+  unable to show the very meshes it exists for.
+- **It lands on a pack that HAS some.** Only one ingested pack ships finished
+  people, so opening on whichever pack the last tab was reading showed an empty
+  list — and an empty list is indistinguishable from a broken tab. It walks the
+  packs until it finds bodies.
+- **The shelf is named, not inferred.** The tab is called `enemies` and the
+  shelf is called `character`; without mapping one to the other it asked for a
+  shelf that does not exist, matched nothing, and rendered empty — the same
+  failure wearing the same face.
+- **It writes on `change`, not on `input`.** Every keystroke would be a write
+  into git and one definition id per prefix of the word being typed.
+
+### ⚠ The scale trap, said where the author is standing
+
+Measured in the tool: the pack's goblin is **1.79m** and its knight 1.86m. Every
+body in these packs is modelled at human height whatever it is, so how big a
+creature IS comes from `heightMetres` on the roamer (D-594) and never from the
+mesh — and it reaches the descriptor pipeline (D-201), so a thing a player is
+told is small actually is. The side pane says so beside the body, because this
+is the one fact an author cannot see by looking at the preview.
+
+### ⚠ A look cannot be deleted out from under a creature
+
+A roamer names its look by id. Deleting the definition leaves content that
+parses, validates against its own schema, and fails the build somewhere else
+about a different document — the exact shape of failure D-569 built the recipe
+graph check for. `DELETE /api/characters/:id` refuses with the reason, verified
+live: deleting `skeleton-soldier` answers *"skeleton-soldier is what
+night-walker is drawn as"*, and an unused definition deletes cleanly.
+
+### Verified
+
+Driven in the browser: the tab lists all 16 of the dungeon pack's bodies, shows
+9 already named, previews a goblin at 1.79m, and naming
+`Character_Goblin_Female` wrote a definition that `validate:content` accepts on
+the next run. The test junk was then removed through the same delete path.
+
+`tools/test/enemy-tab.test.ts` pins the tab, the shelf mapping, the schema shape
+(a character is an assembly or a mesh, never both and never neither), that the
+goblins are findable, and the delete guard. Proved by deliberate break: removing
+the shelf mapping and removing the guard each fail by name.
+
+1051 tests pass, 1 skipped, every file green. Content validates over 147 files.
+
+⚠ Two Postgres-backed suites failed earlier in this session for an
+environmental reason worth recording: Docker was not running, so they could not
+connect. They fail LOUDLY rather than skipping, which is correct — D-572's
+lesson is that `MemoryStore` is more permissive than the real store — but it
+means a red suite can mean "no database" rather than "broken code". With the
+database up, both pass.
+
+
+---
+
+## D-614 — A sword you are holding is drawn
+
+**Status:** implemented
+
+Reported: *"I had a sword equipped, and it was not visible in combat."* Three
+gaps, each of which alone was enough.
+
+**No weapon mesh had ever been built for the client.** `build:environment`
+collects what AREAS, stations and nodes place; an item's art was in no list, so
+not one of D-564's 163 fitted weapons had ever been exported. ⚠ And building
+them naively would have destroyed the fitting: `normalise` stands a mesh on the
+ground and re-centres it in x/z, which is right for a barrel and moves a
+sword's grip by half a blade. D-564's load-bearing measurement is that **the
+mesh origin IS the grip** -- it is why a 2.1m spear and a 48cm knife take the
+same offset. Held items now export RAW, on the same reasoning D-571 gives for
+character part files: the transform was measured against the raw FBX, so baking
+a conversion in here would apply it twice.
+
+**The wire said only `'sword'`** -- the same word for every blade in the game,
+so a client could not know which mesh to hold. `WornLook` carries `weaponArt`
+now, read off the same item the silhouette picked (the reasoning `stance`
+already carries: choosing the silhouette from one weapon while drawing another
+is a man swinging a sword he is not holding).
+
+⚠ **`publishWorn`'s comparison has now caught three decisions running** --
+D-571 found `garments` missing from it, D-578 found `stance`, and this is
+`weaponArt`. Two different swords give identical flags, identical garments and
+an identical stance, so without the line a change of sword is judged "no
+visible change" and never broadcast. Added deliberately rather than discovered
+a fourth time.
+
+**`ImportedVisual` had a hand socket it used only to find a muzzle.** It now
+hangs the fitted mesh off the bone the fitting names.
+
+⚠ **One bug caught by comparing against the fitting tool rather than by
+running:** the stored offset must be divided by the bone's inherited world
+scale, not only the mesh scale. A child's position is in its parent's local
+space, so a bone at 0.0116 turns a 12cm offset into 1.4mm -- a hilt welded to
+the wrist. The tool has divided both since D-563; anything reading those
+offsets has to undo the same division.
+
+**Measured in the browser:** sword drawn on `Hand_R`, **12.3cm** from the bone
+-- exactly the stored offset -- with the bone's real world scale at **0.0116**,
+not the 0.01 anyone would assume.
+
+---
+
+## D-615 — Sitting on a chair and sitting on the ground are two things
+
+**Status:** implemented
+
+Asked for: the sit emote should not be the chair animation. Measured, the
+library's `unarmed-sitting` puts the hips **58cm** off the floor -- that is a
+seat -- and the `*sits*` emote resolved to it too, so anybody sitting down in a
+field hovered at chair height with their legs round furniture that was not
+there.
+
+The two are now separate actions. ⚠ The server says which, because only the
+server knows: the `sit` verb finds a seat and decides where the sitter ends up
+and which way they face (D-605), while the emote says nothing about furniture.
+A client cannot tell them apart -- both are `posture: 'sitting'` -- and guessing
+from the tile would make it a question of geometry the authority has already
+answered.
+
+⚠ **The flag rides on the EVENT as well as the entity.** Taking a chair
+broadcasts `entity_emote` with `posture: 'sitting'` exactly as the emote does,
+so reading the flag off the entity in that handler would be reading a value the
+event is about to change. Everybody sat on the floor through the chair.
+
+⚠ **There is no ground-sitting clip in the library, and none was faked.**
+Measured: `unarmed-sitting` 58cm, `unarmed-kneel` 43cm; hips on the floor would
+be about 20cm. Binding either is the substitution D-564 warns about, where a
+search falling back to its first result shipped a crouch as an idle. So the
+SPLIT ships, `sit-ground` is in the wishlist with search terms, and until a clip
+is fetched the emote falls back to the chair sit -- looking as it does today
+rather than wrong in a new way. Fetching needs a Mixamo session, which is the
+stakeholder's.
+
+---
+
+## D-616 — The hood and the emotes, on the cast that ships
+
+**Status:** implemented
+
+Both were empty methods on `ImportedVisual`, and `setPresentation`'s own comment
+called itself a regression. ⚠ That regression was load-bearing: D-219's
+recognition depends on the hood being VISIBLE -- a hood dropping in view is what
+merges two identity threads -- so on the cast that actually ships, the mechanic
+rested on nothing.
+
+**The hood is a head covering, not a garment**, and the separation is the
+point. Garments are equipment (D-570/D-571) and equipment must never reach the
+descriptor pipeline -- D-539 refused a helm at creation precisely because it
+would be a permanent disguise. The hood is the opposite: presentation, which the
+descriptors already read. Modelling it as a garment would have broken the rule
+from the other side.
+
+⚠ **Chosen by TAG, not by filename.** `content/parts/<pack>.json` documents
+`tags` as "free keywords per part, for anything that wants to select on them
+later", so which mesh is the hood is a decision in content that somebody can
+change in the creation tool. ALSO: the 28 hood parts split by what they CONCEAL
+(hair / facial hair / neither), not by sex -- head coverings are cut once for
+both bodies.
+
+**Emotes play.** ⚠ The comment read "no emotes in the drop" and had been out
+of date since D-564: `unarmed-bow`, `-wave`, `-laugh`, `-point` and `-shrug` all
+shipped and `rig-unreal.json` binds every one by name. The method was empty, so
+an emote reached other players as text and as nothing on screen.
+
+### ⚠ Three mistakes on the way, all found by measuring
+
+- `build:characters` exports parts a definition or garment names, and the hood
+  is neither -- so the part was never built. The symptom is the worst kind: the
+  swap happens, the loader asks for a file that is not there, and the character
+  renders bare-headed exactly as before the feature.
+- **`loadLook` had its OWN copy of the swap loop** and never called
+  `dressedParts`, so the hood worked for seed bodies and not for anybody who
+  had chosen a face -- which is every player. Now one `layer()` rule.
+- Extracting that rule **dropped the injected wardrobe**, turning five garment
+  tests red at once. Extracting shared code has to carry the seams with it.
+
+⚠ **And one non-bug:** the emote looked stuck until `document.hidden` turned
+out to be true -- a hidden browser pane throttles `requestAnimationFrame`, so
+nothing was stepping. Driving frames by hand showed wave -> walk -> idle exactly
+as designed. That was the measurement, not the code.
+
+**Measured:** hood up takes the assembly from **14 meshes to 15** (+732 verts)
+and back to 14 when lowered; `unarmed-idle` -> `unarmed-laugh` -> idle as the
+clip expires.
+
+---
+
+## D-617 — The procedural cast is deleted
+
+**Status:** implemented
+**Supersedes:** D-559's ruling that it must not be deleted until the stakeholder says so
+
+The stakeholder said so. There is one cast: the imported models.
+
+⚠ **The two things only the procedural rig could do were built first**
+(D-616), because deleting it before that would have taken D-219's hood with it
+-- and the hood is what recognition and disguise rest on (invariant 6). The
+order was the stakeholder's call and it was the right one.
+
+**The Settings toggle went too.** A switch that silently changed which renderer
+somebody was judging is a way to report a bug about the wrong one, and it
+defaulted to the cast that was not shipping.
+
+### What went with it, and why
+
+- `/imported.html` -- an A/B page with nothing left to compare.
+- `/creator.html` -- a preview of the deleted rig.
+- The viewer's **cast grid, seed filters, gear toggles, hood toggle, animation
+  driver and per-part colour editor**: every one browsed something that no
+  longer exists. Its Render tab went too -- D-586 removed the quantiser those
+  controls tuned, so they had been vestigial since.
+- `garment-scale` and `walk-grounding`: both measure generated geometry (cape
+  anchoring across builds, the analytic walk solve). Neither has meaning for a
+  cast that plays authored clips.
+
+### ⚠ The cloth workbench survives on a placeholder
+
+It pinned cloth to `CharacterVisual.bones()` and collided it against
+`colliderCatalog()` -- properties of a skeleton the renderer GENERATED. The
+imported cast is fixed meshes with no cloth simulation, so the workbench needed
+something to stand on or it went down with the cast. `WorkbenchBody` is a
+jointed stand-in at roughly human proportions, deliberately blocky, and the page
+says so. ⚠ **The bone NAMES are kept identical**: a saved garment stores its
+pin as a string (D-520), so renaming them would silently unpin every garment
+already tuned. ⚠ A garment tuned here is tuned against an **approximation** --
+the honest state of cloth tuning until something rigged replaces it.
+
+### ⚠ A repaired mechanic changed two tests, and both were right to change
+
+The town watch was blind from the first round ever played (D-610). With its eyes
+back:
+
+- `mr1-round` staged four hundred swings in the open square; the watch began
+  arresting the murderer partway through, so the round resolved `cast_wiped`
+  and the next assertion found it already over. Moved to the tavern -- equally
+  settled, no guards.
+- `mr3-bots` asserted the antagonist WINS after killing the keeper. It now
+  sometimes loses the fight with the guards instead. Both endings are correct;
+  what that test is for is the BOT finding a target it was never told the
+  position of and committing, which is asserted directly. Pinning the winner
+  pinned the outcome of a fight.
+
+### Verified
+
+1057 tests pass, 1 skipped, every file green -- including both long-standing
+intermittents. Content validates over 147 files. `hud-layout.test.ts` now
+asserts the stronger fact the deletion makes available: the file is gone,
+nothing imports it, and nothing constructs it. A half-removal leaving one live
+reference would be the worst of both.
+
+## D-618 -- The last procedural geometry indoors, and the dead who would not leave
+
+**Status:** implemented
+**Reported by:** the stakeholder, playing
+
+Four of ten notes, and one of them had a cause nobody would have guessed from
+the symptom.
+
+### The tavern's walls, tables and hearth were TILE KINDS
+
+The taproom's legend carried `wall-timber`, `table` and `hearth`, and the
+terrain renderer drew each of them as generated geometry -- the last of the
+procedural world still standing anywhere a player spends time. They are pack
+meshes now: `generic/sm-bld-base-wall-01` for the walls,
+`dungeon-pack/sm-prop-table-01` for the bar and the tables,
+`dungeon-pack/sm-env-wall-fireplace-01` for the hearth. The legend is `f` and
+`x`, both **wood**, and the collision comes from the objects.
+
+⚠ **A run is tiled by evenly spacing WHOLE panels, never by scaling one to
+fit.** A 24m wall takes ten 2.5m panels at 2.4m centres -- 10cm of overlap
+each, invisible -- where scaling the last one to 1.5m compresses its texture by
+40% on exactly one panel per run and reads as a seam.
+
+⚠ **The first cut gave every wall `collision: []` with
+`overrideCollision: true`, and you could walk out through the side of the
+building.** That combination is how the chairs are placed, where it is a
+documented choice (D-567); on a wall it means there is no wall. The room had no
+walls at all for as long as it took to notice. The mask is the panel's SPAN
+rather than its mesh, or the wall creeps a tenth of a metre into the room at
+every joint.
+
+⚠ **Then the validator found four unreachable tiles**, because a wall line
+that is walkable floor is a wall line bodies path through and objects then
+block. The fix is a tile that is unwalkable and still WOOD: a tile may be
+unwalkable without being a procedural wall, which is a distinction the legend
+did not previously have.
+
+⚠ **The rest of the world is 17,000+ wall tiles across eleven areas.** The
+note said "everywhere"; the tavern is done in full and the scale of the rest is
+flagged rather than quietly narrowed. D-545 renders those at full height and
+`walls-to-assets.py` converts them, and re-running that converter is half of
+what caused D-592's flattening.
+
+### A bot showed up as a goblin, and the cause was a lottery
+
+Which character an entity is drawn as, when nobody chose a face, is picked from
+the appearance seed (D-559). **Ten of the twelve built characters are
+monsters**, so the seed handed bots, NPCs and anybody who never went through
+creation a goblin, a skeleton or a rock golem.
+
+A definition now DECLARES `kind: 'person' | 'creature'`, the manifest carries
+it, and the fallback draws only from people. A goblin is drawn when content
+SAYS this thing is a goblin -- a roamer naming its look (D-594) -- and never by
+accident of a number.
+
+⚠ **Declared, not inferred.** The tempting rule -- a whole mesh is a
+creature, an assembly is a person -- is true of today's twelve and is an
+accident of which art happened to be modular: `polygon-hero-male` is a whole
+mesh and is the most person-shaped thing in the pack.
+
+⚠ **It defaults to `creature`,** which is the safe direction: an
+unclassified definition stays OUT of the pool, and the cost of that is "this
+NPC is never picked at random" rather than the bug being fixed.
+
+⚠ **The classification silently did nothing on the first attempt.** The
+build read it through `definedCharacters()`, a helper that skips whole-mesh
+definitions -- which is every creature -- so all thirteen came out `person` and
+the manifest looked correct. **A helper that filters for one purpose is not a
+list.**
+
+⚠ **If nothing is marked as a person it falls back to the whole list**
+rather than drawing nobody. A wrong-bodied cast is a bug you can see; an empty
+tavern looks like the server is down.
+
+### The dead stayed between rounds, replaying their deaths
+
+The reset cleared nodes, stations, roamers, guards, the stores, recognition,
+kit and xp -- and left the bodies lying where they fell. A fresh client is
+never told a corpse has already landed, so each one played its death animation
+again, forever.
+
+`sweepTheDead()` runs at reset. ⚠ **Swept rather than decayed**: a corpse
+normally rots on a timer and leaves its gear as a heap (D-511, D-554), and that
+whole chain is a WITHIN-round mechanic. Between rounds none of it means
+anything -- gear is stripped anyway (D-522) -- so the bodies go without
+ceremony and without leaving heaps, which is what "back to the start of round
+state" means. ⚠ **The items go with them**, or the rows are owned by
+nothing: invisible, unreachable, and still counted by the no-duplication
+invariant D-114 exists to protect. ⚠ **The departure is announced on the
+plane the body was ON**, or a ghost's corpse is announced to the living.
+
+The chat and the perceived-actions panels clear on the same transition (D-612
+cleared them on one of the two reset paths).
+
+### Pressing an action button between ticks said so, every time
+
+Every refused swing inside a combat round printed "you have swung all you can
+this round" into the log. The client now suppresses `on_cooldown` **and only
+that code**: a refusal that tells you something you did not know is still
+printed, because a verb that fails in silence is the bug the whole refusal
+channel exists to prevent (D-610).
+
+
+
+## D-619 -- A weapon up is a run, and the watch can reach you
+
+**Status:** implemented
+**Reported by:** the stakeholder, playing
+⚠ **Every magnitude here is UNRATIFIED.**
+
+The note was that combat at level 1 is over in seconds -- and explicitly *not*
+because the rounds are too short. Three separate things were wrong, and only
+one of them was a damage number.
+
+### Nothing about a fight moved
+
+Every body in the world walked at `WALK_SPEED`, fighting or not. So the man
+swinging and the man running from him travelled identically: a fight was
+decided entirely by who swung first, nobody could close and nobody could break
+off. `RUN_SPEED` is 4.2 against a walk of 2.9, selected by the entity's own
+`combat` flag -- the server's, already broadcast (D-516), so every observer
+sees one pace.
+
+⚠ **1.45x, not 2x.** A combat round is four seconds (D-550) and reach is a
+metre and a half; at double speed a body crosses the whole gap between two
+swings and back, which turns a non-twitch game (D-104) into a kiting contest
+decided by mouse work. At 4.2 a runner opens 5.2m over a round -- enough to
+break away, not enough to fight a duel out of reach.
+
+⚠ **It is a STATE, not a key.** Nobody presses run. You run because your
+weapon is out.
+
+⚠ **The glide had to learn it too, or it stops being presentation.** The
+server reports a new position every tick; a client interpolating at walking
+pace closes less ground than arrives and falls steadily behind until the
+catch-up factor stops it about a metre back. What that looks like is a
+character sliding along a step behind their own sword. `stepToward` takes a
+seconds-per-metre now, and `main.ts` passes the run when the wire says combat.
+
+⚠ **The combat flag is recorded for EVERY body, and only the stance is a
+person's.** It had been set inside `if (isPerson(...))`, so a creature's flag
+was never written -- and a creature runs at the same pace a person does even
+though it has no readiness layer to swap.
+
+⚠ **Locomotion is two clips now, and that broke the re-table.** `retable()`
+answered "am I moving?" by comparing the playing clip to the WALK. With a run
+in the vocabulary, raising a weapon mid-stride found the run playing, decided
+it was not the walk, and dropped a running character into the idle.
+
+### The watch was capped below a walking player
+
+A roamer lays down one metre of route every `moveCooldownTicks`, so that
+cadence is a **speed limit**. At 4 the watch was held to 2.5 m/s against a
+player walking at 2.9 -- it could never catch anybody who simply left, which is
+why "the guards never arrive". At 2 the cap sits above the speed and the
+guard's own legs decide.
+
+**A roamer enters combat when it picks a quarry**, not when it lands a blow.
+Two things follow and neither is cosmetic: it runs, and every observer sees a
+weapon come up.
+
+Damage 3-6 -> 4-9 and hp 22 -> 30, so that arriving matters. ⚠ **The reach
+of all of it is bounded by the guard still having to WITNESS something first**
+(D-552, D-217): none of it touches a player who was not seen. And **the watch
+is still worth zero xp and carries nothing** -- the moment it pays, murdering
+the watch is a farming strategy.
+
+### A named objective had ten hit points
+
+Not a content decision -- the world's `spawn` default, set once for test
+fixtures, which no content file could reach. `NpcDefSchema` gains `hp`,
+defaulting to ten so nothing unauthored moves, and both keepers are **40**.
+
+The arithmetic, measured rather than guessed: a level-1 character with the
+arming sword its kit grants swings at +3 against an unarmoured AC of 10, hits
+about seven times in ten for a flat 3 -- 2.1 a swing -- and a basic character
+gets ONE swing per four-second round (D-550). Ten hit points was five swings
+and twenty seconds. Forty is about nineteen swings and seventy seconds of
+standing over somebody in the open square where D-549 put every route: long
+enough for the watch to close and for anybody crossing to see it. It halves for
+two attackers, which is D-529's buddy system working rather than a leak.
+
+### ⚠ Two fixtures were wrong about the game, and the game was right
+
+- `mr9-keeper` fought **bare-handed** -- measured off the fixture itself: 27
+  swings for 13 damage, about half a point each. An antagonist dealt
+  `silence-the-keeper` carries the kit its calling granted (D-547), so a
+  fixture that punches him is not a harder version of the real thing, it is a
+  different thing, and tuning the objective against it would tune it against
+  nobody. It equips an arming sword now.
+- `mr1-round` murders one of the cast in a settled zone to prove a round needs
+  no hostility declaration (D-531). D-610 had already moved it out of the
+  square for this reason -- but **guards stand in every settled area**, the
+  tavern included, so the tavern was only ever far enough away rather than out
+  of reach. Once they could run, the watch killed the murderer partway through,
+  the cast was wiped, the round resolved, and the next assertion found the
+  round already over. There is a `watch: false` server option now, the same
+  move as `graceTicks: 0` for the dawn truce (D-536): a suite states which
+  mechanics it is not about instead of hoping they stay out of the way.
+  Weakening the watch to keep an unrelated suite green would be tuning the game
+  to the tests.
+
+### Verified
+
+1071 tests pass, 1 skipped. Content validates over 147 files. The run is
+asserted three ways -- the speed function, one tick of the real sim carrying a
+fighter 1.45x further than the same body walking, and the renderer choosing
+`run` over `walk` -- and the watch's cap is asserted as a SPEED rather than as
+a cadence, because the cadence is the thing that reads as harmless.
+
+⚠ **One long-standing intermittent is still intermittent.**
+`mr2-gathering`'s interrupt assertion failed once under full-suite load with
+the work ending on "you moved" rather than "you were struck", and passed alone
+and on the next full run. Its own comment records a history of chasing timing
+in it. Noted rather than papered over.
+
+## D-620 -- A weapon you are not fighting with is put away
+
+**Status:** implemented
+**Reported by:** the stakeholder, playing
+**Extends:** D-614 (a sword you are holding is drawn), D-565 (readiness is a layer)
+
+"Weapons should only be visible when in combat state. At the start of entering
+combat an animation should play to draw weapons, and when it ends an animation
+should play to holster them."
+
+D-614 put 163 fitted weapons into hands and never took one out again, so the
+whole cast stood about the tavern holding drawn steel. The twelve **draw and
+sheathe clips** D-564 fetched and D-565 deliberately filed in the STANCE layer
+-- rather than in either readiness -- had never been played by anything at all.
+
+### ⚠ The two halves are not symmetrical, and that is the design
+
+The blade appears at the **start** of a draw: the clip's hand reaches to the
+hip and comes back holding something, and nothing to hold makes the motion
+meaningless. It leaves at the **end** of a sheathe, which is the same sentence
+read backwards. Hiding it when combat ends is a sword that vanishes while the
+hand is still putting it away -- which reads as a missing model rather than as
+a bug in a flag.
+
+`readinessTransition` is pure and exported for exactly that reason: it is the
+whole of the decision, the rest is three.js parenting, and "the sword
+disappeared halfway through putting it away" is a defect you can only see by
+looking (D-114).
+
+### ⚠ Nothing plays for an empty hand
+
+An unarmed character entering combat still changes how they STAND, because
+that is the readiness layer. A draw with nothing to draw would be the renderer
+claiming something happened. The flag is still tracked either way, or somebody
+who equips mid-fight gets an invisible weapon and no event that would reveal
+it.
+
+### ⚠ A missing clip snaps rather than sticks
+
+A rig with no sheathe stows immediately. The failure of an unbound clip has to
+be "it went away suddenly", never "combat never ends".
+
+### ⚠ The transition owns the body while it plays
+
+Without that, the re-table that RAISED the weapon immediately replaces the draw
+with the combat idle and the clip is never seen. Held in `performance.now()`
+milliseconds to match `emotingUntil` rather than `attackUntil` -- this file
+already had two clocks and joining a third to the wrong one is how a transition
+either never holds or holds forever.
+
+Visibility is toggled, not re-parented: the mesh is loaded asynchronously and
+hangs off a bone, so tearing it off on every sheathe would make entering combat
+a network round trip and race two quick changes.
+
+## D-621 -- The dead see a different world
+
+**Status:** implemented
+**Reported by:** the stakeholder
+⚠ **The look is unratified.** Every constant in the shader is a taste call.
+
+"When dead, I would like you to add some kind of shader to the map/render that
+makes the character and map look ethereal, grayscale."
+
+A full-screen pass, not a material swap: a ghost has to see the WORLD change,
+and there is no per-object edit that reaches painted ground, instanced terrain,
+placed meshes, effects and people alike.
+
+### ⚠ Grayscale is the floor, not the whole of it
+
+A straight desaturate reads as a broken screenshot. What reads as a different
+plane is four things together -- desaturate, **lifted blacks** (a ghost's world
+is pale, not dark; darkening it reads as the lights going out), a **cold tint
+weighted into the shadows** (a uniform blue cast looks like a filter, a
+gradient looks like light behaving differently), and a **vignette** centred on
+the screen rather than on the player, because a vignette that tracks a body
+reads as a spotlight.
+
+Measured on a real render rather than judged by eye: an orange box reads
+(204, 68, 34) alive -- saturation 170 -- and (160, 166, 177) dead, saturation
+17 and blue-dominant.
+
+### ⚠ The colour space was wrong, and it looked like a taste problem
+
+A raw `ShaderMaterial` writes whatever it is given, and the canvas expects
+sRGB. Before the fix the same box read **(90, 97, 112)** where the arithmetic
+says about (133, 141, 153): every veiled pixel a third too dark, which is
+indistinguishable from having picked the numbers badly. The render target is
+sRGB so the world pass encodes into it, sampling decodes, and
+`<colorspace_fragment>` re-encodes. Verified by driving the fade one frame and
+confirming the pass is a **passthrough** at that amount -- one channel out by a
+rounding step.
+
+### ⚠ The living pay nothing
+
+Nothing is allocated until somebody dies, and `render()` goes straight to the
+canvas while the amount is zero -- not even a blit. That fast path is why the
+ease must **arrive**: an exponential approaches 1 and never reaches it, so the
+world would stay grey for somebody plainly alive after a respawn. It is linear
+over about a second, because dying is the one event a player most needs to
+understand and a hard cut reads as a graphics glitch.
+
+Also load-bearing: the render target needs a **depth buffer**. Without one the
+world draws in submission order and terrain lands on top of people -- a failure
+that only appears once somebody dies, which is the worst time to find it.
+
+## D-622 -- What you can use lights up
+
+**Status:** implemented
+**Reported by:** the stakeholder
+
+"If an object is interactable, I would like it to show a highlighted edge when
+hovering the mouse cursor over it. This includes objects like stations,
+characters, and chairs."
+
+There was a ring on the GROUND under a hovered entity, which answers a
+different question -- it says where a thing stands, not that the thing is a
+thing you can use -- and scenery like a chair had no feedback at all.
+
+### An inverted hull, not a post-process
+
+An outline pass over the whole frame means a second render target, a depth
+prepass and an edge filter, running every frame for everybody so that it is
+available on the frames where something is hovered. A hull is one extra draw
+per mesh of ONE object, only while the cursor is on it, and it survives the
+renderer changing underneath it because nothing reads the depth buffer.
+
+Measured: 912 outline pixels appear around a 6,084-pixel box and the box's own
+pixels are **unchanged** -- a rim, not a recolour.
+
+### ⚠ The push happens in the vertex shader, before skinning
+
+A character is a skinned mesh: its vertices are transformed on the GPU by the
+skeleton, so scaling the OBJECT does nothing to where the skin ends up and an
+outline built that way stays welded to the bind pose while the body walks out
+of it. Pushing `transformed` along the vertex normal at `<begin_vertex>` puts
+the expansion into the same bind-pose space the skinning then reads.
+
+### ⚠ `normal`, not `objectNormal`
+
+`objectNormal` is declared by the basic material's vertex shader only inside
+`#if defined(USE_ENVMAP) || defined(USE_SKINNING)`. Reading it compiles for a
+character and **fails to compile for a chair** -- one class of object with no
+outline and nothing in the log. The raw `normal` attribute is always declared.
+
+### ⚠ The width is divided by the object's world scale
+
+The imported cast is authored in centimetres and worn at a root scale of 0.01
+(D-555, D-577), and the push is in LOCAL units -- so a constant is a hundred
+times too small on a person and correct on a chair, which looks like the
+outline failing on characters specifically.
+
+### ⚠ Entities first, scenery second, and scenery means SEATS
+
+A chair with somebody sitting in it is two interactable things on one tile, and
+the person is what you meant; the entity pick already resolves that (D-542) and
+this keeps the same answer. And every wall, cobble and flower is a placed asset
+too -- outlining whatever stands on the hovered tile would light up the floor
+of the tavern as the cursor crossed it. A seat is the only piece of scenery
+there is a verb for.
+
+Two more things that are not incidental: the hull shares the source's
+**skeleton object** (a copy would have to be posed by somebody, and nobody
+would), and it copies world matrices **after** the mixers have run, because
+reading last frame's matrix trails a running character by a whole frame -- at
+four metres a second (D-619) that is a visible double image.
+
+⚠ Verified in the browser rather than by unit test: this is GPU code, and an
+assertion that a uniform was written proves nothing about what is on screen.
+What was measured is above.
+
+## D-623 -- Which mesh the hood is, is a decision somebody can make
+
+**Status:** implemented
+**Reported by:** the stakeholder
+**Extends:** D-616
+
+"The model for the hood is incorrect. Can you add a place in the creation tool
+to define the asset to use for the hood?"
+
+D-616 chose the hood by a `hood` TAG rather than a filename in the renderer,
+which was the right shape and had no way to be set: the tag was typed into
+`content/parts/` by hand. So "the model is incorrect" was a bug nobody could
+fix without editing JSON.
+
+The Body parts tab now has a **hood picker** -- all twenty-eight head coverings
+in the pack, by the name a person gave them, previewing on a body as you
+choose. ⚠ A picker showing file stems would be asking somebody to choose a
+hood by inventory number: the stems say `HeadCoverings_No_Hair_03` and the
+names say "Brown hood 3".
+
+⚠ **Exactly one part may carry the tag.** Setting a new hood clears the old
+one in the same action, and `validate:content` refuses two. `hoodStem()`
+returns the FIRST match, so two tagged parts is an ordering-dependent answer --
+stable until somebody renames a part, and then the whole cast changes hood with
+nothing in any log.
+
+⚠ A tag pointing at a part the current pack does not ship still SHOWS in the
+picker rather than silently resetting to none. Somebody switching packs should
+see what was chosen, not have the tool quietly discard it.
+
+## D-624 -- The cast that fills a lobby is content
+
+**Status:** implemented
+**Reported by:** the stakeholder
+**Extends:** D-607 (bots summoned from the lobby), D-618 (the goblin lottery)
+
+"I am not sure how bots are selected/created, but the definition of bots needs
+to be added to the creation tool."
+
+The roster was **eleven names and six roles hardcoded in
+`server/src/dev/bots.ts`** -- the thing D-110 exists to prevent, and a thing no
+tool can edit. Filling a lobby is how a round starts at all (D-607), so who
+fills it is content: `content/bots/`, a fourth kind in the Round content tab,
+and the same save-refuses-what-the-build-refuses rule the rest of the tool
+follows (D-543).
+
+D-618 fixed the goblin by keeping creatures out of the appearance lottery. This
+is the other half: a companion should be a person somebody DECIDED on.
+
+### ⚠ Draw order is a field, not the file listing
+
+Definitions are read alphabetically, and the first draft of this relied on that
+-- wrongly. A cast of three is the floor (D-522), so the first three summoned
+have to cover the mine, the farm and the wood; alphabetically they are a
+woodsman, a delver and a gatherer, with **nobody on the farm**. An unworked arm
+makes hunger look broken when it is merely unattended (D-529) -- a bug report
+about the wrong system. `order` is authored, ties break on id so the order is
+total, and the three arms are asserted in a test, refused on save and refused
+on delete, by name.
+
+### ⚠ A fixed face, because the old one moved
+
+Without an authored `appearanceSeed` a companion's face came from the ORDER it
+was summoned in, so Dorn was a different stranger depending on how many arrived
+before him.
+
+### ⚠ Letters only, in the schema
+
+Character names are letters on the wire. D-540 lost twenty minutes to a refusal
+that surfaced as a timeout; a new companion now fails the build instead.
+
+### ⚠ The cap is what content says there is
+
+`MAX_BOTS` was a constant equal to the hardcoded roster's length. Drawing past
+the end wrapped, so a twelfth request handed back a second Dorn -- and
+character names are unique, so it surfaced as a refusal that read like the
+server being broken. An empty `content/bots/` is refused out loud, naming the
+directory, rather than being a lobby button that summons nobody.
+
+Everything below `role` is optional, and a definition with nothing but an id, a
+name and a role behaves exactly as the hardcoded roster did: authoring narrows,
+it never silently locks (D-572). The six roles are a closed vocabulary in
+`shared` now, because a seventh role in a file the agent does not implement is
+a companion that stands still -- D-538's rule for feats, for the same reason.
+
+### Verified
+
+1085 tests pass, 1 skipped. Content validates over 158 files. Every refusal was
+driven against the real endpoint rather than asserted in prose: a role outside
+the enum, an unknown calling, a name with a digit in it, a save that strands
+the farm, and a delete that removes the only forager.
+
+## D-625 -- The taproom, furnished from the packs and measured into place
+
+**Status:** implemented
+**Reported by:** the stakeholder -- "fix the tavern interior, add proper tables,
+walls and fireplaces from the assets"
+**Extends:** D-618, which turned the taproom's tiles into placed meshes and
+stopped one step short of any of them being visible
+
+D-618 replaced the tavern's procedural walls, tables and hearth with pack
+meshes. It was right about the shape and wrong about almost everything else,
+and the reason nobody could tell is the first note below.
+
+### ⚠ Three of the four meshes had never been built
+
+`npm run build:environment` ships only what the world actually places, and it
+was not re-run after the meshes changed. So `generic/sm-bld-base-wall-01`,
+`dungeon-pack/sm-prop-table-01` and `dungeon-pack/sm-env-wall-fireplace-01`
+existed in the area file, validated, flooded and **drew nothing at all**: one
+`console.warn` per mesh and an object that is simply absent. The taproom was
+bare boards with thirty-two chairs standing on it.
+
+A missing mesh is not a missing texture. `tools/test/environment-assets.test.ts`
+now asserts that every asset every AREA places has a built mesh, naming the map
+that placed it -- the same check `held-weapons` has made for what a character
+holds since D-614, which is where the idea was already written down.
+
+### ⚠ The wall was from the wrong game
+
+`generic` is POLYGON's **modern** kit: its textures ship tyre decals and dollar
+signs, and `sm-bld-base-wall-01` is a 60-vertex featureless panel that sampled
+the atlas's colour-swatch strip. A fantasy taproom with a concrete basement
+wall is exactly what it looked like. The chair was from the same pack.
+
+Everything is `dungeon-pack` now -- which despite its name is the fantasy
+interior set -- so the room samples **one atlas** and reads as one place:
+**`sm-env-basement-wallpanel-01`** for the walls, which is a boarded timber
+wall and the only warm interior wall in any ingested pack; the trestle
+**`sm-prop-table-01`**; **`sm-prop-stool-01`** for seats; **barrels** and
+**candles**; and **`sm-env-wall-fireplace-01`** for the hearth.
+
+⚠ Three choices were made by LOOKING at the meshes rendered side by side,
+and two of them contradict their own names. `sm-prop-fireplace-01` is a
+cast-iron **stove** with a flue, not a hearth. `sm-prop-bench-01` is carved
+**stone**, not a bench you put in a tavern. And the dungeon's own
+`sm-env-wall-*` are cut stone **five metres tall** -- a crypt, not a room
+somebody drinks in.
+
+⚠ **Stools rather than chairs**, and not for taste: a stool has no backrest,
+so the one thing a seat can get wrong -- the sitter facing into the back of it
+(D-609) -- cannot happen on one.
+
+### ⚠ A collision mask is authored in the MESH'S frame, not the world's
+
+`transformVolume` multiplies every dimension by the placement's `scale` and
+ADDS its `rotation`. The layout was written in world metres and pre-swapped by
+hand, so it was wrong twice over and both faults were invisible in the file:
+
+- The wall panels are scaled 1.25, so masks cut in metres came out a quarter
+  too large -- enough to push the south run's mask from x=11.0 to 11.69 and
+  drag the other half back to 12.375, narrowing the **doorway to 69cm** against
+  a body radius of 30. The room was sealed. `map:why` reported the door tile as
+  "penned in by (nothing within 3.5m)", because the wall that sealed it was two
+  panels away and had grown.
+- The bar trestles are turned 90 degrees, so a mask pre-swapped by hand was
+  rotated a second time and lay **across** the counter instead of along it,
+  which is why `validate:content` said the keeper "has nowhere to stand".
+
+### ⚠ Panels are anchored to a run's ends, not spread across its middle
+
+Spreading them put each centre on an even division and let its 6.25m of mesh
+hang 1.4m past both ends. That is harmless where a wall runs past a corner and
+not harmless at a door: the west run stopped its collision a metre short of the
+doorway and then **drew straight over it** -- a door you could walk through and
+could not see. Anchoring also fixed the four corners, where a leftover
+`WALL_LEN * scale` (already scaled once) opened a 78cm gap.
+
+⚠ The panels overlap rather than tiling exactly, and the scale is uniform,
+because **this mesh's height scales with its length**: a scale chosen per run
+to tile exactly would have the four walls meet at four different heights.
+Overlaps are staggered a centimetre in depth, or two coplanar faces z-fight and
+it reads as a driver fault rather than as a map.
+
+### ⚠ The numbers came from the catalogue, and the first cut guessed them
+
+`content/assets/*.environment.json` carries each mesh's measured extent. The
+trestle is **2.95 x 1.40**; D-618 gave it a 0.9m collision box and laid ten of
+them a metre apart to make a bar, which is ten three-metre slabs overlapping by
+two metres each.
+
+Masks are now cut a little INSIDE the art, and that is about `BODY_RADIUS`,
+which is 0.3. A tile centre needs that much air to stand in and more to be
+walked into; the first re-cut left exactly 0.3 at four table edges -- a coin
+flip on the last decimal -- and `validate:content` refused it with twenty tiles
+a body could stand on and could not reach. A tabletop that overhangs its own
+collision by 20cm is what a tabletop does, and nobody can see the difference.
+
+⚠ The gap in the bar is the **lift-up flap** and is load-bearing rather than
+decorative: a continuous nine-metre counter seals the strip behind it, and the
+keeper the whole tavern is built around then stands somewhere nothing can
+reach. Barrels are kept out of that strip for the same reason -- it is one tile
+wide, and a barrel in it walls him off as surely as a second counter would.
+
+### ⚠ `mr9-sitting` was measuring a table by its placement point
+
+The assertion that every sitter looks AT a table compared the looked-at tile
+against the single coordinate a table is placed at. A trestle is three tiles
+long, so a stool drawn up to either end was judged to be looking at nothing:
+**thirty of thirty-three seats failed a room that was right.** It reads the
+measured size from the same catalogue the room is laid out against -- so the
+two cannot drift -- and rotates the footprint exactly as `transformVolume`
+does.
+
+### Verified
+
+1086 tests pass, 1 skipped; content validates over 158 files. The walls were
+checked as arithmetic as well as by eye: each run's panels merge to one
+unbroken span, corner to corner, with a 2m gap centred on each doorway. The
+new missing-mesh test was proved by deleting two meshes from the manifest and
+watching it name them and the map that places them.
+
+⚠ Unratified, and a matter of taste rather than correctness: the room is
+**timber-walled with a stone hearth**, which is a reading of D-545's "a tavern
+is not built of the stone a town gate is" against what the packs actually ship.
+The bar is three trestles in a row because no pack here has a counter mesh.
+
+## D-626 -- The wall has no back, so it is placed twice
+
+**Status:** implemented
+**Reported by:** the stakeholder -- "the walls only have textures on one side.
+They need to be placed in both directions"
+**Extends:** D-625
+
+Measured off the built `.glb` rather than inferred: of
+`sm-env-basement-wallpanel-01`'s 208 triangles, **94 face +z and none face
+-z**. It is an open shell -- a plank face, two end caps, a top and a bottom,
+and nothing behind it. glTF materials default to `doubleSided: false`, so the
+renderer culls what was never modelled and you look straight through the
+tavern wall from outside.
+
+⚠ **Only the wall.** Every other mesh the taproom places came back a closed
+solid with triangles in all six directions -- hearth 144/110 front to back,
+table 336/343, and the barrel, stool and candles likewise. The fault was in one
+mesh, exactly where the stakeholder said it was.
+
+### ⚠ A second placement, not a double-sided material
+
+Turning off backface culling is one line and draws the SAME face from behind,
+lit by a normal pointing the other way -- a wall lit as though the sun were
+inside the room. Two shells back to back carry their own normals and light
+correctly from both sides, which is what the mesh would have done if the
+vendor had modelled a back. It costs fifteen extra draw calls in one room.
+
+⚠ **The twin carries no collision.** The mask belongs to the wall, not to
+each face of it; duplicating it doubles the volumes the pathfinder sweeps for
+nothing.
+
+### ⚠ The twin is 0.998 scale, and the reason is geometric
+
+Back to back, a twin's top face, end caps and bottom are exactly coplanar with
+its partner's, and coplanar faces z-fight -- along the top of every wall in the
+room, where it is plainly visible and where it *moves with the camera*, which
+is the tell that reads as a driver fault rather than as a map.
+
+Shrinking one of the pair separates every parallel pair at once, which **no
+offset can do**: a shift along the wall's normal leaves the HORIZONTAL tops
+exactly where they were. The price is a 5mm step at the top and a 5mm inset at
+the caps, which is an order of magnitude below a pixel at this camera.
+
+### ⚠ The overlap stagger was a centimetre and showed
+
+D-625 staggered alternate panels 1cm in depth for the same z-fighting reason.
+At the game camera that is fine; at close range it is a visible notch in the
+face of the wall at every joint. It is **3mm** now. The arithmetic, rather than
+a smaller number chosen by feel: this camera is orthographic, so depth is
+LINEAR across near..far, and a 24-bit buffer resolves about a hundredth of a
+millimetre over the whole 200m range. Three millimetres is a thousand times
+that and a tenth of a pixel.
+
+### Verified
+
+1087 tests pass (including the two Postgres suites, which need
+`npm run db:up`); content validates over 158 files. The pairing is asserted --
+every placement of a mesh named one-sided must come as a pair a half turn
+apart with exactly one mask -- and the assertion was proved by deleting one
+twin and skewing another, which it named individually. Looked at from all four
+sides at the game's own camera and lighting: planks on both faces, clean wall
+tops, both doorways clear.
+
+⚠ **The general case is open.** "Which meshes are one-sided" is a property
+of the ART and belongs in the asset catalogue beside the measured `size`, where
+any map could read it. Today it is a hand-kept list of one id in the test, with
+the method written down beside it. The other eleven areas place wall meshes
+converted by `walls-to-assets.py` from a different family and have not been
+checked.
+
+## D-627 -- One engine, two products, and the scenario is the boundary
+
+**Status:** ratified (stakeholder), implementation follows
+**Supersedes:** nothing. It states a line D-521 implied and never drew.
+
+D-521 changed the product from a persistent-world MMO to **MR -- the Round**, and
+was right to keep every system rather than cancel it. What it did not do is say
+**which game any given area, verb or definition belongs to**. Sixteen months of
+work later, nothing in the repo records that, so the two products run as one
+world and the Round has no edges.
+
+The stakeholder's words for the symptom: *"this project is sprawling, because the
+tools to build the game, and the game runtime itself, are not linked."* The tools
+are the place it is felt. The cause is upstream of them: there is no boundary for
+a tool to serve, so every piece of work re-decides it by hand and gets it slightly
+differently each time.
+
+### ⚠ The proof: you can walk out of a round into permadeath
+
+`RoundEngine` **has no concept of an area at all** -- no set, no map, no edges. It
+knows the cast, the clock and the objective. Meanwhile the area graph runs:
+
+    round-town -> hanged-ferryman -> broken-yard -> sunken-crypt
+
+and `sunken-crypt` is `zone: endgame`, which carries **involuntary permadeath**
+(D-513). D-523 says in terms that the round must NEVER contain an endgame area,
+because a round death must not cost a character levelled across fifty rounds.
+
+Nothing gates it. `dungeonGateAllows` is the only transition check while a round
+runs and it enforces the dungeon's day/night and floor rules only;
+`confirmEndgameEntry` warns twice and then lets you through. The invariant is not
+defended by code -- it is defended by nobody having walked west yet.
+
+### The ruling
+
+**One engine. Two products. The Round is the product; the persistent world is a
+deferred consumer of the same systems (D-521). The boundary between them is a
+SCENARIO, and it is data.**
+
+A scenario declares its **area set** and opening area, its objective pool, its
+cast bounds and its round configuration. `RoundEngine` takes one. A transition
+outside the set is refused.
+
+⚠ **Data, not an `if`.** A new guard against `sunken-crypt` would fix the case
+found and leave the next one -- and there will be a next one, because the
+persistent world is meant to keep growing behind the Round. A declared set makes
+the whole class impossible: an area is in this round or it is not, and CI can
+read the answer.
+
+### What follows for free
+
+- **MR3's "multiple scenarios as data, chosen or rotated per round"** stops being
+  a feature to build and becomes the thing that already exists.
+- **CI can check a round is winnable and self-contained** -- the class of bug
+  D-593 hit for real (an objective naming a keeper who was in no round map) and
+  D-569 hit one level up (shelving the last objective playable at `minCast`).
+- **The authoring tool gains its missing right-most stage.** The stakeholder
+  asked for a left-to-right workflow where base definitions are complete before
+  the parts that use them. Art, motion, bodies, things, world and rules all
+  compose into something, and until now there was no name for the something. It
+  is the scenario.
+- **The persistent world keeps its areas** and is simply in no scenario. Both
+  products coexist across one declared line instead of being tangled by default.
+
+### ⚠ Two verbs are unguarded, and they are the same mistake one layer down
+
+`handleRespawn` is gated on `roundRunning`; `handleRetire` and `handlePay` are
+not. So a player can **retire mid-round** -- ending the character forever and
+collecting Legacy, which D-207 and MR3 both say is earned between rounds and
+never inside one -- and can trade gold, which round mode does not even display.
+Both are the boundary missing again, in the verb table rather than in the map.
+
+### ⚠ What this does NOT rule
+
+`speak_dead` in a round looks like the same leak and is not: the MR gate text
+names *"question a corpse"* as one of the things a good round should contain.
+Interrogating the victim is a deduction mechanic, and it stays. The test is
+whether a verb belongs to the ROUND's design, not whether it predates it.
+
+### ⚠ Recorded against MR1, which asked for the opposite
+
+MR1 specified the round be built **on** the DM event engine -- *"a scenario is an
+event document that plays itself"* -- and it was built beside it: `RoundEngine`
+is its own system and `EventEngine` receives deaths and nothing else. That was
+probably the right call for a spine that had to work, and it is why the scenario
+concept never appeared. Converging them is a separate decision; this entry only
+records that the plan and the code disagree and that the code won.
+
+## D-628 -- The scenario, built: three holes in the boundary, not one
+
+**Status:** implemented
+**Implements:** D-627
+
+`content/scenarios/ashfold.json` declares the eight areas a round is played in.
+`RoundEngine`'s world now has an edge, and `validate:content` refuses a
+scenario that contains an endgame area, names an area that does not exist, or
+carries no live objective playable at its own minimum cast.
+
+### ⚠ The map was the smallest of the three holes
+
+Implementing the boundary found two more, both the same absence one layer over:
+
+1. **The cast was only ever gathered at a RESET.** So the FIRST round after a
+   boot was played wherever people happened to log in -- and the shipped
+   `DEFAULT_AREA_ID` is `hanged-ferryman`, which is not in the scenario at all.
+   Every server's first round therefore began out of bounds, and the new
+   boundary would then have refused the cast passage into their own town.
+   `placeStrandedCast` moves anybody outside the scenario into its opening
+   area at round start. ⚠ Only the stranded ones: a general gather would be
+   a second implementation of the reset's, and would shove anybody already
+   standing in the round somewhere else for no reason.
+2. **A latecomer arrived in the persistent world.** D-608 sends an arriving
+   character "to the tavern" so they open the round whole and with everybody
+   else; it read `defaultAreaId`. A round's home is the scenario's now.
+
+⚠ **The pattern to notice:** three separate places each answered "where is
+the round?" by reaching for a global default. That is what having no boundary
+looks like from the inside -- not one broken check, but every site inventing
+the same wrong answer independently.
+
+### ⚠ Two verbs were the same bug in the verb table
+
+`handleRespawn` has been gated on `roundRunning` since D-521. `handleRetire`
+and `handlePay` never were. Retirement ends the character forever and pays
+Legacy, which D-207 and MR3 both place strictly between rounds -- ungated it
+was two exploits at once: an exit from a round that has no respawn, and a way
+to bank the round's takings before anybody could take them off you. Gold is the
+persistent world's (D-220) and round mode does not display it, so `pay` was a
+currency moving with no UI admitting it existed.
+
+⚠ `speak_dead` is deliberately NOT gated. The MR gate text names "question a
+corpse" among the things a good round contains. The test is whether a verb
+belongs to the ROUND's design, not whether it predates it.
+
+### Also swept, from the same pass
+
+`hostilities` and `roamerHeadings` were never cleared at a reset. A declared
+grudge survived into the next round -- long enough for a stale entry to decide
+whether somebody counts as a threat to `combatTick` -- and the headings map is
+keyed on entity ids that are despawned every reset, so it grew for the life of
+the process.
+
+### ⚠ Two fixtures asserted the old answer, and both were right to change
+
+- `mr10-second-round` asserted the cast reassembles in `'hanged-ferryman'`.
+  That was never the property under test: it was whatever the fixture's
+  `defaultAreaId` happened to be. It reads the scenario's `opensIn` now, so the
+  two cannot drift.
+- `mr2-gathering` needs its miners IN THE MINE and had been getting them there
+  by setting `defaultAreaId`. It takes `placeArrivals: false` now -- the opt-out
+  seven other fixtures already use for exactly this.
+
+### Verified
+
+1096 tests pass, 1 skipped; content validates over 159 files. The boundary test
+was checked by DISABLING the guard and watching a bot walk from `round-town`
+into `hanged-ferryman` -- the first step of the road to permadeath -- and the
+endgame rule by adding `sunken-crypt` to the scenario and watching CI refuse it
+by name. A reset-invariant suite now asserts the whole floor at once: no
+corpses or heaps anywhere in the world, everyone alive and whole in the opening
+area, nobody left with their weapon up, and the world re-stocked rather than
+stocked twice.
+
+⚠ **The edge is reported, not hidden.** `validate:content` prints
+`round-town -> hanged-ferryman lead out of the scenario and will be refused` as
+a ⚠ING. A door out of the set is legal -- the tavern belongs to the
+persistent world and is simply shut for the round -- but not knowing where the
+edges are is how this started.
+
+⚠ **Still open, and the stakeholder's to settle:** `hanged-ferryman` is the
+persistent world's first-slice tavern that D-608 borrowed as the round's
+opening room, while `round-town` contains a second tavern with the keeper
+`silence-the-keeper` names. One of them should belong to each product. Until
+that is decided the round opens in the town and the borrowed door stays shut.
+

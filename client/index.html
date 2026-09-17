@@ -54,10 +54,21 @@
   .charlist { margin: 4px 0 0; padding: 0; list-style: none; }
   .charlist li {
     border: 1px solid var(--line); border-radius: 2px; padding: 8px 10px; margin-bottom: 6px;
-    cursor: pointer; font-size: 13px; display: flex; justify-content: space-between;
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
   }
   .charlist li:hover { border-color: var(--warm); color: #e0d8c8; }
+  /* The name is the click target that PLAYS the character; the button beside
+     it is the one that ends them. Separate targets on purpose (D-600). */
+  .charlist .charname {
+    flex: 1; display: flex; justify-content: space-between; gap: 10px; cursor: pointer;
+  }
   .charlist .where { color: var(--dim); font-size: 11px; }
+  .charlist .chardel {
+    flex: 0 0 auto; font-size: 11px; padding: 3px 8px; margin: 0; width: auto;
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    border-radius: 2px; cursor: pointer;
+  }
+  .charlist .chardel:hover { border-color: var(--bad); color: var(--bad); }
   .hidden { display: none !important; }
 
   /* ---- Character creation (D-208): class, skills, feats, spells, name ---- */
@@ -331,13 +342,23 @@
   #work-track { height: 5px; background: #241f2b; border-radius: 3px; overflow: hidden; }
   #work-fill { height: 100%; width: 0%; background: #9a8352; transition: width .12s linear; }
 
-  .panel {
-    position: absolute; top: 64px; right: 12px; width: 300px; z-index: 6;
+  /* ⚠ `.dock`, NOT `.panel` (D-611). These are the in-game panels docked to
+     the right edge; `.panel` up at the top of this file is the CENTRED card the
+     login screen, the character wizard and the level-up screen are built from.
+     Both were called `.panel`, this rule is later, and so it won: the login
+     card was absolutely positioned against the right edge and squeezed from
+     340px to 300px. Reported as "everything is shifted over to the right-side
+     of the page", and it applied to every screen shown before you are in the
+     world. Same shape as D-576 -- two surfaces sharing one class vocabulary. */
+  .dock {
+    /* ⚠ 88px, not 64px: the dials reach down to y=76, so a docked panel
+       opening at 64 clipped the corner of the compass (D-611). */
+    position: absolute; top: 88px; right: 12px; width: 300px; z-index: 6;
     max-height: 62vh; overflow-y: auto; padding: 12px 14px;
     background: rgba(16, 15, 19, .95); border: 1px solid #34303c; border-radius: 5px;
     font-size: 13px; color: var(--dim);
   }
-  .panel h3 {
+  .dock h3 {
     margin: 0 0 9px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
     color: var(--text); font-weight: 400;
   }
@@ -379,6 +400,23 @@
     max-width: 340px; padding: 7px 11px; border-radius: 4px;
     background: rgba(30, 16, 16, .88); border: 1px solid #5c3230; color: #d8c3bd;
   }
+  /* ⚠ `pointer-events: auto`, because #round-hud sets `none` (D-609).
+     The HUD is click-through on purpose: it sits over the world and must not
+     eat a click meant for the ground beneath it. Everything in it until now
+     was read-only, so nothing noticed — and the first controls put inside it
+     were therefore unclickable, while looking perfectly normal and hovering
+     like a button. Only the panel opts back in; the clock and the objective
+     card stay click-through. */
+  #round-lobby { margin-top: 8px; padding: 8px 10px; background: rgba(16, 15, 19, .9);
+    border: 1px solid #34303c; border-radius: 4px; max-width: 320px;
+    pointer-events: auto; }
+  #round-lobby-note { color: var(--dim); font-size: 12px; line-height: 1.45; }
+  #round-lobby-buttons { display: flex; gap: 6px; margin-top: 7px; }
+  #round-lobby-buttons button {
+    flex: 0 0 auto; padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer;
+    background: #221f29; color: #b3abc0; border: 1px solid #3b3648; border-radius: 3px; }
+  #round-lobby-buttons button:hover:enabled { background: #2c2933; color: #e0d8c8; }
+  #round-lobby-buttons button:disabled { opacity: .4; cursor: default; }
   #round-objective-name { color: #e2a89f; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
   #round-objective-brief { margin-top: 4px; font-size: 12px; line-height: 1.45; }
   #round-ending {
@@ -414,14 +452,18 @@
     font-size: 14.5px; letter-spacing: .01em; }
 
   /* ---- Settings (graphics) ---- */
+  /* ⚠ Beside the dials, not on top of them (D-611): both were `right: 12px`
+     near the top and overlapped by 77x25px. The right-hand column now reads
+     compass-and-clock at the edge, the settings button to their left, and
+     everything that OPENS below both of them. */
   #btn-settings {
-    position: absolute; top: 10px; right: 12px; z-index: 5;
+    position: absolute; top: 10px; right: 152px; z-index: 5;
     background: rgba(22,21,26,.85); color: var(--text); border: 1px solid var(--line);
     border-radius: 2px; padding: 5px 10px; font: inherit; font-size: 12px; cursor: pointer;
   }
   #btn-settings:hover { border-color: var(--warm); color: #e0d8c8; }
   #settings {
-    position: absolute; top: 42px; right: 12px; width: 268px; z-index: 5;
+    position: absolute; top: 88px; right: 12px; width: 268px; z-index: 5;
     background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
     padding: 14px; font-size: 12.5px;
   }
@@ -442,32 +484,61 @@
 
   /* Chat: the most-used surface in the game — legibility beats atmosphere
      here (D-306). */
+  /* ⚠ 396px, not 460px (D-611). The hotbar starts at x=412 and the log ran
+     to x=472, so the last sixty pixels of every line sat underneath it. */
+  /* ⚠ Raised clear of the bottom row and widened, so the two logs can sit
+     SIDE BY SIDE with enough width to read (D-612). The bottom strip is fully
+     occupied — hotbar at x 412-868, vitals at 1024-1268, the work bar centred
+     at 510-770 — so a wide log anchored to the bottom has nowhere to go. Above
+     all three there is a clean band, and 620px clears the craft panel's left
+     edge at x=646 when it is open. */
   #chat {
-    position: absolute; left: 12px; bottom: 64px; width: 460px; max-width: 60vw;
-    display: flex; flex-direction: column; gap: 2px; pointer-events: none;
+    position: absolute; left: 12px; bottom: 124px; width: 620px; max-width: 52vw;
+    display: flex; flex-direction: column; gap: 6px; pointer-events: none;
     font-size: 13.5px; line-height: 1.45;
   }
-  #chat-log {
-    overflow-y: auto; max-height: 34vh; padding: 6px 10px;
+  /* The two logs, abreast. Equal halves, each with its own caption above it. */
+  #logs { display: flex; gap: 8px; align-items: stretch; }
+  .log-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  /* ⚠ Two logs, not one (D-611). What somebody SAYS and what you notice
+     happening are different kinds of information and were sharing one
+     scrollback: a line of dialogue could be pushed off the top by four
+     refusals and a weather change, in a mode whose whole point is people
+     talking to each other (D-521). They scroll independently now, so a busy
+     minute of events cannot bury a sentence. */
+  .log {
+    overflow-y: auto; padding: 6px 10px;
     background: rgba(11, 10, 12, 0.72); border-radius: 3px;
     pointer-events: auto; scrollbar-width: thin;
   }
-  #chat-log .line { margin: 2px 0; color: var(--text); overflow-wrap: break-word; }
-  #chat-log .who { color: #d9cdb4; }
-  #chat-log .whisper { color: #948d9e; font-style: italic; }
-  #chat-log .shout .who, #chat-log .shout { color: #d8a05c; }
-  #chat-log .emote-text { color: #b79a6e; font-style: italic; }
-  #chat-log .impression { color: #b0685c; font-style: italic; font-size: 12.5px; }
-  #chat-log .system { color: var(--dim); font-style: italic; font-size: 12.5px; }
-  #chat-log .tongue { color: #8b95a5; font-style: italic; }
-  #chat-log .narration { color: #a89878; font-style: italic; text-align: center; margin: 6px 0; }
+  /* ⚠ Equal heights, because they are abreast: two columns of different
+     heights read as one broken panel rather than as two. */
+  #event-log, #chat-log { height: 26vh; }
+  .log-cap {
+    font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase;
+    color: #5d5867; padding: 0 2px 2px; pointer-events: none;
+  }
+  .log .line { margin: 2px 0; color: var(--text); overflow-wrap: break-word; }
+  /* ⚠ The world's hour, on every line (D-612). Dim and tabular so a column
+     of them reads as a margin rather than as part of what was said. */
+  .log .at { color: #55505f; font-size: 11px; font-variant-numeric: tabular-nums;
+    margin-right: 6px; user-select: none; }
+  .log .document .at { display: block; margin-bottom: 3px; }
+  .log .who { color: #d9cdb4; }
+  .log .whisper { color: #948d9e; font-style: italic; }
+  .log .shout .who, .log .shout { color: #d8a05c; }
+  .log .emote-text { color: #b79a6e; font-style: italic; }
+  .log .impression { color: #b0685c; font-style: italic; font-size: 12.5px; }
+  .log .system { color: var(--dim); font-style: italic; font-size: 12.5px; }
+  .log .tongue { color: #8b95a5; font-style: italic; }
+  .log .narration { color: #a89878; font-style: italic; text-align: center; margin: 6px 0; }
   /* In-world documents render as pages: serif, per D-306. */
-  #chat-log .document {
+  .log .document {
     font-family: Georgia, 'Times New Roman', serif;
     background: #1b1712; border: 1px solid #3a3427; border-radius: 2px;
     padding: 8px 12px; margin: 5px 0; color: #cfc2a8; white-space: pre-wrap;
   }
-  #chat-log .document .doc-title { color: #dcc99c; font-weight: 600; margin-bottom: 4px; }
+  .log .document .doc-title { color: #dcc99c; font-weight: 600; margin-bottom: 4px; }
   #chat-bar {
     display: none; gap: 6px; margin-top: 6px; pointer-events: auto;
   }
@@ -500,8 +571,15 @@
   #ctx-menu button:hover { background: #2c2933; color: #e0d8c8; }
 
   /* Target frame */
+  /* ⚠ Top LEFT, not top centre (D-611). It was `top: 12px; left: 50%`, the
+     same anchor as #round-hud, so the target panel and the round clock were
+     drawn on top of each other — measured at 264x30px of overlap with real
+     content in both. The top centre is a COLUMN owned by the round: clock,
+     then the objective card, then the lobby controls, and its height changes
+     with what is showing. Nothing else can share that space without moving
+     whenever the round does. */
   #target-frame {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: 12px; left: 12px;
     background: rgba(11,10,12,.82); border: 1px solid var(--line); border-radius: 3px;
     padding: 6px 14px; font-size: 12.5px; color: #d9cdb4; pointer-events: none;
     display: flex; align-items: baseline; gap: 8px; max-width: 60vw;
@@ -556,7 +634,19 @@
   <div id="hotbar" class="hidden"></div>
   <div id="ability-drawer" class="hidden"></div>
   <div id="chat" class="hidden">
-    <div id="chat-log"></div>
+    <!-- What the player PERCEIVES: narration, the world's answers, refusals,
+         sounds carried through walls (D-531). Read-only, and separate from
+         talk so that neither can bury the other (D-611). -->
+    <div id="logs">
+      <div class="log-col">
+        <div class="log-cap">what you notice</div>
+        <div id="event-log" class="log"></div>
+      </div>
+      <div class="log-col">
+        <div class="log-cap">talk</div>
+        <div id="chat-log" class="log"></div>
+      </div>
+    </div>
     <div id="chat-bar">
       <input id="in-declare" placeholder="declare as…" spellcheck="false" autocomplete="off"
              title="Speak under a name — yours, or any other. Listeners may see through it.">
@@ -575,6 +665,17 @@
       <div id="round-objective-name"></div>
       <div id="round-objective-brief"></div>
     </div>
+    <!-- Filling the cast (D-607). Shown only while a round is not running and
+         only on a server that allows it; the count says HOW MANY are bots and
+         never which, because a bot can be the antagonist. -->
+    <div id="round-lobby" class="hidden">
+      <div id="round-lobby-note"></div>
+      <div id="round-lobby-buttons">
+        <button id="round-bot-add" type="button" title="Bring in one more">+1</button>
+        <button id="round-bot-fill" type="button" title="Bring in enough to begin">fill the cast</button>
+        <button id="round-bot-clear" type="button" title="Send every bot home">send home</button>
+      </div>
+    </div>
   </div>
   <div id="round-ending" class="hidden">
     <div id="round-ending-title"></div>
@@ -588,7 +689,7 @@
   <!-- The character panel (D-547): paperdoll, pack and sheet in one place,
        because "what am I wearing", "what am I carrying" and "what does that
        make me" are one question a player asks once. -->
-  <div id="char-panel" class="panel hidden">
+  <div id="char-panel" class="dock hidden">
     <div id="char-tabs">
       <button class="ctab active" data-tab="gear">Gear</button>
       <button class="ctab" data-tab="sheet">Sheet</button>
@@ -618,7 +719,7 @@
     </div>
   </div>
 
-  <div id="craft-panel" class="panel hidden">
+  <div id="craft-panel" class="dock hidden">
     <h3>Workbench</h3>
     <div id="craft-list"></div>
   </div>
@@ -691,12 +792,7 @@
   <div id="settings" class="hidden">
     <h2>Graphics</h2>
 
-    <label>character models</label>
-    <select id="set-cast">
-      <option value="procedural">procedural — generated from the seed</option>
-      <option value="imported">imported — built from the art packs</option>
-    </select>
-    <div class="note" id="cast-note" style="margin-top:6px"></div>
+    <div class="note" id="cast-note"></div>
 
 
     <div class="check"><input type="checkbox" id="set-seethrough" checked><span>see through walls in the way</span></div>

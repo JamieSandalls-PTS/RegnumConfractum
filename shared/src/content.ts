@@ -8,6 +8,7 @@ import {
   validateAttributeAllocation,
 } from './attributes';
 import { EquipStatsSchema, StartingKitEntrySchema } from './equipment';
+import { DIRECTIONS } from './types';
 import {
   MAX_LEVEL,
   SKILL_CEILING,
@@ -90,6 +91,150 @@ export const StationDefSchema = z.object({
   notes: z.string().optional(),
 });
 export type StationDef = z.infer<typeof StationDefSchema>;
+
+
+/**
+ * A person who stands somewhere (D-598).
+ *
+ * ⚠ Until now an NPC could only be born inside a Lua script. That made
+ * every question about the cast of the world a question about source code:
+ * `kill_npc` objectives had to be checked against descriptors SCRAPED out of
+ * the Lua and could only be half-checked (D-569), nothing could list who is in
+ * the world, and putting a blacksmith in the square meant writing a script.
+ *
+ * ⚠ The split is the one stations and nodes already use (D-530, D-583): the
+ * DEFINITION is content and the PLACEMENT is map data, so the same keeper can
+ * be stood in two places without repeating what he is, and the map editor is
+ * where you decide where he stands.
+ *
+ * ⚠ What an NPC DOES is still Lua, and deliberately. This declares who is
+ * there and what they look like; greeting, counting the room and reacting to a
+ * death are behaviour, and a form is a bad place to write behaviour. A script
+ * reaches one of these with `npc("<id>")`.
+ */
+export const NpcDefSchema = z.object({
+  id: ContentIdSchema,
+  name: z.string().min(1),
+  /**
+   * What a player is told they are looking at, and the ONLY name they get.
+   *
+   * ⚠ This is a match key, not prose. The round engine decides a `kill_npc`
+   * objective with an exact `Set.has` against the descriptor of whatever died
+   * (D-593), so rewording it to read better can make an objective unwinnable.
+   * `validate:content` now refuses that rather than hoping.
+   */
+  descriptor: z.string().min(1),
+  /** What they look like: an id in `content/characters/` (D-596). Absent means drawn from the seed. */
+  character: ContentIdSchema.optional(),
+  /**
+   * How much killing they take (D-619).
+   *
+   * ⚠ Ten is what every NPC silently had: the world's spawn default, set
+   * once for test fixtures and never given a way to be authored. A level-1
+   * character swings for about four, so the tavern keeper -- the target of
+   * `silence-the-keeper`, which D-526 calls the low-cast workhorse -- died in
+   * three swings. Reported as the objective being "over in seconds if the
+   * player directly attacks the keeper", which is exactly right: the whole
+   * scenario is supposed to be about getting him ALONE, and at ten hit points
+   * it was cheaper to do it in the square and outrun the watch.
+   *
+   * ⚠ The default stays ten, so nothing that has not been authored moves.
+   * A townsman is not meant to be hard to kill; a named objective is.
+   */
+  hp: z.number().int().min(1).default(10),
+  /**
+   * A fixed appearance seed, so a nameless NPC is the same person every time
+   * the world loads. Absent means one is derived from where they stand, which
+   * is stable for as long as nobody moves them.
+   */
+  appearanceSeed: z.number().int().nonnegative().optional(),
+  notes: z.string().optional(),
+});
+export type NpcDef = z.infer<typeof NpcDefSchema>;
+
+
+/**
+ * The roles a companion can be given (D-624).
+ *
+ * ⚠ The same six `BotAgent` implements, and the list lives HERE rather than
+ * in the agent because content now names one. A seventh role in a file the
+ * agent does not understand is a bot that stands still, so the vocabulary is
+ * closed and `validate:content` refuses anything outside it -- the rule D-538
+ * applied to feats, for the same reason.
+ */
+export const BOT_ROLES = [
+  /** Ore from the mine, and hatchets when it has timber. */
+  'gatherer',
+  /** Grain and herbs from the farm; bakes bread for the cast. */
+  'forager',
+  /** Timber and hides from the wood. */
+  'woodsman',
+  /** Herbs, bandages, and treating whoever is hurt (D-205). */
+  'physician',
+  /** The dungeon, for xp and gravebright (D-535/D-537). */
+  'delver',
+  /** Stays in town and talks. Useful as a victim and as a control. */
+  'idler',
+] as const;
+export type BotRoleId = (typeof BOT_ROLES)[number];
+
+/**
+ * A companion the lobby can summon (D-624).
+ *
+ * ⚠ Content, because the stakeholder asked for it and D-110 already
+ * required it: the roster was eleven names and six roles hardcoded in
+ * `server/src/dev/bots.ts`, so "one of the bots shows up as a goblin" was a
+ * report about a cast nobody could edit. D-618 fixed the goblin by keeping
+ * creatures out of the appearance lottery; this is the other half, which is
+ * that a companion should be a person somebody DECIDED on.
+ *
+ * ⚠ Everything below `role` is optional, and a definition with nothing but
+ * an id, a name and a role behaves exactly as the hardcoded roster did. That
+ * is deliberate: authoring narrows, it never silently locks (D-572).
+ */
+export const BotDefSchema = z.object({
+  id: ContentIdSchema,
+  /**
+   * The given name. A surname is appended at summon time so two rounds do not
+   * collide on an account name.
+   *
+   * ⚠ LETTERS ONLY, and the schema enforces it. Character names are letters
+   * on the wire, and D-540 lost twenty minutes to a refusal that surfaced as a
+   * timeout rather than as "that name is not allowed".
+   */
+  name: z.string().regex(/^[A-Za-z]+$/, 'a bot name is letters only'),
+  role: z.enum(BOT_ROLES),
+  /**
+   * Where this one sits in the summoning order. Lowest first.
+   *
+   * ⚠ A NUMBER, not the order of the files. Definitions are read
+   * alphabetically, and the draw order is a real design decision: a cast of
+   * three is the floor (D-522), so the first three summoned have to cover the
+   * mine, the farm and the wood or one of D-529's arms goes unworked and
+   * hunger looks broken when it is merely unattended. Alphabetically the first
+   * three here are a woodsman, a delver and a gatherer -- nobody on the farm.
+   * The first draft of this file DID rely on file order and was wrong; the
+   * order is written down now, and a test asserts the three arms are covered.
+   *
+   * ⚠ Ties break on id, so the order is total and two definitions sharing a
+   * number are still deterministic rather than filesystem-dependent.
+   */
+  order: z.number().int().min(0).default(100),
+  /** Which calling it creates with. Absent means none, as bots always did. */
+  classId: ContentIdSchema.optional(),
+  /** What it IS (D-572). Absent means the calling admits it by default. */
+  raceId: ContentIdSchema.optional(),
+  /**
+   * A fixed appearance seed, so a companion is the same person every round.
+   *
+   * ⚠ Absent means one is derived from the order it was summoned in, which
+   * is what the hardcoded roster did -- and which makes a companion a
+   * different stranger depending on how many arrived before it.
+   */
+  appearanceSeed: z.number().int().nonnegative().optional(),
+  notes: z.string().optional(),
+});
+export type BotDef = z.infer<typeof BotDefSchema>;
 
 export const HexColourSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'must be #rrggbb');
 
@@ -367,6 +512,25 @@ export const AreaSchema = z
           x: z.number().int().min(0),
           y: z.number().int().min(0),
           type: StationTypeSchema,
+        }),
+      )
+      .default([]),
+    /**
+     * Who stands here (D-598). `type` is an id in `content/npcs/`.
+     *
+     * ⚠ Placement is map data and the person is content, exactly as a
+     * station is: the same keeper can stand in two taverns without his
+     * descriptor being written twice, and where he stands is decided in the
+     * map editor rather than in a script somebody has to read.
+     */
+    npcs: z
+      .array(
+        z.object({
+          x: z.number().int().min(0),
+          y: z.number().int().min(0),
+          type: ContentIdSchema,
+          /** Which way they face. Absent is south, the way a placed body already defaults. */
+          facing: z.enum(DIRECTIONS).optional(),
         }),
       )
       .default([]),

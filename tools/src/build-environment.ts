@@ -8,9 +8,11 @@ import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import {
   AreaSchema,
   AssetFileSchema,
+  ItemTemplateSchema,
   ResourceNodeSchema,
   StationDefSchema,
   assetAtlas,
+  type CharacterItem,
   type EnvironmentAsset,
 } from '@rc/shared';
 import { originCorrection } from '@rc/shared';
@@ -40,6 +42,7 @@ const AREA_DIR = join(root, 'content', 'areas');
 const ASSET_DIR = join(root, 'content', 'assets');
 const STATION_DIR = join(root, 'content', 'stations');
 const NODE_DIR = join(root, 'content', 'nodes');
+const ITEM_DIR = join(root, 'content', 'items');
 const OUT_DIR = join(root, 'client', 'public', 'models', 'env');
 
 export const ENV_MANIFEST = 'manifest.json';
@@ -64,6 +67,7 @@ export function placedAssetIds(
   areaDir = AREA_DIR,
   stationDir = STATION_DIR,
   nodeDir = NODE_DIR,
+  itemDir = ITEM_DIR,
 ): Set<string> {
   const used = new Set<string>();
   for (const file of listJson(areaDir)) {
@@ -79,17 +83,38 @@ export function placedAssetIds(
     const def = ResourceNodeSchema.parse(JSON.parse(readFileSync(file, 'utf8')));
     if (def.art) used.add(`${def.art.pack}/${def.art.asset}`);
   }
+  // ⚠ And what a character HOLDS (D-614). D-564 fitted 163 weapons into
+  // hands by measurement and nothing ever built one for the game: the grips
+  // were right, the meshes were never exported, and a player with a sword
+  // equipped fought empty-handed. The items already name their art; this is
+  // the line that was missing.
+  for (const file of listJson(itemDir)) {
+    const def = ItemTemplateSchema.parse(JSON.parse(readFileSync(file, 'utf8')));
+    if (def.art) used.add(`${def.art.pack}/${def.art.asset}`);
+  }
   return used;
 }
 
-/** The environment catalogue, by `pack/assetId`. */
-export function environmentCatalogue(assetDir = ASSET_DIR): Map<string, EnvironmentAsset> {
-  const out = new Map<string, EnvironmentAsset>();
+/**
+ * Everything the game may need a mesh for, by `pack/assetId`.
+ *
+ * ⚠ Both kinds, in one map (D-614). It read only `.environment.json`, so a
+ * sword named by an item resolved to nothing and was reported as "not in the
+ * asset catalogue" -- which is the message for a map pointing at art nobody
+ * has, and is exactly wrong here: the art existed and the catalogue being
+ * consulted was the wrong one.
+ */
+export function environmentCatalogue(
+  assetDir = ASSET_DIR,
+): Map<string, EnvironmentAsset | CharacterItem> {
+  const out = new Map<string, EnvironmentAsset | CharacterItem>();
   for (const file of listJson(assetDir)) {
-    if (!file.endsWith('.environment.json')) continue;
+    const isEnv = file.endsWith('.environment.json');
+    const isHeld = file.endsWith('.character-item.json');
+    if (!isEnv && !isHeld) continue;
     const parsed = AssetFileSchema.parse(JSON.parse(readFileSync(file, 'utf8')));
     for (const a of parsed.assets) {
-      if (a.kind !== 'environment') continue;
+      if (a.kind !== 'environment' && a.kind !== 'character-item') continue;
       out.set(`${a.pack}/${a.id}`, a);
     }
   }
@@ -132,22 +157,43 @@ function loadFbx(file: string): Object3D {
 const recentred: string[] = [];
 let recentring: string | null = null;
 
-function normalise(source: Object3D): { object: Object3D; scale: number; vertices: number } {
-  const scale = packScale(source);
+/**
+ * ⚠ `held` items are exported RAW (D-614) -- their own units, their own
+ * origin, standing on nothing.
+ *
+ * Everything this function does is right for scenery and destroys a weapon.
+ * A prop is placed by its centre and stands on the ground, so it is scaled to
+ * metres, dropped to y=0 and centred in x/z. A weapon is placed by its GRIP,
+ * and D-564's load-bearing measurement is that **the mesh origin IS the grip**
+ * -- which is why a 2.1m spear and a 48cm knife take the same offset. Moving
+ * the mesh so its lowest point sits at zero moves the grip by half a blade,
+ * and every one of the 163 fitted transforms then means something else.
+ *
+ * ⚠ The scale is left alone for the same reason D-571 leaves character part
+ * files unscaled: the fitted transform was measured against the raw FBX in the
+ * creation tool, so baking the conversion in here would apply it twice.
+ */
+function normalise(
+  source: Object3D,
+  held = false,
+): { object: Object3D; scale: number; vertices: number } {
+  const scale = held ? 1 : packScale(source);
   const object = source.clone(true);
   object.scale.setScalar(scale);
   object.updateMatrixWorld(true);
   const box = new Box3().setFromObject(object);
-  object.position.y -= box.min.y;
+  if (!held) object.position.y -= box.min.y;
   // ⚠ And CENTRED on its origin in x/z, for the two meshes whose origin is a
   // corner (D-591). A placed asset's x,y is the centre of the thing — the
   // editor shows it there, the collision mask is baked around it, and every
   // generator assumes it. `originCorrection` only moves a mesh that lies
   // entirely to one side of its origin, which is what a corner origin means
   // and what nothing else in three packs does.
-  const fix = originCorrection({
-    minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z,
-  });
+  const fix = held
+    ? { dx: 0, dz: 0 }
+    : originCorrection({
+      minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z,
+    });
   object.position.x += fix.dx;
   object.position.z += fix.dz;
   if (fix.dx !== 0 || fix.dz !== 0) {
@@ -216,7 +262,7 @@ export async function buildEnvironment(): Promise<
       continue;
     }
     recentring = asset.id;
-    const { object } = normalise(loadFbx(file));
+    const { object } = normalise(loadFbx(file), asset.kind === 'character-item');
     const out = join(OUT_DIR, `${asset.pack}__${asset.id}.glb`);
     writeFileSync(out, await toGlb(object));
     meshes[key] = `${asset.pack}__${asset.id}.glb`;

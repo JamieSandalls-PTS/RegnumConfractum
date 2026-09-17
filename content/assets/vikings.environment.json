@@ -18,7 +18,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.948,
+        2.381,
+        5.093
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-01-snow",
@@ -36,7 +42,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.948,
+        2.449,
+        5.258
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-02",
@@ -54,7 +66,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.283,
+        4.45
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-02-snow",
@@ -72,7 +90,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.333,
+        4.45
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-door-01",
@@ -90,7 +114,13 @@
         5
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.959,
+        2.491,
+        5.093
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-door-01-snow",
@@ -108,7 +138,13 @@
         5
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.959,
+        2.599,
+        5.181
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-door-02",
@@ -126,7 +162,13 @@
         5
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.264,
+        4.506
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-door-02-snow",
@@ -144,7 +186,13 @@
         5
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.325,
+        4.506
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-01",
@@ -162,7 +210,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.948,
+        2.381,
+        7.329
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-01-snow",
@@ -180,7 +234,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.948,
+        2.449,
+        7.506
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-02",
@@ -198,7 +258,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.283,
+        6.782
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-02-snow",
@@ -216,7 +282,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.323,
+        6.809
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-door-01",
@@ -234,7 +306,13 @@
         7
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.959,
+        2.491,
+        7.329
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-door-01-snow",
@@ -252,7 +330,13 @@
         7
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.959,
+        2.599,
+        7.428
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-door-02",
@@ -270,7 +354,13 @@
         7
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.259,
+        6.838
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-base-long-door-02-snow",
@@ -288,7 +378,13 @@
         7
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.573,
+        2.309,
+        6.838
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-boathouse-01",
@@ -306,7 +402,13 @@
         11
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        8.008,
+        9.225,
+        10.8
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-boathouse-01-snow",
@@ -324,7 +426,13 @@
         11
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        8.008,
+        9.303,
+        10.8
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-boathouse-02",
@@ -342,7 +450,13 @@
         11
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        8.008,
+        9.225,
+        10.8
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-boathouse-02-snow",
@@ -360,7 +474,13 @@
         11
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        8.008,
+        9.291,
+        10.8
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-door-01",
@@ -378,7 +498,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.915,
+        2.376,
+        0.392
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-door-01-snow",
@@ -396,7 +522,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.915,
+        2.376,
+        0.407
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-guard-tower-01",
@@ -414,7 +546,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.614,
+        8.002,
+        3.605
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-guard-tower-01-snow",
@@ -432,7 +570,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.614,
+        8.017,
+        3.605
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-01",
@@ -450,7 +594,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.276,
+        3.08,
+        4.748
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-01-snow",
@@ -468,7 +618,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.276,
+        3.15,
+        4.748
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-02",
@@ -486,7 +642,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.065,
+        5.187,
+        7.147
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-02-snow",
@@ -504,7 +666,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.156,
+        5.257,
+        7.201
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-long-01",
@@ -522,7 +690,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.276,
+        3.08,
+        6.934
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-long-01-snow",
@@ -540,7 +714,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.276,
+        3.162,
+        6.934
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-window-01",
@@ -558,7 +738,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.026,
+        2.799,
+        4.149
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-roof-window-01-snow",
@@ -576,7 +762,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.091,
+        2.847,
+        4.162
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stall-cover-01",
@@ -594,7 +786,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.397,
+        3.475,
+        2.289
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stall-cover-01-snow",
@@ -612,7 +810,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.397,
+        3.506,
+        2.343
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tower-01",
@@ -630,7 +834,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.778,
+        5.652,
+        3.211
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tower-01-snow",
@@ -648,7 +858,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.819,
+        5.688,
+        3.211
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tower-stone-base-01",
@@ -666,7 +882,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.594,
+        2.78,
+        2.585
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tower-stone-base-01-snow",
@@ -684,7 +906,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.635,
+        2.844,
+        2.629
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-wharf-01",
@@ -702,7 +930,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        9.042,
+        4.014,
+        9.115
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-wharf-01-snow",
@@ -720,7 +954,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        9.103,
+        4.014,
+        9.175
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-window-01",
@@ -738,7 +978,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.104,
+        1.124,
+        0.476
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-window-01-snow",
@@ -756,7 +1002,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.104,
+        1.15,
+        0.49
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-01",
@@ -774,7 +1026,13 @@
         10
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        19.437,
+        1.921,
+        10.337
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-01-snow",
@@ -792,7 +1050,13 @@
         10
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        19.437,
+        1.921,
+        10.337
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-02",
@@ -810,7 +1074,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        15.799,
+        2.084,
+        17.092
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-02-snow",
@@ -828,7 +1098,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        15.799,
+        2.084,
+        17.092
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-03",
@@ -846,7 +1122,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        18.691,
+        2.003,
+        17.396
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-03-snow",
@@ -864,7 +1146,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        18.691,
+        2.003,
+        17.396
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-04",
@@ -882,7 +1170,13 @@
         21
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        26.873,
+        2.414,
+        20.806
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-04-snow",
@@ -900,7 +1194,13 @@
         21
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        26.873,
+        2.414,
+        20.806
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-long-01",
@@ -918,7 +1218,13 @@
         16
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        11.183,
+        3.471,
+        15.845
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-long-01-snow",
@@ -936,7 +1242,13 @@
         16
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        11.183,
+        3.471,
+        15.845
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-long-02",
@@ -954,7 +1266,13 @@
         22
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        22.06,
+        3.691,
+        22.282
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-beach-long-02-snow",
@@ -972,7 +1290,13 @@
         22
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        22.06,
+        3.691,
+        22.282
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-01",
@@ -990,7 +1314,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        19.856,
+        2.551,
+        8.109
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-01-snow",
@@ -1008,7 +1338,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        19.856,
+        2.551,
+        8.109
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-02",
@@ -1026,7 +1362,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.005,
+        2.551,
+        6.829
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-02-snow",
@@ -1044,7 +1386,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.005,
+        2.551,
+        6.829
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-03",
@@ -1062,7 +1410,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.002,
+        2.551,
+        6.64
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-03-snow",
@@ -1080,7 +1434,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.002,
+        2.551,
+        6.64
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-04",
@@ -1098,7 +1458,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.253,
+        1.358,
+        4.745
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-mound-04-snow",
@@ -1116,7 +1482,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.253,
+        1.358,
+        4.745
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-tile-large-01",
@@ -1134,7 +1506,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        30,
+        0.433,
+        30
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-tile-large-02",
@@ -1152,7 +1530,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        30,
+        1.611,
+        30
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirt-tile-large-02-snow",
@@ -1170,7 +1554,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        30,
+        1.608,
+        30
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-01",
@@ -1188,7 +1578,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        17.045,
+        0.701,
+        17.246
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-01-snow",
@@ -1206,7 +1602,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        17.045,
+        0.701,
+        17.246
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-02",
@@ -1224,7 +1626,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        16.45,
+        0.701,
+        17.249
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-02-snow",
@@ -1242,7 +1650,13 @@
         17
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        16.45,
+        0.701,
+        17.249
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-03",
@@ -1260,7 +1674,13 @@
         18
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        16.219,
+        0.841,
+        17.621
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-03-snow",
@@ -1278,7 +1698,13 @@
         18
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        16.219,
+        0.841,
+        17.621
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-04",
@@ -1296,7 +1722,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        25.876,
+        2.191,
+        25.509
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-dirtmound-04-snow",
@@ -1314,7 +1746,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        25.876,
+        2.191,
+        25.509
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-flax-01",
@@ -1332,7 +1770,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.863,
+        0.247,
+        0.895
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-flax-02",
@@ -1350,7 +1794,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.701,
+        0.235,
+        0.727
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-flax-03",
@@ -1368,7 +1818,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.624,
+        0.232,
+        0.624
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-glacier-01",
@@ -1386,7 +1842,13 @@
         19
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        27.377,
+        12.577,
+        18.89
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-glacier-02",
@@ -1404,7 +1866,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        37.25,
+        12.152,
+        37.183
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-glacier-03",
@@ -1422,7 +1890,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.523,
+        10.645,
+        6.547
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-glacier-arch-01",
@@ -1440,7 +1914,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        27.977,
+        18.804,
+        9.003
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-01",
@@ -1458,7 +1938,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.838,
+        0.831,
+        0.138
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-02",
@@ -1476,7 +1962,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.45,
+        0.686,
+        0.335
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-03",
@@ -1494,7 +1986,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.885,
+        0.688,
+        0.783
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-large-01",
@@ -1512,7 +2010,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.765,
+        1.595,
+        1.789
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-large-01-snow",
@@ -1530,7 +2034,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.765,
+        1.616,
+        1.789
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-large-02",
@@ -1548,7 +2058,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.714,
+        1.36,
+        2.375
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-large-02-snow",
@@ -1566,7 +2082,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.714,
+        1.387,
+        2.375
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-01",
@@ -1584,7 +2106,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.645,
+        0.186,
+        2.394
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-01-snow",
@@ -1602,7 +2130,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.645,
+        0.186,
+        2.394
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-02",
@@ -1620,7 +2154,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.07,
+        0.193,
+        2.663
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-02-snow",
@@ -1638,7 +2178,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.07,
+        0.193,
+        2.663
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-03",
@@ -1656,7 +2202,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.113,
+        0.14,
+        1.732
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-03-snow",
@@ -1674,7 +2226,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.113,
+        0.14,
+        1.732
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-04",
@@ -1692,7 +2250,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.789,
+        0.435,
+        1.729
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grasspatch-04-snow",
@@ -1710,7 +2274,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.789,
+        0.435,
+        1.729
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-house-rocks-large-01",
@@ -1728,7 +2298,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.862,
+        0.266,
+        8.036
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-house-rocks-large-01-snow",
@@ -1746,7 +2322,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.862,
+        0.326,
+        8.036
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-house-rocks-small-01",
@@ -1764,7 +2346,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.785,
+        0.266,
+        5.79
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-house-rocks-small-01-snow",
@@ -1782,7 +2370,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.785,
+        0.312,
+        5.79
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-iceberg-01",
@@ -1800,7 +2394,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        8.404,
+        12.331,
+        8.403
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-iceberg-02",
@@ -1818,7 +2418,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        7.096,
+        8.898,
+        7.588
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-icechunk-01",
@@ -1836,7 +2442,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.432,
+        0.474,
+        5.883
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-icechunk-02",
@@ -1854,7 +2466,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.834,
+        0.474,
+        3.927
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-icechunk-03",
@@ -1872,7 +2490,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.547,
+        0.474,
+        2.758
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-icechunk-04",
@@ -1890,7 +2514,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.737,
+        0.474,
+        1.915
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-icechunk-05",
@@ -1908,7 +2538,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        8.747,
+        0.769,
+        8.958
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-icechunk-06",
@@ -1926,7 +2562,13 @@
         15
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        15.578,
+        0.769,
+        15.1
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-mountains-01",
@@ -1944,7 +2586,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        94.578,
+        28.647,
+        93.476
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-mountains-02",
@@ -1962,7 +2610,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        74.131,
+        18.248,
+        73.268
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-mountains-03",
@@ -1980,7 +2634,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        28.321,
+        10.828,
+        28.302
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-rocks-side-01",
@@ -1998,7 +2658,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.004,
+        0.266,
+        0.79
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-rocks-side-01-snow",
@@ -2016,7 +2682,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.004,
+        0.322,
+        0.79
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-01",
@@ -2034,7 +2706,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.048,
+        0.162,
+        3.533
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-01-snow",
@@ -2052,7 +2730,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.048,
+        0.241,
+        3.533
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-02",
@@ -2070,7 +2754,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.855,
+        0.162,
+        3.67
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-02-snow",
@@ -2088,7 +2778,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.855,
+        0.248,
+        3.67
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-plank-01",
@@ -2106,7 +2802,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.518,
+        0.162,
+        2.838
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-plank-01-snow",
@@ -2124,7 +2826,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.518,
+        0.249,
+        2.838
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-plank-02",
@@ -2142,7 +2850,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.496,
+        0.162,
+        2.849
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-plank-02-snow",
@@ -2160,7 +2874,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.496,
+        0.249,
+        2.849
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-plank-03",
@@ -2178,7 +2898,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.486,
+        0.162,
+        2.744
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-plank-03-snow",
@@ -2196,7 +2922,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.486,
+        0.249,
+        2.744
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-side-01",
@@ -2214,7 +2946,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.747,
+        0.862,
+        0.622
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-wood-side-01-snow",
@@ -2232,7 +2970,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.757,
+        0.923,
+        0.658
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-reeds-01",
@@ -2250,7 +2994,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.827,
+        1.138,
+        0.818
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-reeds-02",
@@ -2268,7 +3018,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.656,
+        0.902,
+        0.525
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-01",
@@ -2286,7 +3042,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.7,
+        0.766,
+        1.552
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-01-snow",
@@ -2304,7 +3066,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.708,
+        0.823,
+        1.57
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-02",
@@ -2322,7 +3090,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.484,
+        0.702,
+        1.505
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-02-snow",
@@ -2340,7 +3114,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.504,
+        0.764,
+        1.505
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-03",
@@ -2358,7 +3138,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.387,
+        0.706,
+        1.333
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-03-snow",
@@ -2376,7 +3162,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.387,
+        0.779,
+        1.333
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-04",
@@ -2394,7 +3186,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.39,
+        0.513,
+        1.739
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-04-snow",
@@ -2412,7 +3210,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.419,
+        0.577,
+        1.766
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-05",
@@ -2430,7 +3234,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.419,
+        0.514,
+        1.438
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-05-snow",
@@ -2448,7 +3258,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.419,
+        0.586,
+        1.438
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-06",
@@ -2466,7 +3282,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.367,
+        0.503,
+        1.567
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-06-snow",
@@ -2484,7 +3306,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.41,
+        0.56,
+        1.608
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-07",
@@ -2502,7 +3330,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.443,
+        0.637,
+        1.473
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rock-07-snow",
@@ -2520,7 +3354,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.443,
+        0.709,
+        1.473
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-stone-01",
@@ -2538,7 +3378,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.558,
+        0.205,
+        0.523
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-stone-01-snow",
@@ -2556,7 +3402,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.558,
+        0.234,
+        0.523
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-stone-02",
@@ -2574,7 +3426,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.261,
+        0.266,
+        1.264
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-stone-02-snow",
@@ -2592,7 +3450,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.261,
+        0.31,
+        1.264
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-01",
@@ -2610,7 +3474,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.391,
+        3.572,
+        1.47
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-01-snow",
@@ -2628,7 +3498,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.433,
+        3.647,
+        1.512
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-02",
@@ -2646,7 +3522,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.391,
+        3.545,
+        1.47
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-02-snow",
@@ -2664,7 +3546,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.429,
+        3.62,
+        1.508
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-03",
@@ -2682,7 +3570,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.193,
+        3.111,
+        1.188
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-03-snow",
@@ -2700,7 +3594,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.237,
+        3.179,
+        1.233
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-04",
@@ -2718,7 +3618,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.098,
+        2.546,
+        1.053
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-04-snow",
@@ -2736,7 +3642,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.142,
+        2.61,
+        1.1
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-large-01",
@@ -2754,7 +3666,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.062,
+        9.382,
+        1.983
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-large-01-snow",
@@ -2772,7 +3690,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.12,
+        9.714,
+        2.039
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-large-02",
@@ -2790,7 +3714,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.022,
+        7.133,
+        1.823
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-large-02-snow",
@@ -2808,7 +3738,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.064,
+        7.43,
+        1.865
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-large-03",
@@ -2826,7 +3762,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.022,
+        7.914,
+        1.823
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-pine-large-03-snow",
@@ -2844,7 +3786,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.137,
+        8.294,
+        1.939
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-01",
@@ -2862,7 +3810,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.764,
+        1.745,
+        6.598
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-01-snow",
@@ -2880,7 +3834,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.764,
+        1.745,
+        6.598
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-02",
@@ -2898,7 +3858,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.764,
+        1.77,
+        6.598
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-02-snow",
@@ -2916,7 +3882,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.764,
+        1.77,
+        6.598
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-bridge-01",
@@ -2934,7 +3906,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.125,
+        1.059,
+        4.486
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-bridge-01-snow",
@@ -2952,7 +3930,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.135,
+        1.12,
+        4.504
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-spikes-01",
@@ -2970,7 +3954,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.489,
+        1.947,
+        2.68
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-trench-spikes-01-snow",
@@ -2988,7 +3978,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.532,
+        2.009,
+        2.71
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-anvil-01",
@@ -3006,7 +4002,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.335,
+        0.409,
+        0.962
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-anvil-01-snow",
@@ -3024,7 +4026,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.335,
+        0.445,
+        0.962
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-anvil-stump-01",
@@ -3042,7 +4050,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.695,
+        0.68,
+        0.669
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-anvil-stump-01-snow",
@@ -3060,7 +4074,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.718,
+        0.725,
+        0.688
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-archway-01",
@@ -3078,7 +4098,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.397,
+        2.882,
+        0.297
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-archway-01-snow",
@@ -3096,7 +4122,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.397,
+        2.952,
+        0.363
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-barrel-half-01",
@@ -3114,7 +4146,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.843,
+        0.476,
+        0.843
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-barrel-half-01-snow",
@@ -3132,7 +4170,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.843,
+        0.5,
+        0.843
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-barrel-half-02",
@@ -3150,7 +4194,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.016,
+        0.676,
+        0.843
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-beer-mug-01",
@@ -3168,7 +4218,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.275,
+        0.331,
+        0.436
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-beer-mug-02",
@@ -3186,7 +4242,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.289,
+        0.356,
+        0.436
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-bench-01",
@@ -3204,7 +4266,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.377,
+        0.375,
+        0.529
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-bench-01-snow",
@@ -3222,7 +4290,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.377,
+        0.415,
+        0.529
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-boat-broken-01",
@@ -3240,7 +4314,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.46,
+        2.315,
+        9.021
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-boat-broken-01-snow",
@@ -3258,7 +4338,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.476,
+        2.338,
+        9.021
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-boat-broken-02",
@@ -3276,7 +4362,13 @@
         15
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        7.162,
+        7.183,
+        14.566
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-boat-build-01",
@@ -3294,7 +4386,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.945,
+        2.66,
+        9.021
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-boat-build-01-snow",
@@ -3312,7 +4410,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.945,
+        2.702,
+        9.066
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-boatramp-01",
@@ -3330,7 +4434,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.094,
+        0.318,
+        3.151
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-boatramp-01-snow",
@@ -3348,7 +4458,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.094,
+        0.34,
+        3.151
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-chest-01",
@@ -3366,7 +4482,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.234,
+        0.471,
+        0.731
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-chest-01-snow",
@@ -3384,7 +4506,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.234,
+        0.494,
+        0.731
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-chest-lid-01",
@@ -3402,7 +4530,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.21,
+        0.128,
+        0.668
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-chest-lid-01-snow",
@@ -3420,7 +4554,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.21,
+        0.147,
+        0.668
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-clay-pot-01",
@@ -3438,7 +4578,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.586,
+        0.517,
+        0.604
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-clay-pot-01-snow",
@@ -3456,7 +4602,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.586,
+        0.544,
+        0.604
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-clay-pot-02",
@@ -3474,7 +4626,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.586,
+        0.635,
+        0.604
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-clay-pot-02-snow",
@@ -3492,7 +4650,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.586,
+        0.665,
+        0.604
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-cow-skull-01",
@@ -3510,7 +4674,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.15,
+        0.418,
+        0.828
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-cow-skull-01-snow",
@@ -3528,7 +4698,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.15,
+        0.419,
+        0.836
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-base-01",
@@ -3546,7 +4722,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.326,
+        0.536,
+        0.656
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-base-01-snow",
@@ -3564,7 +4746,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.326,
+        0.585,
+        0.688
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-lid-01",
@@ -3582,7 +4770,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.187,
+        0.217,
+        0.662
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-lid-01-snow",
@@ -3600,7 +4794,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.203,
+        0.259,
+        0.688
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-open-01",
@@ -3618,7 +4818,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.326,
+        0.971,
+        1.314
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-open-01-snow",
@@ -3636,7 +4842,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.326,
+        1.034,
+        1.343
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-cross-01",
@@ -3654,7 +4866,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.481,
+        0.681,
+        0.083
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-cross-02",
@@ -3672,7 +4890,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.481,
+        0.702,
+        0.149
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-01",
@@ -3690,7 +4914,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.053,
+        4.429,
+        5.02
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-01-snow",
@@ -3708,7 +4938,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.078,
+        4.493,
+        5.02
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-02",
@@ -3726,7 +4962,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.053,
+        4.429,
+        5.123
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-02-snow",
@@ -3744,7 +4986,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.07,
+        4.484,
+        5.123
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-03",
@@ -3762,7 +5010,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.175,
+        0.277,
+        3.235
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-03-snow",
@@ -3780,7 +5034,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.175,
+        0.327,
+        3.235
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-pole-01",
@@ -3798,7 +5058,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.492,
+        4.429,
+        0.473
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-pole-01-snow",
@@ -3816,7 +5082,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.51,
+        4.476,
+        0.495
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-pole-02",
@@ -3834,7 +5106,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.582,
+        4.429,
+        0.576
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-dock-pole-02-snow",
@@ -3852,7 +5130,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.621,
+        4.488,
+        0.616
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-platform-01",
@@ -3870,7 +5154,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.325,
+        2.295,
+        4.627
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-platform-01-snow",
@@ -3888,7 +5178,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.325,
+        2.354,
+        4.627
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-stick-01",
@@ -3906,7 +5202,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.264,
+        1.179,
+        0.226
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-stick-01-snow",
@@ -3924,7 +5226,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.264,
+        1.206,
+        0.226
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-01",
@@ -3942,7 +5250,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.957,
+        1.688,
+        0.229
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-01-snow",
@@ -3960,7 +5274,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.957,
+        1.724,
+        0.235
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-02",
@@ -3978,7 +5298,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.957,
+        1.67,
+        0.229
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-02-snow",
@@ -3996,7 +5322,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.958,
+        1.707,
+        0.235
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-03",
@@ -4014,7 +5346,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.753,
+        1.688,
+        0.229
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-03-snow",
@@ -4032,7 +5370,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.753,
+        1.718,
+        0.233
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-large-01",
@@ -4050,7 +5394,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.627,
+        3.607,
+        3.746
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-large-01-snow",
@@ -4068,7 +5418,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.627,
+        3.671,
+        3.756
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-large-02",
@@ -4086,7 +5442,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.552,
+        3.536,
+        1.719
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-large-02-snow",
@@ -4104,7 +5466,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.574,
+        3.602,
+        1.747
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-01",
@@ -4122,7 +5490,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.687,
+        3.45,
+        0.622
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-01-snow",
@@ -4140,7 +5514,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.687,
+        3.511,
+        0.622
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-02",
@@ -4158,7 +5538,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.349,
+        3.994,
+        0.407
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-02-snow",
@@ -4176,7 +5562,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.371,
+        4.035,
+        0.423
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-03",
@@ -4194,7 +5586,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.473,
+        3.45,
+        0.552
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-03-snow",
@@ -4212,7 +5610,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.498,
+        3.505,
+        0.575
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-04",
@@ -4230,7 +5634,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.687,
+        4.43,
+        0.692
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-wood-pole-04-snow",
@@ -4248,7 +5658,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.687,
+        4.481,
+        0.694
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-01",
@@ -4266,7 +5682,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.342,
+        0.137,
+        0.92
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-02",
@@ -4284,7 +5706,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.448,
+        0.137,
+        0.934
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-dead-01",
@@ -4302,7 +5730,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.258,
+        0.137,
+        0.859
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-dead-02",
@@ -4320,7 +5754,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.274,
+        0.137,
+        0.977
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-dead-03",
@@ -4338,7 +5778,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.342,
+        0.137,
+        0.92
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-hanging-01",
@@ -4356,7 +5802,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.159,
+        1.678,
+        0.342
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-hanging-02",
@@ -4374,7 +5826,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.294,
+        1.247,
+        0.355
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-pile-01",
@@ -4392,7 +5850,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.973,
+        0.252,
+        1
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-rack-01",
@@ -4410,7 +5874,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.401,
+        2.072,
+        1.655
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-rack-02",
@@ -4428,7 +5898,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.401,
+        2.072,
+        1.655
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fish-rack-02-snow",
@@ -4446,7 +5922,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.401,
+        2.095,
+        1.67
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-flag-01",
@@ -4464,7 +5946,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.687,
+        4.867,
+        1.47
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-flag-01-snow",
@@ -4482,7 +5970,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.714,
+        4.887,
+        1.483
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-flag-02",
@@ -4500,7 +5994,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.687,
+        4.867,
+        1.47
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-flag-02-snow",
@@ -4518,7 +6018,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.713,
+        4.898,
+        1.483
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fur-roll-01",
@@ -4536,7 +6042,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.241,
+        0.675,
+        0.642
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fur-roll-02",
@@ -4554,7 +6066,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.814,
+        0.675,
+        0.642
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fur-roll-03",
@@ -4572,7 +6090,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.724,
+        0.585,
+        1.242
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-goblet-01",
@@ -4590,7 +6114,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.307,
+        0.342,
+        0.307
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-goldbar-01",
@@ -4608,7 +6138,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.361,
+        0.077,
+        0.169
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-ladder-01",
@@ -4626,7 +6162,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.944,
+        4.958,
+        0.469
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-ladder-01-snow",
@@ -4644,7 +6186,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.944,
+        4.958,
+        0.469
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-ladder-02",
@@ -4662,7 +6210,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.825,
+        2.783,
+        0.404
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-ladder-02-snow",
@@ -4680,7 +6234,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.825,
+        2.783,
+        0.404
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-log-01",
@@ -4698,7 +6258,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.129,
+        1.268,
+        1.206
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-log-01-snow",
@@ -4716,7 +6282,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.129,
+        1.295,
+        1.218
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-logs-01",
@@ -4734,7 +6306,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.133,
+        0.976,
+        1.677
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-logs-01-snow",
@@ -4752,7 +6330,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.133,
+        1.009,
+        1.677
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-net-01",
@@ -4770,7 +6354,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.347,
+        1.168,
+        2.15
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-net-01-snow",
@@ -4788,7 +6378,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.368,
+        1.19,
+        2.161
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-net-02",
@@ -4806,7 +6402,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.87,
+        1.138,
+        2.055
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-net-02-snow",
@@ -4824,7 +6426,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.885,
+        1.171,
+        2.066
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-oar-01",
@@ -4842,7 +6450,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.737,
+        0.347,
+        0.131
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-pole-01",
@@ -4860,7 +6474,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.426,
+        2.462,
+        2.197
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-pole-01-snow",
@@ -4878,7 +6498,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.426,
+        2.5,
+        2.197
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-pole-02",
@@ -4896,7 +6522,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.312,
+        2.981,
+        0.344
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-pole-03",
@@ -4914,7 +6546,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.388,
+        1.646,
+        0.388
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-pole-03-snow",
@@ -4932,7 +6570,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.396,
+        1.671,
+        0.396
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rack-01",
@@ -4950,7 +6594,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.561,
+        0.822,
+        0.318
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rack-01-snow",
@@ -4968,7 +6618,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.566,
+        0.835,
+        0.318
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rock-circle-01",
@@ -4986,7 +6642,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.599,
+        1.007,
+        2.575
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rock-circle-01-snow",
@@ -5004,7 +6666,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.599,
+        1.046,
+        2.575
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rock-totem-01",
@@ -5022,7 +6690,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.567,
+        3.392,
+        1
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rock-totem-01-snow",
@@ -5040,7 +6714,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.59,
+        3.452,
+        1
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rope-01",
@@ -5058,7 +6738,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.716,
+        0.098,
+        1.871
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rope-01-snow",
@@ -5076,7 +6762,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.716,
+        0.114,
+        1.871
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rope-02",
@@ -5094,7 +6786,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.173,
+        0.042,
+        1.192
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rope-02-snow",
@@ -5112,7 +6810,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.173,
+        0.069,
+        1.192
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-seat-01",
@@ -5130,7 +6834,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.648,
+        0.56,
+        1.41
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-seat-01-snow",
@@ -5148,7 +6858,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.672,
+        0.594,
+        1.41
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-01",
@@ -5166,7 +6882,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.09
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-01-snow",
@@ -5184,7 +6906,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.095
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-02",
@@ -5202,7 +6930,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.09
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-03",
@@ -5220,7 +6954,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.084
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-04",
@@ -5238,7 +6978,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.084
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-05",
@@ -5256,7 +7002,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.084
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-06",
@@ -5274,7 +7026,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.084
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-07",
@@ -5292,7 +7050,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.084
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shield-decor-08",
@@ -5310,7 +7074,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.758,
+        0.739,
+        0.084
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-skull-01",
@@ -5328,7 +7098,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.233,
+        0.265,
+        0.251
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-skull-02",
@@ -5346,7 +7122,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.233,
+        0.251,
+        0.253
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-skull-pole-01",
@@ -5364,7 +7146,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.233,
+        1.466,
+        0.251
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-skull-pole-01-snow",
@@ -5382,7 +7170,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.236,
+        1.501,
+        0.263
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-spikes-01",
@@ -5400,7 +7194,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.44,
+        1.716,
+        2.431
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-spikes-01-snow",
@@ -5418,7 +7218,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.452,
+        1.716,
+        2.44
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-table-01",
@@ -5436,7 +7242,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.302,
+        0.971,
+        1.119
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-table-01-snow",
@@ -5454,7 +7266,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.133,
+        1.068,
+        2.858
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-torchstick-01",
@@ -5472,7 +7290,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.111,
+        1.344,
+        0.119
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-village-entrance-01",
@@ -5490,7 +7314,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.397,
+        3.793,
+        0.496
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-village-entrance-01-snow",
@@ -5508,7 +7338,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.397,
+        3.826,
+        0.496
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wagon-01",
@@ -5526,7 +7362,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.522,
+        1.082,
+        3.015
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wagon-01-snow",
@@ -5544,7 +7386,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.534,
+        1.105,
+        3.025
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wheel-barrow-01",
@@ -5562,7 +7410,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.946,
+        0.967,
+        2.064
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wheel-barrow-01-snow",
@@ -5580,7 +7434,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.946,
+        1.003,
+        2.064
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-sharp-01",
@@ -5598,7 +7458,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.315,
+        3.778,
+        0.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-sharp-01-snow",
@@ -5616,7 +7482,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.315,
+        3.779,
+        0.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-sharp-02",
@@ -5634,7 +7506,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.312,
+        3.381,
+        0.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-sharp-02-snow",
@@ -5652,7 +7530,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.312,
+        3.382,
+        0.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-01",
@@ -5670,7 +7554,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.14,
+        2.356,
+        0.16
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-01-snow",
@@ -5688,7 +7578,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.14,
+        2.385,
+        0.165
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-02",
@@ -5706,7 +7602,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.13,
+        1.297,
+        0.151
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-02-snow",
@@ -5724,7 +7626,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.141,
+        1.339,
+        0.161
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-03",
@@ -5742,7 +7650,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.135,
+        1.179,
+        0.151
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-03-snow",
@@ -5760,7 +7674,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.135,
+        1.218,
+        0.159
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-04",
@@ -5778,7 +7698,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.179,
+        1.297,
+        0.179
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-wood-spike-04-snow",
@@ -5796,7 +7722,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.179,
+        1.337,
+        0.19
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boat-01",
@@ -5814,7 +7746,13 @@
         15
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        7.02,
+        9.384,
+        15.252
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boat-01-snow",
@@ -5832,7 +7770,13 @@
         15
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        7.02,
+        9.411,
+        15.252
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boathead-01",
@@ -5850,7 +7794,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.409,
+        1.998,
+        1.235
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boathead-01-snow",
@@ -5868,7 +7818,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.412,
+        2.055,
+        1.267
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boathead-02",
@@ -5886,7 +7842,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.506,
+        1.435,
+        1.057
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boathead-02-snow",
@@ -5904,7 +7866,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.513,
+        1.483,
+        1.088
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boathead-03",
@@ -5922,7 +7890,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.361,
+        0.69,
+        0.526
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-boathead-03-snow",
@@ -5940,7 +7914,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.361,
+        0.736,
+        0.526
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-fishingboat-01",
@@ -5958,7 +7938,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.46,
+        2.315,
+        9.021
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-fishingboat-01-snow",
@@ -5976,7 +7962,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.46,
+        2.356,
+        9.072
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-funeralboat-01",
@@ -5994,7 +7986,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.463,
+        2.315,
+        9.021
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-oars-01",
@@ -6012,7 +8010,13 @@
         8
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        9.771,
+        2.354,
+        7.961
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-closed-01",
@@ -6030,7 +8034,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.691,
+        4.884,
+        7.135
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-closed-02",
@@ -6048,7 +8058,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.691,
+        4.884,
+        7.135
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-closed-03",
@@ -6066,7 +8082,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.691,
+        4.884,
+        7.135
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-closed-04",
@@ -6084,7 +8106,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.691,
+        4.884,
+        7.135
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-open-01",
@@ -6102,7 +8130,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.653,
+        4.712,
+        8.553
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-open-02",
@@ -6120,7 +8154,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.653,
+        4.712,
+        8.553
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-open-03",
@@ -6138,7 +8178,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.656,
+        4.712,
+        8.553
+      ],
+      "collision": []
     },
     {
       "id": "sm-veh-sail-open-04",
@@ -6156,7 +8202,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.653,
+        4.714,
+        8.553
+      ],
+      "collision": []
     }
   ]
 }

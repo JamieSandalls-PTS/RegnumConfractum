@@ -4,7 +4,7 @@
   "layer": "readiness",
   "applies": "bow/combat",
   "clips": {
-    "idle": "bow-combat-idle",
+    "idle": "neutral-idle",
     "aim": "bow-combat-aim",
     "shoot": "bow-combat-shoot",
     "reload": "bow-combat-reload",

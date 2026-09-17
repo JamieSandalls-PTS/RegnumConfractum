@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { CHARACTER_SLOTS, markingSwap, skinPalette } from '@rc/shared';
 import { assemble } from './assembly';
+import { HOOD_ID, hoodPack, hoodStem } from './hood';
 
 /** The order parts are fed to `assemble`. See `dressedParts`. */
 const SLOT_ORDER: readonly string[] = CHARACTER_SLOTS;
@@ -22,6 +23,8 @@ const SLOT_ORDER: readonly string[] = CHARACTER_SLOTS;
  */
 
 export interface ImportedOutfit {
+  /** Person or creature: what the seed fallback may draw (D-618). */
+  readonly kind?: 'person' | 'creature';
   readonly id: string;
   readonly model: string;
   readonly palette: string | null;
@@ -157,20 +160,31 @@ export function outfits(): readonly ImportedOutfit[] {
 }
 
 /**
- * Which character an entity is drawn as.
+ * Which character an entity is drawn as when nobody chose a face.
  *
- * ⚠ Chosen from the appearance seed, which is a PLACEHOLDER. The seed is the
- * server's (D-102), so every client agrees and a person keeps the same body
- * between sessions — but it is arbitrary: nothing connects the guard model
- * to a guard. Saying which character an entity wears is a wire field and a
- * decision about how the roster relates to classes, and neither is made
- * here.
+ * ⚠ Chosen from the appearance seed, which is still a PLACEHOLDER: the
+ * seed is the server's (D-102) so every client agrees and a person keeps the
+ * same body between sessions, but it is arbitrary -- nothing connects the
+ * guard model to a guard.
+ *
+ * ⚠ It draws only from PEOPLE now (D-618). Ten of the twelve built
+ * characters are monsters, so the lottery handed bots and NPCs a goblin, a
+ * skeleton or a rock golem. A goblin should be drawn when content SAYS this
+ * thing is a goblin -- a roamer naming its look (D-594) -- and never by
+ * accident of a number.
+ *
+ * ⚠ If nothing is marked as a person it falls back to the whole list
+ * rather than drawing nobody. An unclassified checkout showing the wrong
+ * bodies is a bug you can see; an empty tavern is one that looks like the
+ * server is down.
  */
 export function pickOutfit(
   all: readonly ImportedOutfit[],
   seed: number,
 ): ImportedOutfit | null {
   if (all.length === 0) return null;
+  const people = all.filter((o) => o.kind !== 'creature');
+  all = people.length > 0 ? people : all;
   // Mix before taking a remainder. The low bits of a seed are the worst
   // bits, and `seed % 3` over consecutive ids hands out models in a
   // repeating cycle — a tavern where every third person is the same.
@@ -185,6 +199,25 @@ export function outfitById(id: string): ImportedOutfit | null {
 
 export function outfitFor(seed: number): ImportedOutfit | null {
   return pickOutfit(outfits(), seed);
+}
+
+/**
+ * The outfit whose ATLAS a chosen look should be painted with (D-602).
+ *
+ * ⚠ A look says which MESHES; it does not say which palette, and the
+ * palette was being taken from an outfit drawn out of the appearance SEED.
+ * Ten of the twelve built outfits are monsters, so a player's face was
+ * textured from a goblin, a skeleton or a rock golem depending on a number
+ * nobody chose — and because the skin recolour substitutes the four exact
+ * colours of the HERO atlas (D-560), against any other atlas it matched
+ * nothing and every skin tone did nothing at all.
+ *
+ * ⚠ Matched on the pack the outfit's own parts came from, so it stays
+ * right when more characters are authored. A whole-mesh creature (D-594) has
+ * no parts and can never answer for a look.
+ */
+export function outfitForPack(pack: string): ImportedOutfit | null {
+  return outfits().find((o) => o.parts?.pack === pack) ?? null;
 }
 
 async function parse(file: string): Promise<THREE.Object3D & { animations: THREE.AnimationClip[] }> {
@@ -331,6 +364,46 @@ export function garments(): readonly ManifestGarment[] {
  * somebody made by equipping both, and the last one on is the one you see —
  * the same rule a paperdoll already follows for a slot.
  */
+/**
+ * Lay one worn thing over the slots it covers (D-616).
+ *
+ * ⚠ ONE implementation, because there were two. `dressedParts` and
+ * `loadLook` each carried their own copy of "walk the wearing list and
+ * overwrite the slots" — one for a body built from a definition, one for a
+ * face a player chose — and the hood was taught to the first only. So a
+ * character could not raise a hood if they had picked their own face, which
+ * is every player who goes through creation. Found by measuring the assembly
+ * before and after: fourteen meshes, then the same fourteen.
+ */
+function layer(
+  worn: Map<string, { pack: string; stem: string }>,
+  id: string,
+  sex: 'male' | 'female',
+  // ⚠ The wardrobe is PASSED, not read from the module. `dressedParts`
+  // takes one so a test can inject a known set, and the first cut of this
+  // helper quietly ignored it and read the real manifest instead -- which
+  // turned five garment tests red at once with "expected Torso_F00 to be
+  // Torso_F15". Extracting shared code has to carry the seams with it.
+  wardrobe: readonly ManifestGarment[] = garments(),
+): void {
+  // The hood is presentation, not equipment (D-219), and comes from its own
+  // catalogue. It rides in the same list purely so the assembly cache and the
+  // part resolution work unchanged; it is never equipped and never on the
+  // wire as a garment.
+  if (id === HOOD_ID) {
+    const stem = hoodStem();
+    // ⚠ Unisex: the pack cuts head coverings once for both bodies, so
+    // nothing here picks by sex because there is nothing to pick between.
+    if (stem) worn.set('headCovering', { pack: hoodPack(), stem });
+    return;
+  }
+  const garment = wardrobe.find((g) => g.id === id);
+  if (!garment) return;
+  for (const [slot, stem] of Object.entries(garment.parts[sex] ?? {})) {
+    worn.set(slot, { pack: garment.pack, stem });
+  }
+}
+
 export function dressedParts(
   outfit: ImportedOutfit,
   wearing: readonly string[],
@@ -342,13 +415,7 @@ export function dressedParts(
   for (const [slot, stem] of Object.entries(outfit.parts.parts)) {
     worn.set(slot, { pack: outfit.parts.pack, stem });
   }
-  for (const id of wearing) {
-    const garment = wardrobe.find((g) => g.id === id);
-    if (!garment) continue;
-    for (const [slot, stem] of Object.entries(garment.parts[sex] ?? {})) {
-      worn.set(slot, { pack: garment.pack, stem });
-    }
-  }
+  for (const id of wearing) layer(worn, id, sex as 'male' | 'female', wardrobe);
   return SLOT_ORDER.flatMap((slot) => {
     const part = worn.get(slot);
     return part ? [{ slot, pack: part.pack, stem: part.stem }] : [];
@@ -450,18 +517,11 @@ export function loadLook(
 ): Promise<Loaded> {
   const worn = new Map<string, { pack: string; stem: string }>();
   for (const [slot, stem] of Object.entries(look.parts)) worn.set(slot, { pack, stem });
-  for (const id of wearing) {
-    const garment = garments().find((g) => g.id === id);
-    if (!garment) continue;
-    // ⚠ A garment is cut for a BODY (D-571), and a look has no sex of its own
-    // — the parts it names carry it. Read the cut from the parts themselves
-    // rather than guessing, so a female body does not end up in a male
-    // hauberk at the wrong diameter.
-    const sex = sexOfLook(look.parts);
-    for (const [slot, stem] of Object.entries(garment.parts[sex] ?? {})) {
-      worn.set(slot, { pack: garment.pack, stem });
-    }
-  }
+  // ⚠ A garment is cut for a BODY (D-571), and a look has no sex of its
+  // own — the parts it names carry it. Read the cut from the parts
+  // themselves rather than guessing, so a female body does not end up in a
+  // male hauberk at the wrong diameter.
+  for (const id of wearing) layer(worn, id, sexOfLook(look.parts));
 
   // ⚠ The colours are part of the key. Two characters in the same parts and
   // different skin are two models, and leaving the tone out would hand the

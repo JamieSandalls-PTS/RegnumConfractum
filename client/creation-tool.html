@@ -69,6 +69,29 @@
   button:hover:not(:disabled) { border-color: var(--warm); color: #e0d8c8; }
   button:disabled { opacity: .45; cursor: default; }
   button.primary { background: #2c2118; border-color: var(--warm); color: #e0d8c8; }
+  /* A row in the LIST pane is a thing you pick, so it has to look like one.
+     These were bare text on a panel: `.row` is a flex utility shared with the
+     form rows in the side panel, and `.listrow` had no rule at all, so every
+     list of feats, recipes, roamers, people, cues and garments read as a
+     paragraph rather than as a column of choices.
+
+     Scoped to `#list` on purpose: the same `.row` class lays out the label-
+     and-field rows in `#side`, and boxing those would turn every form into a
+     ladder. */
+  #list .row, .listrow {
+    border: 1px solid var(--line); border-radius: 3px;
+    padding: 6px 8px; margin-bottom: 4px; cursor: pointer;
+    background: #1a181e;
+  }
+  #list .row:hover, .listrow:hover { border-color: #4a4550; color: #e0d8c8; }
+  #list .row.on, .listrow.on {
+    border-color: var(--warm); color: #e0d8c8; background: #2c2118;
+  }
+  /* The sub-line inside a row (an id, a count, what it is made of). */
+  .listrow .sub { display: block; color: var(--dim); font-size: 11px; margin-top: 2px; }
+  /* The item list is a table rather than divs; give its rows the same edge. */
+  #list tr { cursor: pointer; }
+  #list tbody tr:hover td { background: #1f1d24; }
   .row { display: flex; gap: 6px; align-items: center; }
   .row > * { margin-top: 0; }
   /* One kit line: item, how many, worn-or-carried, remove. */
@@ -117,6 +140,11 @@
     <div id="tabs">
       <button data-tab="parts" class="on">Body parts</button>
       <button data-tab="races">Races</button>
+      <!-- Whole-body characters: goblins, skeletons, the golem (D-613).
+           Separate from Body parts because they are a different SHAPE of
+           content, not a different subject: a modular character is 720
+           part files and one of these is a single rigged FBX. -->
+      <button data-tab="enemies">Enemies</button>
       <button data-tab="character-item">Weapon assets</button>
       <button data-tab="environment">Environment assets</button>
       <button data-tab="pickup">Pickups</button>

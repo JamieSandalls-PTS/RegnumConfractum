@@ -109,6 +109,15 @@ export const EnvironmentAssetSchema = AssetCoreSchema.extend({
   footprint: z.tuple([z.number().int().positive(), z.number().int().positive()]).default([1, 1]),
   /** A door, a chest, a portcullis: something that opens. */
   operable: z.boolean().default(false),
+  /**
+   * Something a person can sit on (D-605).
+   *
+   * ⚠ A fact about the ASSET, not about where it stands: a stool is a stool
+   * in every tavern. It is copied onto each placement the way collision is
+   * (D-567), because the server holds areas and deliberately does not hold the
+   * 1,402-entry environment catalogue.
+   */
+  seat: z.boolean().default(false),
   /** Clips for opening and closing, when it is operable. */
   clips: z.record(ActionSchema, z.string().min(1)).default({}),
   /**

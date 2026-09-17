@@ -1,0 +1,30 @@
+{
+  "pack": "bow-crossbow",
+  "kind": "environment",
+  "assets": [
+    {
+      "id": "sm-prop-arrow-nativeamerican-01",
+      "name": "Arrow native american",
+      "pack": "bow-crossbow",
+      "mesh": "SM_Prop_Arrow_NativeAmerican_01",
+      "tags": [
+        "draft"
+      ],
+      "kind": "environment",
+      "solid": false,
+      "opaque": false,
+      "footprint": [
+        1,
+        1
+      ],
+      "operable": false,
+      "clips": {},
+      "size": [
+        0.061,
+        0.084,
+        1.005
+      ],
+      "collision": []
+    }
+  ]
+}

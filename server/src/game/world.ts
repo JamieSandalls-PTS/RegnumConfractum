@@ -3,7 +3,7 @@ import {
   DIRECTIONS,
   Nav,
   TICK_RATE,
-  WALK_SPEED,
+  speedFor,
   areaCollision,
   canStandAt,
   distance,
@@ -38,6 +38,16 @@ export interface WorldEntity {
   npcDescriptor?: string;
   /** The built character this is drawn as (D-594), when its content says. */
   model?: string;
+  /**
+   * Which `content/npcs/` definition put this person here (D-598).
+   *
+   * ⚠ Server-side only and never on the wire: what a player learns about
+   * somebody is the descriptor, and an id beside it would be a name the
+   * game hands out for free. It exists so the spawner can tell whether a
+   * declared NPC is already standing there, which matching on descriptor
+   * would only approximate.
+   */
+  npcType?: string;
   /**
    * World objects born of death (D-224/D-511): a lying corpse, a scatter of
    * dropped gear, or a walking corpse. Null for everything else. Zombies go
@@ -87,6 +97,8 @@ export interface WorldEntity {
   z: number;
   facing: Direction;
   posture: Posture;
+  /** On a real seat, not the ground (D-615). Only `sit` sets it. */
+  seated: boolean;
   presentation: Presentation;
   /** NPC hit points (players keep theirs on the character record). */
   hp: number;
@@ -166,6 +178,7 @@ export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
     y: e.pos.y,
     facing: e.facing,
     posture: e.posture,
+    seated: e.seated,
     presentation: e.presentation,
     appearanceSeed: e.appearanceSeed,
     appearance: e.appearance,
@@ -241,6 +254,7 @@ export class World {
       name: string;
       npcDescriptor?: string;
       model?: string;
+      npcType?: string;
       objectKind?: 'corpse' | 'pile' | 'zombie' | 'node' | 'station';
       hostile?: boolean;
       nodeType?: string;
@@ -267,6 +281,7 @@ export class World {
       name: opts.name,
       ...(opts.npcDescriptor ? { npcDescriptor: opts.npcDescriptor } : {}),
       ...(opts.model ? { model: opts.model } : {}),
+      ...(opts.npcType ? { npcType: opts.npcType } : {}),
       ...(opts.objectKind ? { objectKind: opts.objectKind } : {}),
       ...(opts.hostile ? { hostile: true } : {}),
       ...(opts.corpseOfCharacterId ? { corpseOfCharacterId: opts.corpseOfCharacterId } : {}),
@@ -280,6 +295,7 @@ export class World {
       z: 0,
       facing: opts.facing ?? 's',
       posture: 'standing',
+      seated: false,
       presentation: 'normal',
       hp: opts.hp ?? 10,
       ghost: opts.ghost ?? false,
@@ -301,10 +317,14 @@ export class World {
 
   /** Applies an emote's posture change; returns the broadcast event. */
   setPosture(entityId: number, posture: Posture): SimEvent | null {
+    // ⚠ Leaving `sitting` leaves the SEAT (D-615). Without this a
+    // character who stood up off a chair and later sat down in a field
+    // was still flagged as seated, and sat in mid-air at chair height.
     const entity = this.getEntity(entityId);
     if (!entity || entity.posture === posture) return null;
     entity.posture = posture;
-    return { type: 'entity_emote', id: entityId, posture, transients: [] };
+    if (posture !== 'sitting') entity.seated = false;
+    return { type: 'entity_emote', id: entityId, posture, seated: false, transients: [] };
   }
 
   despawn(entityId: number): SimEvent | null {
@@ -387,6 +407,7 @@ export class World {
         if (this.tick < entity.readyAtTick) continue;
         if (!this.advance(area, entity)) continue;
         entity.posture = 'standing'; // moving implies standing (protocol rule)
+        entity.seated = false; // and walking away leaves the seat (D-615)
         (events ??= []).push({
           type: 'entity_moved',
           id: entity.id,
@@ -415,7 +436,10 @@ export class World {
    */
   private advance(area: AreaRuntime, entity: WorldEntity): boolean {
     const route = entity.route!;
-    let budget = WALK_SPEED / TICK_RATE;
+    // ⚠ A weapon up means a run (D-619). It is read off the entity's own
+    // combat flag, which the gateway owns and broadcasts, so the speed a
+    // client GLIDES at and the speed the server MOVES at come from one fact.
+    let budget = speedFor(entity.combat) / TICK_RATE;
     const layer = areaCollision(area.def);
     let moved = false;
     while (budget > 1e-9 && route.length > 0) {

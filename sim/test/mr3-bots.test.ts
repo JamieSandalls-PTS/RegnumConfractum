@@ -178,13 +178,35 @@ describe('a cast of bots plays a round', () => {
     // Nothing here names an area. The agents learn the cross by walking it,
     // so this passes on a re-authored map and fails on a map that cannot be
     // traversed at all — which is the useful direction (D-529).
+    // ⚠ Waits for the PROPERTY, not for a proxy for it. This used to wait
+    // until somebody had visited two areas and then sample where everybody was
+    // — which is a different question, and the answer drifted the moment the
+    // cast started a round together in the tavern (D-608) instead of spread
+    // around the square: one door, everyone through it at once, and the sample
+    // caught them all standing in the same place. Failed about one run in two,
+    // saying "expected 1 to be greater than 1", which describes nothing.
     await waitUntil(
-      () => cast.some((p) => p.agent.visited.length >= 2),
-      'somebody goes through a door',
+      () => new Set(cast.map((p) => p.bot.area?.id)).size > 1,
+      'the cast is in more than one area at once',
       40_000,
     );
     const areas = new Set(cast.map((p) => p.bot.area?.id));
     expect(areas.size).toBeGreaterThan(1);
+
+    // And they got there by WALKING: somebody has crossed a door and
+    // remembered the edge, which is what makes this a test of the MAP rather
+    // than of where the server put everybody.
+    //
+    // ⚠ Waited for separately, because the agent's own memory lags the
+    // client mirror by one decision: at the instant the cast first occupies
+    // two areas, the bot that just stepped through the door has not had its
+    // next think yet, so nobody has recorded the second area. Asserted at that
+    // instant it failed every run, saying "expected false to be true".
+    await waitUntil(
+      () => cast.some((p) => p.agent.visited.length >= 2),
+      'somebody has remembered a second area',
+      40_000,
+    );
   }, 60_000);
 
   it('work actually gets done', async () => {
@@ -284,7 +306,7 @@ describe('the antagonist acts on its own trigger', () => {
     await server.stop();
   });
 
-  it('finds the keeper by walking to it, kills it, and wins the round', async () => {
+  it('finds the keeper by walking to it, and the round resolves on the deed', async () => {
     const villain = cast.find((p) => p.bot.roundRole!.antagonist)!;
     const innocents = cast.filter((p) => p !== villain);
     // The keeper stands in the town, not next to anybody: reaching it is the
@@ -300,7 +322,20 @@ describe('the antagonist acts on its own trigger', () => {
       45_000,
     );
     const ended = villain.bot.roundsEnded[0]!;
-    expect(ended.winner).toBe('antagonist');
+    // ⚠ NOT "the antagonist wins". This asserted that, and started failing
+    // about one run in two the moment the town watch was repaired (D-610):
+    // the watch had been blind since the first round ever played, and with its
+    // eyes back a bot that murders the keeper in the open square is sometimes
+    // cut down for it before the round can resolve on the objective. Both
+    // endings are correct, and which one happens is a fight.
+    //
+    // ⚠ What this test is FOR is the bot: that an agent given a kill_npc
+    // objective finds a target it was never told the position of, walks to it,
+    // and commits. That is asserted above, by `committedAtMs` and by the round
+    // resolving at all. Pinning the winner pinned the outcome of a fight with
+    // the guards, which is a different mechanic and a coin toss.
+    expect(['antagonist', 'cast']).toContain(ended.winner);
+    expect(ended.objectiveName.length).toBeGreaterThan(0);
     // The reveal names them, and it is the only message that ever does.
     expect(ended.antagonistName.length).toBeGreaterThan(0);
     // Nobody else was told anything: the innocents learn who it was in the

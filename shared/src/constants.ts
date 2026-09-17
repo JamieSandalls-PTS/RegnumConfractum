@@ -185,3 +185,20 @@ export const ENDGAME_CONFIRM_TICKS = 300; // 30s
  */
 export const SEANCE_MANA_COST = 6;
 export const ANIMATE_MANA_COST = 8;
+
+/**
+ * How far from the point a player clicked a seat may be found (D-605).
+ *
+ * ⚠ Generous, because the click is aimed at a CHAIR MESH and the placement
+ * is its centre: a stool is half a metre across and a person aims at the seat,
+ * not at the origin.
+ */
+export const SEAT_PICK_RADIUS = 1.0;
+
+/**
+ * How close a player must already be to sit down.
+ *
+ * ⚠ Checked against the player, never against the click. Without it, "sit on
+ * that chair over there" is a teleport with a nicer name.
+ */
+export const SEAT_REACH = 1.6;

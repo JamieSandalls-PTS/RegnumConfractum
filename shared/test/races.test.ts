@@ -5,6 +5,7 @@ import {
   racesForClass,
   lookProblems,
   partsForSlot,
+  partsForSex,
   cutOfFace,
   partLabel,
   curatedPartNames,
@@ -257,6 +258,33 @@ describe('what a face step may offer (D-574)', () => {
   it('keeps parts the pack cuts ONCE for both', () => {
     // Hair and ears carry no body word and belong to everybody.
     expect(partsForSlot(HAIR, 'hair', 'SK_Chr_Head_Female_00')).toEqual(HAIR);
+  });
+
+  it('filters EVERY slot by an explicit body, head included', () => {
+    // ⚠ The opposite rule to the one above, and it is not a contradiction.
+    // `partsForSlot` must never filter the head because the head is what it
+    // reads the cut FROM — a one-way door with no way back. An explicit body
+    // selector (D-601) IS the way back, so it may filter everything.
+    expect(partsForSex(HEADS, 'male')).toEqual(['SK_Chr_Head_Male_00']);
+    expect(partsForSex(HEADS, 'female')).toEqual(['SK_Chr_Head_Female_00']);
+    expect(partsForSex(BROWS, 'female')).toEqual(['SK_Chr_Eyebrow_Female_01']);
+  });
+
+  it('keeps unisex parts whichever body is selected', () => {
+    // Hair, capes and crests carry no body word. Dropping them would empty
+    // three rows that have nothing to do with which body is chosen.
+    expect(partsForSex(HAIR, 'male')).toEqual(HAIR);
+    expect(partsForSex(HAIR, 'female')).toEqual(HAIR);
+  });
+
+  it('is REVERSIBLE, which is the whole reason it may filter the head', () => {
+    const male = partsForSex(HEADS, 'male');
+    const back = partsForSex(HEADS, 'female');
+    expect(male).not.toEqual(back);
+    // Selecting male then female reaches the female faces again — the exact
+    // thing D-575's implicit filter made impossible.
+    expect(partsForSex(HEADS, 'female')).toEqual(back);
+    expect(partsForSex(HEADS, 'male')).toEqual(male);
   });
 
   it('reads the cut off the face, and has no opinion without one', () => {

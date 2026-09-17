@@ -2254,7 +2254,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2281,7 +2281,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2308,7 +2308,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2335,7 +2335,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2362,7 +2362,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2389,7 +2389,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -2416,7 +2416,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -2443,7 +2443,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2470,7 +2470,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2497,7 +2497,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -2524,7 +2524,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2551,7 +2551,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -2578,7 +2578,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2605,7 +2605,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2632,7 +2632,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2659,7 +2659,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2686,7 +2686,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2713,7 +2713,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2740,7 +2740,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2767,7 +2767,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -2794,7 +2794,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2821,7 +2821,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2848,7 +2848,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2875,7 +2875,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2902,7 +2902,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -2929,7 +2929,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -2956,7 +2956,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -2983,7 +2983,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -3010,7 +3010,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -3037,7 +3037,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -3064,7 +3064,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -3091,7 +3091,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -3118,7 +3118,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.244,
           "walkable": false,
           "opaque": true
         }
@@ -3145,7 +3145,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -3172,7 +3172,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -3199,7 +3199,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -3226,7 +3226,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -3253,7 +3253,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -3280,7 +3280,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -3307,7 +3307,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.067,
           "walkable": false,
           "opaque": false
         }
@@ -3334,7 +3334,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.021,
           "walkable": false,
           "opaque": true
         }
@@ -3361,7 +3361,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3388,7 +3388,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3415,7 +3415,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3442,7 +3442,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 7.667,
           "walkable": false,
           "opaque": true
         }
@@ -3469,7 +3469,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 7.667,
           "walkable": false,
           "opaque": true
         }
@@ -3496,7 +3496,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3523,7 +3523,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3550,7 +3550,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3577,7 +3577,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -3604,7 +3604,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 7.667,
           "walkable": false,
           "opaque": true
         }
@@ -3631,7 +3631,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -3658,7 +3658,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3685,7 +3685,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -3712,7 +3712,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -3739,7 +3739,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3766,7 +3766,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 7.667,
           "walkable": false,
           "opaque": true
         }
@@ -3793,7 +3793,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 7.667,
           "walkable": false,
           "opaque": true
         }
@@ -3820,7 +3820,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -3847,7 +3847,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.308,
           "walkable": false,
           "opaque": false
         }
@@ -3874,7 +3874,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.305,
           "walkable": false,
           "opaque": false
         }
@@ -3901,7 +3901,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 7.667,
           "walkable": false,
           "opaque": true
         }
@@ -4384,7 +4384,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.071,
           "walkable": false,
           "opaque": false
         }
@@ -4411,7 +4411,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.796,
           "walkable": false,
           "opaque": false
         }
@@ -4438,7 +4438,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.071,
           "walkable": false,
           "opaque": false
         }
@@ -4465,7 +4465,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.583,
           "walkable": false,
           "opaque": false
         }
@@ -4492,7 +4492,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 1.071,
           "walkable": false,
           "opaque": false
         }
@@ -4519,7 +4519,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.583,
           "walkable": false,
           "opaque": false
         }
@@ -4546,7 +4546,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.796,
           "walkable": false,
           "opaque": false
         }
@@ -4573,7 +4573,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.796,
           "walkable": false,
           "opaque": false
         }
@@ -4600,7 +4600,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 2.583,
           "walkable": false,
           "opaque": false
         }
@@ -4627,7 +4627,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.378,
           "walkable": false,
           "opaque": false
         }

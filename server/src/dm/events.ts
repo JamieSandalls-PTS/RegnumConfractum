@@ -218,6 +218,7 @@ export class EventEngine {
           y: action.y,
           descriptor: action.descriptor,
           ...(action.seed !== undefined ? { appearanceSeed: action.seed } : {}),
+          ...(action.character !== undefined ? { character: action.character } : {}),
         });
         run.spawnedNpcs.push(id);
         if (action.alias) run.aliases.set(action.alias, { kind: 'npc', id });

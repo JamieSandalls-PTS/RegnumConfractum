@@ -37,6 +37,7 @@ let store: MemoryStore;
 let server: GameServer;
 let host: ScriptHost;
 let bot: BotClient;
+let characterId: string;
 
 async function waitFor<T>(get: () => T | undefined, what: string, ms = 15_000): Promise<T> {
   const until = Date.now() + ms;
@@ -95,6 +96,7 @@ beforeAll(async () => {
   const id = (await bot.expect('character_created')).character.id;
   bot.send({ t: 'enter_world', characterId: id });
   await bot.expect('snapshot');
+  characterId = id;
 });
 
 afterAll(async () => {
@@ -131,6 +133,22 @@ describe('the keeper the round can actually reach', () => {
     await waitFor(() => (bot.roundState?.phase === 'running' ? true : undefined),
       'the round to start');
 
+    // ⚠ ARMED, and that is not a convenience. The keeper has 40 hit points
+    // now (D-619) and this bot was fighting BARE-HANDED -- measured off this
+    // very fixture: 27 swings for 13 damage, about half a point a swing. An
+    // antagonist dealt `silence-the-keeper` is carrying the kit its calling
+    // granted (D-547), so a fixture that punches him is not a harder version
+    // of the real thing, it is a different thing, and tuning the objective
+    // against it would tune it against nobody.
+    const sword = await store.grantItem(characterId, 'arming-sword', 1);
+    bot.send({ t: 'equip', itemId: sword.id });
+    await waitFor(
+      () => (bot.inventory.some((i) => i.templateId === 'arming-sword' && i.equipped)
+        ? true
+        : undefined),
+      'the sword to be in hand',
+    );
+
     // ⚠ `move_to`, not a greedy step. The first cut walked whichever axis was
     // furthest and stopped dead at (25, 22): the square's statue stands at
     // (25, 21), directly between the tavern door and everybody crossing the
@@ -138,7 +156,7 @@ describe('the keeper the round can actually reach', () => {
     // (D-567) and this is the message a real player's click sends — a test
     // that reimplements pathfinding is testing its own pathfinding.
     bot.send({ t: 'move_to', x: keeper.x, y: keeper.y });
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 900; i++) {
       if (bot.roundsEnded.length > 0) break;
       const me = bot.entities.get(bot.you!);
       if (me && Math.hypot(keeper.x - me.x, keeper.y - me.y) <= 1.2) {

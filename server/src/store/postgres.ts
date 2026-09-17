@@ -329,8 +329,14 @@ export class PgStore implements Store {
   }
 
   async grantItemToStore(storeId: string, templateId: string, qty: number): Promise<ItemRecord> {
+    // ⚠ The column is `owner_store`, and this said `owner_store_id`.
+    // Postgres rejected every insert, and because the caller is
+    // `stockCommonStores` — which runs on the first tick of every round
+    // (D-593) — the rejection surfaced as the whole SERVER PROCESS EXITING the
+    // moment a round began. Nothing in the suite could see it: `MemoryStore`
+    // has no columns to disagree about, and it is the store every test uses.
     const { rows } = await this.pool.query<{ id: string }>(
-      'insert into items (template_id, owner_store_id, qty) values ($1, $2, $3) returning id',
+      'insert into items (template_id, owner_store, qty) values ($1, $2, $3) returning id',
       [templateId, storeId, qty],
     );
     return {
@@ -341,7 +347,8 @@ export class PgStore implements Store {
 
   async getItem(itemId: string): Promise<ItemRecord | null> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, owner_corpse_id, qty, data, equipped_slot from items where id = $1',
+      'select id, template_id, owner_character_id, owner_corpse_id, owner_store, qty, data, equipped_slot'
+      + ' from items where id = $1',
       [itemId],
     );
     return rows[0] ? rowToItem(rows[0]) : null;
@@ -349,7 +356,8 @@ export class PgStore implements Store {
 
   async getItemsByCharacter(characterId: string): Promise<ItemRecord[]> {
     const { rows } = await this.pool.query(
-      'select id, template_id, owner_character_id, owner_corpse_id, qty, data, equipped_slot from items where owner_character_id = $1 order by created_at',
+      'select id, template_id, owner_character_id, owner_corpse_id, owner_store, qty, data, equipped_slot'
+      + ' from items where owner_character_id = $1 order by created_at',
       [characterId],
     );
     return rows.map(rowToItem);

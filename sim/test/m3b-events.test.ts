@@ -238,7 +238,19 @@ describe('the DM event chain (M3 done-when, D-216)', () => {
     expect(r.ok).toBe(true);
     await waitUntil(() => alpha.area?.id === 'hanged-ferryman', 'alpha evacuated');
     await waitUntil(() => beta.area?.id === 'hanged-ferryman', 'beta evacuated');
-    expect([...alpha.entities.values()].filter((e) => e.kind === 'npc')).toHaveLength(0);
+    // ⚠ The WARBAND is gone — not "there are no NPCs anywhere". Counting every
+    // npc worked only because the tavern they were evacuated INTO happened to
+    // be empty of anybody, and the moment the Hanged Ferryman gained a declared
+    // keeper (D-598) this failed on a man with no part in the event. What
+    // rollback promises is that it removes what IT spawned.
+    const warband = [
+      'a scarred warlord in blacked mail',
+      'a gaunt raider',
+      'a torch-bearing raider',
+    ];
+    expect(
+      [...alpha.entities.values()].filter((e) => warband.includes(e.descriptor)),
+    ).toHaveLength(0);
     alpha.drain('snapshot');
     alpha.send({ t: 'resync' });
     const snap = await alpha.expect('snapshot');

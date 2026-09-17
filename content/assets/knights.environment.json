@@ -18,7 +18,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.366,
+        0.892,
+        0.309
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-arrowslit-01-snow",
@@ -36,7 +42,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.366,
+        0.953,
+        0.309
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-arrow-slit-01",
@@ -54,7 +66,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.4,
+        1.137,
+        0.166
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-door-01",
@@ -72,7 +90,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.44,
+        3.062,
+        0.66
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-door-01-snow",
@@ -90,7 +114,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.44,
+        3.148,
+        0.66
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-door-l",
@@ -108,7 +138,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.071,
+        2.578,
+        0.17
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-door-r",
@@ -126,7 +162,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.123,
+        2.578,
+        0.17
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-flag-01",
@@ -144,7 +186,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.794,
+        0.564,
+        0.145
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-flagpole-01",
@@ -162,7 +210,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.244,
+        2.867,
+        0.212
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-iron-gate-01",
@@ -180,7 +234,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.516,
+        2.906,
+        0.063
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-pillar-01",
@@ -198,7 +258,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.791,
+        5.092,
+        0.602
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-roof-spire-01",
@@ -216,7 +282,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.964,
+        5.473,
+        2.964
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-roof-spire-01-snow",
@@ -234,7 +306,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.964,
+        5.473,
+        2.964
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-01",
@@ -252,7 +330,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.779,
+        3.036,
+        2.779
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-01-lite",
@@ -270,7 +354,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.779,
+        3.036,
+        2.779
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-01-snow",
@@ -288,7 +378,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.779,
+        3.106,
+        2.779
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-02",
@@ -306,7 +402,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.836,
+        3.023,
+        2.836
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-02-lite",
@@ -324,7 +426,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.836,
+        3.023,
+        2.836
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-03",
@@ -342,7 +450,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.697,
+        3,
+        2.697
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-03-lite",
@@ -360,7 +474,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.596,
+        3,
+        2.596
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-04",
@@ -378,7 +498,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.836,
+        3.023,
+        2.836
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-04-lite",
@@ -396,7 +522,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.836,
+        3.023,
+        2.836
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-base-01",
@@ -414,7 +546,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.769,
+        0.932,
+        2.647
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-base-02",
@@ -432,7 +570,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.836,
+        0.491,
+        2.836
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-mini-01",
@@ -450,7 +594,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.582,
+        5.116,
+        1.529
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-mini-01-snow",
@@ -468,7 +618,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.582,
+        5.209,
+        1.529
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-mini-02",
@@ -486,7 +642,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.582,
+        3.043,
+        1.529
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-mini-02-snow",
@@ -504,7 +666,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.582,
+        3.1,
+        1.529
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-round-01",
@@ -522,7 +690,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.175,
+        3,
+        3.175
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-round-01-lite",
@@ -540,7 +714,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.175,
+        3,
+        3.175
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-round-02",
@@ -558,7 +738,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.972,
+        3,
+        2.965
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-round-02-lite",
@@ -576,7 +762,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.868,
+        3,
+        2.868
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-round-top-01",
@@ -594,7 +786,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.353,
+        1.475,
+        3.345
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-round-top-01-lite",
@@ -612,7 +810,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.239,
+        1.475,
+        3.239
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-round-top-01-snow",
@@ -630,7 +834,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.353,
+        1.564,
+        3.345
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-top-01",
@@ -648,7 +858,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.181,
+        1.641,
+        3.181
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-top-01-lite",
@@ -666,7 +882,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.071,
+        1.641,
+        3.071
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-top-01-snow",
@@ -684,7 +906,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.181,
+        1.709,
+        3.181
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-wall-top-01",
@@ -702,7 +930,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5,
+        1.439,
+        2.458
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-wall-top-01-lite",
@@ -720,7 +954,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5,
+        1.439,
+        2.349
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-tower-wall-top-01-snow",
@@ -738,7 +978,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5,
+        1.521,
+        2.458
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wall-01",
@@ -756,7 +1002,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.398,
+        5.09,
+        2.219
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wall-01-lite",
@@ -774,7 +1026,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.28,
+        5.09,
+        2.219
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wall-01-snow",
@@ -792,7 +1050,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.398,
+        5.194,
+        2.219
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wall-gate-01",
@@ -810,7 +1074,13 @@
         2
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.398,
+        5.13,
+        2.397
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wall-gate-01-lite",
@@ -828,7 +1098,13 @@
         2
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.28,
+        5.13,
+        2.397
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wall-gate-01-snow",
@@ -846,7 +1122,13 @@
         2
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.398,
+        5.294,
+        2.397
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-01",
@@ -864,7 +1146,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.321,
+        3.669,
+        4.696
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-01-snow",
@@ -882,7 +1170,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.321,
+        3.72,
+        4.696
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-02",
@@ -900,7 +1194,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.147,
+        3.621,
+        2.075
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-02-snow",
@@ -918,7 +1218,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.147,
+        3.655,
+        2.075
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-03",
@@ -936,7 +1242,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.147,
+        3.621,
+        2.075
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-03-snow",
@@ -954,7 +1266,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.147,
+        3.678,
+        2.075
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-04",
@@ -972,7 +1290,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.794,
+        3.621,
+        2.075
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-battlement-04-snow",
@@ -990,7 +1314,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.794,
+        3.668,
+        2.075
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-detal-01",
@@ -1008,7 +1338,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.291,
+        0.291,
+        0.424
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-castle-wood-detal-01-snow",
@@ -1026,7 +1362,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.291,
+        0.32,
+        0.424
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-door-01",
@@ -1044,7 +1386,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.106,
+        2.716,
+        0.597
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-door-01-snow",
@@ -1062,7 +1410,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.106,
+        2.762,
+        0.643
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-extension-01",
@@ -1080,7 +1434,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.251,
+        4.581,
+        3.305
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-extension-01-lite",
@@ -1098,7 +1458,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.251,
+        4.581,
+        3.305
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-extension-01-snow",
@@ -1116,7 +1482,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.251,
+        4.682,
+        3.305
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-01",
@@ -1134,7 +1506,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.398,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-01-lite",
@@ -1152,7 +1530,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.398,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-01-snow",
@@ -1170,7 +1554,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.526,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-02",
@@ -1188,7 +1578,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.398,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-02-lite",
@@ -1206,7 +1602,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.398,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-02-snow",
@@ -1224,7 +1626,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.526,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-03",
@@ -1242,7 +1650,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.398,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-03-lite",
@@ -1260,7 +1674,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.398,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-room-03-snow",
@@ -1278,7 +1698,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.42,
+        6.526,
+        8.752
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-01",
@@ -1296,7 +1722,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.591,
+        6.661,
+        3.555
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-01-lite",
@@ -1314,7 +1746,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.591,
+        6.661,
+        3.555
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-01-snow",
@@ -1332,7 +1770,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.591,
+        6.721,
+        3.555
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-02",
@@ -1350,7 +1794,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.591,
+        5.125,
+        3.555
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-02-lite",
@@ -1368,7 +1818,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.591,
+        5.125,
+        3.555
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-02-snow",
@@ -1386,7 +1842,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.591,
+        5.202,
+        3.555
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-03",
@@ -1404,7 +1866,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.971,
+        3.259,
+        3.048
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-tower-03-lite",
@@ -1422,7 +1890,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.971,
+        3.259,
+        3.048
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-towerbase-01",
@@ -1440,7 +1914,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.971,
+        3.259,
+        3.048
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-towerbase-01-lite",
@@ -1458,7 +1938,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.971,
+        3.259,
+        3.048
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-church-window-01",
@@ -1476,7 +1962,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.753,
+        1.529,
+        0.168
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-01",
@@ -1494,7 +1986,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.382,
+        4.604,
+        1.01
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-01-snow",
@@ -1512,7 +2010,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.382,
+        4.604,
+        1.01
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-02",
@@ -1530,7 +2034,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.895,
+        4.604,
+        0.786
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-02-snow",
@@ -1548,7 +2058,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.895,
+        4.604,
+        0.786
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-03",
@@ -1566,7 +2082,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.958,
+        4.658,
+        0.84
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-03-snow",
@@ -1584,7 +2106,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.958,
+        4.701,
+        0.84
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-04",
@@ -1602,7 +2130,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.851,
+        4.604,
+        1.577
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-04-snow",
@@ -1620,7 +2154,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.851,
+        4.604,
+        1.577
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-05",
@@ -1638,7 +2178,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.958,
+        0.968,
+        0.84
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-chimney-05-snow",
@@ -1656,7 +2202,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.958,
+        1.008,
+        0.84
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-01",
@@ -1674,7 +2226,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.263,
+        2.153,
+        0.497
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-01-snow",
@@ -1692,7 +2250,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.252,
+        2.217,
+        0.539
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-02",
@@ -1710,7 +2274,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.696,
+        2.302,
+        0.497
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-02-snow",
@@ -1728,7 +2298,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.696,
+        2.349,
+        0.497
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-03",
@@ -1746,7 +2322,13 @@
         3
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        3.944,
+        3.034
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-03-snow",
@@ -1764,7 +2346,13 @@
         3
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        3.985,
+        3.034
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-04",
@@ -1782,7 +2370,13 @@
         2
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        3.293,
+        2.378
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-door-04-snow",
@@ -1800,7 +2394,13 @@
         2
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        3.356,
+        2.378
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-extension-01",
@@ -1818,7 +2418,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        3.944,
+        2.465
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-extension-01-snow",
@@ -1836,7 +2442,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        4.011,
+        2.465
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-extension-02",
@@ -1854,7 +2466,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.394,
+        4.534,
+        3.983
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-extension-02-snow",
@@ -1872,7 +2490,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.424,
+        4.6,
+        3.983
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-01",
@@ -1890,7 +2514,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.431,
+        2.809,
+        5.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-02",
@@ -1908,7 +2538,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.431,
+        2.809,
+        5.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-03",
@@ -1926,7 +2562,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.431,
+        2.809,
+        5.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-04",
@@ -1944,7 +2586,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.431,
+        2.809,
+        5.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-05",
@@ -1962,7 +2610,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.431,
+        2.809,
+        5.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-06",
@@ -1980,7 +2634,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.431,
+        2.809,
+        5.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-07",
@@ -1998,7 +2658,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.431,
+        2.809,
+        5.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundation-beams-01",
@@ -2016,7 +2682,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.775,
+        2.765,
+        5.619
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-foundationrock-01",
@@ -2034,7 +2706,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.465,
+        2.807,
+        5.149
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-01",
@@ -2052,7 +2730,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.091,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-01-snow",
@@ -2070,7 +2754,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.158,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-02",
@@ -2088,7 +2778,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.091,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-02-snow",
@@ -2106,7 +2802,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.158,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-03",
@@ -2124,7 +2826,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.091,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-03-snow",
@@ -2142,7 +2850,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.158,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-04",
@@ -2160,7 +2874,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.091,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-04-snow",
@@ -2178,7 +2898,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.158,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-05",
@@ -2196,7 +2922,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.091,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-05-snow",
@@ -2214,7 +2946,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.158,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-06",
@@ -2232,7 +2970,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.091,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-06-snow",
@@ -2250,7 +2994,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.158,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-07",
@@ -2268,7 +3018,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.091,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-room-07-snow",
@@ -2286,7 +3042,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.041,
+        5.158,
+        6.377
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomround-01",
@@ -2304,7 +3066,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.139,
+        5.158,
+        5.161
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomround-01-snow",
@@ -2322,7 +3090,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.139,
+        5.26,
+        5.161
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomround-02",
@@ -2340,7 +3114,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.404,
+        4.306,
+        4.386
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomround-02-snow",
@@ -2358,7 +3138,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.404,
+        4.309,
+        4.386
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-01",
@@ -2376,7 +3162,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.69,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-01-snow",
@@ -2394,7 +3186,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.751,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-02",
@@ -2412,7 +3210,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.69,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-02-snow",
@@ -2430,7 +3234,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.751,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-03",
@@ -2448,7 +3258,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.69,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-03-snow",
@@ -2466,7 +3282,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.751,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-04",
@@ -2484,7 +3306,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.69,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-04-snow",
@@ -2502,7 +3330,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.751,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-05",
@@ -2520,7 +3354,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.69,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-05-snow",
@@ -2538,7 +3378,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.751,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-06",
@@ -2556,7 +3402,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.69,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtall-06-snow",
@@ -2574,7 +3426,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.604,
+        5.751,
+        3.259
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-01",
@@ -2592,7 +3450,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.652,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-01-snow",
@@ -2610,7 +3474,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.743,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-02",
@@ -2628,7 +3498,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.652,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-02-snow",
@@ -2646,7 +3522,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.743,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-03",
@@ -2664,7 +3546,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.652,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-03-snow",
@@ -2682,7 +3570,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.743,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-04",
@@ -2700,7 +3594,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.652,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-04-snow",
@@ -2718,7 +3618,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.743,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-05",
@@ -2736,7 +3642,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.652,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-05-snow",
@@ -2754,7 +3666,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.743,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-06",
@@ -2772,7 +3690,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.652,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-06-snow",
@@ -2790,7 +3714,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.743,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-07",
@@ -2808,7 +3738,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.652,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-roomtop-07-snow",
@@ -2826,7 +3762,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        5.427,
+        4.743,
+        6.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-stepssmall-01",
@@ -2844,7 +3786,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.351,
+        0.492,
+        1.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-stepssmall-01-snow",
@@ -2862,7 +3810,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.351,
+        0.537,
+        1.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-01",
@@ -2880,7 +3834,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.293,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-01-snow",
@@ -2898,7 +3858,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.37,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-02",
@@ -2916,7 +3882,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.293,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-02-snow",
@@ -2934,7 +3906,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.37,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-03",
@@ -2952,7 +3930,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.293,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-03-snow",
@@ -2970,7 +3954,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.37,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-04",
@@ -2988,7 +3978,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.293,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-04-snow",
@@ -3006,7 +4002,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.37,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-05",
@@ -3024,7 +4026,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.293,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-05-snow",
@@ -3042,7 +4050,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.37,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-06",
@@ -3060,7 +4074,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.293,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-06-snow",
@@ -3078,7 +4098,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.37,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-07",
@@ -3096,7 +4122,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.293,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-toproomsmall-07-snow",
@@ -3114,7 +4146,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.68,
+        4.37,
+        4.667
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-tower-01",
@@ -3132,7 +4170,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.066,
+        7.435,
+        3.026
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-tower-01-snow",
@@ -3150,7 +4194,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.066,
+        7.435,
+        3.026
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-01",
@@ -3168,7 +4218,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        3.944,
+        2.465
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-01-snow",
@@ -3186,7 +4242,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.142,
+        3.974,
+        2.465
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-02",
@@ -3204,7 +4266,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.826,
+        2.113,
+        1.933
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-02-snow",
@@ -3222,7 +4290,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.826,
+        2.149,
+        1.933
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-03",
@@ -3240,7 +4314,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.814,
+        2.113,
+        1.933
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-03-snow",
@@ -3258,7 +4338,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.814,
+        2.153,
+        1.933
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-04",
@@ -3276,7 +4362,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.977,
+        1.171,
+        0.325
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-04-snow",
@@ -3294,7 +4386,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.977,
+        1.214,
+        0.325
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-05",
@@ -3312,7 +4410,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.649,
+        0.916,
+        0.271
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-house-window-05-snow",
@@ -3330,7 +4434,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.649,
+        0.946,
+        0.271
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-leanto-01",
@@ -3348,7 +4458,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.42,
+        3.323,
+        2.765
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-leanto-01-snow",
@@ -3366,7 +4482,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.42,
+        3.373,
+        2.765
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-archway-01",
@@ -3384,7 +4506,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.797,
+        2.749,
+        2.455
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-archway-01-snow",
@@ -3402,7 +4530,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.797,
+        2.814,
+        2.455
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-stairarchway-01",
@@ -3420,7 +4554,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.792,
+        2.741,
+        4.507
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-stairarchway-01-snow",
@@ -3438,7 +4578,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.792,
+        2.806,
+        4.507
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-stairs-01",
@@ -3456,7 +4602,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.797,
+        2.741,
+        3.905
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-stairs-01-snow",
@@ -3474,7 +4626,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.797,
+        2.817,
+        3.905
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-straight-01",
@@ -3492,7 +4650,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.509,
+        2.701,
+        4.008
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-rockwall-straight-01-snow",
@@ -3510,7 +4674,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.509,
+        2.769,
+        4.008
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-01",
@@ -3528,7 +4698,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3,
+        1.982,
+        3.881
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-01-snow",
@@ -3546,7 +4722,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.886,
+        2.066,
+        3.881
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-02",
@@ -3564,7 +4746,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.225,
+        1.982,
+        3.881
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-02-snow",
@@ -3582,7 +4770,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.225,
+        2.037,
+        3.881
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-corner-01",
@@ -3600,7 +4794,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.857,
+        1.982,
+        3.857
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-corner-01-snow",
@@ -3618,7 +4818,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.86,
+        2.043,
+        3.859
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-corner-02",
@@ -3636,7 +4842,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.942,
+        1.982,
+        3.928
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-stairslarge-corner-02-snow",
@@ -3654,7 +4866,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.942,
+        2.045,
+        3.928
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tent-01",
@@ -3672,7 +4890,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        7.512,
+        3.789,
+        7.475
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tent-01-snow",
@@ -3690,7 +4914,13 @@
         7
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        7.512,
+        3.789,
+        7.475
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tent-02",
@@ -3708,7 +4938,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        11.484,
+        4.616,
+        8.886
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tent-02-snow",
@@ -3726,7 +4962,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        11.484,
+        4.616,
+        8.886
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tent-03",
@@ -3744,7 +4986,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        11.484,
+        4.616,
+        8.886
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-tent-03-snow",
@@ -3762,7 +5010,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        11.484,
+        4.616,
+        8.886
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-village-well-01",
@@ -3780,7 +5034,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.058,
+        1.024,
+        3.081
+      ],
+      "collision": []
     },
     {
       "id": "sm-bld-village-well-01-snow",
@@ -3798,7 +5058,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.058,
+        1.058,
+        3.081
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-canal-01",
@@ -3816,7 +5082,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3,
+        2.145,
+        3.164
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-canal-02",
@@ -3834,7 +5106,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.171,
+        2.145,
+        3.171
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-canal-03",
@@ -3852,7 +5130,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6,
+        2.145,
+        6.003
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-canal-block-01",
@@ -3870,7 +5154,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.452,
+        1.866,
+        1
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-canal-bridge-01",
@@ -3888,7 +5178,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.242,
+        3.164,
+        3.688
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-canal-bridge-01-snow",
@@ -3906,7 +5202,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.242,
+        3.222,
+        3.688
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-cliff-01",
@@ -3924,7 +5226,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        25.254,
+        14.059,
+        24.639
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-cliff-02",
@@ -3942,7 +5250,13 @@
         20
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        18.279,
+        13.9,
+        20.352
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-flower-01",
@@ -3960,7 +5274,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.82,
+        0.511,
+        0.643
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-grass-01",
@@ -3978,7 +5298,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.276,
+        0.381,
+        0.326
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-groundmound-01",
@@ -3996,7 +5322,13 @@
         14
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.119,
+        1.002,
+        14.443
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-groundmound-02",
@@ -4014,7 +5346,13 @@
         14
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        14.281,
+        0.989,
+        14.281
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-mountaingrass-01",
@@ -4032,7 +5370,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        39.35,
+        15.116,
+        38.945
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-mountaingrass-02",
@@ -4050,7 +5394,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        39.227,
+        15.116,
+        38.822
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-mountainsnow-01",
@@ -4068,7 +5418,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        39.35,
+        16.756,
+        38.945
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-mountainsnow-02",
@@ -4086,7 +5442,13 @@
         24
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        39.227,
+        20.866,
+        38.822
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-cobble-01",
@@ -4104,7 +5466,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.006,
+        0.068,
+        2.968
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-cobble-01-snow",
@@ -4122,7 +5490,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.006,
+        0.091,
+        2.968
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-cobble-02",
@@ -4140,7 +5514,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.006,
+        0.068,
+        2.959
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-cobble-02-snow",
@@ -4158,7 +5538,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.006,
+        0.098,
+        2.959
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-cobble-stone-01",
@@ -4176,7 +5562,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.411,
+        0.068,
+        0.313
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-dirt-01",
@@ -4194,7 +5586,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0.094,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-dirt-02",
@@ -4212,7 +5610,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0.096,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-dirt-03",
@@ -4230,7 +5634,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0.094,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-dirt-04",
@@ -4248,7 +5658,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0.094,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-dirt-05",
@@ -4266,7 +5682,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0.096,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-dirt-06",
@@ -4284,7 +5706,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0.094,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-snow-01-snow",
@@ -4302,7 +5730,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0.094,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-stone-01",
@@ -4320,7 +5754,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.912,
+        0.055,
+        2.894
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-stone-01-snow",
@@ -4338,7 +5778,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.912,
+        0.074,
+        2.894
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-stone-02",
@@ -4356,7 +5802,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.894,
+        0.054,
+        2.894
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-stone-02-snow",
@@ -4374,7 +5826,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.894,
+        0.072,
+        2.894
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-stone-03",
@@ -4392,7 +5850,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.894,
+        0.054,
+        2.889
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-stone-03-snow",
@@ -4410,7 +5874,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.894,
+        0.071,
+        2.889
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-tile-01",
@@ -4428,7 +5898,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.294,
+        0.145,
+        2.966
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-tile-01-snow",
@@ -4446,7 +5922,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.294,
+        0.179,
+        2.966
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-tile-02",
@@ -4464,7 +5946,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.294,
+        0.145,
+        2.966
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-tile-02-snow",
@@ -4482,7 +5970,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.294,
+        0.181,
+        2.966
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-tile-corner-01",
@@ -4500,7 +5994,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.174,
+        0.145,
+        3.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-path-tile-corner-01-snow",
@@ -4518,7 +6018,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.174,
+        0.169,
+        3.118
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rockpile-01",
@@ -4536,7 +6042,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.327,
+        6.175,
+        4.665
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rockpile-01-snow",
@@ -4554,7 +6066,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.327,
+        6.332,
+        4.665
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rockpile-02",
@@ -4572,7 +6090,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.32,
+        5.601,
+        8.935
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rockpile-02-snow",
@@ -4590,7 +6114,13 @@
         9
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        6.32,
+        5.714,
+        8.935
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rockpile-03",
@@ -4608,7 +6138,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.945,
+        5.205,
+        6.041
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-rockpile-03-snow",
@@ -4626,7 +6162,13 @@
         6
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        4.945,
+        5.276,
+        6.096
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tile-dirt-01",
@@ -4644,7 +6186,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tile-grass-01",
@@ -4662,7 +6210,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tile-snow-01",
@@ -4680,7 +6234,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tile-water-01",
@@ -4698,7 +6258,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.003,
+        0,
+        3
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-01",
@@ -4716,7 +6282,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.317,
+        3.547,
+        1.408
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-01-snow",
@@ -4734,7 +6306,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.317,
+        3.63,
+        1.408
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-02",
@@ -4752,7 +6330,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.898,
+        4.21,
+        1.909
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-02-snow",
@@ -4770,7 +6354,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.898,
+        4.281,
+        1.909
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-03",
@@ -4788,7 +6378,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.552,
+        2.945,
+        1.59
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-03-snow",
@@ -4806,7 +6402,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.552,
+        3.01,
+        1.59
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-twisted-01",
@@ -4824,7 +6426,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.338,
+        5.015,
+        3.002
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-twisted-01-snow",
@@ -4842,7 +6450,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.338,
+        5.11,
+        3.002
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-twisted-02",
@@ -4860,7 +6474,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.471,
+        6.012,
+        3.054
+      ],
+      "collision": []
     },
     {
       "id": "sm-env-tree-twisted-02-snow",
@@ -4878,7 +6498,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.471,
+        6.108,
+        3.054
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-banner-01",
@@ -4896,7 +6522,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.201,
+        3.234,
+        0.203
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-banner-02",
@@ -4914,7 +6546,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.201,
+        2.104,
+        0.268
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-banner-03",
@@ -4932,7 +6570,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.705,
+        1.657,
+        0.185
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-beam-01",
@@ -4950,7 +6594,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.261,
+        2.488,
+        0.26
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-brazier-01",
@@ -4968,7 +6618,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.503,
+        1.887,
+        0.503
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-campfire-01",
@@ -4986,7 +6642,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.923,
+        1.204,
+        1.04
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-cart-01",
@@ -5004,7 +6666,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.522,
+        1.143,
+        3.152
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-cart-01-snow",
@@ -5022,7 +6690,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.522,
+        1.169,
+        3.152
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-carthay-01",
@@ -5040,7 +6714,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.522,
+        1.665,
+        3.215
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-carthay-01-snow",
@@ -5058,7 +6738,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.522,
+        1.691,
+        3.215
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-cartwheel-01",
@@ -5076,7 +6762,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.175,
+        0.957,
+        0.957
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-chain-01",
@@ -5094,7 +6786,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.11,
+        2.653,
+        0.11
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-chain-02",
@@ -5112,7 +6810,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.841,
+        1.65,
+        0.11
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-01",
@@ -5130,7 +6834,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.8,
+        0.8,
+        0.799
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-crate-01-snow",
@@ -5148,7 +6858,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.8,
+        0.81,
+        0.799
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-01",
@@ -5166,7 +6882,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.659,
+        1.535,
+        0.199
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-01-snow",
@@ -5184,7 +6906,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.659,
+        1.535,
+        0.199
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-02",
@@ -5202,7 +6930,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.536,
+        1.535,
+        0.199
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-fence-02-snow",
@@ -5220,7 +6954,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.536,
+        1.535,
+        0.199
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-grate-01",
@@ -5238,7 +6978,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.732,
+        0.132,
+        0.732
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-grate-01-snow",
@@ -5256,7 +7002,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.732,
+        0.147,
+        0.732
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-gravestone-01",
@@ -5274,7 +7026,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.482,
+        1.327,
+        0.162
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-gravestone-01-snow",
@@ -5292,7 +7050,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.482,
+        1.348,
+        0.162
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-gravestone-02",
@@ -5310,7 +7074,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.581,
+        0.902,
+        0.126
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-gravestone-02-snow",
@@ -5328,7 +7098,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.581,
+        0.937,
+        0.126
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-guillotine-01",
@@ -5346,7 +7122,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.992,
+        3.259,
+        2.182
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-guillotine-01-snow",
@@ -5364,7 +7146,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.992,
+        3.335,
+        2.182
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-lampost-01",
@@ -5382,7 +7170,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.721,
+        3.868,
+        1.873
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-lampost-01-snow",
@@ -5400,7 +7194,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.721,
+        3.92,
+        1.873
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-plinth-01",
@@ -5418,7 +7218,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.199,
+        1.532,
+        1.199
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-plinth-01-snow",
@@ -5436,7 +7242,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.199,
+        1.575,
+        1.199
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-plinth-02",
@@ -5454,7 +7266,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.096,
+        2.336,
+        3.096
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-plinth-02-snow",
@@ -5472,7 +7290,13 @@
         3
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        3.096,
+        2.428,
+        3.096
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rowboat-01",
@@ -5490,7 +7314,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.241,
+        1.259,
+        4.175
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-rowboat-01-snow",
@@ -5508,7 +7338,13 @@
         4
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.241,
+        1.259,
+        4.175
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shopsign-01",
@@ -5526,7 +7362,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.899,
+        0.875,
+        0.18
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-shopsign-01-snow",
@@ -5544,7 +7386,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.899,
+        0.909,
+        0.18
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-statue-01",
@@ -5562,7 +7410,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.258,
+        3.825,
+        1.734
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-statue-01-snow",
@@ -5580,7 +7434,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.258,
+        3.825,
+        1.734
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-statue-base-01",
@@ -5598,7 +7458,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.837,
+        1.175,
+        1.851
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-statue-base-01-snow",
@@ -5616,7 +7482,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.837,
+        1.19,
+        1.851
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-trapdoor-01",
@@ -5634,7 +7506,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.143,
+        0.226,
+        1.143
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-trapdoor-01-snow",
@@ -5652,7 +7530,13 @@
         1
       ],
       "operable": true,
-      "clips": {}
+      "clips": {},
+      "size": [
+        1.143,
+        0.226,
+        1.143
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-waterwheel-01",
@@ -5670,7 +7554,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.507,
+        4.854,
+        4.854
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-waterwheel-01-snow",
@@ -5688,7 +7578,13 @@
         5
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        2.507,
+        4.931,
+        4.854
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-waterwheel-support-01",
@@ -5706,7 +7602,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.851,
+        3.132,
+        1.801
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-waterwheel-support-01-snow",
@@ -5724,7 +7626,13 @@
         2
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.851,
+        3.187,
+        1.801
+      ],
+      "collision": []
     },
     {
       "id": "sm-prop-weathervane-01",
@@ -5742,7 +7650,13 @@
         1
       ],
       "operable": false,
-      "clips": {}
+      "clips": {},
+      "size": [
+        0.515,
+        0.783,
+        0.626
+      ],
+      "collision": []
     }
   ]
 }

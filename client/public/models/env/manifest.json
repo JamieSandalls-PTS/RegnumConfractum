@@ -1,5 +1,7 @@
 {
   "meshes": {
+    "bow-crossbow/wep-longbow-01": "bow-crossbow__wep-longbow-01.glb",
+    "dungeon-pack/sm-env-basement-wallpanel-01": "dungeon-pack__sm-env-basement-wallpanel-01.glb",
     "dungeon-pack/sm-env-bone-rib-01": "dungeon-pack__sm-env-bone-rib-01.glb",
     "dungeon-pack/sm-env-bone-ribcage-01": "dungeon-pack__sm-env-bone-ribcage-01.glb",
     "dungeon-pack/sm-env-bonepile-01": "dungeon-pack__sm-env-bonepile-01.glb",
@@ -42,6 +44,7 @@
     "dungeon-pack/sm-env-statue-03": "dungeon-pack__sm-env-statue-03.glb",
     "dungeon-pack/sm-env-wall-01-alt": "dungeon-pack__sm-env-wall-01-alt.glb",
     "dungeon-pack/sm-env-wall-archway-01": "dungeon-pack__sm-env-wall-archway-01.glb",
+    "dungeon-pack/sm-env-wall-fireplace-01": "dungeon-pack__sm-env-wall-fireplace-01.glb",
     "dungeon-pack/sm-env-wall-trim-floor-01": "dungeon-pack__sm-env-wall-trim-floor-01.glb",
     "dungeon-pack/sm-env-wood-construction-01": "dungeon-pack__sm-env-wood-construction-01.glb",
     "dungeon-pack/sm-prop-barrel-01": "dungeon-pack__sm-prop-barrel-01.glb",
@@ -59,7 +62,11 @@
     "dungeon-pack/sm-prop-minecart-wheel-01": "dungeon-pack__sm-prop-minecart-wheel-01.glb",
     "dungeon-pack/sm-prop-plank-01": "dungeon-pack__sm-prop-plank-01.glb",
     "dungeon-pack/sm-prop-skeleton-01": "dungeon-pack__sm-prop-skeleton-01.glb",
+    "dungeon-pack/sm-prop-stool-01": "dungeon-pack__sm-prop-stool-01.glb",
+    "dungeon-pack/sm-prop-table-01": "dungeon-pack__sm-prop-table-01.glb",
     "dungeon-pack/sm-prop-torchstick-01": "dungeon-pack__sm-prop-torchstick-01.glb",
+    "dungeon-pack/wep-goblin-staff-01": "dungeon-pack__wep-goblin-staff-01.glb",
+    "dungeon-pack/wep-shield-heater-01": "dungeon-pack__wep-shield-heater-01.glb",
     "knights/sm-bld-castle-tower-01": "knights__sm-bld-castle-tower-01.glb",
     "knights/sm-bld-castle-wall-01": "knights__sm-bld-castle-wall-01.glb",
     "knights/sm-bld-castle-wall-gate-01": "knights__sm-bld-castle-wall-gate-01.glb",
@@ -92,6 +99,9 @@
     "knights/sm-prop-lampost-01": "knights__sm-prop-lampost-01.glb",
     "knights/sm-prop-shopsign-01": "knights__sm-prop-shopsign-01.glb",
     "knights/sm-prop-weathervane-01": "knights__sm-prop-weathervane-01.glb",
+    "knights/wep-broadsword-01": "knights__wep-broadsword-01.glb",
+    "modular-fantasy-hero/wep-dagger-01": "modular-fantasy-hero__wep-dagger-01.glb",
+    "modular-fantasy-hero/wep-staff-01": "modular-fantasy-hero__wep-staff-01.glb",
     "vikings/sm-bld-stall-cover-01": "vikings__sm-bld-stall-cover-01.glb",
     "vikings/sm-env-flax-01": "vikings__sm-env-flax-01.glb",
     "vikings/sm-env-flax-02": "vikings__sm-env-flax-02.glb",
@@ -128,7 +138,6 @@
     "vikings/sm-prop-rack-01": "vikings__sm-prop-rack-01.glb",
     "vikings/sm-prop-rock-circle-01": "vikings__sm-prop-rock-circle-01.glb",
     "vikings/sm-prop-rock-totem-01": "vikings__sm-prop-rock-totem-01.glb",
-    "vikings/sm-prop-rope-01": "vikings__sm-prop-rope-01.glb",
     "vikings/sm-prop-seat-01": "vikings__sm-prop-seat-01.glb",
     "vikings/sm-prop-shield-decor-01": "vikings__sm-prop-shield-decor-01.glb",
     "vikings/sm-prop-skull-01": "vikings__sm-prop-skull-01.glb",
@@ -136,11 +145,14 @@
     "vikings/sm-prop-table-01": "vikings__sm-prop-table-01.glb",
     "vikings/sm-prop-torchstick-01": "vikings__sm-prop-torchstick-01.glb",
     "vikings/sm-prop-wheel-barrow-01": "vikings__sm-prop-wheel-barrow-01.glb",
-    "vikings/sm-prop-wood-sharp-01": "vikings__sm-prop-wood-sharp-01.glb"
+    "vikings/sm-prop-wood-sharp-01": "vikings__sm-prop-wood-sharp-01.glb",
+    "vikings/wep-largeaxe-01": "vikings__wep-largeaxe-01.glb"
   },
   "atlases": {
+    "bow-crossbow": "bow-crossbow.png",
     "dungeon-pack": "dungeon-pack.png",
     "knights": "knights.png",
+    "modular-fantasy-hero": "modular-fantasy-hero.png",
     "vikings": "vikings.png"
   }
 }

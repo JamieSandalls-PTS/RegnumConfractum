@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import { loadConfig } from '@rc/server/config';
 import { loadContent } from '@rc/server/content';
 import type { ObjectiveKind } from '@rc/shared';
 import { BotClient } from './botClient';
@@ -13,7 +14,7 @@ import { BotAgent, type BotRole } from './botAgent';
  * that from happening — so this connects companions to a running server and
  * lets them get on with gathering, crafting, eating and dying.
  *
- *   npm run bots                       three bots at ws://localhost:8080
+ *   npm run bots                       three bots at the server's own PORT
  *   npm run bots -- --count 5          five
  *   npm run bots -- --url ws://host:8090 --verbose
  *   npm run bots -- --betray 0.02      how eager an antagonist bot is
@@ -30,7 +31,22 @@ const flag = (name: string, fallback: string): string => {
 };
 const has = (name: string): boolean => args.includes(`--${name}`);
 
-const url = flag('url', 'ws://localhost:8080');
+/**
+ * ⚠ The server's OWN config, not a second copy of its default.
+ *
+ * This said `ws://localhost:8080` while `.env` sets `PORT=8095`, so
+ * `npm run bots` — the documented way to fill a round, and the only way one
+ * person can play the go/no-go gate (D-540) — failed against a live server
+ * with `Unexpected server response: 400`.
+ *
+ * ⚠ And `process.env.PORT` alone is NOT enough: tsx does not load `.env`, so
+ * it is undefined here. `loadConfig` reads the file itself (the server has
+ * carried its own tiny loader since D-501), so calling it is the only way to
+ * get the answer the server actually used. A default that disagrees with the
+ * config is the same fault as a tool that does not know what the runtime is
+ * doing — one line small.
+ */
+const url = flag('url', `ws://localhost:${loadConfig().port}`);
 const count = Math.max(1, Math.min(12, Number(flag('count', '3'))));
 const betray = Number(flag('betray', '0.02'));
 const verbose = has('verbose');

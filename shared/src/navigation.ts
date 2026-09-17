@@ -61,6 +61,34 @@ export const NAV_RESOLUTION = 0.25;
 export const WALK_SPEED = 2.9;
 
 /**
+ * Metres per second with a weapon up (D-619).
+ *
+ * ⚠ A fight is the one place the walk was wrong. The stakeholder's note is
+ * that combat at level 1 is over in seconds -- not because the rounds are too
+ * short, but because nobody can CLOSE or BREAK OFF: at one speed the man
+ * swinging at you and the man running from him move identically, so a fight
+ * is decided entirely by who swung first and the watch can never arrive in
+ * time to matter.
+ *
+ * ⚠ 1.45x, not 2x. The combat round is four seconds (D-550) and reach is a
+ * metre and a half; doubling the speed would let a body cross the whole gap
+ * between two swings and back, which turns a non-twitch game (D-104) into a
+ * kiting contest decided by mouse work. At 4.2 m/s a runner opens 5.2m over a
+ * round on a walker -- enough to break away, not enough to fight a duel out of
+ * reach.
+ *
+ * ⚠ It is a STATE, not a key. Nobody presses run: you run because your
+ * weapon is out, which is the server's own combat flag (D-516) and therefore
+ * the same for every observer.
+ */
+export const RUN_SPEED = 4.2;
+
+/** How fast a body moves, given whether its weapon is up (D-619). */
+export function speedFor(inCombat: boolean | undefined): number {
+  return inCombat ? RUN_SPEED : WALK_SPEED;
+}
+
+/**
  * A uniform spatial hash over the volumes.
  *
  * ⚠ Without this, baking is quadratic and unusable. A 100×100 area is 160,000

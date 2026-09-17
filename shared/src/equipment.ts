@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ARMOUR_MATERIALS } from './characters';
+import { ARMOUR_CLASS_BY_MATERIAL, DiceSchema, type Dice } from './d20';
 import { type Stance } from './actions';
 
 /**
@@ -125,6 +126,24 @@ export const EquipStatsSchema = z.object({
    * it, and a gate nothing can evaluate is not a gate.
    */
   material: z.enum(ARMOUR_MATERIALS).optional(),
+  /**
+   * Armour Class this piece adds ON TOP of what its material is worth (D-606).
+   *
+   * ⚠ The material decides the armour; this is the fine breastplate, the
+   * ring of protection, the shield. Keeping them apart is what stops content
+   * quietly out-armouring plate with a hat: the base is a rule in `d20.ts` and
+   * content may only add to it.
+   */
+  acBonus: z.number().int().min(0).max(10).default(0),
+  /**
+   * What this weapon rolls for damage (D-606) — `1d6`, `2d4+1`.
+   *
+   * ⚠ Absent means the old flat `damage` number, which every existing item
+   * still carries. A weapon with no dice is not an error and must not become
+   * one: forty-odd authored items predate this, and a schema that refused them
+   * would fail the build on content nobody has had a chance to rewrite.
+   */
+  damageDice: DiceSchema.optional(),
 });
 export type EquipStats = z.infer<typeof EquipStatsSchema>;
 
@@ -172,6 +191,15 @@ export interface EquippedItem {
    */
   garment?: string;
   /**
+   * The pack mesh this item IS, as `pack/asset` (D-614).
+   *
+   * ⚠ Here for exactly the reason `garment` is: which mesh a sword is
+   * cannot be inferred from its damage. `lookOf` stays keyed off slot and
+   * stats so a new sword still LOOKS like a sword with nobody registering it
+   * anywhere -- this only says which one, when somebody has said.
+   */
+  art?: string;
+  /**
    * How holding this makes a character carry themselves (D-565, wired D-578).
    *
    * ⚠ Beside `garment` and for the SAME reason it is here rather than looked
@@ -193,6 +221,17 @@ export interface LoadoutTotals {
   weight: number;
   /** Reach of the weapon actually being swung. Bare hands are one tile. */
   range: number;
+  /**
+   * What the worn set adds to Armour Class (D-606): the heaviest MATERIAL,
+   * plus every item bonus.
+   *
+   * ⚠ Not the same number as `armour`, which is the old flat subtraction.
+   * That field survives because items still carry it and nothing has been
+   * re-authored; combat no longer reads it.
+   */
+  ac: number;
+  /** The dice the best weapon rolls, when it names any. */
+  damageDice?: Dice;
 }
 
 /**
@@ -205,15 +244,28 @@ export interface LoadoutTotals {
  * is why the caller must not pass the same item twice.
  */
 export function loadoutTotals(worn: readonly EquippedItem[]): LoadoutTotals {
-  const totals: LoadoutTotals = { armour: 0, damage: 0, mana: 0, weight: 0, range: 1 };
+  const totals: LoadoutTotals = {
+    armour: 0, damage: 0, mana: 0, weight: 0, range: 1, ac: 0,
+  };
   const counted = new Set<EquippedItem>();
   let best: EquipStats | null = null;
+  // ⚠ The HEAVIEST piece decides the armour, never the sum (D-606). Four
+  // pieces of leather is not plate, and adding them up is how somebody in
+  // gloves, boots, a cap and a jerkin out-armours a knight.
+  let heaviest = 0;
   for (const item of worn) {
     if (counted.has(item)) continue;
     counted.add(item);
     totals.armour += item.stats.armour;
     totals.mana += item.stats.mana;
     totals.weight += item.stats.weight;
+    if (item.stats.material) {
+      heaviest = Math.max(heaviest, ARMOUR_CLASS_BY_MATERIAL[item.stats.material]);
+    }
+    // ⚠ Bonuses DO stack. A fine breastplate, a ring and a shield are three
+    // separate decisions; the material is the one thing only the best piece
+    // may speak for.
+    totals.ac += item.stats.acBonus;
     // Reach travels with the weapon that sets the damage, not separately: a
     // bow in one hand and a dagger in the other must not give a dagger's
     // damage at a bow's reach.
@@ -222,7 +274,9 @@ export function loadoutTotals(worn: readonly EquippedItem[]): LoadoutTotals {
   if (best) {
     totals.damage = best.damage;
     totals.range = best.range;
+    totals.damageDice = best.damageDice;
   }
+  totals.ac += heaviest;
   return totals;
 }
 
@@ -258,6 +312,19 @@ export interface WornLook {
    * person in two different coats.
    */
   garments: string[];
+  /**
+   * The pack mesh of the weapon in hand, as `pack/asset` (D-614).
+   *
+   * ⚠ Public in the same way the silhouette is: what somebody is holding is
+   * visible at forty paces. It is more PRECISE than `weapon` rather than more
+   * private -- that flag is the shape the procedural cast draws, and this is
+   * the mesh the imported cast puts in the hand.
+   *
+   * ⚠ Absent means "no particular sword", not "no sword". An item with no
+   * art is drawn by the silhouette alone, which is what every one of the
+   * thirty items that declare none has always done.
+   */
+  weaponArt?: string;
   /**
    * The stance the weapon in hand declares (D-565, wired D-578).
    *
@@ -314,6 +381,10 @@ export function lookOf(worn: readonly EquippedItem[]): WornLook {
       // else in a hand is drawn as a blade, because those are the two
       // silhouettes the renderer has (D-402).
       look.weapon = slot === 'both-hands' && item.stats.mana > 0 ? 'staff' : 'sword';
+      // ⚠ The SAME item the silhouette picked, like the stance below it and
+      // for the same reason: drawing one weapon while animating another is a
+      // man swinging a sword he is not holding.
+      look.weaponArt = item.art;
       // ⚠ The stance follows the SAME weapon the silhouette picked, not a
       // separate scan. A character holding a bow and a dagger is drawn with
       // one of them, and choosing the silhouette from one while animating the

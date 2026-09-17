@@ -6,6 +6,7 @@ import {
   MIN_DAMAGE,
   SLOT_GROUP,
   isTwoHanded,
+  lookOf,
   loadoutTotals,
   slotCandidates,
   slotsOccupied,
@@ -85,7 +86,12 @@ describe('what a worn set is worth', () => {
     // Reach falls back to one rather than zero: bare hands still reach the
     // tile in front of you, and a zero would make an unarmed character unable
     // to hit anything at all (D-550).
-    expect(loadoutTotals([])).toEqual({ armour: 0, damage: 0, mana: 0, weight: 0, range: 1 });
+    // ⚠ The ac field is zero, not ten: this is what the WORN SET adds, and the base
+    // ten belongs to the body (D-606). Folding the base in here would give a
+    // naked character armour for being naked.
+    expect(loadoutTotals([])).toEqual({
+      armour: 0, damage: 0, mana: 0, weight: 0, range: 1, ac: 0,
+    });
   });
 
   /**
@@ -116,7 +122,13 @@ describe('the damage floor', () => {
 describe('the schema defends the content files', () => {
   it('defaults every stat to nothing', () => {
     const parsed = EquipStatsSchema.parse({ slot: 'chest' });
-    expect(parsed).toEqual({ slot: 'chest', armour: 0, damage: 0, mana: 0, weight: 0, range: 1 });
+    // ⚠ `acBonus` defaults to nothing and `damageDice` is ABSENT rather than
+    // zeroed (D-606). A weapon with no dice falls back to its flat `damage`,
+    // which is what forty-odd authored items still carry — a default of `0d0`
+    // would turn every one of them into a weapon that cannot hurt anybody.
+    expect(parsed).toEqual({
+      slot: 'chest', armour: 0, damage: 0, mana: 0, weight: 0, range: 1, acBonus: 0,
+    });
   });
 
   it('refuses a slot that does not exist', () => {
@@ -172,5 +184,32 @@ describe('class gates are access, never power', () => {
     const caster = { armour: ['cloth'], weapons: ['staff'], items: [] };
     // A ring, a charm, a loaf: no material, no stance, no gate.
     expect(itemGateProblem(caster, { id: 'bone-ring' })).toBeNull();
+  });
+});
+
+describe('which weapon, not just that there is one (D-614)', () => {
+  it('⚠ carries the art of the SAME item the silhouette picked', () => {
+    // ⚠ The silhouette says 'sword' for every blade in the game, so it cannot
+    // tell a client which mesh to put in the hand. The art rides alongside it
+    // — and off the same item, because choosing the silhouette from one
+    // weapon while drawing another is a man swinging a sword he is not
+    // holding (the reasoning `stance` already carries).
+    const look = lookOf([
+      { slot: 'main-hand', stats: stats({ damage: 5, slot: 'main-hand' }), art: 'knights/wep-broadsword-01' },
+      { slot: 'off-hand', stats: stats({ damage: 1, slot: 'off-hand' }), art: 'dungeon-pack/wep-shield-heater-01' },
+    ]);
+    expect(look.weapon).toBe('sword');
+    expect(look.weaponArt, 'the better weapon is the one drawn').toBe('knights/wep-broadsword-01');
+  });
+
+  it('is simply absent for a weapon nobody has fitted', () => {
+    // Thirty of the thirty-eight items name no art at all. Absent means "no
+    // particular sword", not "no sword" — the flag beside it still says a
+    // hand is full, and the procedural cast draws its own blade from that.
+    const look = lookOf([
+      { slot: 'main-hand', stats: stats({ damage: 3, slot: 'main-hand' }) },
+    ]);
+    expect(look.weapon).toBe('sword');
+    expect(look.weaponArt).toBeUndefined();
   });
 });

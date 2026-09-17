@@ -122,12 +122,27 @@ describe('roofs', () => {
 
 
 describe('the tavern, at the size it was asked to be', () => {
-  it('is half what it was, and still connects to the yard both ways', () => {
+  it('is an interior that connects to the yard AND the town, both ways', () => {
     const all = areas();
     const tavern = all.find((a) => a.id === 'hanged-ferryman')!;
     const yard = all.find((a) => a.id === 'broken-yard')!;
-    expect(tavern.width).toBe(32);
-    expect(tavern.height).toBe(32);
+    // ⚠ A ROOM, not a plot with a building on it (D-604). It was 32x32 of
+    // which most was outdoors: an approach, a yard and a treeline, painted
+    // with grass and mud and scattered with 86 tufts of grass — inside what
+    // the fiction calls a taproom.
+    expect(tavern.width).toBeLessThan(32);
+    expect(tavern.outdoor).toBe(false);
+    expect(tavern.lighting).toBe('interior');
+    // Nothing that grows outdoors may be standing in it.
+    const outdoors = tavern.assets.filter((a) => /grass|flower|tree|bush|fern|reed/.test(a.asset));
+    expect(outdoors).toEqual([]);
+    // Its floor is boards and flags, not a field.
+    expect(tavern.groundMaterials).not.toContain('grass');
+    expect(tavern.groundMaterials).not.toContain('mud');
+    // The town can reach it: the whole reason it was rebuilt.
+    const town = all.find((a) => a.id === 'round-town')!;
+    expect(town.transitions.some((t) => t.toArea === 'hanged-ferryman')).toBe(true);
+    expect(tavern.transitions.some((t) => t.toArea === 'round-town')).toBe(true);
 
     // Out of the tavern...
     const out = tavern.transitions.find((t) => t.toArea === 'broken-yard')!;

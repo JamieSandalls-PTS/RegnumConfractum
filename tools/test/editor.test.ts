@@ -57,7 +57,8 @@ describe('the editor refuses to write content that would fail the build', () => 
       assets: [
         {
           asset: 'wall', pack: 'test', x: 6.5, y: 5.5, z: 0, rotation: 0, scale: 1,
-          overrideCollision: true, dressed: false,
+          overrideCollision: true,
+    seat: false, dressed: false,
           collision: [{
             shape: { kind: 'rect', x: 0, y: 0, w: 4, h: 0.5, rotation: 0 },
             base: 0, top: 3, walkable: false, opaque: true,
@@ -65,7 +66,8 @@ describe('the editor refuses to write content that would fail the build', () => 
         },
         {
           asset: 'wall', pack: 'test', x: 5.5, y: 6.5, z: 0, rotation: 90, scale: 1,
-          overrideCollision: true, dressed: false,
+          overrideCollision: true,
+    seat: false, dressed: false,
           collision: [{
             shape: { kind: 'rect', x: 0, y: 0, w: 4, h: 0.5, rotation: 0 },
             base: 0, top: 3, walkable: false, opaque: true,
@@ -85,7 +87,8 @@ describe('the editor refuses to write content that would fail the build', () => 
         ...area.assets,
         {
           asset: 'boulder', pack: 'test', x: exit.x, y: exit.y, z: 0, rotation: 0, scale: 1,
-          overrideCollision: true, dressed: false,
+          overrideCollision: true,
+    seat: false, dressed: false,
           collision: [{
             shape: { kind: 'circle', x: 0, y: 0, r: 0.8 },
             base: 0, top: 2, walkable: false, opaque: true,
@@ -110,7 +113,8 @@ describe('the editor refuses to write content that would fail the build', () => 
         {
           asset: 'slab', pack: 'test',
           x: station.x, y: station.y, z: 0, rotation: 0, scale: 1,
-          overrideCollision: true, dressed: false,
+          overrideCollision: true,
+    seat: false, dressed: false,
           collision: [{
             shape: { kind: 'rect', x: 0, y: 0, w: 6, h: 6, rotation: 0 },
             base: 0, top: 3, walkable: false, opaque: true,

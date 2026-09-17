@@ -77,6 +77,18 @@ export interface EnvMeasurement {
  * Pure, so the decisions are testable without loading an FBX — which matters,
  * because the art is gitignored and CI has none of it.
  */
+/**
+ * A measurement in metres, to the millimetre.
+ *
+ * ⚠ Rounded because the raw float is seventeen digits of noise: a mesh is
+ * not measured to the width of an atom, and an unrounded number makes every
+ * re-run a diff and every review a scroll. A millimetre is finer than anything
+ * `STEP_UP` (0.35m) or `SIGHT_HEIGHT` can act on.
+ */
+function mm(n: number): number {
+  return Math.round(n * 1000) / 1000;
+}
+
 export function classify(stem: string, size: [number, number, number]): EnvMeasurement {
   const [x, height, z] = size;
   const flat = FLAT.test(stem) || height < 0.15;
@@ -165,12 +177,36 @@ if (invokedDirectly) {
 
     let added = 0;
     let kept = 0;
+    let sized = 0;
     for (const [stem, size] of raw) {
-      if (byMesh.has(stem)) {
+      const already = byMesh.get(stem);
+      if (already) {
         kept++;
+        // ⚠ BACKFILL the measured extent, and nothing else.
+        //
+        // `size` was added to the schema by D-567 and only ever written for
+        // assets drafted AFTER it existed — which was none of them. Measured:
+        // 1,402 catalogued assets, 0 carrying a size. Every one of them
+        // therefore collided as a box of its footprint by a flat DEFAULT 3m
+        // (`defaultMask`), so a barrel and a gatehouse were the same height to
+        // walk into, and the one number the schema says decides whether a
+        // thing is walked over, under or into was a guess.
+        //
+        // ⚠ ONLY `size`. `solid`, `opaque`, `footprint` and the name may all
+        // have been corrected by a person since they were drafted, and
+        // re-deriving them from the mesh would silently undo that work — which
+        // is the same reason `name:assets` skips a mesh somebody has already
+        // catalogued (D-568). A backfill fills a hole; it does not re-run a
+        // decision.
+        if (already.kind === 'environment' && already.size === undefined) {
+          already.size = [mm(size.x * scale), mm(size.y * scale), mm(size.z * scale)];
+          sized++;
+        }
         continue;
       }
-      const metres: [number, number, number] = [size.x * scale, size.y * scale, size.z * scale];
+      const metres: [number, number, number] = [
+        mm(size.x * scale), mm(size.y * scale), mm(size.z * scale),
+      ];
       const m = classify(stem, metres);
       let name = draftName(stem);
       if (taken.has(name.toLowerCase())) {
@@ -195,6 +231,11 @@ if (invokedDirectly) {
         // assets block nine tiles apiece.
         size: m.size,
         operable: m.operable,
+        // ⚠ Seats are decided by a person, not by the classifier. A bench,
+        // a stool and a throne are a chair; so, by name, are a "bench press"
+        // and a "chair rail". D-568 settled that English is not a classifier,
+        // and the cost of guessing here is somebody sitting on a fence.
+        seat: false,
         clips: {},
         collision: [],
       };
@@ -207,7 +248,8 @@ if (invokedDirectly) {
     const solid = existing.assets.filter((a) => a.kind === 'environment' && a.solid).length;
     const opaque = existing.assets.filter((a) => a.kind === 'environment' && a.opaque).length;
     console.log(
-      `${pack.id.padEnd(22)} ${String(added).padStart(4)} drafted, ${kept} kept  ` +
+      `${pack.id.padEnd(22)} ${String(added).padStart(4)} drafted, ${kept} kept` +
+        `${sized ? `, ${sized} measured` : ''}  ` +
         `· units ${scale === 1 ? 'metres' : 'centimetres'}  ` +
         `· ${solid} solid, ${opaque} opaque of ${existing.assets.length}`,
     );

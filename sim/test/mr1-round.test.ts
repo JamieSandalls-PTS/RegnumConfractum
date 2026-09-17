@@ -82,9 +82,35 @@ beforeAll(async () => {
     port: 0,
     tickIntervalMs: TICK,
     rngSeed: 41,
-    // The TOWN — a settled zone. In the persistent world an attack here
-    // would need a declaration; in a round it must not (D-531).
-    defaultAreaId: 'round-town',
+    // A settled zone. In the persistent world an attack here would need a
+    // declaration; in a round it must not (D-531).
+    //
+    // ⚠ The TAVERN rather than the square (D-610). Both are settled, so the
+    // rule under test is unchanged — but the square is where the watch walks,
+    // and the watch answers a killing in it (D-552). This suite murders one of
+    // the cast with four hundred swings in the open to prove violence is free;
+    // once the watch was repaired it started arresting the murderer partway
+    // through, both innocents died, the round resolved 'cast_wiped' and the
+    // NEXT assertion — that a round refuses `respawn` — found the round
+    // already over and the player already stood back up. Under full-suite load
+    // only, because the guards get more real seconds to react.
+    //
+    // ⚠ That is the watch being CORRECT, not a regression to route around.
+    // What is wrong is a test of the round's rules staging its fixture in
+    // front of a mechanic it is not testing.
+    //
+    // ⚠ And the tavern was only FAR ENOUGH AWAY, not out of reach: guards
+    // stand in every settled area, the tavern included, and D-619 gave them
+    // legs. They ran in and killed the murderer partway through, exactly as
+    // described above, so the same fixture failure came back by a different
+    // route. The watch is now switched OFF here rather than avoided by
+    // geography -- the same move as `graceTicks: 0` for the dawn truce
+    // (D-536), and for the same reason: a suite states which mechanics it is
+    // not about instead of hoping they stay out of the way. The watch has its
+    // own file (`mr5-combat-watch`), and it is where a change to it should
+    // show up.
+    watch: false,
+    defaultAreaId: 'hanged-ferryman',
     ghostMinTicks: 50,
     attackCooldownTicks: 2,
     bleedIntervalTicks: 5000,
@@ -170,7 +196,13 @@ describe('death in a round (D-521, D-524)', () => {
     const victimId = victim.you!;
 
     // No declaration, in a SETTLED zone: violence is free in a round.
-    for (let i = 0; i < 80 && victim.status?.ghost !== true; i++) {
+    //
+    // ⚠ Generous, because a blow can MISS now (D-606). Eighty swings was
+    // certain to kill when every one of them landed for 2-6; against Armour
+    // Class it lands rather over half the time, and the failure surfaces as
+    // "expected undefined to be true" about a ghost, two assertions away from
+    // the dice that caused it.
+    for (let i = 0; i < 400 && victim.status?.ghost !== true; i++) {
       killer.send({ t: 'attack', targetEntityId: victimId });
       await sleep(TICK * 6);
     }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Cloth, defaultClothParams, type ClothParams } from './render/cloth';
-import type { CharacterVisual } from './render/character';
+import type { WorkbenchBody } from './render/workbench-body';
 
 /**
  * The cloth workbench (stakeholder, 2026-08-18): re-pin a cape or robe to
@@ -11,13 +11,13 @@ import type { CharacterVisual } from './render/character';
  * built-in garment is hidden and this one takes its place, so what you
  * tune is what the game would render. The export is a plain JSON block
  * meant to be pasted back into the conversation and baked into
- * CharacterVisual's construction.
+ * WorkbenchBody's construction.
  */
 
 export interface GarmentConfig {
   /** Which of the game's garments this stands in for. */
   preset: 'cape' | 'robe skirt' | 'sleeve';
-  /** Bone the top edge is pinned to, by CharacterVisual.bones() name. */
+  /** Bone the top edge is pinned to, by WorkbenchBody.bones() name. */
   bone: string;
   /** Pin offset from that bone, in body-width units so it scales. */
   offset: { x: number; y: number; z: number };
@@ -36,7 +36,7 @@ export interface GarmentConfig {
   shoulderHalfWidth: number;
   /** tube: leading rows that follow the bone rigidly. */
   rigidRows: number;
-  /** Named colliders from CharacterVisual.colliderCatalog(). */
+  /** Named colliders from WorkbenchBody.colliderCatalog(). */
   colliders: string[];
   /** Keep the cloth behind the wearer's coronal plane (capes). */
   backPlane: { enabled: boolean; maxZ: number; exemptAboveY: number };
@@ -129,7 +129,7 @@ export class LabGarment {
   private anchor: THREE.Group | null = null;
   private anchorBone: THREE.Object3D | null = null;
 
-  constructor(private visual: CharacterVisual, public config: GarmentConfig) {
+  constructor(private visual: WorkbenchBody, public config: GarmentConfig) {
     this.rebuild();
   }
 

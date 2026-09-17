@@ -135,6 +135,28 @@ export const CharacterDefSchema = z.object({
    * the whole pipeline to avoid.
    */
   mesh: z.string().min(1).optional(),
+  /**
+   * Whether this is a PERSON or a CREATURE (D-618).
+   *
+   * WARNING: it decides what an entity with no chosen face is drawn as. That
+   * fallback picks from every built character, and ten of the twelve are
+   * monsters -- so a bot, an NPC or anybody who never went through creation
+   * was drawn as a goblin, a skeleton or a rock golem depending on a number
+   * nobody chose. Reported as "one of the bots shows up as a goblin".
+   *
+   * WARNING: DECLARED, not inferred. The tempting rule -- "a whole mesh is a
+   * creature, an assembly is a person" -- is true of today's twelve and is an
+   * accident of which art happened to be modular: `polygon-hero-male` is a
+   * whole mesh and is the most person-shaped thing in the pack. Inferring it
+   * would put the hero back in the monster lottery the day somebody adds a
+   * modular goblin.
+   *
+   * WARNING: defaults to `creature`, which is the safe direction. A new
+   * definition nobody has classified stays OUT of the fallback pool: the cost
+   * of a wrong default here is "this NPC is never picked at random", and the
+   * cost the other way is the bug being fixed.
+   */
+  kind: z.enum(['person', 'creature']).default('creature'),
   /** The colour atlas, a file stem in the pack's textures. */
   texture: z.string().min(1).optional(),
   /** Free text for whoever opens this in six months. */

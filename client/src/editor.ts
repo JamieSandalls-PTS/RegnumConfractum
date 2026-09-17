@@ -109,7 +109,7 @@ const TILE_KINDS: TileKind[] = [
 // code-built types were the tile system's scenery and they are gone, along
 // with the 1,916 of them that stood in the authored areas. A map is built from
 // pack meshes.
-type Tool = 'select' | 'tile' | 'asset' | 'station' | 'node' | 'spawn' | 'exit' | 'roof'
+type Tool = 'select' | 'tile' | 'asset' | 'station' | 'node' | 'npc' | 'spawn' | 'exit' | 'roof'
   | 'paint';
 
 // ---------------------------------------------------------------------------
@@ -201,6 +201,16 @@ let stationType: string = 'workshop';
  */
 let stationTypes: string[] = ['workshop', 'storehouse', 'infirmary', 'well'];
 let nodeTypes: string[] = ['iron-vein', 'timber-stand', 'grain-row', 'herb-patch', 'game-trail'];
+/**
+ * The ambience cues and the scripts an area may name.
+ *
+ * ⚠ Empty until the palette arrives, and the map panel says so rather than
+ * offering nothing: a `scripts` row that is blank because the server is down
+ * looks exactly like a map that runs no scripts, and one of those is a fact
+ * about the map while the other is a fact about the tooling.
+ */
+let cueIds: string[] = [];
+let scriptIds: string[] = [];
 let nodeType = 'iron-vein';
 let brush = 1;
 /** Where a newly placed exit leads, and to which tile in that area. */
@@ -241,6 +251,13 @@ let cursor: THREE.LineLoop | null = null;
 
 const key = (x: number, y: number) => `${x}:${y}`;
 
+/** Ground images on disk, for the material editor's texture picker. */
+let groundTextureFiles: string[] = [];
+
+/** The people this map may place (D-598), and which one the npc tool places. */
+let npcTypes: string[] = [];
+let npcType = '';
+
 /**
  * The ground materials a person can paint with (D-585).
  *
@@ -250,8 +267,16 @@ const key = (x: number, y: number) => `${x}:${y}`;
  */
 async function loadGround(): Promise<void> {
   try {
-    const got = (await (await fetch(`${API}/ground`)).json()) as { ground: GroundMaterial[] };
+    const got = (await (await fetch(`${API}/ground`)).json()) as {
+      ground: GroundMaterial[];
+      textures?: string[];
+    };
     groundMats = got.ground;
+    // ⚠ The images on disk, so a material is given a texture from a LIST.
+    // Typed, it is a way to author a surface that renders as its tint and
+    // looks unfinished rather than wrong, and nothing in CI can see under
+    // `client/public/` -- the editor server is the only thing that can check.
+    groundTextureFiles = got.textures ?? [];
     groundPick ??= groundMats[0]?.id ?? null;
   } catch {
     // The editor still works without them: the brush simply offers the old
@@ -281,6 +306,17 @@ async function loadAreaList(): Promise<void> {
     select.addEventListener('change', () => void openArea(select.value));
     if (areas.length > 0 && loadToken === 0) await openArea(areas[0]!.id);
   } catch (err) {
+    // ⚠ Said in the PICKER as well as in the status line. The status line
+    // is a toast in the bottom-right corner, and embedded in the creation
+    // tool's Map builder it lands at the far edge of a 660px frame with its
+    // last line clipped off — while the thing the person is actually looking
+    // at is an empty dropdown at the top left. Reported as "why aren't the
+    // maps visible": the answer was on screen and in the one place nobody
+    // looks. An empty list and a list that cannot be loaded are different
+    // facts and must not look the same.
+    select.innerHTML =
+      '<option value="">⚠ map server not running — npm run dev:editor</option>';
+    select.disabled = true;
     setStatus(
       [`cannot reach the editor server on port 8140 — start it with:`,
        `npm run dev:editor`],
@@ -444,6 +480,17 @@ function rebuildMarkers(): void {
     m.position.set(n.x, 0.3, n.y);
     markerGroup.add(m);
   }
+  // ⚠ A PERSON-SIZED marker, not a plate. Where somebody stands is judged
+  // against the doorway they are standing in and the crowd that has to get
+  // past them, and a flat square on the floor answers neither question.
+  for (const person of area.npcs ?? []) {
+    const m = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.24, 1.1, 4, 8),
+      new THREE.MeshBasicMaterial({ color: 0xd8c27a, transparent: true, opacity: 0.7 }),
+    );
+    m.position.set(person.x, 0.85, person.y);
+    markerGroup.add(m);
+  }
   scene.scene.add(markerGroup);
 }
 
@@ -548,7 +595,7 @@ function updateGhost(): void {
       ghost = new AssetVisual(
         scene.scene,
         { asset: want.id, pack: want.pack, x: 0, y: 0, z: 0, rotation: 0, scale: 1,
-          collision: [], overrideCollision: false, dressed: false },
+          collision: [], overrideCollision: false, dressed: false, seat: want.seat ?? false },
         { api: STUDIO, lookup: (pack, id) => assetIndex.get(`${pack}/${id}`) },
       );
       ghost.setGhost(true);
@@ -565,6 +612,7 @@ function updateGhost(): void {
   ghost.setVisible(true);
   ghost.moveTo({
     asset: ghostFor!.id, pack: ghostFor!.pack,
+    seat: ghostFor!.seat ?? false,
     // ⚠ A person is placing this, so it is never `dressed` — that flag marks
     // scatter a tool owns and may replace wholesale (D-592).
     dressed: false,
@@ -615,6 +663,11 @@ function placeAsset(x: number, y: number): boolean {
   const placed: PlacedAsset = {
     asset: assetPick.id,
     pack: assetPick.pack,
+    // ⚠ BAKED from the catalogue, like the collision mask beside it
+    // (D-567/D-605). The server holds areas and not the 1,402-entry asset
+    // catalogue, so a placement has to carry what the simulation will ask of
+    // it — and "can somebody sit here" is now one of those questions.
+    seat: assetPick.seat ?? false,
     dressed: false,
     x,
     y,
@@ -1187,6 +1240,35 @@ function applyAt(x: number, y: number, erase: boolean): boolean {
           area.roofs.push({ x: tx, y: ty, style: roofStyle });
           changed = true;
         }
+      } else if (tool === 'npc') {
+        // ⚠ One person per tile, and only where a body can stand. The server
+        // moves an NPC with nowhere to stand to the area's spawn without a
+        // word (that is how the Hanged Ferryman's keeper spent who knows how
+        // long standing in the middle of the room instead of behind his bar),
+        // and `validate:content` now refuses it outright — so refusing it here
+        // is the editor keeping its promise not to author what the build
+        // rejects.
+        area.npcs = (area.npcs ?? []).filter((n) => n.x !== tx || n.y !== ty);
+        // ⚠ `canStandAt`, NOT the legend's `walkable`. They are different
+        // questions: the legend says the GROUND is passable, and canStandAt
+        // also asks whether a placed asset's collision volume is standing on
+        // it. Checked against the legend, the tool happily stood somebody
+        // inside the palisade at (0,0) — which the build refuses and the
+        // server would silently answer by moving them to the area's spawn.
+        // This is the same function `validate:content` calls, which is what
+        // makes the editor's promise true rather than nearly true.
+        if (!erase && npcType && canStandAt(area, { x: tx, y: ty })) {
+          area.npcs.push({ x: tx, y: ty, type: npcType, facing: 's' });
+        }
+        changed = true;
+        // ⚠ The marker has to be rebuilt HERE, as the node tool does one branch
+        // below. Without it the person is in the file, saved, and drawn only
+        // after a reload — placed, persisted and invisible, which is the exact
+        // shape of bug the editor exists to prevent. Found by counting the
+        // markers in the scene against the placements in the file rather than
+        // by looking at the map, where one missing figure among three hundred
+        // objects is not something an eye reports.
+        rebuildMarkers();
       } else if (tool === 'node') {
         area.nodes = area.nodes.filter((n) => n.x !== tx || n.y !== ty);
         if (!erase && area.legend[area.tiles[ty]![tx]!]!.walkable) {
@@ -1483,7 +1565,7 @@ function chip(label: string, on: boolean, onClick: () => void, swatch?: string):
 function renderPanel(): void {
   const tools = $('tools');
   tools.innerHTML = '';
-  for (const t of ['select', 'asset', 'paint', 'tile', 'station', 'node', 'spawn', 'exit', 'roof'] as Tool[]) {
+  for (const t of ['select', 'asset', 'paint', 'tile', 'station', 'node', 'npc', 'spawn', 'exit', 'roof'] as Tool[]) {
     tools.appendChild(chip(t, tool === t, () => { tool = t; }));
   }
 
@@ -1527,6 +1609,22 @@ function renderPanel(): void {
     for (const t of nodeTypes) {
       chips.appendChild(chip(t, nodeType === t, () => { nodeType = t; }));
     }
+  } else if (tool === 'npc') {
+    const chips = section('Who');
+    for (const t of npcTypes) {
+      chips.appendChild(chip(t, npcType === t, () => { npcType = t; }));
+    }
+    const note = document.createElement('div');
+    note.className = 'hint';
+    note.innerHTML = npcTypes.length === 0
+      ? 'Nobody is defined yet. People are written in the creation tool under '
+        + '<b>Interactive → people</b>, and placed here.'
+      : 'Click a walkable tile to stand somebody there, right-click to take them '
+        + 'away. <b>Who</b> they are is content (<code>content/npcs/</code>); this '
+        + 'is only <b>where</b>. What they DO is still a script — a script reaches '
+        + 'one with <code>npc("id")</code>, and the build refuses a script asking '
+        + 'for somebody its area does not place.';
+    opts.appendChild(note);
   } else if (tool === 'spawn') {
     const note = document.createElement('div');
     note.className = 'hint';
@@ -1664,6 +1762,7 @@ function renderPaintTool(opts: HTMLElement): void {
   }
   opts.append(row);
 
+  renderMaterialEditor(opts);
   renderMaterialsInUse(opts);
 
   const brushHead = document.createElement('h2');
@@ -1682,6 +1781,180 @@ function renderPaintTool(opts: HTMLElement): void {
     + 'and it gains its surface when the art lands, without repainting. '
     + 'Textures go in <b>client/public/textures/ground/</b>.';
   opts.appendChild(note);
+}
+
+/**
+ * Author a ground material (D-597).
+ *
+ * ⚠ Ground was the last thing in `content/` that could be PAINTED WITH and
+ * never authored. Thirteen materials shipped and a fourteenth meant hand-
+ * writing JSON beside an image nothing listed -- in the one tool whose whole
+ * premise is that what you place is what you get (D-543).
+ *
+ * ⚠ `tint` and `wash` are two controls because they are two jobs (D-590):
+ * the tint stands in for art that is missing, the wash multiplies art that is
+ * there. One field doing both is what once rendered mud at an albedo of 0.107
+ * and made the whole town read as bad lighting, so the panel names them apart
+ * and says which is which.
+ *
+ * ⚠ Written as you go, not on Save. Save writes the MAP, and a material is
+ * not part of one -- a change to grass belongs to every area painted with it.
+ * The status line says which file each change reached.
+ */
+function renderMaterialEditor(opts: HTMLElement): void {
+  const mat = groundMats.find((m) => m.id === groundPick);
+  const head = document.createElement('h2');
+  head.textContent = mat ? `Edit — ${mat.name}` : 'Materials';
+  opts.appendChild(head);
+
+  const bar = document.createElement('div');
+  bar.className = 'chips';
+  const fresh = document.createElement('button');
+  fresh.textContent = '+ New material';
+  fresh.className = 'small';
+  fresh.onclick = () => {
+    const name = prompt('Name the material (what a person calls it)');
+    if (!name?.trim()) return;
+    const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (!id) return setStatus(['that name has no letters or digits in it'], 'bad');
+    if (groundMats.some((m) => m.id === id)) {
+      return setStatus([`there is already a material called ${id}`], 'bad');
+    }
+    // A new material is FLAT and walkable: no texture, the default tint. It can
+    // be painted with at once and gains a surface when one is picked, which is
+    // the promise the painter already makes for art that has not landed.
+    groundMats = [...groundMats, {
+      id, name: name.trim(), repeat: 1, tint: '#6b7a55', wash: '#ffffff', walkable: true,
+    }].sort((a, b) => a.name.localeCompare(b.name));
+    groundPick = id;
+    void saveMaterial(id);
+    renderPanel();
+  };
+  bar.appendChild(fresh);
+  if (mat) {
+    const del = document.createElement('button');
+    del.textContent = 'Delete';
+    del.className = 'small';
+    del.onclick = () => {
+      if (!confirm(`Delete the material "${mat.name}"? Its file is removed from content/ground.`)) return;
+      void (async () => {
+        const res = await fetch(`${API}/ground/${mat.id}`, { method: 'DELETE' });
+        const got = (await res.json()) as { ok: boolean; errors?: string[] };
+        if (!got.ok) return setStatus(['REFUSED:', ...(got.errors ?? [])], 'bad');
+        groundMats = groundMats.filter((m) => m.id !== mat.id);
+        groundPick = groundMats[0]?.id ?? null;
+        setStatus([`${mat.name} deleted`], 'good');
+        renderPanel();
+      })();
+    };
+    bar.appendChild(del);
+  }
+  opts.appendChild(bar);
+  if (!mat) return;
+
+  const field = (label: string, el: HTMLElement): void => {
+    const wrap = document.createElement('div');
+    wrap.className = 'app-row';
+    const lab = document.createElement('span');
+    lab.style.cssText = 'flex:1;font-size:11.5px';
+    lab.textContent = label;
+    wrap.append(lab, el);
+    opts.appendChild(wrap);
+  };
+  const commit = (): void => { void saveMaterial(mat.id); };
+
+  const nameIn = document.createElement('input');
+  nameIn.type = 'text';
+  nameIn.value = mat.name;
+  nameIn.style.width = '55%';
+  nameIn.oninput = () => { mat.name = nameIn.value; };
+  nameIn.onchange = commit;
+  field('called', nameIn);
+
+  const texSel = document.createElement('select');
+  texSel.add(new Option('none — flat tint', ''));
+  for (const t of groundTextureFiles) texSel.add(new Option(t, t));
+  texSel.value = mat.texture ?? '';
+  texSel.onchange = () => {
+    if (texSel.value) mat.texture = texSel.value;
+    else delete mat.texture;
+    commit();
+    renderPanel();
+  };
+  field('texture', texSel);
+
+  const rep = document.createElement('input');
+  rep.type = 'number';
+  rep.step = '0.01';
+  rep.min = '0.01';
+  rep.value = String(mat.repeat);
+  rep.style.width = '72px';
+  // ⚠ Per TILE, not per area, or a map that grows stretches its grass.
+  rep.onchange = () => {
+    const v = Number(rep.value);
+    if (!(v > 0)) return setStatus(['repeats per tile must be greater than zero'], 'bad');
+    mat.repeat = v;
+    commit();
+  };
+  field('repeats per tile', rep);
+
+  const tint = document.createElement('input');
+  tint.type = 'color';
+  tint.value = mat.tint;
+  tint.onchange = () => { mat.tint = tint.value; commit(); renderPanel(); };
+  field('tint (no art)', tint);
+
+  const wash = document.createElement('input');
+  wash.type = 'color';
+  wash.value = mat.wash;
+  wash.onchange = () => { mat.wash = wash.value; commit(); };
+  field('wash (over art)', wash);
+
+  const walk = document.createElement('input');
+  walk.type = 'checkbox';
+  walk.checked = mat.walkable;
+  walk.onchange = () => { mat.walkable = walk.checked; commit(); };
+  field('walkable', walk);
+
+  const notes = document.createElement('input');
+  notes.type = 'text';
+  notes.value = mat.notes ?? '';
+  notes.style.width = '55%';
+  notes.oninput = () => {
+    if (notes.value.trim()) mat.notes = notes.value;
+    else delete mat.notes;
+  };
+  notes.onchange = commit;
+  field('notes', notes);
+
+  const hint = document.createElement('div');
+  hint.className = 'hint';
+  hint.innerHTML = '<b>tint</b> is what this paints as when it has no texture. '
+    + '<b>wash</b> multiplies over the texture when it has one -- leave it white '
+    + 'unless you want a bleached or greener cut of the same art. '
+    + '<b>walkable</b> is authored here and the server does not read it: where a '
+    + 'body may stand is the tiles and the collision volumes, or painting a map '
+    + 'would silently re-cut it. Changes are written to <b>content/ground/</b> '
+    + 'as you make them -- Save writes the map, not these.';
+  opts.appendChild(hint);
+}
+
+/** Write one material, and say so or say why not. */
+async function saveMaterial(id: string): Promise<void> {
+  const mat = groundMats.find((m) => m.id === id);
+  if (!mat) return;
+  try {
+    const res = await fetch(`${API}/ground/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mat),
+    });
+    const got = (await res.json()) as { ok: boolean; errors?: string[] };
+    if (!got.ok) return setStatus(['the material was REFUSED:', ...(got.errors ?? [])], 'bad');
+    setStatus([`${mat.name} written to content/ground/${id}.json`], 'good');
+  } catch (err) {
+    setStatus([`could not reach the editor server: ${String(err)}`], 'bad');
+  }
 }
 
 /**
@@ -1864,12 +2137,20 @@ async function loadPalette(): Promise<void> {
     const p = (await (await fetch(`${API}/palette`)).json()) as {
       stations: string[];
       nodes: string[];
+      npcs?: string[];
+      cues?: string[];
+      scripts?: string[];
     };
     if (p.stations.length) stationTypes = p.stations;
     if (p.nodes.length) nodeTypes = p.nodes;
+    npcTypes = p.npcs ?? [];
+    if (!npcTypes.includes(npcType)) npcType = npcTypes[0] ?? '';
+    cueIds = p.cues ?? [];
+    scriptIds = p.scripts ?? [];
     if (!stationTypes.includes(stationType)) stationType = stationTypes[0]!;
     if (!nodeTypes.includes(nodeType)) nodeType = nodeTypes[0]!;
     renderPanel();
+    renderResizePanel();
   } catch {
     // ⚠ The built-in lists stay as the fallback rather than the palette going
     // empty: a tool that offers nothing looks broken, and the editor server
@@ -2046,6 +2327,143 @@ function renderResizePanel(): void {
     ? 'Part of a real game loop. It shows with a ● in the map list.'
     : 'A place to try things. Nothing here is expected to reach a player.';
   host.append(liveHead, liveRow, liveNote);
+
+  /*
+   * What this map IS, rather than what is in it.
+   *
+   * ⚠ Every one of these has a schema default and every default points the
+   * quiet way. `outdoor` is false, `zone` is settled, `lighting` is overcast,
+   * `ambience` is absent and `scripts` is empty — so a wilderness area drawn
+   * here and saved paid no night bonus (D-528), carried the settled zone's
+   * hostility and corpse rules (D-206), and was silent (D-541). None of that
+   * is visible on the map and all of it was hand-edited JSON, which is the
+   * worst combination: a tool that produces a wrong file without saying so.
+   *
+   * ⚠ The defaults themselves are NOT changed. D-527 chose their direction
+   * deliberately — forgetting `outdoor` on open ground is wrong and visible in
+   * play, while the opposite default pays every cellar the night bonus and is
+   * wrong and invisible. The fix is to make them askable, not to guess better.
+   */
+  const group = (title: string): HTMLElement => {
+    const h = document.createElement('h2');
+    h.textContent = title;
+    host.appendChild(h);
+    const chips = document.createElement('div');
+    chips.className = 'chips';
+    host.appendChild(chips);
+    return chips;
+  };
+  const hint = (text: string): void => {
+    const n = document.createElement('div');
+    n.className = 'hint';
+    n.textContent = text;
+    host.appendChild(n);
+  };
+
+  const nameHead = document.createElement('h2');
+  nameHead.textContent = 'Called';
+  const nameIn = document.createElement('input');
+  nameIn.type = 'text';
+  nameIn.value = area.name;
+  nameIn.addEventListener('input', () => {
+    if (!area) return;
+    area.name = nameIn.value;
+    setDirty(true);
+  });
+  host.append(nameHead, nameIn);
+  hint('What a player is told this place is called. The id never changes.');
+
+  // ⚠ Applied to the VIEW as well as the file. The editor renders through the
+  // game's own lighting (D-543), so choosing `night` here should look like
+  // night here — otherwise the profile is a word in a form and nobody can
+  // judge whether an area reads at all after dusk.
+  const lightRow = group('Light');
+  for (const l of ['overcast', 'night', 'underground', 'interior'] as const) {
+    lightRow.appendChild(chip(l, area.lighting === l, () => {
+      if (!area || area.lighting === l) return;
+      area.lighting = l;
+      scene.applyLighting(l);
+      setDirty(true);
+      renderResizePanel();
+    }));
+  }
+  hint('How it is lit. A rendering profile only — it never decides danger.');
+
+  // ⚠ SEPARATE from the light, and the schema says why at length: tying how
+  // an area looks to whether night reaches it breaks the first bright cavern
+  // or gloomy field somebody authors.
+  const skyRow = group('Does the sky reach here?');
+  skyRow.appendChild(chip('under the sky', area.outdoor === true, () => {
+    if (!area || area.outdoor === true) return;
+    area.outdoor = true; setDirty(true); renderResizePanel();
+  }));
+  skyRow.appendChild(chip('indoors or below', area.outdoor !== true, () => {
+    if (!area || area.outdoor === false) return;
+    area.outdoor = false; setDirty(true); renderResizePanel();
+  }));
+  hint(area.outdoor === true
+    ? 'Roamers walk it after dusk and what is earned here pays 1.5x at night.'
+    : 'Night never reaches it: no roamers, no night bonus, whatever the light says.');
+
+  const zoneRow = group('Zone');
+  for (const z of ['settled', 'wilderness', 'endgame'] as const) {
+    zoneRow.appendChild(chip(z, area.zone === z, () => {
+      if (!area || area.zone === z) return;
+      area.zone = z;
+      setDirty(true);
+      renderResizePanel();
+    }));
+  }
+  hint(
+    area.zone === 'endgame'
+      ? 'PERMADEATH. A character killed here is gone for good — never use it for a round map.'
+      : area.zone === 'wilderness'
+        ? 'Open: no declared hostility, and a corpse here wears everything it carried.'
+        : 'Settled: hostility must be declared and spoken, and corpses keep their gear.',
+  );
+
+  // ⚠ Ambience cues only, and picked from a list rather than typed. A bed
+  // naming a cue that does not exist fails CI (D-541), and an `effect` cue is
+  // a sword hitting somebody — named as a bed it would loop forever.
+  const cueRow = group('Ambience');
+  cueRow.appendChild(chip('silent', area.ambience === undefined, () => {
+    if (!area || area.ambience === undefined) return;
+    delete area.ambience;
+    setDirty(true);
+    renderResizePanel();
+  }));
+  for (const c of cueIds) {
+    cueRow.appendChild(chip(c.replace(/^ambience-/, ''), area.ambience === c, () => {
+      if (!area || area.ambience === c) return;
+      area.ambience = c;
+      setDirty(true);
+      renderResizePanel();
+    }));
+  }
+  hint(cueIds.length === 0
+    ? 'No cues loaded — the editor server may be down, which is not the same as an area having no bed.'
+    : 'The bed that plays here. Silence is a real choice, not an oversight.');
+
+  const scriptRow = group('Scripts');
+  for (const sid of scriptIds) {
+    const on = (area.scripts ?? []).includes(sid);
+    scriptRow.appendChild(chip(sid, on, () => {
+      if (!area) return;
+      const list = new Set(area.scripts ?? []);
+      if (list.has(sid)) list.delete(sid);
+      else list.add(sid);
+      area.scripts = [...list].sort();
+      setDirty(true);
+      renderResizePanel();
+    }));
+  }
+  hint(scriptIds.length === 0
+    ? 'No scripts found under content/scripts.'
+    : 'Lua that runs for this area — this is where scripted NPCs come from.');
+
+  const sizeHead = document.createElement('h2');
+  sizeHead.textContent = 'Size';
+  host.appendChild(sizeHead);
   const row = document.createElement('div');
   row.className = 'row';
   const mk = (label: string, value: number): HTMLInputElement => {
@@ -2580,8 +2998,12 @@ declare global {
       save: () => Promise<void>;
       status: () => string;
       counts: () => {
-        assets: number; stations: number; nodes: number; roofs: number;
+        assets: number; stations: number; nodes: number; npcs: number; roofs: number;
         exits: number; size: string; lights: number; dirty: boolean;
+        /** Person markers actually IN the scene, not the count in the file.
+         * The two disagreeing is the whole class of bug where a thing is
+         * placed, saved and never drawn. */
+        npcMarkers: number;
       };
       resize: (w: number, h: number, ox?: number, oy?: number) => string;
       setExit: (toArea: string, toX: number, toY: number) => void;
@@ -2626,6 +3048,10 @@ window.__editor = {
     assets: area?.assets.length ?? 0,
     stations: area?.stations.length ?? 0,
     nodes: area?.nodes.length ?? 0,
+    npcs: area?.npcs?.length ?? 0,
+    npcMarkers: markerGroup.children.filter(
+      (o) => (o as THREE.Mesh).geometry?.type === 'CapsuleGeometry',
+    ).length,
     roofs: area?.roofs.length ?? 0,
     exits: area?.transitions.length ?? 0,
     size: area ? `${area.width}x${area.height}` : '',

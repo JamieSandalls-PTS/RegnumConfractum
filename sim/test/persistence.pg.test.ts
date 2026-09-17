@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { isTileWalkable } from '@rc/shared';
 import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { PgStore } from '@rc/server/store/postgres';
@@ -48,11 +49,25 @@ describe.skipIf(!DATABASE_URL)('persistence across server restart (Postgres)', (
     const spawned = bot.entities.get(snap.you)!;
     const start = { x: spawned.x, y: spawned.y }; // copy — the mirror entity mutates
 
-    for (let i = 0; i < 4; i++) {
+    // ⚠ How far east there is actually room for, MEASURED, rather than a
+    // hard-coded four tiles. This test is about persistence and had quietly
+    // become a test of the map: D-592's dressing pass put a twisted tree with
+    // a 3x3 collision volume five tiles from the yard's spawn, so the fourth
+    // step stopped being possible and the suite failed reporting 'timed out
+    // waiting for delta' — which says nothing about a tree.
+    //
+    // ⚠ It went unseen because this file is `skipIf(!DATABASE_URL)` and
+    // vitest did not read `.env`, so it had not run on this machine at all.
+    // A test that only runs somewhere else is a test that rots somewhere else.
+    const here = content.areas.get(bot.area!.id)!;
+    let steps = 0;
+    while (steps < 4 && isTileWalkable(here, { x: start.x + steps + 1, y: start.y })) steps++;
+    expect(steps, 'the spawn has somewhere to walk to').toBeGreaterThanOrEqual(2);
+    for (let i = 0; i < steps; i++) {
       bot.send({ t: 'move', dir: 'e' });
       await bot.expectMoveTo(snap.you, { x: start.x + i + 1, y: start.y });
     }
-    const finalPos = { x: start.x + 4, y: start.y };
+    const finalPos = { x: start.x + steps, y: start.y };
 
     await store.grantItem(characterId, 'iron-ore', 3);
     await store.grantItem(characterId, 'tarnished-signet', 1);

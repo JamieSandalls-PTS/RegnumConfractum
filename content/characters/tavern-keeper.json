@@ -1,0 +1,23 @@
+{
+  "id": "tavern-keeper",
+  "name": "Tavern keeper",
+  "pack": "modular-fantasy-hero",
+  "sex": "male",
+  "parts": {
+    "head": "SK_Chr_Head_Male_03",
+    "torso": "SK_Chr_Torso_Male_28",
+    "hips": "SK_Chr_Hips_Male_27",
+    "armUpperL": "SK_Chr_ArmUpperLeft_Male_20",
+    "armUpperR": "SK_Chr_ArmUpperRight_Male_20",
+    "armLowerL": "SK_Chr_ArmLowerLeft_Male_18",
+    "armLowerR": "SK_Chr_ArmLowerRight_Male_18",
+    "handL": "SK_Chr_HandLeft_Male_00",
+    "handR": "SK_Chr_HandRight_Male_00",
+    "legL": "SK_Chr_LegLeft_Male_19",
+    "legR": "SK_Chr_LegRight_Male_19",
+    "hair": "SK_Chr_Hair_01"
+  },
+  "texture": "PolygonFantasyHero_Texture_01_A",
+  "note": "A finished body from the pack rather than an assembly (D-594). On the Unreal humanoid rig, so the existing clip library retargets onto it unchanged.",
+  "kind": "person"
+}

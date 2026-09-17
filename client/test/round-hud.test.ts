@@ -1,7 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   RoundHud,
+  botsToFill,
   formatClock,
+  formatLobby,
   formatOutcome,
   formatPhase,
   formatRemaining,
@@ -14,6 +18,20 @@ import {
  * only place the antagonist's brief is ever rendered and a leak here would
  * not show up in any server test.
  */
+
+/** A button stand-in: the HUD sets `disabled` and listens for clicks. */
+function fakeButton() {
+  const el = fakeElement() as ReturnType<typeof fakeElement> & {
+    disabled: boolean;
+    _click: () => void;
+  };
+  let handler = (): void => {};
+  el.disabled = false;
+  (el as unknown as { addEventListener: (t: string, f: () => void) => void })
+    .addEventListener = (_t, f) => { handler = f; };
+  el._click = () => handler();
+  return el;
+}
 
 /** A DOM stand-in — enough of Element for the HUD, and nothing more. */
 function fakeElement() {
@@ -35,8 +53,12 @@ function harness() {
     root: fakeElement(), phase: fakeElement(), clock: fakeElement(), cast: fakeElement(),
     objective: fakeElement(), objectiveName: fakeElement(), objectiveBrief: fakeElement(),
     ending: fakeElement(), endingTitle: fakeElement(), endingBody: fakeElement(),
+    lobby: fakeElement(), lobbyNote: fakeElement(),
+    botAdd: fakeButton(), botFill: fakeButton(), botClear: fakeButton(),
   };
-  return { els, hud: new RoundHud(els as unknown as RoundHudElements) };
+  const sent: unknown[] = [];
+  const hud = new RoundHud(els as unknown as RoundHudElements, (m) => sent.push(m));
+  return { els, hud, sent };
 }
 
 const state = (over: Partial<Parameters<RoundHud['onState']>[0]> = {}) => ({
@@ -48,6 +70,8 @@ const state = (over: Partial<Parameters<RoundHud['onState']>[0]> = {}) => ({
   hour: 14,
   night: false,
   graceTicks: 0,
+  bots: 0,
+  botsAllowed: true,
   ...over,
 });
 
@@ -171,5 +195,93 @@ describe('the clock panel', () => {
     hud.onState(state({ phase: 'lobby', remainingTicks: null }));
     expect(els.clock.textContent).toBe('');
     expect(els.cast.textContent).toBe('');
+  });
+});
+
+describe('filling the cast from the lobby (D-607)', () => {
+  it('offers the controls only where they could do something', () => {
+    expect(formatLobby(state({ phase: 'lobby', cast: 1 })).show).toBe(true);
+    expect(formatLobby(state({ phase: 'resolved' })).show).toBe(true);
+    // ⚠ Never while a round runs. The panel exists to get one STARTED, and
+    // a "fill the cast" button during play would be a way to walk companions
+    // into a live round from the HUD.
+    expect(formatLobby(state({ phase: 'running' })).show).toBe(false);
+    // ⚠ And never on a server that forbids them, whatever the phase. A
+    // control the client draws and the server refuses is worse than no
+    // control: it reads as broken rather than as disallowed.
+    expect(formatLobby(state({ phase: 'lobby', botsAllowed: false })).show).toBe(false);
+  });
+
+  it('says how many are bots and never which (D-521)', () => {
+    const note = formatLobby(state({ phase: 'lobby', cast: 3, bots: 2 })).note;
+    expect(note).toContain('2 are bots');
+    // A bot can be dealt the objective like anybody else, so a name here
+    // would hand the round away.
+    expect(note).not.toMatch(/Dorn|Merrow|Ulf/);
+  });
+
+  it('counts the shortfall, and asks for at least one', () => {
+    expect(botsToFill(state({ phase: 'lobby', cast: 1, minCast: 3 }))).toBe(2);
+    expect(botsToFill(state({ phase: 'lobby', cast: 0, minCast: 3 }))).toBe(3);
+    // Already enough: the button still brings somebody, rather than being a
+    // control that silently does nothing.
+    expect(botsToFill(state({ phase: 'lobby', cast: 5, minCast: 3 }))).toBe(1);
+  });
+
+  it('cannot send home what is not there', () => {
+    expect(formatLobby(state({ phase: 'lobby', bots: 0 })).canClear).toBe(false);
+    expect(formatLobby(state({ phase: 'lobby', bots: 1 })).canClear).toBe(true);
+  });
+
+  it('asks the server for the shortfall when told to fill', () => {
+    const { els, hud, sent } = harness();
+    hud.onState(state({ phase: 'lobby', cast: 1, minCast: 3 }));
+    els.botFill._click();
+    expect(sent).toEqual([{ t: 'add_bots', count: 2 }]);
+    els.botAdd._click();
+    expect(sent[1]).toEqual({ t: 'add_bots', count: 1 });
+    els.botClear._click();
+    expect(sent[2]).toEqual({ t: 'remove_bots' });
+  });
+});
+
+describe('the controls can actually be clicked (D-609)', () => {
+  /**
+   * ⚠ The bug this pins was invisible to every test above, and that is the
+   * point of it. The HUD is `pointer-events: none` — correctly, because it
+   * floats over the world and must not swallow a click meant for the ground.
+   * Everything in it had always been read-only, so the first controls put
+   * inside it were unclickable while looking completely normal: styled,
+   * enabled, even hovering. Hit-testing in the browser found `#overlay`
+   * receiving every click aimed at a button.
+   *
+   * ⚠ The tests above cannot see it because they call the handler directly
+   * on a fake element. Dispatching a handler proves the handler; it says
+   * nothing about whether a person can reach it.
+   */
+  const html = readFileSync(
+    fileURLToPath(new URL('../index.html', import.meta.url)),
+    'utf8',
+  );
+  /** The declarations inside one `#id { ... }` rule. */
+  const ruleFor = (selector: string): string => {
+    const at = html.indexOf(`${selector} {`);
+    if (at < 0) return '';
+    return html.slice(at, html.indexOf('}', at));
+  };
+
+  it('⚠ opts the lobby panel back IN to pointer events', () => {
+    // The container really is click-through — if that ever changes this test
+    // is testing nothing, so assert it rather than assume it.
+    expect(ruleFor('#round-hud')).toContain('pointer-events: none');
+    expect(ruleFor('#round-lobby')).toContain('pointer-events: auto');
+  });
+
+  it('leaves the read-only parts of the HUD click-through', () => {
+    // ⚠ Only the panel opts in. The clock and the objective card sit over
+    // the world for twenty-five minutes; making those solid would put a dead
+    // rectangle in the middle of the screen that eats movement clicks.
+    expect(ruleFor('#round-bar')).not.toContain('pointer-events');
+    expect(ruleFor('#round-objective')).not.toContain('pointer-events');
   });
 });

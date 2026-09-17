@@ -39,6 +39,7 @@ import {
   CharacterDefSchema,
   GarmentSchema,
   type GarmentDef,
+  PartNamesSchema,
   RaceSchema,
   type RaceDef,
   type CharacterDef,
@@ -83,6 +84,7 @@ const OUT_DIR = join(root, 'client', 'public', 'models');
 const DEF_DIR = join(root, 'content', 'characters');
 const GARMENT_DIR = join(root, 'content', 'garments');
 const RACE_DIR = join(root, 'content', 'races');
+const PART_NAME_DIR = join(root, 'content', 'parts');
 
 /**
  * Sidekick is authored in centimetres; this game is in metres (an
@@ -1121,6 +1123,25 @@ export async function build(): Promise<BuildReport> {
     string,
     { pack: string; sex: string; parts: Record<string, string> }
   > = {};
+  /**
+   * Which definitions are people, for the seed fallback (D-618).
+   *
+   * ⚠: read from EVERY definition, not through `definedCharacters()`.
+   * That helper skips anything that is a whole mesh, because those are
+   * assembled further down -- and whole meshes are exactly the creatures, so
+   * routing this through it classified all twelve as people and changed
+   * nothing at all. The build reported success and the goblin stayed in the
+   * lottery. A helper that filters for one purpose is not a list.
+   */
+  const outfitKinds: Record<string, 'person' | 'creature'> = {};
+  if (existsSync(DEF_DIR)) {
+    for (const file of readdirSync(DEF_DIR).filter((f) => f.endsWith('.json'))) {
+      const def = CharacterDefSchema.parse(
+        JSON.parse(readFileSync(join(DEF_DIR, file), 'utf8')),
+      );
+      outfitKinds[def.id] = def.kind;
+    }
+  }
   for (const { def, pack } of definedCharacters()) {
     outfitParts[def.id] = { pack: def.pack, sex: def.sex, parts: { ...def.parts } };
     for (const stem of Object.values(def.parts) as string[]) {
@@ -1171,6 +1192,25 @@ export async function build(): Promise<BuildReport> {
     }
   }
 
+  // ⚠ And the HOOD (D-616). D-219's hooded presentation is a head covering
+  // swapped into the assembly, and it is named by a TAG in
+  // `content/parts/<pack>.json` rather than by a definition or a garment -- so
+  // it was in neither list this function walks, and the part was simply never
+  // exported. The symptom is the worst kind: the hood resolves, the swap
+  // happens, the loader asks for a file that is not there, and a hooded
+  // character renders bare-headed exactly as they did before the feature.
+  for (const file of readdirSync(PART_NAME_DIR).filter((f) => f.endsWith('.json'))) {
+    const catalogue = PartNamesSchema.parse(
+      JSON.parse(readFileSync(join(PART_NAME_DIR, file), 'utf8')),
+    );
+    const pack = packOf(catalogue.pack);
+    if (!pack) continue;
+    for (const [stem, tags] of Object.entries(catalogue.tags)) {
+      if (!tags.includes('hood')) continue;
+      wanted.set(partFileName(catalogue.pack, stem), { pack, stem });
+    }
+  }
+
   const partsDir = join(OUT_DIR, 'parts');
   mkdirSync(partsDir, { recursive: true });
   let partBytes = 0;
@@ -1200,6 +1240,12 @@ export async function build(): Promise<BuildReport> {
           variant: o.variant,
           source: o.source,
           height: Number(o.height.toFixed(3)),
+          // ⚠: person or creature (D-618). This is what keeps the
+          // seed fallback from drawing a bot as a goblin. A character built
+          // from the PACK rather than from a definition has nobody to ask, and
+          // those are the vendor's hero bodies -- so `person` is right for
+          // them and the definitions say for themselves.
+          kind: outfitKinds[o.id] ?? 'person',
           // Present only for a character the build assembled from a slot
           // vocabulary. `null` is the honest answer for the other two
           // sources, and it is what stops the client trying to dress one.

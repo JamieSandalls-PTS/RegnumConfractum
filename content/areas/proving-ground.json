@@ -402,9 +402,9 @@
       "pack": "vikings",
       "x": 26.81,
       "y": 5.49,
-      "z": 0.0,
+      "z": 0,
       "rotation": 137.44283010759807,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -414,9 +414,9 @@
       "pack": "vikings",
       "x": 16.38,
       "y": 15.69,
-      "z": 0.0,
+      "z": 0,
       "rotation": 236.7017767998799,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -426,9 +426,9 @@
       "pack": "vikings",
       "x": 19.68,
       "y": 2.4,
-      "z": 0.0,
+      "z": 0,
       "rotation": 28.36054077961463,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -438,9 +438,9 @@
       "pack": "vikings",
       "x": 9.5,
       "y": 14.68,
-      "z": 0.0,
+      "z": 0,
       "rotation": 46.60475144369586,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -450,9 +450,9 @@
       "pack": "vikings",
       "x": 11.34,
       "y": 18.68,
-      "z": 0.0,
+      "z": 0,
       "rotation": 60.10907411153953,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -462,9 +462,9 @@
       "pack": "vikings",
       "x": 12.86,
       "y": 2.71,
-      "z": 0.0,
+      "z": 0,
       "rotation": 145.1356413026719,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -474,9 +474,9 @@
       "pack": "vikings",
       "x": 14.33,
       "y": 11.01,
-      "z": 0.0,
+      "z": 0,
       "rotation": 56.3913792596375,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -486,9 +486,9 @@
       "pack": "vikings",
       "x": 23.04,
       "y": 24.58,
-      "z": 0.0,
+      "z": 0,
       "rotation": 12.211925526235753,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -498,9 +498,9 @@
       "pack": "vikings",
       "x": 3.63,
       "y": 15.97,
-      "z": 0.0,
+      "z": 0,
       "rotation": 329.3854736035847,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -510,9 +510,9 @@
       "pack": "vikings",
       "x": 25.45,
       "y": 7.69,
-      "z": 0.0,
+      "z": 0,
       "rotation": 123.83597244881088,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -522,9 +522,9 @@
       "pack": "vikings",
       "x": 25.75,
       "y": 11.56,
-      "z": 0.0,
+      "z": 0,
       "rotation": 156.3284672482493,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -534,9 +534,9 @@
       "pack": "vikings",
       "x": 26.09,
       "y": 16.23,
-      "z": 0.0,
+      "z": 0,
       "rotation": 139.59167120608296,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -546,9 +546,9 @@
       "pack": "vikings",
       "x": 9.71,
       "y": 17.51,
-      "z": 0.0,
+      "z": 0,
       "rotation": 52.05804993487183,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -558,9 +558,9 @@
       "pack": "vikings",
       "x": 23.9,
       "y": 16.83,
-      "z": 0.0,
+      "z": 0,
       "rotation": 332.72031844056875,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -570,9 +570,9 @@
       "pack": "vikings",
       "x": 23.25,
       "y": 3.06,
-      "z": 0.0,
+      "z": 0,
       "rotation": 16.409815111508834,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -580,11 +580,11 @@
     {
       "asset": "sm-env-grass-01",
       "pack": "vikings",
-      "x": 18.0,
+      "x": 18,
       "y": 17.66,
-      "z": 0.0,
+      "z": 0,
       "rotation": 101.31736833001901,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -594,9 +594,9 @@
       "pack": "vikings",
       "x": 17.23,
       "y": 26.89,
-      "z": 0.0,
+      "z": 0,
       "rotation": 266.25808205424505,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -606,9 +606,9 @@
       "pack": "vikings",
       "x": 24.59,
       "y": 20.33,
-      "z": 0.0,
+      "z": 0,
       "rotation": 132.55891046282727,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -618,9 +618,9 @@
       "pack": "vikings",
       "x": 3.95,
       "y": 13.65,
-      "z": 0.0,
+      "z": 0,
       "rotation": 340.17153263587454,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -630,9 +630,9 @@
       "pack": "vikings",
       "x": 23.33,
       "y": 3.31,
-      "z": 0.0,
+      "z": 0,
       "rotation": 257.0457964324405,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -642,9 +642,9 @@
       "pack": "vikings",
       "x": 15.69,
       "y": 22.01,
-      "z": 0.0,
+      "z": 0,
       "rotation": 173.0679999973344,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -654,9 +654,9 @@
       "pack": "vikings",
       "x": 11.06,
       "y": 3.45,
-      "z": 0.0,
+      "z": 0,
       "rotation": 173.5883190905059,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -666,9 +666,9 @@
       "pack": "vikings",
       "x": 25.39,
       "y": 8.98,
-      "z": 0.0,
+      "z": 0,
       "rotation": 297.1478317882721,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -678,9 +678,9 @@
       "pack": "vikings",
       "x": 6.24,
       "y": 21.21,
-      "z": 0.0,
+      "z": 0,
       "rotation": 287.4716373124534,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -690,9 +690,9 @@
       "pack": "vikings",
       "x": 6.13,
       "y": 17.82,
-      "z": 0.0,
+      "z": 0,
       "rotation": 211.68272722678495,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -702,9 +702,9 @@
       "pack": "vikings",
       "x": 8.26,
       "y": 6.67,
-      "z": 0.0,
+      "z": 0,
       "rotation": 243.71904985915333,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -714,9 +714,9 @@
       "pack": "vikings",
       "x": 22.85,
       "y": 19.35,
-      "z": 0.0,
+      "z": 0,
       "rotation": 29.92981042345809,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -726,9 +726,9 @@
       "pack": "vikings",
       "x": 21.76,
       "y": 13.89,
-      "z": 0.0,
+      "z": 0,
       "rotation": 246.4743089111724,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -738,9 +738,9 @@
       "pack": "vikings",
       "x": 15.22,
       "y": 4.45,
-      "z": 0.0,
+      "z": 0,
       "rotation": 41.657443139843025,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -750,9 +750,9 @@
       "pack": "vikings",
       "x": 16.4,
       "y": 4.79,
-      "z": 0.0,
+      "z": 0,
       "rotation": 168.24540260534687,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -762,9 +762,9 @@
       "pack": "vikings",
       "x": 21.74,
       "y": 18.81,
-      "z": 0.0,
+      "z": 0,
       "rotation": 232.47364921841418,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -774,9 +774,9 @@
       "pack": "vikings",
       "x": 15.87,
       "y": 8.02,
-      "z": 0.0,
+      "z": 0,
       "rotation": 351.7093525601664,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -786,9 +786,9 @@
       "pack": "vikings",
       "x": 20.77,
       "y": 17.96,
-      "z": 0.0,
+      "z": 0,
       "rotation": 172.45201874294054,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -798,9 +798,9 @@
       "pack": "vikings",
       "x": 23.03,
       "y": 24.4,
-      "z": 0.0,
+      "z": 0,
       "rotation": 211.2629517914121,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -810,9 +810,9 @@
       "pack": "vikings",
       "x": 20.83,
       "y": 5.89,
-      "z": 0.0,
+      "z": 0,
       "rotation": 92.64540031341996,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -822,9 +822,9 @@
       "pack": "vikings",
       "x": 11.64,
       "y": 26.23,
-      "z": 0.0,
+      "z": 0,
       "rotation": 347.2936374878505,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -834,9 +834,9 @@
       "pack": "vikings",
       "x": 3.05,
       "y": 20.5,
-      "z": 0.0,
+      "z": 0,
       "rotation": 11.89258054366691,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -846,9 +846,9 @@
       "pack": "vikings",
       "x": 4.41,
       "y": 14.44,
-      "z": 0.0,
+      "z": 0,
       "rotation": 4.977915619378508,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -858,9 +858,9 @@
       "pack": "vikings",
       "x": 6.77,
       "y": 15.7,
-      "z": 0.0,
+      "z": 0,
       "rotation": 80.72097482785055,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -870,9 +870,9 @@
       "pack": "vikings",
       "x": 23.71,
       "y": 10.01,
-      "z": 0.0,
+      "z": 0,
       "rotation": 329.6948114718609,
-      "scale": 1.0,
+      "scale": 1,
       "collision": [],
       "overrideCollision": true,
       "dressed": true
@@ -881,10 +881,10 @@
       "asset": "sm-prop-barrel-half-01",
       "pack": "vikings",
       "x": 5.26,
-      "y": 21.0,
-      "z": 0.0,
-      "rotation": 180.0,
-      "scale": 1.0,
+      "y": 21,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -896,7 +896,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.476,
           "walkable": false,
           "opaque": false
         }
@@ -909,9 +909,9 @@
       "pack": "vikings",
       "x": 15.71,
       "y": 19.06,
-      "z": 0.0,
-      "rotation": 270.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 270,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -923,7 +923,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.476,
           "walkable": false,
           "opaque": false
         }
@@ -936,9 +936,9 @@
       "pack": "vikings",
       "x": 16.02,
       "y": 26.36,
-      "z": 0.0,
-      "rotation": 0.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 0,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -950,7 +950,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.476,
           "walkable": false,
           "opaque": false
         }
@@ -963,9 +963,9 @@
       "pack": "vikings",
       "x": 20.33,
       "y": 3.25,
-      "z": 0.0,
-      "rotation": 180.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 180,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -977,7 +977,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.476,
           "walkable": false,
           "opaque": false
         }
@@ -990,9 +990,9 @@
       "pack": "vikings",
       "x": 2.6,
       "y": 3.18,
-      "z": 0.0,
-      "rotation": 90.0,
-      "scale": 1.0,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -1004,7 +1004,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.536,
           "walkable": false,
           "opaque": false
         }
@@ -1016,10 +1016,10 @@
       "asset": "sm-prop-barrel-half-01",
       "pack": "vikings",
       "x": 26.28,
-      "y": 25.0,
-      "z": 0.0,
-      "rotation": 90.0,
-      "scale": 1.0,
+      "y": 25,
+      "z": 0,
+      "rotation": 90,
+      "scale": 1,
       "collision": [
         {
           "shape": {
@@ -1031,7 +1031,7 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3,
+          "top": 0.476,
           "walkable": false,
           "opaque": false
         }

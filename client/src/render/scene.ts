@@ -62,6 +62,92 @@ const LIGHTING: Record<LightingProfile, LightingParams> = {
   },
 };
 
+
+/**
+ * The veil the dead see through (D-621).
+ *
+ * The stakeholder asked for the map and the characters to look "ethereal,
+ * grayscale" while dead. It is a full-screen pass rather than a material swap
+ * for one reason: a ghost has to see the WORLD change, not their own body, and
+ * there is no per-object edit that reaches painted ground, instanced terrain,
+ * placed meshes, effects and people alike.
+ *
+ * ⚠ Grayscale is the floor and not the whole of it. A straight desaturate
+ * reads as a broken screenshot; what reads as a different plane is desaturate
+ * plus LIFTED blacks (the dark stops hiding anything, so the world looks
+ * washed out rather than dim), a cold tint weighted into the shadows, and a
+ * vignette that closes the edges in. All four together, and none of them
+ * alone.
+ *
+ * ⚠ It never reaches the server, and it reveals nothing. Every delivery
+ * path already partitions the planes both ways (invariant 4, D-203); this is
+ * paint on what a ghost was ALREADY sent.
+ */
+const VEIL_VERT = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+const VEIL_FRAG = `
+uniform sampler2D tDiffuse;
+uniform float amount;
+varying vec2 vUv;
+void main() {
+  vec3 c = texture2D(tDiffuse, vUv).rgb;
+  // Rec. 601 luma. The green weight is what stops foliage going black and
+  // skin going white, which is what an unweighted average does.
+  float l = dot(c, vec3(0.299, 0.587, 0.114));
+  // Lift the blacks. A ghost's world is PALE, not dark -- darkening it would
+  // read as the lights going out, which is a different feeling entirely.
+  float lifted = pow(l, 0.72) * 0.86 + 0.14;
+  // Cold, and coldest in the shadows: a uniform blue cast looks like a filter,
+  // a gradient looks like light behaving differently.
+  vec3 tint = mix(vec3(0.78, 0.86, 1.04), vec3(1.0), l);
+  vec3 ethereal = vec3(lifted) * tint;
+  // The edges close in. Centred on the screen rather than on the player,
+  // because the camera keeps the player near the middle and a vignette that
+  // tracks a body reads as a spotlight.
+  vec2 d = vUv - 0.5;
+  float vignette = 1.0 - smoothstep(0.34, 0.78, dot(d, d) * 2.0) * 0.55;
+  ethereal *= vignette;
+  gl_FragColor = vec4(mix(c, ethereal, amount), 1.0);
+  // ⚠ The output has to be ENCODED, and the input decoded, or the veil is
+  // a gamma shift as well as a desaturation. Measured before this line
+  // existed: an orange box read (204,68,34) alive and (90,97,112) dead, where
+  // the arithmetic says about (133,141,153) -- every veiled pixel was a third
+  // too dark, because a raw ShaderMaterial writes whatever it is given and
+  // the canvas expects sRGB. The render target is sRGB (so the world pass
+  // encodes into it), sampling decodes, and this re-encodes.
+  #include <colorspace_fragment>
+}
+`;
+
+/** How long the veil takes to close or lift, in seconds. */
+export const VEIL_FADE = 1.1;
+
+/**
+ * One frame of the veil easing (D-621).
+ *
+ * Pure and exported so the timing is testable without a GPU. The shader is
+ * not, and saying so is better than an assertion that only proves a uniform
+ * was written.
+ *
+ * ⚠ Linear over about a second, not a spring and not a cut. Dying is the
+ * moment the whole screen changes; a hard cut reads as a graphics glitch,
+ * which is the wrong reading for the one event a player most needs to
+ * understand. It must also ARRIVE -- an exponential ease approaches 1 and
+ * never reaches it, so the cheap `veil <= 0.001` fast path for the living
+ * would never come back on after a respawn.
+ */
+export function easeVeil(current: number, target: number, dt: number): number {
+  const step = Math.max(0, dt) / VEIL_FADE;
+  if (current < target) return Math.min(target, current + step);
+  return Math.max(target, current - step);
+}
+
 export class GameScene {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
@@ -76,6 +162,22 @@ export class GameScene {
   private azimuthTarget = DEFAULT_AZIMUTH;
   private zoom = 1;
   private zoomTarget = 1;
+  /**
+   * The ethereal pass (D-621). Built on FIRST USE, never at boot.
+   *
+   * ⚠ A render target is a full-screen buffer; allocating one for every
+   * living player so that the dead need not wait is the wrong trade. Nothing
+   * exists until somebody dies, and `render()` goes straight to the canvas
+   * while `veil` is zero -- so the living pay nothing at all, not even a
+   * blit.
+   */
+  private veilTarget: THREE.WebGLRenderTarget | null = null;
+  private veilMaterial: THREE.ShaderMaterial | null = null;
+  private veilScene: THREE.Scene | null = null;
+  private veilCamera = new THREE.Camera();
+  /** Where the veil is now, and where it is going. Eased, never snapped. */
+  private veil = 0;
+  private veilTarget01 = 0;
 
   constructor(private stage: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: false });
@@ -227,6 +329,10 @@ export class GameScene {
     const prevZoom = this.zoom;
     this.zoom += (this.zoomTarget - this.zoom) * k;
     if (Math.abs(this.zoom - prevZoom) > 1e-4) this.applyFrustum();
+    // ⚠ The veil eases on the same frame clock as the camera (D-621), so
+    // there is one place per frame that advances presentation and no second
+    // timer to fall out of step with it.
+    this.stepVeil(dt);
   }
 
   /** Follows a world point: camera, look-at, and the shadow frustum together. */
@@ -255,7 +361,85 @@ export class GameScene {
     // layer 1 because the old split pass drew them separately, and a single
     // pass with a default camera would render a world with nobody in it.
     this.camera.layers.enableAll();
+    if (this.veil <= 0.001) {
+      // The living path, unchanged: straight to the canvas, no buffer, no
+      // second draw.
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+    const pass = this.ensureVeil();
+    this.renderer.setRenderTarget(pass.target);
     this.renderer.render(this.scene, this.camera);
+    this.renderer.setRenderTarget(null);
+    pass.material.uniforms.amount!.value = this.veil;
+    this.renderer.render(pass.scene, this.veilCamera);
+  }
+
+  /**
+   * Turns the veil on or off (D-621).
+   *
+   * ⚠ Eased over about a second rather than switched. Dying is the moment
+   * the whole screen changes, and a hard cut reads as a graphics glitch --
+   * which is exactly the wrong reading for the one event the player most
+   * needs to understand. `update` does the easing, so it costs nothing while
+   * nobody is dead.
+   */
+  setVeiled(veiled: boolean): void {
+    this.veilTarget01 = veiled ? 1 : 0;
+  }
+
+  /** Where the veil is, 0..1. Verification only (D-621). */
+  get veilAmount(): number {
+    return this.veil;
+  }
+
+  private stepVeil(dt: number): void {
+    if (this.veil === this.veilTarget01) return;
+    this.veil = easeVeil(this.veil, this.veilTarget01, dt);
+  }
+
+  private ensureVeil(): {
+    target: THREE.WebGLRenderTarget;
+    material: THREE.ShaderMaterial;
+    scene: THREE.Scene;
+  } {
+    const size = new THREE.Vector2();
+    this.renderer.getSize(size);
+    if (!this.veilTarget) {
+      this.veilTarget = new THREE.WebGLRenderTarget(
+        Math.max(1, size.x),
+        Math.max(1, size.y),
+        // ⚠ Depth is REQUIRED. Without a depth buffer the world draws in
+        // submission order and the terrain lands on top of the people -- a
+        // failure that only appears once somebody dies, which is the worst
+        // time to find it.
+        { depthBuffer: true, stencilBuffer: false },
+      );
+      // ⚠ The world pass writes ENCODED pixels into it, exactly as it would
+      // to the canvas. See the note in the fragment shader.
+      this.veilTarget.texture.colorSpace = THREE.SRGBColorSpace;
+    } else if (this.veilTarget.width !== size.x || this.veilTarget.height !== size.y) {
+      this.veilTarget.setSize(Math.max(1, size.x), Math.max(1, size.y));
+    }
+    if (!this.veilMaterial || !this.veilScene) {
+      this.veilMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          tDiffuse: { value: this.veilTarget.texture },
+          amount: { value: 0 },
+        },
+        vertexShader: VEIL_VERT,
+        fragmentShader: VEIL_FRAG,
+        depthTest: false,
+        depthWrite: false,
+      });
+      this.veilScene = new THREE.Scene();
+      const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.veilMaterial);
+      quad.frustumCulled = false;
+      quad.layers.enableAll();
+      this.veilScene.add(quad);
+    }
+    this.veilMaterial.uniforms.tDiffuse!.value = this.veilTarget.texture;
+    return { target: this.veilTarget, material: this.veilMaterial, scene: this.veilScene };
   }
 
   /** Lights and camera must reach BOTH layers or the split pass goes dark.

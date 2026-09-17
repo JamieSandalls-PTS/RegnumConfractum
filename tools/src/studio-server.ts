@@ -8,6 +8,8 @@ import path from 'node:path';
 import {
   CHARACTER_SLOTS,
   CharacterDefSchema,
+  BotDefSchema,
+  NpcDefSchema,
   type CharacterDef,
   type CharacterSlot,
   type ParsedPart,
@@ -46,6 +48,7 @@ import {
   type RecipeDef,
   recipeProblems,
   RoamerSchema,
+  type BotDef,
   type RoamerDef,
   roamerProblems,
   ObjectiveSchema,
@@ -97,6 +100,7 @@ import type { BufferAttribute, Mesh } from 'three';
  *   GET  /api/packs/:pack/tex/:stem    one colour atlas
  *   GET  /api/characters               saved definitions
  *   PUT  /api/characters/:id           validate, then write
+ *   DELETE /api/characters/:id         refuse while a creature is it
  *   GET  /api/parts/:pack              in-game names for a pack's parts
  *   PUT  /api/parts/:pack              write them
  *   GET  /api/races                    every race
@@ -185,9 +189,11 @@ const contentDir = path.join(root, 'content');
 const garmentsDir = path.join(contentDir, 'garments');
 const recipesDir = path.join(contentDir, 'recipes');
 const roamersDir = path.join(contentDir, 'roamers');
+const botsDir = path.join(contentDir, 'bots');
 const objectivesDir = path.join(contentDir, 'objectives');
 const stationsDir = path.join(contentDir, 'stations');
 const nodesDir = path.join(contentDir, 'nodes');
+const npcsDir = path.join(contentDir, 'npcs');
 /**
  * Where the build leaves the clips. The tool needs the LIST, not the file: an
  * author picking a clip for an action should be choosing from what exists,
@@ -363,6 +369,9 @@ function savedDocs<T extends { id: string }>(dir: string, parse: (raw: unknown) 
 
 const savedRecipes = (): RecipeDef[] => savedDocs(recipesDir, (r) => RecipeSchema.parse(r));
 const savedRoamers = (): RoamerDef[] => savedDocs(roamersDir, (r) => RoamerSchema.parse(r));
+const savedBots = (): BotDef[] =>
+  savedDocs(botsDir, (r) => BotDefSchema.parse(r))
+    .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 const savedObjectives = (): ObjectiveDef[] =>
   savedDocs(objectivesDir, (r) => ObjectiveSchema.parse(r));
 const savedNodes = (): ResourceNodeDef[] =>
@@ -765,6 +774,42 @@ const server = http.createServer((req, res) => {
  * Every authored character definition (D-594), for the creature editor's
  * "what it looks like" picker.
  */
+/** Where each declared person stands, by area (D-598). */
+function npcPlacements(): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  const dir = path.join(contentDir, 'areas');
+  if (!fs.existsSync(dir)) return out;
+  for (const f of fs.readdirSync(dir).filter((n) => n.endsWith('.json'))) {
+    let doc: { id?: string; npcs?: { type: string }[] };
+    try {
+      doc = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+    } catch {
+      continue;
+    }
+    for (const placed of doc.npcs ?? []) {
+      (out[placed.type] ??= []).push(doc.id ?? f.replace(/\.json$/, ''));
+    }
+  }
+  return out;
+}
+
+/** Every descriptor a LIVE objective is decided by (D-593). */
+function objectiveDescriptors(): Set<string> {
+  const out = new Set<string>();
+  const dir = path.join(contentDir, 'objectives');
+  if (!fs.existsSync(dir)) return out;
+  for (const f of fs.readdirSync(dir).filter((n) => n.endsWith('.json'))) {
+    try {
+      const doc = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')) as
+        { status?: string; kind?: { descriptor?: string } };
+      if (doc.status === 'live' && doc.kind?.descriptor) out.add(doc.kind.descriptor);
+    } catch {
+      continue;
+    }
+  }
+  return out;
+}
+
 function savedCharacterDefs(): CharacterDef[] {
   const dir = path.join(contentDir, 'characters');
   if (!fs.existsSync(dir)) return [];
@@ -796,6 +841,30 @@ function savedCharacterDefs(): CharacterDef[] {
       return send(res, 200, { saved: def.id });
     });
     return;
+  }
+
+  // DELETE /api/characters/:id
+  //
+  // ⚠ Refused while a creature is still drawn as it (D-613). A roamer names
+  // its look by id (D-594), and deleting the definition out from under one
+  // leaves content that parses, validates against its own schema, and fails
+  // the build somewhere else about a different document -- the exact shape of
+  // failure the recipe graph check exists to prevent (D-569).
+  if (req.method === 'DELETE' && parts[1] === 'characters' && parts.length === 3) {
+    const id = decodeURIComponent(parts[2]!);
+    const file = path.join(outDir, `${id}.json`);
+    if (!fs.existsSync(file)) return send(res, 404, { error: 'no such character' });
+    const used = savedRoamers()
+      .filter((r) => r.character === id)
+      .map((r) => r.id);
+    if (used.length > 0) {
+      return send(res, 400, {
+        error: 'would not build',
+        problems: [`${id} is what ${used.join(', ')} ${used.length === 1 ? 'is' : 'are'} drawn as`],
+      });
+    }
+    fs.unlinkSync(file);
+    return send(res, 200, { deleted: id });
   }
 
   // /api/parts/:pack — what a pack's parts are CALLED in the game.
@@ -955,9 +1024,22 @@ function savedCharacterDefs(): CharacterDef[] {
         ? fs.readdirSync(nodesDir).filter((f) => f.endsWith('.json'))
           .map((f) => ResourceNodeSchema.parse(readJson(nodesDir, f, (r) => r)))
         : [];
+      const npcs = fs.existsSync(npcsDir)
+        ? fs.readdirSync(npcsDir).filter((f) => f.endsWith('.json'))
+          .map((f) => NpcDefSchema.parse(readJson(npcsDir, f, (r) => r)))
+        : [];
       return send(res, 200, {
         stations,
         nodes,
+        npcs,
+        // ⚠ Where each of them STANDS, and how many places. A person defined
+        // and placed nowhere is content nobody will ever meet — D-210's
+        // complaint about orphans, applied to the cast — and the list says so
+        // rather than looking finished.
+        npcPlaces: npcPlacements(),
+        // What they may be drawn as (D-596), so the look is picked from a
+        // list. An id the content cannot resolve is refused at spawn.
+        characterIds: savedCharacterDefs().map((c) => c.id),
         // ⚠ Which station types the RULES name by id (D-530). A definition
         // can be deleted, and deleting one of these breaks crafting rather
         // than removing a building, so the tool has to be able to say so.
@@ -972,10 +1054,52 @@ function savedCharacterDefs(): CharacterDef[] {
     }
   }
 
+  // PUT /api/interactive/npcs/:id — who stands in the world (D-598).
+  if (req.method === 'PUT' && parts[1] === 'interactive' && parts[2] === 'npcs'
+      && parts.length === 4) {
+    return withBody(req, res, (raw) => {
+      const parsed = NpcDefSchema.safeParse(raw);
+      if (!parsed.success) return send(res, 400, { error: 'schema', issues: parsed.error.issues });
+      const def = parsed.data;
+      if (def.id !== decodeURIComponent(parts[3]!)) {
+        return send(res, 400, { error: 'id does not match the url' });
+      }
+      // ⚠ The look has to resolve. The server refuses an unknown one at
+      // spawn (D-596) and the client would fall back to the appearance seed
+      // and draw a plausible stranger, so a typo here is invisible in play.
+      if (def.character && !savedCharacterDefs().some((c) => c.id === def.character)) {
+        return send(res, 400, {
+          error: 'would not build',
+          problems: [`no character '${def.character}' in content/characters`],
+        });
+      }
+      // ⚠ A descriptor is a MATCH KEY as well as prose: a live `kill_npc`
+      // objective is decided by comparing it exactly (D-593). Renaming one out
+      // from under an objective makes that objective unwinnable, and the round
+      // engine deals objectives at random with nobody watching — so this is a
+      // refusal, not a warning.
+      const claimed = objectiveDescriptors();
+      const previous = fs.existsSync(path.join(npcsDir, `${def.id}.json`))
+        ? NpcDefSchema.parse(readJson(npcsDir, `${def.id}.json`, (r) => r)).descriptor
+        : null;
+      if (previous && previous !== def.descriptor && claimed.has(previous)) {
+        return send(res, 400, {
+          error: 'would not build',
+          problems: [
+            `a live objective targets "${previous}" — rewording it here would `
+            + 'make that objective unwinnable. Change the objective first.',
+          ],
+        });
+      }
+      writeJson(npcsDir, `${def.id}.json`, def);
+      return send(res, 200, { saved: def.id });
+    });
+  }
+
   if (req.method === 'PUT' && parts[1] === 'interactive' && parts.length === 4) {
     const kind = parts[2];
     if (kind !== 'stations' && kind !== 'nodes') {
-      return send(res, 404, { error: 'interactive objects are stations or nodes' });
+      return send(res, 404, { error: 'interactive objects are stations, nodes or npcs' });
     }
     return withBody(req, res, (raw) => {
       const schema = kind === 'stations' ? StationDefSchema : ResourceNodeSchema;
@@ -1076,6 +1200,9 @@ function savedCharacterDefs(): CharacterDef[] {
       return send(res, 200, {
         recipes: savedRecipes(),
         roamers: savedRoamers(),
+        // ⚠ The roster, in DRAW ORDER (D-624). Sorted here rather than in
+        // the tool, so the list somebody edits is the list the lobby summons.
+        bots: savedBots(),
         objectives: savedObjectives(),
         items: buildCatalogue().items,
         nodes: savedNodes().map((n) => ({ id: n.id, yields: n.yields })),
@@ -1090,6 +1217,10 @@ function savedCharacterDefs(): CharacterDef[] {
           pack: c.pack,
           whole: c.mesh !== undefined,
         })),
+        // What a companion may be given (D-624). Ids only: the forms are
+        // pickers, and a free-text calling is a companion the lobby refuses.
+        callings: savedClasses().map((c) => ({ id: c.id, name: c.name })),
+        races: savedRaces().map((r) => ({ id: r.id, name: r.name })),
       });
     } catch (e) {
       return send(res, 500, { error: `a saved document is invalid: ${(e as Error).message}` });
@@ -1133,6 +1264,42 @@ function savedCharacterDefs(): CharacterDef[] {
         return send(res, 200, { saved: id });
       });
     }
+    if (which === 'bots') {
+      return withBody(req, res, (raw) => {
+        const parsed = BotDefSchema.safeParse(raw);
+        if (!parsed.success) return send(res, 400, { error: 'schema', issues: parsed.error.issues });
+        if (parsed.data.id !== id) return send(res, 400, { error: 'id does not match the url' });
+        // ⚠ Refused here for the same reason every other save is (D-543):
+        // a companion naming a calling that does not exist parses cleanly and
+        // fails at the moment somebody presses the button to fill a lobby,
+        // which is how a round starts at all (D-607).
+        const problems: string[] = [];
+        if (parsed.data.classId && !savedClasses().some((c) => c.id === parsed.data.classId)) {
+          problems.push(`unknown calling '${parsed.data.classId}'`);
+        }
+        if (parsed.data.raceId && !savedRaces().some((r) => r.id === parsed.data.raceId)) {
+          problems.push(`unknown race '${parsed.data.raceId}'`);
+        }
+        // ⚠ The three ARMS, checked on the roster as it would stand. A cast
+        // of three is the floor (D-522), and if the first three summoned leave
+        // the farm unworked, hunger looks broken when it is merely unattended
+        // (D-529) -- a bug report about the wrong system, from a save that
+        // looked fine.
+        const after = [...savedBots().filter((b) => b.id !== id), parsed.data]
+          .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+        const arms = new Set(after.slice(0, 3).map((b) => b.role));
+        if (after.length >= 3 && !(['gatherer', 'forager', 'woodsman'] as const).every((r) => arms.has(r))) {
+          problems.push(
+            'the first three summoned must cover the mine, the farm and the wood '
+            + `(they are now ${[...arms].join(', ')}) — a cast of three with an arm `
+            + 'unworked makes hunger look broken',
+          );
+        }
+        if (problems.length) return send(res, 400, { error: 'would not build', problems });
+        writeJson(botsDir, `${id}.json`, parsed.data);
+        return send(res, 200, { saved: id });
+      });
+    }
     if (which === 'objectives') {
       return withBody(req, res, (raw) => {
         const parsed = ObjectiveSchema.safeParse(raw);
@@ -1166,13 +1333,26 @@ function savedCharacterDefs(): CharacterDef[] {
     const dir =
       which === 'recipes' ? recipesDir
         : which === 'roamers' ? roamersDir
-          : which === 'objectives' ? objectivesDir : null;
+          : which === 'bots' ? botsDir
+            : which === 'objectives' ? objectivesDir : null;
     if (!dir) return send(res, 404, { error: 'not found' });
     const file = path.join(dir, `${id}.json`);
     if (!fs.existsSync(file)) return send(res, 404, { error: 'no such document' });
     const problems =
       which === 'recipes' ? graphProblems({ recipes: savedRecipes().filter((r) => r.id !== id) })
-        : which === 'roamers' ? graphProblems({ roamers: savedRoamers().filter((r) => r.id !== id) })
+        : which === 'bots' ? (() => {
+          // ⚠ Deleting is how the arms get uncovered. Removing the only
+          // forager leaves a roster that parses, saves and starves a cast of
+          // three, so it is refused by name here as well as on save.
+          const left = savedBots().filter((b) => b.id !== id);
+          if (left.length < 3) return [];
+          const arms = new Set(left.slice(0, 3).map((b) => b.role));
+          return (['gatherer', 'forager', 'woodsman'] as const).every((r) => arms.has(r))
+            ? []
+            : [`without '${id}' the first three summoned are ${[...arms].join(', ')} `
+              + '— the mine, the farm and the wood must all be covered'];
+        })()
+          : which === 'roamers' ? graphProblems({ roamers: savedRoamers().filter((r) => r.id !== id) })
           : (() => {
             const c = castCoverageProblem(savedObjectives().filter((o) => o.id !== id));
             return c ? [c] : [];

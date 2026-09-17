@@ -52,7 +52,13 @@ async function join(
 }
 
 async function attackUntilDead(attacker: BotClient, targetId: number): Promise<void> {
-  for (let i = 0; i < 80; i++) {
+  // ⚠ Generous, because a blow can MISS now (D-606). Combat used to be a
+  // flat 2-6 that always landed, so a fixed handful of swings was certain
+  // to kill; a d20 against Armour Class lands rather over half the time,
+  // and a run of bad rolls is a normal thing rather than a broken server.
+  // This budget is the number of SWINGS, not of seconds: the spacing is
+  // the combat round's (D-550), and the loop simply keeps asking.
+  for (let i = 0; i < 400; i++) {
     attacker.send({ t: 'attack', targetEntityId: targetId });
     await sleep(TICK * 3);
     if (!attacker.entities.has(targetId)) return;

@@ -248,6 +248,21 @@ export function winnerFor(outcome: RoundOutcome): RoundWinner {
  */
 export const ROUND_GRACE_TICKS = 600; // 60s at 10Hz
 
+/**
+ * How long a running round tolerates a cast below the minimum before it is
+ * abandoned (D-608). 30 seconds at 10Hz.
+ *
+ * ⚠ Long enough that a dropped connection is not the end of a round —
+ * reconnecting mid-round is supported and deliberate (D-579) — and short
+ * enough that a round everybody has actually left does not go on running to
+ * its full twenty-five minutes with nobody in it. The second half is what this
+ * is for: the next person to log in was arriving as a latecomer in a round
+ * that could not be won, rather than in a lobby they could start one from.
+ *
+ * ⚠ Unratified, like every other duration in the mode.
+ */
+export const ROUND_THIN_CAST_TICKS = 300;
+
 // ---------------------------------------------------------------------------
 // The dungeon's floors (D-535)
 // ---------------------------------------------------------------------------
@@ -351,4 +366,155 @@ export function castCoverageProblem(objectives: readonly ObjectiveDef[]): string
   );
   if (playable.length > 0) return null;
   return `no live objective is playable at the minimum cast of ${ROUND_MIN_CAST} — a round could never start`;
+}
+
+
+// ---------------------------------------------------------------------------
+// The scenario — the round's edges, as data (D-627)
+// ---------------------------------------------------------------------------
+
+/**
+ * One playable round: which map it is played on, what may be dealt, how big a
+ * cast it takes.
+ *
+ * ⚠ This exists because **the round had no edges at all**. `RoundEngine` knew
+ * the cast, the clock and the objective and had no concept of an AREA — while
+ * the world graph ran `round-town -> hanged-ferryman -> broken-yard ->
+ * sunken-crypt`, and `sunken-crypt` is `zone: endgame`, which carries
+ * involuntary permadeath. D-523 says in terms that a round must never contain
+ * one, because a round death must not cost a character levelled across fifty
+ * rounds. Nothing stopped the walk. The invariant was held up by nobody having
+ * gone west.
+ *
+ * ⚠ DATA, not another guard. A check against `sunken-crypt` by name would fix
+ * the case found and leave the class — and the class grows, because the
+ * persistent world is meant to keep being built behind the Round (D-521). A
+ * declared set makes the question answerable by reading: an area is in this
+ * round or it is not, and CI can tell.
+ *
+ * ⚠ It is also what MR3 has been waiting for. "Multiple scenarios as data,
+ * chosen or rotated per round" stops being a feature to build and becomes the
+ * thing that already exists.
+ */
+export const ScenarioSchema = z
+  .object({
+    id: ContentIdSchema,
+    /** What the round is called, for the lobby and the results screen. */
+    name: z.string().min(1),
+    /**
+     * Every area this round is played in.
+     *
+     * ⚠ The boundary itself. A transition out of this set is refused while the
+     * round runs — the door is still there, because it belongs to the
+     * persistent world, and it does not open.
+     */
+    areas: z.array(ContentIdSchema).min(1),
+    /**
+     * Where the cast opens the round, and is gathered back to at a reset.
+     *
+     * ⚠ Must be one of `areas`. It used to be the server's `defaultAreaId` —
+     * a global setting, which is the same absence of a boundary one layer up:
+     * the persistent world's starting room decided where a round began.
+     */
+    opensIn: ContentIdSchema,
+    /**
+     * The objectives that may be dealt. Empty means every live objective,
+     * which is what the engine did before scenarios existed.
+     */
+    objectives: z.array(ContentIdSchema).default([]),
+    /** Smallest cast this scenario is playable at. */
+    minCast: z.number().int().min(2).default(ROUND_MIN_CAST),
+    /** Largest cast, or null for no ceiling. */
+    maxCast: z.number().int().min(2).nullable().default(null),
+    /**
+     * 'live' scenarios may be chosen; 'planned' ones are drafts the engine
+     * refuses, the same rule objectives follow and for the same reason.
+     */
+    status: z.enum(['live', 'planned']).default('live'),
+    notes: z.string().optional(),
+  })
+  .strict();
+export type ScenarioDef = z.infer<typeof ScenarioSchema>;
+
+/**
+ * What is wrong with a scenario, in the words its author needs.
+ *
+ * Pure, and in `shared`, so the authoring tool refuses exactly what the build
+ * refuses — D-543's rule, which only holds while both read one implementation.
+ */
+export function scenarioProblems(
+  scenario: ScenarioDef,
+  world: {
+    /** Area id -> its zone, for every area that exists. */
+    zones: ReadonlyMap<string, string>;
+    /** Area id -> the areas its transitions lead to. */
+    exits: ReadonlyMap<string, readonly string[]>;
+    /** Every objective, for the pool check. */
+    objectives: readonly ObjectiveDef[];
+  },
+): string[] {
+  const problems: string[] = [];
+  const set = new Set(scenario.areas);
+
+  for (const id of scenario.areas) {
+    if (!world.zones.has(id)) problems.push(`names area '${id}', which does not exist`);
+  }
+  if (!set.has(scenario.opensIn)) {
+    problems.push(`opens in '${scenario.opensIn}', which is not one of its areas`);
+  }
+
+  // ⚠ The rule D-523 states and nothing enforced. An endgame area carries
+  // involuntary permadeath; a round death must not cost a character levelled
+  // across fifty rounds.
+  for (const id of scenario.areas) {
+    if (world.zones.get(id) === 'endgame') {
+      problems.push(
+        `includes '${id}', which is an ENDGAME area — a round death there is `
+        + 'permanent, and a round must never contain one (D-523)',
+      );
+    }
+  }
+
+  // ⚠ A WARNING in the author's hands rather than an error. A door leading out
+  // of the set is legal and expected: the tavern's west door belongs to the
+  // persistent world and is simply shut for the duration. What is not
+  // acceptable is not knowing where the edges are, so they are named.
+  const leaks: string[] = [];
+  for (const id of scenario.areas) {
+    for (const to of world.exits.get(id) ?? []) {
+      if (!set.has(to)) leaks.push(`${id} -> ${to}`);
+    }
+  }
+  if (leaks.length > 0) {
+    problems.push(
+      `NOTE its edges: ${leaks.join(', ')} lead out of the scenario and will be `
+      + 'refused while the round runs',
+    );
+  }
+
+  const pool = scenario.objectives.length > 0
+    ? world.objectives.filter((o) => scenario.objectives.includes(o.id))
+    : world.objectives;
+  for (const id of scenario.objectives) {
+    if (!world.objectives.some((o) => o.id === id)) {
+      problems.push(`names objective '${id}', which does not exist`);
+    }
+  }
+  // ⚠ The trap D-569 hit one level up: a scenario whose objectives all need a
+  // bigger cast than it starts at makes the lobby fill and never start.
+  const playable = pool.filter(
+    (o) => o.status === 'live'
+      && o.minCast <= scenario.minCast
+      && (o.maxCast === null || o.maxCast >= scenario.minCast),
+  );
+  if (playable.length === 0) {
+    problems.push(
+      `has no live objective playable at its minimum cast of ${scenario.minCast} — `
+      + 'the lobby would fill and never start',
+    );
+  }
+  if (scenario.maxCast !== null && scenario.maxCast < scenario.minCast) {
+    problems.push(`caps the cast at ${scenario.maxCast}, below its minimum of ${scenario.minCast}`);
+  }
+  return problems;
 }
