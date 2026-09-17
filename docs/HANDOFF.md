@@ -112,6 +112,12 @@ a flag flip.
 reload clears only when the game answered. Merging them makes "built, game
 not running" read as "nothing to do".
 
+**6a. Bone names are matched WITHOUT case.** The rig spells `Pelvis`,
+`UpperArm_L`, `Hand_L`, `Thigh_R`, `Foot_R` beside `spine_02`, `calf_l`. A
+collider that matched nothing used to be skipped silently; it is reported in
+the workbench banner now. Do not "tidy" the lowercase defaults to match one
+spelling — both exist on one skeleton.
+
 **6. `MeshCloth` welds and indexes what it is given.** The pack's FBX parts
 are non-indexed triangle soup; the sequential index plus the weld is what
 turns them into a connected cloth. And `applyBoneTransform` needs the vertex

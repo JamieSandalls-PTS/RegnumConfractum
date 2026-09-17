@@ -11152,3 +11152,29 @@ hood is weighted to the head and has nothing to swing; skirts (`hips`) are
 offered and untried. Self-collision is not simulated. Ragdoll death drops the
 cape with the body because the pins follow the skinned pose; nobody has
 watched it.
+
+### Addendum, same day: the whole body, the case of a bone, and a switch
+
+Three corrections from the stakeholder playing the workbench.
+
+**A cape collides with thighs, legs, feet, arms and hands**, not only the
+trunk. `CAPE_COLLIDERS` now runs the trunk, both arms to the hands (spheres
+on the fists), both legs to the toe bone. Tested: the defaults name every one
+of those bones.
+
+**The rig mixes case, and it was silently costing most of the body.**
+Measured on the built guard: `Pelvis`, `UpperArm_L`, `Hand_L`, `Thigh_R`,
+`Foot_R` beside `spine_02`, `lowerarm_l`, `calf_l`. A collider authored as
+`thigh_l` matched nothing and was skipped without a word, so the cape passed
+through a striding leg while the settings looked complete. Bones are matched
+without case now, and a collider naming a bone the rig lacks is reported in
+the workbench banner rather than dropped.
+
+**Most parts do not need physics, and the first guess made them fall.** A
+backpack is weighted entirely to `spine_02`; the workbench's fallback freed
+its only anchor, so it dropped to the floor and collapsed -- the report was
+accurate. A part whose weights are all on the body is **rigid** now: no
+solver, a message saying so, and a **Physics ON/OFF** switch per part. Off
+means no solver in the preview and no settings in content (Save removes any),
+so the part rides the animation as the pack built it. On frees the guessed
+chain, or whatever bones a person ticks.

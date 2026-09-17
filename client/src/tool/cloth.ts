@@ -50,7 +50,7 @@ const CLOTH_SLOTS: CharacterSlot[] = ['back', 'hips', 'hipsAttachment', 'headCov
 const BODY_BONES = [
   'pelvis', 'spine_01', 'spine_02', 'spine_03', 'neck_01', 'head',
   'clavicle_l', 'upperarm_l', 'lowerarm_l', 'hand_l', 'clavicle_r', 'upperarm_r', 'lowerarm_r', 'hand_r',
-  'thigh_l', 'calf_l', 'foot_l', 'thigh_r', 'calf_r', 'foot_r',
+  'thigh_l', 'calf_l', 'foot_l', 'ball_l', 'thigh_r', 'calf_r', 'foot_r', 'ball_r',
 ];
 
 const fbxLoader = new FBXLoader();
@@ -141,8 +141,20 @@ function weightedBones(mesh: THREE.SkinnedMesh): { name: string; weight: number 
  * under `Capes_01`; for a hood it is nothing, and the tab says so.
  */
 function guessFree(bones: readonly { name: string }[]): string[] {
-  const body = new Set(BODY_BONES);
-  return bones.map((b) => b.name).filter((n) => !body.has(n) && !/^Capes_0[01]$/.test(n));
+  // ⚠ Case-insensitive: the pack spells `Pelvis` and `Thigh_R` on some parts
+  // and `pelvis`, `thigh_r` on others.
+  const body = new Set(BODY_BONES.map((b) => b.toLowerCase()));
+  return bones.map((b) => b.name).filter((n) => !body.has(n.toLowerCase()) && !/^Capes_0[01]$/i.test(n));
+}
+
+/**
+ * Is there anything to simulate? A backpack is weighted entirely to
+ * `spine_02`: nothing on it hangs, and a "cloth" made of it would free its
+ * only anchor and drop the whole thing on the floor — which is exactly what
+ * the first version did. Rigid parts get a body and a message, not a solver.
+ */
+function rigid(free: readonly string[]): boolean {
+  return free.length === 0;
 }
 
 async function loadTexture(ctx: ToolContext): Promise<void> {
@@ -188,7 +200,11 @@ async function rebuild(ctx: ToolContext): Promise<void> {
   const part = meshes.find((m) => m.slot === slot)!.mesh;
   partBones = weightedBones(part);
   if (!draft) {
-    draft = ClothSettingsSchema.parse({ freeBones: guessFree(partBones).length ? guessFree(partBones) : [partBones[0]?.name ?? 'none'], colliders: [...CAPE_COLLIDERS] });
+    const free = guessFree(partBones);
+    // ⚠ A rigid part gets a draft with NO free bones. The schema refuses to
+    // save that, which is right — there is nothing to save — and the panel
+    // lets a person tick a bone if they disagree with the guess.
+    draft = { ...ClothSettingsSchema.parse({ freeBones: ['none'], colliders: [...CAPE_COLLIDERS] }), freeBones: free };
   }
 
   let built;
@@ -224,7 +240,7 @@ async function rebuild(ctx: ToolContext): Promise<void> {
 
   const clothMesh = built.meshes.find((m) => m.name === slot);
   let cloth: MeshCloth | null = null;
-  if (clothMesh && draft) {
+  if (clothMesh && draft && !rigid(draft.freeBones)) {
     try {
       cloth = new MeshCloth(clothMesh, draft, built.group);
       ctx.mount.add(cloth.proxy);
@@ -234,9 +250,14 @@ async function rebuild(ctx: ToolContext): Promise<void> {
   }
   shown = { root: built.group, mixer, cloth };
   const free = cloth?.freeCount ?? 0;
+  const pinned = cloth ? cloth.particleCount - free : 0;
   ctx.banner(
-    `${names.names[stem] ?? stem} · ${cloth?.particleCount ?? 0} particles, ${free} free`
-    + (free === 0 ? ' — ⚠ nothing hangs: choose free bones' : ''),
+    draft && rigid(draft.freeBones)
+      ? `${names.names[stem] ?? stem} · rigid: weighted only to the body, nothing hangs`
+      : `${names.names[stem] ?? stem} · ${cloth?.particleCount ?? 0} particles, ${free} free`
+        + (free === 0 ? ' — ⚠ nothing hangs: choose free bones' : '')
+        + (pinned === 0 && free > 0 ? ' — ⚠ nothing holds it: it will fall' : '')
+      + (cloth?.missingBones.length ? ` — ⚠ no such bone: ${[...new Set(cloth.missingBones)].join(', ')}` : ''),
   );
   renderSide(ctx);
 }
@@ -318,7 +339,38 @@ function renderSide(ctx: ToolContext): void {
   }
   const d = draft;
   host.append(el('h1', { textContent: names.names[picked] ?? picked }));
-  host.append(el('div', { className: 'count', textContent: `${picked}${saved ? ' · saved' : ' · not saved yet'}` }));
+  host.append(el('div', { className: 'count', textContent: `${picked}${saved ? ' · physics saved' : ' · no physics saved'}` }));
+
+  // Live changes go straight into the running solver; structural ones
+  // (which bones hang, which bodies collide, physics on or off) rebuild it.
+  const live = (): void => {
+    ctx.markDirty();
+    if (shown?.cloth) shown.cloth.settings = d;
+  };
+  const structural = (): void => {
+    ctx.markDirty();
+    void rebuild(ctx);
+  };
+
+  // ⚠ The switch the stakeholder asked for: most parts do not need physics
+  // at all. Off means no solver here and no settings in content — Save
+  // removes them — so a part with physics off rides the animation as the
+  // pack built it.
+  const sw = el('div', { className: 'check' });
+  const swIn = el('input');
+  swIn.type = 'checkbox';
+  swIn.checked = !rigid(d.freeBones);
+  swIn.onchange = () => {
+    if (swIn.checked) {
+      const guess = guessFree(partBones);
+      d.freeBones = guess.length ? guess : [partBones[0]?.name ?? 'none'];
+    } else {
+      d.freeBones = [];
+    }
+    structural();
+  };
+  sw.append(swIn, el('b', { textContent: swIn.checked ? 'Physics ON — this part is simulated' : 'Physics OFF — this part is rigid' }));
+  host.append(sw);
 
   host.append(heading('Preview'));
   host.append(labelled('Animation', selectInput(
@@ -333,19 +385,12 @@ function renderSide(ctx: ToolContext): void {
     windLevel = v;
   }));
 
-  // Live changes go straight into the running solver; structural ones
-  // (which bones hang, which bodies collide) rebuild it.
-  const live = (): void => {
-    ctx.markDirty();
-    if (shown?.cloth) shown.cloth.settings = d;
-  };
-  const structural = (): void => {
-    ctx.markDirty();
-    void rebuild(ctx);
-  };
-
   host.append(heading('What hangs free'));
-  host.append(hint('Bones the part is weighted to. Ticked bones are simulated; the rest follow the animation.'));
+  host.append(hint(
+    rigid(d.freeBones)
+      ? '<span class="warn">Rigid.</span> This part is weighted only to the body, so nothing on it hangs — a backpack, a pauldron. It rides the animation as it is. Tick a bone only if it should swing.'
+      : 'Bones the part is weighted to. Ticked bones are simulated; the rest follow the animation. Untick everything and the part is rigid.',
+  ));
   for (const b of partBones) {
     const row = el('div', { className: 'check' });
     const input = el('input');
@@ -437,6 +482,15 @@ function renderSide(ctx: ToolContext): void {
 
 async function save(ctx: ToolContext): Promise<void> {
   if (!picked || !draft) return;
+  if (rigid(draft.freeBones)) {
+    // Physics off: nothing to save, and anything saved before comes out.
+    if (saved) await remove(ctx);
+    else {
+      ctx.problems(problemsBox!, [], 'Physics is off for this part; nothing to save.');
+      ctx.clearDirty();
+    }
+    return;
+  }
   const res = await fetch(`${ctx.api}/cloth/${encodeURIComponent(pack)}/${encodeURIComponent(picked)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -521,6 +575,7 @@ export const clothTab: ToolTab = {
     (window as unknown as { __cloth: unknown }).__cloth = {
       particles: () => shown?.cloth?.particleCount ?? 0,
       free: () => shown?.cloth?.freeCount ?? 0,
+      penetrations: () => shown?.cloth?.penetrations() ?? 0,
       hem: () => {
         const c = shown?.cloth;
         if (!c) return null;

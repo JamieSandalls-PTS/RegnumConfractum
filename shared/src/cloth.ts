@@ -76,17 +76,31 @@ export const ClothFileSchema = z
 export type ClothFile = z.infer<typeof ClothFileSchema>;
 
 /**
- * The body a cape has to get round, as capsules on the Unreal rig (D-555).
- * Radii are measured off the pack's male torso: a starting point, not a
- * ruling.
+ * The body a cape has to get round, as capsules on the Unreal rig (D-555):
+ * the trunk, both arms down to the hands, both legs down to the feet. The
+ * stakeholder's ruling (D-631): a cape collides with thighs, legs, feet, arms
+ * and hands — not only the trunk, or it falls through a striding leg and a
+ * swinging arm. Radii are measured off the pack's male body: a starting
+ * point, not a tuning.
+ *
+ * ⚠ Names are matched without case: the rig spells `Pelvis` and `Thigh_R`
+ * beside `spine_02` and `calf_l`.
  */
 export const CAPE_COLLIDERS: readonly ClothCollider[] = [
   { bone: 'pelvis', to: 'spine_02', radius: 0.17 },
   { bone: 'spine_02', to: 'neck_01', radius: 0.16 },
   { bone: 'upperarm_l', to: 'lowerarm_l', radius: 0.06 },
   { bone: 'upperarm_r', to: 'lowerarm_r', radius: 0.06 },
+  { bone: 'lowerarm_l', to: 'hand_l', radius: 0.05 },
+  { bone: 'lowerarm_r', to: 'hand_r', radius: 0.05 },
+  { bone: 'hand_l', radius: 0.06 },
+  { bone: 'hand_r', radius: 0.06 },
   { bone: 'thigh_l', to: 'calf_l', radius: 0.09 },
   { bone: 'thigh_r', to: 'calf_r', radius: 0.09 },
+  { bone: 'calf_l', to: 'foot_l', radius: 0.07 },
+  { bone: 'calf_r', to: 'foot_r', radius: 0.07 },
+  { bone: 'foot_l', to: 'ball_l', radius: 0.07 },
+  { bone: 'foot_r', to: 'ball_r', radius: 0.07 },
 ];
 
 export function defaultClothSettings(freeBones: readonly string[]): ClothSettings {

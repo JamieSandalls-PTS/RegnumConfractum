@@ -71,6 +71,8 @@ export class MeshCloth {
   private readonly bends: Uint32Array;
   private readonly bendRest: Float32Array;
   private readonly colliders: Capsule[] = [];
+  /** Collider bones the rig does not have, so a wrong name is a visible fact. */
+  readonly missingBones: string[] = [];
   private readonly position: THREE.BufferAttribute | THREE.InterleavedBufferAttribute;
   private readonly unit: number;
   private accumulator = 0;
@@ -107,8 +109,14 @@ export class MeshCloth {
     for (let v = position.count - 1; v >= 0; v--) this.rep[vertexParticle[v]!] = v;
 
     // Free where the artist weighted it to a free bone, pinned otherwise.
-    const free = new Set(settings.freeBones);
-    const boneNames = mesh.skeleton.bones.map((b) => b.name);
+    //
+    // ⚠ Bone names are matched WITHOUT case. The pack's rig spells `Pelvis`,
+    // `UpperArm_L`, `Hand_L`, `Thigh_R` and `Foot_R` beside `spine_02`,
+    // `lowerarm_l` and `calf_l` (measured on the built guard), and a collider
+    // authored as `thigh_l` that silently matched nothing left the cape
+    // falling through a striding leg while the settings looked complete.
+    const free = new Set(settings.freeBones.map((b) => b.toLowerCase()));
+    const boneNames = mesh.skeleton.bones.map((b) => b.name.toLowerCase());
     this.pinned = new Uint8Array(count).fill(1);
     const weightOnFree = new Float32Array(count);
     for (let v = 0; v < position.count; v++) {
@@ -178,11 +186,16 @@ export class MeshCloth {
     this.bends = Uint32Array.from(bends);
     this.bendRest = Float32Array.from(bendRest);
 
-    const byName = new Map(mesh.skeleton.bones.map((b) => [b.name, b]));
+    const byName = new Map(mesh.skeleton.bones.map((b) => [b.name.toLowerCase(), b]));
     for (const c of settings.colliders) {
-      const a = byName.get(c.bone);
-      if (!a) continue;
-      this.colliders.push({ a, b: c.to ? byName.get(c.to) ?? null : null, radius: c.radius });
+      const a = byName.get(c.bone.toLowerCase());
+      if (!a) {
+        this.missingBones.push(c.bone);
+        continue;
+      }
+      const b = c.to ? byName.get(c.to.toLowerCase()) ?? null : null;
+      if (c.to && !b) this.missingBones.push(c.to);
+      this.colliders.push({ a, b, radius: c.radius });
     }
 
     // The proxy: same triangles, same material, positions in world space.
@@ -361,6 +374,32 @@ export class MeshCloth {
     }
     attr.needsUpdate = true;
     this.proxy.geometry.computeVertexNormals();
+  }
+
+  /**
+   * How many free particles sit inside a collider right now, for measuring:
+   * after the passes it should be zero, and a number here is a body part the
+   * cape is passing through.
+   */
+  penetrations(): number {
+    const thickness = this.settings.thickness * this.unit * 100;
+    let n = 0;
+    for (const c of this.colliders) {
+      const a = c.a.getWorldPosition(tmp).clone();
+      const b = c.b ? c.b.getWorldPosition(tmpB).clone() : a.clone();
+      const r = c.radius * this.unit * 100 + thickness;
+      const ab = b.clone().sub(a);
+      const ab2 = ab.lengthSq();
+      for (let p = 0; p < this.pinned.length; p++) {
+        if (this.pinned[p]) continue;
+        const q = this.particle(p, tmpC);
+        let u = ab2 > 0 ? q.clone().sub(a).dot(ab) / ab2 : 0;
+        u = Math.min(1, Math.max(0, u));
+        const closest = a.clone().addScaledVector(ab, u);
+        if (q.distanceTo(closest) < r - 1e-4) n++;
+      }
+    }
+    return n;
   }
 
   /** A particle's current world position, for measuring. */

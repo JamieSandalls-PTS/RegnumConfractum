@@ -1,0 +1,72 @@
+{
+  "pack": "bow-crossbow",
+  "kind": "projectile",
+  "assets": [
+    {
+      "id": "arrow-01",
+      "name": "Arrow",
+      "pack": "bow-crossbow",
+      "mesh": "SM_Arrow_01",
+      "tags": [],
+      "kind": "projectile",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "speed": 30
+    },
+    {
+      "id": "wep-crossbow-bolt-01",
+      "name": "Crossbow Bolt",
+      "pack": "bow-crossbow",
+      "mesh": "SM_Wep_Crossbow_Bolt_01",
+      "tags": [],
+      "kind": "projectile",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "speed": 30
+    },
+    {
+      "id": "prop-arrow-nativeamerican-01",
+      "name": "Arrow Native American",
+      "pack": "bow-crossbow",
+      "mesh": "SM_Prop_Arrow_NativeAmerican_01",
+      "tags": [],
+      "kind": "projectile",
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "speed": 30
+    }
+  ]
+}
