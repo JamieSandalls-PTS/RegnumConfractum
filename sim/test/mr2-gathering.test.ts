@@ -178,13 +178,31 @@ describe('harvesting', () => {
   it('CANCELS when the worker moves — this is what makes it a risk', async () => {
     const node = nearestNode(miner);
     await walkAdjacentTo(miner, node.x, node.y);
+    // ⚠ Settled, started, and MOVED — each one observed, not assumed (D-633).
+    // On CI's slower runner the old version sent the harvest during the
+    // glide, pressed north one wait later whether or not the job had begun
+    // and whether or not north was open, and then waited eight seconds for a
+    // cancellation that had nothing to cancel.
+    await settle(miner);
+    const jobsBefore = miner.work.length;
     miner.send({ t: 'harvest', targetEntityId: node.id });
-    await sleep(TICK * 4);
-    miner.send({ t: 'move', dir: 'n' });
+    await waitUntil(() => miner.work.length > jobsBefore && !miner.work[miner.work.length - 1]!.done, 'the work starts');
+    const from = { ...miner.entities.get(miner.you!)! };
+    const moved = (): boolean => {
+      const me = miner.entities.get(miner.you!)!;
+      return Math.hypot(me.x - from.x, me.y - from.y) > 0.3;
+    };
+    for (const dir of ['n', 'e', 's', 'w'] as const) {
+      miner.send({ t: 'move', dir });
+      for (let i = 0; i < 12 && !moved(); i++) await sleep(TICK * 4);
+      if (moved()) break;
+    }
+    expect(moved(), 'the miner could not step in any direction').toBe(true);
     await waitUntil(
       () => miner.work.some((w) => w.interrupted === 'you moved'),
       'the work is abandoned',
     );
+    miner.send({ t: 'move_stop' });
   });
 
   it('CANCELS when the worker is struck — the buddy system in one assertion', async () => {
