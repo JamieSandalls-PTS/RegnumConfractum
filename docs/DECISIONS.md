@@ -11380,3 +11380,62 @@ of the cast can deduce it. The stakeholder's ruling: **latecomers join the
 round on the good side.** The deduction cost is accepted. The code already did
 this and `mr5-rejoin` has asserted it since D-579; what changes is that it is
 no longer an open question.
+
+
+
+## D-635 -- A cue is heard in the tool, through the game's own player
+
+**Status:** implemented. Extends D-569's cue editor; rests on D-541.
+
+The stakeholder asked for a preview button for the sound effects and music.
+The cue editor had every field a cue has and no way to hear one, so a trim
+or a split was set blind and judged in the game after a Publish.
+
+### The ruling
+
+**The preview is the game's `SoundBank`, not a second player.** It is handed
+the cue as the FORM holds it -- unsaved edits included, status forced live so
+a `planned` cue can be auditioned -- and does what the game does: an effect is
+fetched, decoded, measured, normalised to its category and split into takes
+where the cue says so; a bed or the menu track is streamed through an
+`<audio>` element under the same automatic gain. What the author hears is
+what a player hears after Publish, not the raw file. A separate player that
+skipped normalisation would make every trim look wrong by exactly the amount
+the game corrects.
+
+Three places to press it: a ▶ on every row of the cue list (audition without
+opening the form); **Preview as the game plays it** in the form; and a ▶ on
+each file row, which plays that file alone under the cue's settings, so a
+cue with three files can be judged one at a time.
+
+**The line under the button says what the decoder found**, because the split
+and the normaliser are the two things nobody can see: `2 takes · 0.37s, 0.37s
+· gains 1.00, 1.03`. For an effect the line STAYS after the take ends -- a
+swish is a third of a second and a line that blanked before anyone read it
+told them nothing. A bed reports its position and the automatic gain
+settling (0.77 → 1.00 in the first two seconds of the town bed, measured).
+
+⚠ **One AudioContext, made on the first click and kept.** Browsers refuse
+audio before a user gesture and cap how many contexts a page may open. Each
+play builds a fresh bank for the one cue, because the bank caches by id and
+an author who changed the trim would otherwise hear the version before.
+
+⚠ **Leaving the section stops the preview**, beside the frame hooks -- a bed
+left looping under the map builder is the cloth-solver mistake heard. The
+bed's automatic gain is driven from the preview's own frame loop rather than
+the tool's, because the tool's hooks belong to whatever is on the STAGE, and
+sound is not on it.
+
+`SoundBank.prepare(cueId)` is the one addition to the game's player: it loads
+a cue and reports takes, seconds and gains, ignoring `status` where `preload`
+and `play` honour it.
+
+### Verified
+
+In the browser, by hand and by the `window.__sound` hook: the town bed
+streams (position advancing, gain converging) and its list chip turns into a
+stop mark; `attack-swing` decodes to two takes at the gains above and the
+line stays after it ends; a single file plays as one take; switching to Art
+reports nothing playing. The stakeholder heard the town bed. ⚠ Nothing here
+runs headless -- WebAudio does not exist under Node -- so the hook is the
+only automatic check, and it is a probe rather than a test.

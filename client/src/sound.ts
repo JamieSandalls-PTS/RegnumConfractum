@@ -159,6 +159,23 @@ export class SoundBank {
     return job;
   }
 
+  /**
+   * Loads a cue and reports what the decoder made of it — the authoring
+   * tool's preview (D-635). Ignores `status`, unlike `preload` and `play`:
+   * the tool needs to hear a planned cue to decide whether it should be
+   * live. Null when there is no context or no such cue.
+   */
+  async prepare(cueId: string): Promise<{ takes: number; seconds: number[]; gains: number[] } | null> {
+    const cue = this.cues.get(cueId);
+    if (!this.ctx || !cue) return null;
+    const variants = await this.loadEffect(cue);
+    return {
+      takes: variants.length,
+      seconds: variants.map((v) => Number(v.duration.toFixed(2))),
+      gains: variants.map((v) => Number(v.gain.toFixed(2))),
+    };
+  }
+
   /** Warms a cue so the first play is not late. Fire and forget. */
   preload(cueId: string): void {
     const cue = this.cues.get(cueId);

@@ -1702,6 +1702,12 @@ its door to the yard. ⚠ Two keepers stand as a result — the taproom's own an
 Ashfold's at the door — and which one stays is the stakeholder's call. A
 latecomer joins on the good side; the deduction cost D-579 named is accepted.
 
+**A cue is heard in the tool through the game's own player (D-635).** The
+cue editor's preview is `SoundBank` handed the form's copy of the cue, so
+trim, split and normalisation are heard as the game applies them, and the
+line under the button reports what the decoder found. ⚠ Not headless: the
+`window.__sound` hook is the only automatic probe.
+
 **There is ONE authoring tool, on ONE server (D-629).** `npm run dev:tools` +
 `/creation-tool.html`: seven stages read left to right — **Art → Motion →
 Bodies → Things → World → Rules → Scenario** — each using what the one before

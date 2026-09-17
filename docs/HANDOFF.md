@@ -88,6 +88,13 @@ ride `render_content`, and `ImportedVisual` runs them on anybody wearing the
 part. The old grid cloth files are deleted. ⚠ Every cloth number is a default
 the workbench exists to replace; the stakeholder has not tuned one yet.
 
+**D-635 — cues are previewed through the game's player.** World › Speech &
+sound: a ▶ on each cue row, a Preview button in the form, a ▶ per file. It is
+`SoundBank` itself (`client/src/tool/sound-preview.ts`), so the trim, the
+split and the normalisation are heard as the game applies them; the line
+under the button reports takes and gains. `window.__sound.report()` is the
+probe. ⚠ Not headless-testable: WebAudio does not exist under Node.
+
 ## The things most likely to be undone by accident
 
 **1. `render_content` goes out BEFORE auth, on socket open.** A client builds

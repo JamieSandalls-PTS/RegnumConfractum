@@ -77,6 +77,7 @@ import {
 import { GameScene } from './render/scene';
 import { assemble } from './render/assembly';
 import type { ToolContext, ToolTab } from './tool/context';
+import { SoundPreview, describePreview } from './tool/sound-preview';
 import { charactersTab } from './tool/characters';
 import { clothTab } from './tool/cloth';
 import { scenariosTab } from './tool/scenarios';
@@ -4511,6 +4512,23 @@ function openTab(stage: StageId, id: string): void {
 /** Per-frame work a tab module registered; dropped on every section change. */
 const frameHooks: ((dt: number) => void)[] = [];
 
+/** The cue editor's preview (D-635): the game's own player, one context, kept. */
+const soundPreview = new SoundPreview();
+/** Redraws the open cue form's preview line; set by the form, cleared with it. */
+let cuePreviewDraw: (() => void) | null = null;
+soundPreview.onChange = () => {
+  // The list's play chips and the form's line both show what is playing,
+  // and a bed started from the list with no form open still has to turn
+  // its chip into a stop mark.
+  if (section !== 'world' || worldKind !== 'sounds') return;
+  renderWorldList();
+  cuePreviewDraw?.();
+};
+(window as unknown as { __sound: unknown }).__sound = {
+  report: () => soundPreview.report(),
+  stop: () => soundPreview.stop(),
+};
+
 /**
  * The verification hook (D-114): what the stage holds, how many things are
  * animating on it, and a way to advance them without the frame loop.
@@ -5977,12 +5995,60 @@ function renderWorldList(): void {
     row.className = `row${worldPicked === entry.id ? ' on' : ''}`;
     row.textContent = entry.name;
     row.onclick = () => {
+      if (worldPicked !== entry.id) soundPreview.stop();
       worldPicked = entry.id;
       renderWorldList();
       renderWorldSide();
     };
+    if (worldKind === 'sounds') {
+      // Audition from the list without opening the form (D-635). The chip
+      // swallows the click so the row underneath does not select.
+      const cue = world.sounds.find((c) => c.id === entry.id)!;
+      const playing = soundPreview.playing && soundPreview.report().cue === cue.id
+        && soundPreview.report().file === null;
+      const play = document.createElement('span');
+      play.className = `chip${playing ? ' on' : ''}`;
+      play.textContent = playing ? '■' : '▶';
+      play.title = playing ? 'stop' : 'preview, as the game plays it';
+      play.style.cssText = 'float:right;margin-left:8px';
+      play.onclick = (ev) => {
+        ev.stopPropagation();
+        if (playing) soundPreview.stop();
+        else void soundPreview.play(cue);
+      };
+      row.prepend(play);
+    }
     host.appendChild(row);
   }
+}
+
+/**
+ * The preview block of the cue form (D-635): one button that plays the cue
+ * as the FORM holds it, and a line saying what the game's decoder made of
+ * it. Beds and music loop until stopped; an effect plays one take and ends.
+ */
+function renderCuePreview(host: HTMLElement, cue: SoundCueDef): void {
+  const row = document.createElement('div');
+  row.className = 'kitrow';
+  const button = document.createElement('button');
+  const line = document.createElement('div');
+  line.className = 'hint';
+  line.style.cssText = 'margin:4px 0 10px;min-height:1.2em';
+  const draw = (): void => {
+    const r = soundPreview.report();
+    const mine = r.cue === cue.id;
+    button.textContent = mine && soundPreview.playing ? '■ Stop' : '▶ Preview as the game plays it';
+    line.textContent = mine ? describePreview(r) : '';
+  };
+  button.disabled = cue.files.length === 0;
+  button.onclick = () => {
+    if (soundPreview.playing && soundPreview.report().cue === cue.id) soundPreview.stop();
+    else void soundPreview.play(cue);
+  };
+  cuePreviewDraw = draw;
+  draw();
+  row.appendChild(button);
+  host.append(row, line);
 }
 
 function uniqueWorldId(taken: readonly string[], stem: string): string {
@@ -5996,6 +6062,7 @@ function uniqueWorldId(taken: readonly string[], stem: string): string {
 function renderWorldSide(): void {
   const host = $('side');
   host.replaceChildren();
+  cuePreviewDraw = null;
   if (worldKind === 'emotes') return renderLexiconForm(host);
   if (!worldPicked) {
     roundHint(
@@ -6078,12 +6145,24 @@ function renderSoundForm(host: HTMLElement): void {
     + 'build machine decodes those (D-541).',
   );
 
+  renderCuePreview(host, cue);
+
   const fh = document.createElement('h2');
   fh.textContent = 'Files';
   host.appendChild(fh);
   for (const [i, file] of cue.files.entries()) {
     const row = document.createElement('div');
     row.className = 'kitrow';
+    // This file alone, under the cue's own settings (D-635).
+    const hear = document.createElement('span');
+    hear.className = 'chip';
+    hear.textContent = '▶';
+    hear.title = 'preview this file alone';
+    hear.onclick = () => {
+      if (!world.audioFiles.includes(file)) return;
+      void soundPreview.play(cue, file);
+    };
+    row.appendChild(hear);
     const pick = document.createElement('select');
     // The file currently named is offered even if it is missing, or changing
     // anything else about the cue would silently repoint it at whatever
@@ -6725,6 +6804,8 @@ function applySection(): void {
   // ⚠ Every frame hook belongs to the tab that registered it. Not clearing
   // here is a cloth solver stepping a body that is no longer on the stage.
   frameHooks.length = 0;
+  // And a bed left looping under the map builder is the same mistake heard.
+  soundPreview.stop();
   const built =
     section === 'core' || section === 'classes' || section === 'items'
     || section === 'progression' || section === 'round' || section === 'world'
