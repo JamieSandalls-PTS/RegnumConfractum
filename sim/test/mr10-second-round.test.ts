@@ -6,6 +6,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * A round can be played TWICE (D-607).
@@ -42,8 +43,7 @@ const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
 const HOME = ScenarioSchema.parse(
   JSON.parse(readFileSync(`${contentDir}/scenarios/ashfold.json`, 'utf8')),
 ).opensIn;
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 async function waitUntil(pred: () => boolean, what: string, timeoutMs = 25_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;

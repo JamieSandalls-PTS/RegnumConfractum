@@ -11232,3 +11232,97 @@ violation. The Races tab offers every character definition as the look.
 Things > Interactive objects redrew the page as the Parts & names tab when
 a station's art was shown: the shared asset preview re-rendered the core
 tabs' panes from any section. It renders only the panes it belongs to.
+
+
+## D-633 -- The simulation tests were never running at 5 ms, and CI had been red for five days
+
+**Status:** implemented
+**Corrects:** a constant thirty-nine files had copied, and the platform it hid.
+
+The stakeholder asked why every GitHub workflow was failing. It had been
+failing since 12 September (run #9, the first push after the August
+successes): three simulation suites failing on every run and two or three
+more flaking, while the same suite passed on the development machine every
+time. Nobody could see it locally, which is exactly the shape of failure
+D-114's doctrine warns about: a suite that is green in the one place anybody
+looks.
+
+### The measurement
+
+`sim/probe/linux-kill.ts`, on Windows and inside a Linux Node 22 container
+(which is what the CI runner is):
+
+| `setInterval` at | Windows | Linux |
+|---|---|---|
+| 5 ms | 63 / s | 191 / s |
+| 15 ms | 62 / s | 66 / s |
+| 16 ms | 41 / s | -- |
+| 20 ms | 31 / s | -- |
+
+| `setTimeout` of | Windows | Linux |
+|---|---|---|
+| 5 ms | 15.6 | 5.1 |
+| 30 ms | 30.9 | 30.2 |
+| 50 ms | 61.9 | 50.2 |
+
+Windows runs Node's timers on a 15.6 ms system clock and rounds every delay
+UP to whole periods of it. Linux honours the number. Every simulation test
+declared `const TICK = 5`, slept in multiples of it, and had been tuned by
+trial against a world that ticked 63 times a second and waits that were
+rounded up -- so on CI the same servers ran three times as fast against the
+same waits. The reset fixture is the clean case: killing one of two players
+ends the round, the round resolves in ten ticks and the reset stands the
+victim back up. On Windows those ten ticks take 156 ms and the polling loop
+sees the ghost; on Linux they take 50 ms and pass inside one iteration, so
+the status read "alive" both before and after and the fixture reported that
+nobody had died. The dungeon, the watch, thirst and the endgame door failed
+the same way with different actors.
+
+### The ruling
+
+**The clock the tests were calibrated on is reproduced on every platform,
+on purpose.** `sim/test/setup-clock.ts` runs before every test file and, off
+Windows, rounds every `setTimeout` and `setInterval` in the process up to
+15.625 ms periods. `sim/src/testTick.ts` holds the one `TICK` (5, the unit
+the waits are written in), the one `TICK_INTERVAL_MS` the servers are asked
+for (15: one period, 62/s on both platforms -- sixteen was tried first and
+halved the rate, because an interval rounds up too), and the one `sleep`.
+Forty-one files import them.
+
+⚠ This is not a fix for wall-clock tests. It is the environment they were
+tuned in, stated and reproduced, so that Linux and Windows run the same
+simulation -- the property a test needs before it can mean anything. The
+durable fix is tick-driven waits, and it is a rewrite of forty-nine files
+that nobody has asked for yet.
+
+### Three tests were wrong on their own terms, found by the tick stamps
+
+The bot mirror now stamps every blow and every work report with its tick,
+and records `deaths`. With that:
+
+- **Reset invariants** observed a death by polling a status the reset
+  overwrites. It reads the death event now.
+- **The dungeon's loot** counted attempts, not kills; the seeded loot stream
+  drops nothing on the first crawler and ore on the second, so one kill in
+  six attempts was the miss. It counts kills now.
+- **The struck worker** -- the intermittent recorded in three handoffs --
+  had two faults. The thug was steered at the miner's own tile and the
+  server finished the route: it walked into the miner's body and shoved them
+  over a metre off the seam, which cancelled the job with "you moved" and put
+  the retry out of reach (last job died at tick 131, first blow landed at
+  218). And the retry never came, because "is a job running" was answered by
+  ANY progress record rather than the latest. The thug stops beside the
+  miner now, the latest record decides, and a refused restart walks back to
+  the seam. Three passes in a row, where it had been a coin toss.
+
+### Also here
+
+Filing the pack's whole-cast Godot export as a creature stopped
+`build:characters` by name (D-556's guard, working). The filing refuses it
+now, before the definition exists: a mesh whose skeleton matches no rig
+cannot be a creature, and the message says what such a file usually is.
+
+### Verified
+
+The eight suites that failed on CI, in the Linux container, 65 of 65; the
+full suite on Windows.

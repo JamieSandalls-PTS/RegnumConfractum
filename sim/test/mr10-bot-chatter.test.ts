@@ -6,6 +6,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { BotAgent } from '../src/botAgent';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * What the companions say, and how often (D-610).
@@ -23,8 +24,7 @@ import { BotAgent } from '../src/botAgent';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 const SURVIVE: ObjectiveDef = ObjectiveSchema.parse({
   id: 'test-survive', name: 'Endure', brief: 'Live.', kind: { type: 'survive' }, minCast: 2,

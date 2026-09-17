@@ -123,6 +123,15 @@ are non-indexed triangle soup; the sequential index plus the weld is what
 turns them into a connected cloth. And `applyBoneTransform` needs the vertex
 in the vector — pass an empty one and every pin lands on its bone's pivot.
 
+**8. The simulation tests run on the WINDOWS clock everywhere** (D-633).
+`sim/test/setup-clock.ts` rounds every timer in the test process up to
+15.625 ms periods where the OS does not, and `sim/src/testTick.ts` holds the
+one `TICK` (5), `TICK_INTERVAL_MS` (15) and `sleep`. CI was red for five days
+because Linux honoured a 5 ms tick that Windows never delivered. Do not
+"tidy" the interval to 16 — Windows rounds it to two periods and halves the
+rate; do not remove the setup file because the tests "pass locally" — they
+always did.
+
 **7. `.env` is the one source of ports**, read by the server, the bot runner
 (D-628), the Publisher, and now the login form through Vite's `envDir: '..'`
 and `envPrefix: ['VITE_', 'PORT']`. A second default anywhere is the drift

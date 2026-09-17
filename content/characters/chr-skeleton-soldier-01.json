@@ -1,0 +1,9 @@
+{
+  "id": "chr-skeleton-soldier-01",
+  "name": "Chr Skeleton Soldier",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "SK_Chr_Skeleton_Soldier_01",
+  "kind": "creature"
+}

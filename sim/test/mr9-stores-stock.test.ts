@@ -5,6 +5,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * The town opens stocked, and the stock RUNS OUT (D-529, built D-593).
@@ -27,10 +28,9 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 const CAST = 3;
 const STORE = 'round-town:storehouse';
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const SURVIVE: ObjectiveDef = ObjectiveSchema.parse({
   id: 'test-survive', name: 'Endure', brief: 'Live.',

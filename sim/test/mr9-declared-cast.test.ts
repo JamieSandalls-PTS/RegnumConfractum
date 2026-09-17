@@ -5,6 +5,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { ScriptHost } from '@rc/server/script/host';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * A person who stands somewhere is CONTENT (D-598).
@@ -26,8 +27,7 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 const KEEPER = 'a rawboned keeper in a stained apron';
 
 let server: GameServer | undefined;

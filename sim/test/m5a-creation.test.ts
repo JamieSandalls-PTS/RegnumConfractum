@@ -5,6 +5,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { CREATION_SKILL_POINTS, validateBuild } from '@rc/shared';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK } from '../src/testTick';
 
 /**
  * Character creation (D-208): class, skill allocation, feats and spells.
@@ -17,7 +18,7 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 let store: MemoryStore;
 let server: GameServer;

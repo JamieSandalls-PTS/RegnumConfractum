@@ -6,6 +6,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { closeOn } from '../src/walk';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * The dungeon's contents (D-537).
@@ -17,8 +18,7 @@ import { closeOn } from '../src/walk';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 async function waitUntil(pred: () => boolean, what: string, timeoutMs = 20_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
@@ -193,8 +193,13 @@ describe('killing them pays', () => {
     // ⚠ The haul now arrives on the BODY rather than in the pack (D-554,
     // superseding D-537's "straight to the killer"). So the loop kills, then
     // loots what it killed — which is the loop a player actually performs.
+    // ⚠ Counted in KILLS, not in attempts (D-633). The seeded loot stream
+    // drops nothing on the first crawler and ore on the second, so two kills
+    // are the least that can pass — and an attempt that never closed on a
+    // crawler is not a kill. Six attempts gave one kill on a runner where
+    // the crawlers move more per action, and that one roll was the miss.
     let killed = 0;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 14 && killed < 6; i++) {
       if (diver.status?.ghost) break;
       if (await killNearestCrawler(diver)) killed++;
       // Empty every body within reach before deciding nothing dropped.
@@ -212,6 +217,9 @@ describe('killing them pays', () => {
     // a pot banked only if you live to the end (D-524), so a mid-round kill
     // shows up in the pack and in the log, never on the character. Asserting
     // against status.xp would be asserting the wrong invariant.
-    expect(diver.inventory.some((it) => it.templateId === 'iron-ore')).toBe(true);
-  }, 60_000);
+    expect(
+      diver.inventory.some((it) => it.templateId === 'iron-ore'),
+      `no ore after ${killed} kill(s)`,
+    ).toBe(true);
+  }, 120_000);
 });

@@ -7,6 +7,7 @@ import { ScriptHost } from '@rc/server/script/host';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { walkTo } from '../src/walk';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * M3a end to end: area transitions (D-103), scripted NPCs (D-109), and the
@@ -15,9 +16,8 @@ import { walkTo } from '../src/walk';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 const DM_TOKEN = 'test-dm-token';
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function waitUntil(pred: () => boolean, what: string, timeoutMs = 6000): Promise<void> {
   const deadline = Date.now() + timeoutMs;

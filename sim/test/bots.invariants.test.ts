@@ -5,6 +5,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * Headless bots playing the real game over real WebSockets (D-114), asserting
@@ -17,10 +18,9 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5; // ms per tick — logic is tick-based, so fast wall-clock is safe
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 const MOVE_GAP = TICK * 4; // > MOVE_COOLDOWN_TICKS ticks between steps
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function waitUntil(pred: () => boolean, what: string, timeoutMs = 5000): Promise<void> {
   const deadline = Date.now() + timeoutMs;

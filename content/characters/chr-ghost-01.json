@@ -1,0 +1,9 @@
+{
+  "id": "chr-ghost-01",
+  "name": "Chr Ghost",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "SK_Chr_Ghost_01",
+  "kind": "creature"
+}

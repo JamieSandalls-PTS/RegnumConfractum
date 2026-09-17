@@ -7,6 +7,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { ScriptHost } from '@rc/server/script/host';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * `silence-the-keeper` can be won (D-593).
@@ -30,8 +31,7 @@ const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
 const OBJECTIVE: ObjectiveDef = ObjectiveSchema.parse(
   JSON.parse(readFileSync(`${contentDir}/objectives/silence-the-keeper.json`, 'utf8')),
 );
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 let store: MemoryStore;
 let server: GameServer;

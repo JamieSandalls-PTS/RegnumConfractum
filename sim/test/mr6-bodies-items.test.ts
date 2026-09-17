@@ -5,6 +5,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BARE_LOOK, EquipStatsSchema, lookOf, type EquippedItem } from '@rc/shared';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * Bodies, heaps, and the verbs for using what you are carrying (D-554).
@@ -16,7 +17,7 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 let store: MemoryStore;
 let server: GameServer;
@@ -39,7 +40,6 @@ afterAll(async () => {
   await server.stop();
 });
 
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 interface Player {
   bot: BotClient;

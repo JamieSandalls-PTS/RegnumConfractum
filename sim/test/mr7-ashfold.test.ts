@@ -6,6 +6,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { walkTo } from '../src/walk';
+import { TICK_INTERVAL_MS } from '../src/testTick';
 
 /**
  * Ashfold, walked (D-584).
@@ -53,7 +54,7 @@ beforeAll(async () => {
     store,
     content: loadContent(contentDir),
     port: 0,
-    tickIntervalMs: 5,
+    tickIntervalMs: TICK_INTERVAL_MS,
     rngSeed: 11,
     defaultAreaId: 'round-town',
   });

@@ -1,0 +1,9 @@
+{
+  "id": "chr-hero-knight-female",
+  "name": "Chr Hero Knight Female",
+  "pack": "dungeon-pack",
+  "sex": "female",
+  "parts": {},
+  "mesh": "SK_Chr_Hero_Knight_Female",
+  "kind": "creature"
+}

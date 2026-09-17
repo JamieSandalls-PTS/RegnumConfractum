@@ -5,6 +5,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /** The town, read from content so a map change cannot silently move a bot
  * into a wall — where an unwalkable spawn is relocated to the area spawn. */
@@ -25,8 +26,7 @@ const TOWN = loadContent(fileURLToPath(new URL('../../content', import.meta.url)
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 async function waitUntil(pred: () => boolean, what: string, timeoutMs = 25_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;

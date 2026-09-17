@@ -1,0 +1,9 @@
+{
+  "id": "chr-goblin-warchief",
+  "name": "Chr Goblin War Chief",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "SK_Chr_Goblin_WarChief",
+  "kind": "creature"
+}

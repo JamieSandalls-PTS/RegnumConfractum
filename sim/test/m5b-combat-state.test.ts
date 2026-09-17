@@ -5,6 +5,7 @@ import { GameServer, corpseBurden } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { ATTACK_VARIANTS, CARRY_BASE_CAPACITY, generateAppearance } from '@rc/shared';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * Combat state, attack variants, and carrying the dead (stakeholder,
@@ -18,8 +19,7 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 let store: MemoryStore;
 let server: GameServer;

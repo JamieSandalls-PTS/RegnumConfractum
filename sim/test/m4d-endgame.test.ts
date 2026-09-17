@@ -5,6 +5,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { walkTo as pathWalkTo } from '../src/walk';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * D-206 endgame zones played by bots: the unmissable two-step entry warning,
@@ -14,8 +15,7 @@ import { walkTo as pathWalkTo } from '../src/walk';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 async function waitUntil(pred: () => boolean, what: string, timeoutMs = 6000): Promise<void> {
   const deadline = Date.now() + timeoutMs;

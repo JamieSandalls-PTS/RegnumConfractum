@@ -150,6 +150,16 @@ describe('applying a filing', () => {
     expect(back.changed).toEqual(['characters']);
   });
 
+  it('⚠ refuses a creature whose skeleton matches no rig', () => {
+    // The pack's whole cast exported as one file, filed as a creature: the
+    // build stopped on it by name. The refusal is at filing time now.
+    const r = applyFiling({ ...world, rigOf: () => null }, 'SM_Oddity_01', ['environment', 'creature']);
+    expect(r.ok).toBe(false);
+    expect(r.problems[0]).toMatch(/matches no known rig/);
+    // A known rig files as before.
+    expect(applyFiling({ ...world, rigOf: () => 'unreal' }, 'SM_Oddity_01', ['environment']).ok).toBe(true);
+  });
+
   it('refuses a mesh the pack does not have', () => {
     expect(applyFiling(world, 'SM_Nope', ['pickup']).ok).toBe(false);
   });

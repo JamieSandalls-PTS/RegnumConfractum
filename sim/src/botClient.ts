@@ -56,6 +56,8 @@ export class BotClient {
   readonly speeches: Extract<ServerMessage, { t: 'speech' }>[] = [];
   /** Every narration line, in order (DM/scripts/spirit notices). */
   readonly narrations: string[] = [];
+  /** Entity ids this mirror saw die, in order (D-633). */
+  readonly deaths: number[] = [];
   /** Every blow this client witnessed, with the server's chosen variant. */
   readonly attacks: Extract<SimEvent, { type: 'entity_attacked' }>[] = [];
   /** Latest séance state (D-204), if any ever arrived. */
@@ -363,8 +365,14 @@ export class BotClient {
             if (!e) this.violations.push(`entity_carried for unknown entity ${event.id}`);
             else e.carriedBy = event.carrierId;
           } else if (event.type === 'entity_attacked') {
-            this.attacks.push(event);
+            // Stamped with the delta's tick, so a test can put a blow beside the
+            // work it should have interrupted (D-633).
+            this.attacks.push({ ...event, tick: msg.tick } as typeof event);
           } else if (event.type === 'entity_died') {
+            // Remembered as well as removed (D-633): a death is a fact a test
+            // may need after the round has reset and the status it would have
+            // polled says "alive" again.
+            this.deaths.push(event.id);
             if (!this.entities.delete(event.id)) {
               this.violations.push(`entity_died for unknown entity ${event.id}`);
             }
@@ -418,7 +426,7 @@ export class BotClient {
         break;
       }
       case 'work': {
-        this.work.push(msg);
+        this.work.push({ ...msg, tick: this.lastTick } as typeof msg);
         break;
       }
       case 'error': {

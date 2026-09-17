@@ -6,6 +6,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * What a round reset must leave behind: nothing.
@@ -23,8 +24,7 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 const HOME = ScenarioSchema.parse(
   JSON.parse(readFileSync(`${contentDir}/scenarios/ashfold.json`, 'utf8')),
@@ -96,12 +96,18 @@ beforeAll(async () => {
   expect(a.roundState?.phase).toBe('running');
 
   // Make a mess: kill one of them, so there is a body, a ghost and a grudge.
+  // ⚠ Observed by the EVENT, not by polling the victim's status (D-633).
+  // Killing one of two ends the round, and ten ticks later the reset stands
+  // everybody back up — on a machine that honours a 5ms tick, all of that
+  // happened inside one iteration of this loop, so the status read "alive"
+  // both before and after and the fixture reported that nobody had died.
   const victim = b.you!;
-  for (let i = 0; i < 400 && b.status?.ghost !== true; i++) {
+  const died = (): boolean => a.deaths.includes(victim) || b.status?.ghost === true;
+  for (let i = 0; i < 400 && !died(); i++) {
     a.send({ t: 'attack', targetEntityId: victim });
     await sleep(TICK * 6);
   }
-  expect(b.status?.ghost, 'the fixture needs a death to clean up after').toBe(true);
+  expect(died(), 'the fixture needs a death to clean up after').toBe(true);
 
   stockedBefore = countStocked();
   expect(stockedBefore, 'the round stocked something to compare against').toBeGreaterThan(0);

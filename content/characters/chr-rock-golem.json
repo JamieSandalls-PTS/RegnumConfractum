@@ -1,0 +1,9 @@
+{
+  "id": "chr-rock-golem",
+  "name": "Chr Rock Golem",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "SK_Chr_Rock_Golem",
+  "kind": "creature"
+}

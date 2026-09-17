@@ -14,6 +14,7 @@ import {
   type ObjectiveDef,
 } from '@rc/shared';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * Combat rounds, weapon reach, the town watch and the well (D-550 – D-552).
@@ -25,7 +26,7 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 const SURVIVE: ObjectiveDef = ObjectiveSchema.parse({
   id: 'survive-test',
   name: 'Last the night',
@@ -87,7 +88,6 @@ afterAll(async () => {
   await server.stop();
 });
 
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 async function waitUntil(check: () => boolean, what: string, ms = 8000): Promise<void> {
   const until = Date.now() + ms;

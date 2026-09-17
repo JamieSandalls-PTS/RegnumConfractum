@@ -6,6 +6,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { closeOn, walkAdjacentTo as sharedWalkAdjacentTo } from '../src/walk';
 import { BotClient } from '../src/botClient';
+import { TICK as SIM_TICK, sleep } from '../src/testTick';
 
 /**
  * Gathering and crafting (MR2), played by bots.
@@ -18,8 +19,7 @@ import { BotClient } from '../src/botClient';
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
-const TICK = 5;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
 async function waitUntil(pred: () => boolean, what: string, timeoutMs = 8000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
@@ -198,7 +198,17 @@ describe('harvesting', () => {
     // never came the attack went out anyway and failed silently as "out of
     // reach"; the report was "timed out waiting until the blow ends the work",
     // which points at harvesting and not at where anybody is standing.
-    const closed = await closeOn(thug, miner.you!, 1);
+    // ⚠ BESIDE the miner, never onto them (D-633). `closeOn` steered the
+    // thug at the miner's own position and returned within a metre, but the
+    // server finished the route: the thug walked into the miner's body and
+    // shoved them more than a metre off the seam, which cancelled the job
+    // with "you moved" and put the next harvest out of reach — so every blow
+    // after that landed on a worker who was not working. Measured by tick:
+    // the last job died at 131, the first blow landed at 218.
+    const m = thug.entities.get(miner.you!)!;
+    await walkAdjacentTo(thug, m.x, m.y);
+    await settle(thug);
+    const closed = await closeOn(thug, miner.you!, 1.6);
     expect(closed, 'the thug never got within reach of the miner').toBe(true);
 
     // ⚠ Wait until the miner is genuinely STILL before starting work. A walk
@@ -243,9 +253,23 @@ describe('harvesting', () => {
     try {
       for (let swing = 0; swing < 40 && !struck() && healthy(); swing++) {
         // Keep a job running for the blow to land on.
-        if (!miner.work.some((w) => !w.done)) {
+        //
+        // ⚠ The LATEST work record decides, not any record (D-633). Every
+        // progress update is its own message with `done: false`, so once a
+        // job had reported progress and then been cancelled by the thug's
+        // shove, `some(!done)` stayed true forever, no new job was started,
+        // and every blow after that landed on a worker who was not working —
+        // reported as "a blow landed and the work carried on".
+        const latest = miner.work[miner.work.length - 1];
+        if (!latest || latest.done) {
           miner.send({ t: 'harvest', targetEntityId: node.id });
           await sleep(TICK * 2);
+          // A refused restart is out of reach: walk back to the seam first.
+          const after = miner.work[miner.work.length - 1];
+          if (after === latest) {
+            await walkAdjacentTo(miner, node.x, node.y);
+            await settle(miner);
+          }
         }
         thug.send({ t: 'attack', targetEntityId: miner.you! });
         await sleep(TICK * 10);
@@ -263,8 +287,9 @@ describe('harvesting', () => {
       throw new Error(
         `${String(err)} | gap=${Math.hypot(a.x - b.x, a.y - b.y).toFixed(2)}m` +
           ` | thugErrors=${JSON.stringify(thug.errors.slice(-3))}` +
-          ` | attacks=${thug.attacks.length}` +
-          ` | work=${JSON.stringify(miner.work.slice(-3))}`,
+          ` | minerErrors=${JSON.stringify(miner.errors.slice(-3).map((e) => e.code))}` +
+          ` | attacks=${JSON.stringify(thug.attacks.map((x) => [(x as { tick?: number }).tick, x.hit]))}` +
+          ` | work=${JSON.stringify(miner.work.map((w) => [(w as { tick?: number }).tick, w.progress, w.done, w.interrupted]))}`,
       );
     }
     expect(miner.status?.ghost ?? false).toBe(false);

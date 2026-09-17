@@ -5,6 +5,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { PgStore } from '@rc/server/store/postgres';
 import { BotClient } from '../src/botClient';
+import { TICK_INTERVAL_MS } from '../src/testTick';
 
 /**
  * The M0 definition of done (BUILD_PLAN): positions and inventories survive a
@@ -35,7 +36,7 @@ describe.skipIf(!DATABASE_URL)('persistence across server restart (Postgres)', (
 
   it('a character walks, logs out, and survives a full server restart', async () => {
     const content = loadContent(contentDir);
-    const serverOne = new GameServer({ store, content, port: 0, tickIntervalMs: 5 });
+    const serverOne = new GameServer({ store, content, port: 0, tickIntervalMs: TICK_INTERVAL_MS });
     await serverOne.start();
 
     // --- First life of the server -----------------------------------------
@@ -77,7 +78,7 @@ describe.skipIf(!DATABASE_URL)('persistence across server restart (Postgres)', (
     await serverOne.stop();
 
     // --- Restart: a brand-new process-equivalent against the same DB ------
-    const serverTwo = new GameServer({ store, content, port: 0, tickIntervalMs: 5 });
+    const serverTwo = new GameServer({ store, content, port: 0, tickIntervalMs: TICK_INTERVAL_MS });
     await serverTwo.start();
     const botTwo = await BotClient.connect(`ws://127.0.0.1:${serverTwo.port}`);
     botTwo.send({ t: 'login', username: `wanderer_${runTag}`, password: 'a-long-password' });

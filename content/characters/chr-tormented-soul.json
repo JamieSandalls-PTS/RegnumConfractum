@@ -1,0 +1,9 @@
+{
+  "id": "chr-tormented-soul",
+  "name": "Chr Tormented Soul",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "SK_Chr_Tormented_Soul",
+  "kind": "creature"
+}

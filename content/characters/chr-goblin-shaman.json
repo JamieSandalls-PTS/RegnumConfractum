@@ -1,0 +1,9 @@
+{
+  "id": "chr-goblin-shaman",
+  "name": "Chr Goblin Shaman",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "SK_Chr_Goblin_Shaman",
+  "kind": "creature"
+}

@@ -5,6 +5,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { TICK_INTERVAL_MS, sleep } from '../src/testTick';
 
 /**
  * Authored appearance and levels over the wire (D-538, D-539).
@@ -20,7 +21,6 @@ import { BotClient } from '../src/botClient';
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
 const content = loadContent(contentDir);
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 let store: MemoryStore;
 let server: GameServer;
@@ -36,7 +36,7 @@ beforeAll(async () => {
     store,
     content: loadContent(contentDir),
     port: 0,
-    tickIntervalMs: 5,
+    tickIntervalMs: TICK_INTERVAL_MS,
     rngSeed: 12,
     defaultAreaId: 'hanged-ferryman',
   });

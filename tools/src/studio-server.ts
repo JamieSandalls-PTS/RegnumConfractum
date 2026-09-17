@@ -91,6 +91,7 @@ import { editorRoutes } from './editor-routes';
 import { overview } from './overview';
 import { Publisher } from './publish';
 import { applyFiling, filingRows } from './filing';
+import { detectRig } from '@rc/shared';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { Box3, Vector3, type BufferAttribute, type Mesh } from 'three';
 
@@ -221,6 +222,27 @@ const nodesDir = path.join(contentDir, 'nodes');
 const npcsDir = path.join(contentDir, 'npcs');
 const scenariosDir = path.join(contentDir, 'scenarios');
 const clothDir = path.join(contentDir, 'cloth');
+
+/**
+ * Which rig a mesh's skeleton is on, read the way the build reads it (D-556):
+ * the bone names, matched against the signatures. Null means none matched,
+ * or the mesh has no skeleton at all.
+ */
+function rigOfMesh(pack: Pack, stem: string): string | null {
+  const file = meshPath(pack, stem);
+  if (!file) return null;
+  try {
+    const buf = fs.readFileSync(file);
+    const group = new FBXLoader().parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), '');
+    const names: string[] = [];
+    group.traverse((o) => {
+      if ((o as { isBone?: boolean }).isBone) names.push(o.name);
+    });
+    return names.length ? detectRig(names) : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * The longest side of a mesh's bounding box in its own units, so a filing
@@ -850,7 +872,13 @@ const server = http.createServer((req, res) => {
         return send(res, 400, { error: 'expected { uses: string[] }' });
       }
       const result = applyFiling(
-        { contentDir, pack: pack.id, stems: allMeshStems(pack), measure: (s) => longestExtent(pack, s) },
+        {
+          contentDir,
+          pack: pack.id,
+          stems: allMeshStems(pack),
+          measure: (s) => longestExtent(pack, s),
+          rigOf: (s) => rigOfMesh(pack, s),
+        },
         stem,
         uses as never,
       );

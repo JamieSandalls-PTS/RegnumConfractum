@@ -5,6 +5,7 @@ import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
+import { TICK_INTERVAL_MS } from '../src/testTick';
 
 /**
  * The painted ground reaches a player (D-588).
@@ -71,7 +72,7 @@ beforeAll(async () => {
     store,
     content,
     port: 0,
-    tickIntervalMs: 5,
+    tickIntervalMs: TICK_INTERVAL_MS,
     rngSeed: 9,
     defaultAreaId: PAINTED.id,
   });

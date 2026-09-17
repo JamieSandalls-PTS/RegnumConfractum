@@ -1,0 +1,9 @@
+{
+  "id": "chr-goblin-warrior-female",
+  "name": "Chr Goblin Warrior Female",
+  "pack": "dungeon-pack",
+  "sex": "female",
+  "parts": {},
+  "mesh": "SK_Chr_Goblin_Warrior_Female",
+  "kind": "creature"
+}

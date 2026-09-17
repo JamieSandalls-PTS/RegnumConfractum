@@ -1,0 +1,9 @@
+{
+  "id": "chr-skeleton-slave-01",
+  "name": "Chr Skeleton Slave",
+  "pack": "dungeon-pack",
+  "sex": "male",
+  "parts": {},
+  "mesh": "SK_Chr_Skeleton_Slave_01",
+  "kind": "creature"
+}

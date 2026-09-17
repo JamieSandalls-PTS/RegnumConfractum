@@ -59,6 +59,14 @@ export interface FilingWorld {
    * tool guesses the scale by measuring, and so should a filing.
    */
   measure?: (stem: string) => number | null;
+  /**
+   * The rig a mesh's skeleton is on, when the caller can read the art, or
+   * null for a skeleton that matches no known rig. A creature on an unknown
+   * rig stops `build:characters` by name (D-556), and the stakeholder hit
+   * exactly that by filing the pack's whole-cast Godot export as a creature:
+   * the refusal belongs here, before the definition exists.
+   */
+  rigOf?: (stem: string) => string | null;
 }
 
 function assetFile(contentDir: string, pack: string, kind: AssetKind): AssetFile {
@@ -225,6 +233,19 @@ export function applyFiling(world: FilingWorld, stem: string, wanted: readonly F
   const row = filingRows({ ...world, stems: [stem] })[0]!;
   const bad = wanted.filter((u) => !(FILING_USES as readonly string[]).includes(u));
   if (bad.length) return { ok: false, problems: [`not a use: ${bad.join(', ')}`], changed: [] };
+  if (wanted.includes('creature') && !row.uses.includes('creature') && world.rigOf) {
+    const rig = world.rigOf(stem);
+    if (rig === null) {
+      return {
+        ok: false,
+        problems: [
+          `${stem}: its skeleton matches no known rig, so it cannot be a creature — `
+          + 'the build would stop on it. If it is a whole cast exported as one file, it is not a character at all.',
+        ],
+        changed: [],
+      };
+    }
+  }
   const disallowed = wanted.filter((u) => !row.allowed.includes(u));
   if (disallowed.length) {
     return {

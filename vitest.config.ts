@@ -41,5 +41,8 @@ export default defineConfig({
     // Simulation tests bind real sockets and (when DATABASE_URL is set) share a
     // Postgres database; keep test files sequential to avoid port/DB races.
     fileParallelism: false,
+    // The Windows timer clock the simulation tests were calibrated on,
+    // reproduced on every platform (D-633). See sim/test/setup-clock.ts.
+    setupFiles: ['./sim/test/setup-clock.ts'],
   },
 });
