@@ -11,6 +11,9 @@ import {
   ClassSchema,
   RaceSchema,
   PartNamesSchema,
+  AnimationSetSchema,
+  type AnimationSet,
+  type PartNames,
   GroundMaterialSchema,
   type RaceDef,
   type GroundMaterial,
@@ -113,6 +116,10 @@ export interface Content {
    * rather than an error.
    */
   partNames: Map<string, string>;
+  /** The part files whole, for the client's hood tag and future keyword gates (D-630). */
+  partFiles: PartNames[];
+  /** The animation sets (D-564), carried to the client on the wire (D-630). */
+  animations: AnimationSet[];
   /** What a patch of ground is made of (D-585), by id. */
   ground: Map<string, GroundMaterial>;
   /** Creation content (D-208): what a build may allocate and pick. */
@@ -315,12 +322,27 @@ export function loadContent(contentDir: string): Content {
   }
 
   const partNames = new Map<string, string>();
+  const partFiles: PartNames[] = [];
   for (const { file, data } of readJsonFiles(join(contentDir, 'parts'))) {
     const parsed = PartNamesSchema.safeParse(data);
     if (!parsed.success) {
       throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
     }
     for (const [stem, name] of Object.entries(parsed.data.names)) partNames.set(stem, name);
+    partFiles.push(parsed.data);
+  }
+
+  // The animation sets (D-564), loaded by the GAME at last (D-630). They
+  // were authored, validated in CI and read by the tool and a Vite glob in
+  // the client — the fifth directory found in D-576's position. The server
+  // carries them to the client on `render_content` now.
+  const animations: AnimationSet[] = [];
+  for (const { file, data } of readJsonFiles(join(contentDir, 'animations'))) {
+    const parsed = AnimationSetSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    animations.push(parsed.data);
   }
 
   // Creation content: array files, each validated whole. Missing directories
@@ -488,6 +510,8 @@ export function loadContent(contentDir: string): Content {
     characters,
     npcs,
     partNames,
+    partFiles,
+    animations,
     ground,
     skills,
     feats,

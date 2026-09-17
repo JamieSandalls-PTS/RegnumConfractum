@@ -56,6 +56,7 @@ const adminServer = new AdminServer({
   port: config.adminPort,
   host: config.adminHost,
   token: config.adminToken,
+  reload: () => loadContent(config.contentDir),
 });
 
 await gameServer.start();

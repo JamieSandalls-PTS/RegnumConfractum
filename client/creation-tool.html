@@ -36,6 +36,14 @@
   #sections .status.bad { color: var(--bad); }
   #tabs .status.warn { color: var(--warm); }
   #tabs .status { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Publish (D-630): the one control that carries a save into the game. */
+  #publish { align-self: center; padding: 0 4px 0 10px; }
+  #publish button { width: auto; margin: 0; padding: 4px 12px; font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; }
+  #publishlog { position: absolute; right: 12px; bottom: 12px; width: 440px; max-height: 40%;
+    overflow-y: auto; background: #100f13; border: 1px solid var(--line); border-radius: 3px;
+    padding: 8px 10px; font-family: ui-monospace, monospace; font-size: 10.5px; line-height: 1.5;
+    z-index: 5; white-space: pre-wrap; }
 
   #tabs { display: flex; gap: 2px; background: var(--panel); border-bottom: 1px solid var(--line);
     padding: 0 10px; flex: none; }
@@ -175,6 +183,7 @@
       <div id="side" class="pane"></div>
     </div>
     <div id="soon" class="pane hidden"></div>
+    <div id="publishlog" class="hidden"></div>
     <iframe id="editor" class="hidden" title="Map builder"></iframe>
   </div>
   <script type="module" src="/src/creation-tool.ts"></script>

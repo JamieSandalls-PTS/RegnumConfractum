@@ -151,6 +151,24 @@ export function loadManifest(): Promise<void> {
   return loading;
 }
 
+/**
+ * Forget everything read off the build (D-630). Called when the server says
+ * its content was reloaded — the Publish that preceded it may have rebuilt a
+ * character or exported a new part, and a cache keyed on the old manifest
+ * would draw the old face for the rest of the session. Models already on
+ * screen keep their geometry; the next load fetches fresh.
+ */
+export function invalidateImportedModels(): void {
+  manifest = null;
+  loading = null;
+  models.clear();
+  clipFiles.clear();
+  palettes.clear();
+  parts.clear();
+  tinted.clear();
+  void loadManifest();
+}
+
 export function available(): boolean {
   return (manifest?.outfits.length ?? 0) > 0;
 }

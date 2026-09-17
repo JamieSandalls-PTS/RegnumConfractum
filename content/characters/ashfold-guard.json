@@ -19,7 +19,7 @@
     "shoulderL": "SK_Chr_ShoulderAttachLeft_04",
     "shoulderR": "SK_Chr_ShoulderAttachRight_04"
   },
+  "kind": "person",
   "texture": "PolygonFantasyHero_Texture_01_A",
-  "note": "The watch (D-552). Helmed on purpose: a guard should read as a uniform at a distance, not as a person.",
-  "kind": "person"
+  "note": "The watch (D-552). Helmed on purpose: a guard should read as a uniform at a distance, not as a person."
 }

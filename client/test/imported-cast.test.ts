@@ -1,7 +1,10 @@
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { CLIP, actionFor, clipFor, readinessTransition }
   from '../src/render/imported-visual';
-import { animationSets, clipTable } from '../src/render/animation-sets';
+import { animationSets, clipTable, setAnimationSets } from '../src/render/animation-sets';
 import { missingActions } from '@rc/shared';
 import * as THREE from 'three';
 import { heightOf, pickOutfit, type ImportedOutfit } from '../src/render/imported-models';
@@ -112,6 +115,17 @@ describe('which model an entity is drawn as (D-559)', () => {
 
 import { dressedParts, type ManifestGarment } from '../src/render/imported-models';
 import { CHARACTER_SLOTS } from '@rc/shared';
+
+// The sets arrive on the wire in the game (D-630); here they are read off
+// disk the way the server reads them, so the table under test is the shipped
+// content and not a fixture.
+const ANIMATIONS_DIR = fileURLToPath(new URL('../../content/animations', import.meta.url));
+setAnimationSets(
+  readdirSync(ANIMATIONS_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+    .map((f) => JSON.parse(readFileSync(join(ANIMATIONS_DIR, f), 'utf8')) as unknown),
+);
 
 /**
  * Which parts a dressed character is built from (D-571).

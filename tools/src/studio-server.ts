@@ -85,6 +85,7 @@ import { readPng, sampleUv, hex } from './png';
 import { OTHERWISE_USED, listJson } from './validate-content';
 import { editorRoutes } from './editor-routes';
 import { overview } from './overview';
+import { Publisher } from './publish';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import type { BufferAttribute, Mesh } from 'three';
 
@@ -146,6 +147,8 @@ import type { BufferAttribute, Mesh } from 'three';
  * reads the same files, so a definition that saves is a definition that
  * builds.
  *
+ *   GET  /api/publish                  builds and reload a save still needs (D-630)
+ *   POST /api/publish                  run them, streaming NDJSON progress
  *   GET  /api/overview                 what each stage of the line has and lacks (D-629)
  *   GET  /api/scenarios                the rounds + the areas and objectives they may name
  *   PUT  /api/scenarios/:id            validate exactly as CI does, then write
@@ -208,6 +211,13 @@ const stationsDir = path.join(contentDir, 'stations');
 const nodesDir = path.join(contentDir, 'nodes');
 const npcsDir = path.join(contentDir, 'npcs');
 const scenariosDir = path.join(contentDir, 'scenarios');
+
+/** What has been saved since the last publish, and how to publish it (D-630). */
+const publisher = new Publisher(root);
+/** The content directory a path is under: what the dependency map is keyed on. */
+function contentTypeOf(p: string): string {
+  return path.relative(contentDir, p).split(/[\\/]/)[0]!;
+}
 
 /**
  * What a scenario is checked against: every area's zone and exits, and every
@@ -356,6 +366,7 @@ function readJson<T>(dir: string, file: string, parse: (raw: unknown) => T): T |
 function writeJson(dir: string, file: string, body: unknown): void {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, file), `${JSON.stringify(body, null, 2)}\n`);
+  publisher.note(contentTypeOf(dir));
 }
 
 function savedRaces(): RaceDef[] {
@@ -773,7 +784,13 @@ const server = http.createServer((req, res) => {
   // The map editor's routes (areas, ground, paint, palette) — D-629 put them
   // on this server so the tools have one port and one origin. Answered here
   // first; anything they do not own falls through.
-  if (editorRoutes(req, res, url, parts, { contentDir, send })) return;
+  if (editorRoutes(req, res, url, parts, { contentDir, send, onChanged: (dir) => publisher.note(dir) })) return;
+
+  // /api/publish — what a save still needs, and the button that does it (D-630).
+  if (parts[1] === 'publish' && parts.length === 2) {
+    if (req.method === 'GET') return send(res, 200, publisher.pending());
+    if (req.method === 'POST') return void publisher.run(res);
+  }
 
   // /api/overview — what each stage of the production line has and lacks.
   if (req.method === 'GET' && parts[1] === 'overview' && parts.length === 2) {
@@ -844,6 +861,7 @@ const server = http.createServer((req, res) => {
       });
     }
     fs.unlinkSync(file);
+    publisher.note(contentTypeOf(path.dirname(file)));
     return send(res, 200, { deleted: id });
   }
 
@@ -954,6 +972,7 @@ function savedCharacterDefs(): CharacterDef[] {
 
       fs.mkdirSync(outDir, { recursive: true });
       fs.writeFileSync(path.join(outDir, `${def.id}.json`), `${JSON.stringify(def, null, 2)}\n`);
+      publisher.note('characters');
       return send(res, 200, { saved: def.id });
     });
     return;
@@ -980,6 +999,7 @@ function savedCharacterDefs(): CharacterDef[] {
       });
     }
     fs.unlinkSync(file);
+    publisher.note(contentTypeOf(path.dirname(file)));
     return send(res, 200, { deleted: id });
   }
 
@@ -1113,6 +1133,7 @@ function savedCharacterDefs(): CharacterDef[] {
       }
       const dir = path.join(contentDir, which);
       fs.mkdirSync(dir, { recursive: true });
+      publisher.note(which);
       fs.writeFileSync(path.join(dir, `${which}.json`), `${JSON.stringify(parsed.data, null, 2)}
 `);
       return send(res, 200, { saved: which, count: parsed.data.length });
@@ -1305,6 +1326,7 @@ function savedCharacterDefs(): CharacterDef[] {
       });
     }
     fs.unlinkSync(file);
+    publisher.note(contentTypeOf(path.dirname(file)));
     return send(res, 200, { deleted: id });
   }
 
@@ -1475,6 +1497,7 @@ function savedCharacterDefs(): CharacterDef[] {
           })();
     if (problems.length) return send(res, 400, { error: 'would not build', problems });
     fs.unlinkSync(file);
+    publisher.note(contentTypeOf(path.dirname(file)));
     return send(res, 200, { deleted: id });
   }
 

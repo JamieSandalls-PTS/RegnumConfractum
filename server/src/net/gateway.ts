@@ -450,7 +450,7 @@ interface ConnState {
 export class GameServer {
   readonly world = new World();
   private readonly store: Store;
-  private readonly content: Content;
+  private content: Content;
   private readonly tickIntervalMs: number;
   private readonly defaultAreaId: string;
   private readonly log: (msg: string) => void;
@@ -3590,6 +3590,9 @@ export class GameServer {
       queue: Promise.resolve(),
     };
     this.conns.add(conn);
+    // Presentation content before anything else (D-630): a client needs it
+    // before its first snapshot, and none of it is per-player or secret.
+    this.send(conn, this.renderContent());
     ws.on('message', (raw) => {
       conn.queue = conn.queue.then(() => this.onMessage(conn, raw.toString()).catch((err) => {
         this.log(`handler error: ${(err as Error).stack}`);
@@ -6810,6 +6813,75 @@ export class GameServer {
    * (D-525), the world re-stocked. The lobby restarts on its own as soon as
    * enough players are present, which is the same path a natural round takes.
    */
+  /**
+   * Swap in re-read content while the server runs (D-630).
+   *
+   * What a save touches decides what this can do with it. Lookups — items,
+   * classes, races, recipes, objectives, the roster, the scenario — are
+   * swapped and the next verb sees them. Areas are WORLDS: instantiated at
+   * boot, full of entities, so a changed area is noted and applies when the
+   * round next resets (which despawns and rebuilds). Scripts are loaded into
+   * the Lua host at boot and need a restart. The reply says which is which
+   * rather than claiming everything applied.
+   *
+   * ⚠ Nothing in flight is re-resolved. A character carrying an item whose
+   * template changed carries the new template from now on; one whose template
+   * was DELETED carries an item the server no longer knows, which is the same
+   * state a bad migration leaves and is reported by the next use.
+   */
+  /** What the client draws with, off the content the server holds (D-630). */
+  private renderContent(): Extract<ServerMessage, { t: 'render_content' }> {
+    return {
+      t: 'render_content',
+      animations: this.content.animations,
+      ground: [...this.content.ground.values()],
+      grips: [...this.content.wornAssets.entries()].map(([key, item]) => ({ key, item })),
+      parts: this.content.partFiles,
+    };
+  }
+
+  reloadContent(next: Content): { applied: string[]; deferred: string[] } {
+    const prev = this.content;
+    const applied: string[] = [];
+    const deferred: string[] = [];
+    const changed = (a: Map<string, unknown> | unknown[], b: Map<string, unknown> | unknown[]): boolean =>
+      JSON.stringify(a instanceof Map ? [...a.entries()] : a)
+      !== JSON.stringify(b instanceof Map ? [...b.entries()] : b);
+
+    this.content = next;
+    applied.push('items', 'assets', 'stations', 'languages', 'classes', 'races', 'characters',
+      'npcs', 'parts', 'ground', 'skills', 'feats', 'spells', 'nodes', 'recipes', 'roamers', 'audio');
+    this.emoteParser = new EmoteParser(next.emoteLexicon);
+    applied.push('emotes');
+    this.round?.replaceObjectives(next.objectives);
+    applied.push('objectives');
+    this.bots?.replaceContent(next.bots, new Map(next.objectives.map((o) => [o.id, o.kind])));
+    applied.push('bots');
+    // The scenario is read at reset and at every transition; a running round
+    // keeps the set it started with only in the sense that its cast is
+    // already inside it — the edge moves at once.
+    this.scenario = next.scenarios.find((sc) => sc.status === 'live') ?? null;
+    applied.push('scenarios', 'animations');
+
+    if (changed(prev.areas, next.areas)) {
+      deferred.push('areas: applied at the next round reset (the live world was built from the old ones)');
+    }
+    if (changed(prev.scripts, next.scripts)) {
+      deferred.push('scripts: restart the server (the Lua host loads them at boot)');
+    }
+    this.log(`content reloaded: ${applied.length} directories swapped`
+      + (deferred.length ? `; deferred — ${deferred.join('; ')}` : ''));
+    const msg = { t: 'content_reloaded' as const, applied, deferred };
+    const render = this.renderContent();
+    for (const conn of this.conns) {
+      this.send(conn, msg);
+      // The new presentation content follows the notice, so a client that
+      // dropped its caches on the notice fills them from this.
+      this.send(conn, render);
+    }
+    return { applied, deferred };
+  }
+
   async adminRestartRound(): Promise<{ ok: boolean; error?: string; phase?: string }> {
     const r = this.round;
     if (!r) return { ok: false, error: 'this server is not running rounds' };

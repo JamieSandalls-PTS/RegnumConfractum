@@ -74,6 +74,12 @@ export class BotStable {
   private seq = 0;
   private busy = false;
 
+  /** New roster and objective kinds (D-630). Bots already playing keep theirs. */
+  replaceContent(roster: readonly BotDef[], objectiveKinds: Map<string, ObjectiveKind>): void {
+    this.opts.roster = roster;
+    this.opts.objectiveKinds = objectiveKinds;
+  }
+
   constructor(private readonly opts: BotStableOptions) {
     this.log = opts.log ?? (() => {});
   }

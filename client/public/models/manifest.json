@@ -353,23 +353,17 @@
       "parts": {
         "male": {
           "torso": "SK_Chr_Torso_Male_15",
-          "hips": "SK_Chr_Hips_Male_15",
           "armUpperL": "SK_Chr_ArmUpperLeft_Male_15",
           "armUpperR": "SK_Chr_ArmUpperRight_Male_15",
           "armLowerL": "SK_Chr_ArmLowerLeft_Male_15",
-          "armLowerR": "SK_Chr_ArmLowerRight_Male_15",
-          "legL": "SK_Chr_LegLeft_Male_15",
-          "legR": "SK_Chr_LegRight_Male_15"
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_15"
         },
         "female": {
           "torso": "SK_Chr_Torso_Female_15",
-          "hips": "SK_Chr_Hips_Female_15",
           "armUpperL": "SK_Chr_ArmUpperLeft_Female_15",
           "armUpperR": "SK_Chr_ArmUpperRight_Female_15",
           "armLowerL": "SK_Chr_ArmLowerLeft_Female_15",
-          "armLowerR": "SK_Chr_ArmLowerRight_Female_15",
-          "legL": "SK_Chr_LegLeft_Female_15",
-          "legR": "SK_Chr_LegRight_Female_15"
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_15"
         }
       }
     }

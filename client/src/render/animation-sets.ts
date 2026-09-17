@@ -19,18 +19,13 @@ import {
  * renderer was picking clips by hard-coded NAME, so a character holding a bow
  * swung it like a sword and eleven stances animated identically.
  *
- * ⚠ Loaded at BUILD time, the same way `content/audio/sounds.json` reaches the
- * client. That is the established channel for presentation content here and it
- * keeps one loading path; the cost, stated plainly, is that authoring a new
- * set needs a client rebuild rather than a server restart. Sets bind actions
- * to clips in a `.glb` the same build produces, so the two move together
- * anyway — but if content ever needs to outpace deploys, this is the line that
- * has to change.
+ * ⚠ Carried on the WIRE since D-630 (`render_content`, sent the moment a
+ * socket opens and again after a reload). Until then this was a Vite glob at
+ * build time — a set authored in the tool needed a client rebuild, and the
+ * game server had never read `content/animations` at all. The line that "has
+ * to change if content ever needs to outpace deploys" was this one.
  */
-const files = import.meta.glob('../../../content/animations/*.json', { eager: true }) as Record<
-  string,
-  { default: unknown }
->;
+let SETS: AnimationSet[] = [];
 
 /**
  * ⚠ Parsed through the real schema rather than trusted as typed JSON. These
@@ -38,16 +33,17 @@ const files = import.meta.glob('../../../content/animations/*.json', { eager: tr
  * otherwise resolve as if it were absent, which looks exactly like a set
  * nobody filled in.
  */
-const SETS: AnimationSet[] = Object.entries(files)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .flatMap(([path, mod]) => {
-    const parsed = AnimationSetSchema.safeParse(mod.default);
+export function setAnimationSets(sets: readonly unknown[]): void {
+  SETS = sets.flatMap((raw, i) => {
+    const parsed = AnimationSetSchema.safeParse(raw);
     if (!parsed.success) {
-      console.warn(`[animations] ${path}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      console.warn(`[animations] set ${i}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
       return [];
     }
     return [parsed.data];
   });
+  cache.clear();
+}
 
 export function animationSets(): readonly AnimationSet[] {
   return SETS;

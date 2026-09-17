@@ -86,6 +86,28 @@ server, or add `?api=8151` to the page and start a second one with
 `STUDIO_PORT=8151 npm run dev:tools`. The embedded map builder follows the
 same override.
 
+### Publish — a save reaches the running game (D-630)
+
+The **Publish** control at the right of the stage bar counts what has been
+saved since the last publish and says, on hover, what it will do: which
+builds (`build:characters`, `build:environment`) the saves invalidated, and
+whether the running server can take the change **hot**, at the next round
+reset (**warm** — areas, because the live world was built from them) or only
+after a **restart** (scripts). Click it: the builds run with their output
+streamed to a panel, then the game server re-reads its content
+(`POST /api/dm/reload-content` on the admin port) and tells every connected
+client, which drops its model caches. If the game is not running, Publish
+says so and the reload stays pending; the files are read at the next start.
+
+Which directory needs what is data — `shared/src/pipeline.ts` — and a test
+fails if a directory under `content/` has no entry there.
+
+⚠ Animation sets, ground materials, weapon grips and part names reach the
+client **on the wire** now (`render_content`, sent when a socket opens and
+after every reload). The one presentation file still imported at build time
+is `audio/sounds.json`, because the menu plays music before a connection
+exists.
+
 ### Art — parts and names
 
 **Parts & names** is the prerequisite for everything else: nothing downstream

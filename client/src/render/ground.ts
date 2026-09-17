@@ -35,31 +35,30 @@ const PAINT_DIR = 'textures/painted';
 const TEXTURE_DIR = 'textures/ground';
 
 /**
- * The ground materials, loaded at BUILD time.
+ * The ground materials, carried on the WIRE (D-630).
  *
- * ⚠ The same channel `content/audio/sounds.json` and the animation sets use
- * (D-578): presentation content the client reads directly. What a floor looks
- * like is not a rule the server enforces, and routing it through the wire
- * would put a render decision on the protocol.
+ * ⚠ They were a Vite glob at build time, on the argument that a floor's look
+ * is not a rule and should not be on the protocol. It is on the protocol as
+ * `render_content` now, and the argument is answered by what it carries:
+ * presentation only, sent before auth, nothing the server enforces — but
+ * loaded by the server, so a material saved in the tool reaches an open
+ * client without a rebuild.
  */
-const files = import.meta.glob('../../../content/ground/*.json', { eager: true }) as Record<
-  string,
-  { default: unknown }
->;
+let cached = new Map<string, GroundMaterial>();
 
-let cached: Map<string, GroundMaterial> | null = null;
-
-export function groundMaterials(): Map<string, GroundMaterial> {
-  if (cached) return cached;
+export function setGroundMaterials(mats: readonly unknown[]): void {
   cached = new Map();
-  for (const [path, mod] of Object.entries(files)) {
-    const parsed = GroundMaterialSchema.safeParse(mod.default);
+  for (const raw of mats) {
+    const parsed = GroundMaterialSchema.safeParse(raw);
     if (!parsed.success) {
-      console.warn(`[ground] ${path}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      console.warn(`[ground] ${parsed.error.issues.map((i) => i.message).join('; ')}`);
       continue;
     }
     cached.set(parsed.data.id, parsed.data);
   }
+}
+
+export function groundMaterials(): Map<string, GroundMaterial> {
   return cached;
 }
 

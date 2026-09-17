@@ -10948,3 +10948,93 @@ invalidates, a **Publish** that runs only the invalidated builds, a content
 **reload** on the running server, and the client's build-time imports moved
 onto the server channel. Today a save still reaches the game the way it did
 yesterday -- by somebody remembering which build to run and restarting.
+
+
+## D-630 -- A save reaches the running game
+
+**Status:** implemented
+**Implements:** MR4 (the production line), second half. Completes D-629.
+
+D-629 gave the tools one page, one server and an order. This is the other
+half of the stakeholder's sentence -- *"making them accessible to the
+runtime"*. Until now nothing linked a save to the game: no tool invoked a
+build, the server had no reload, and three of the taproom's four meshes sat
+unbuilt for a session with one `console.warn` each (D-625).
+
+### The map is data
+
+`shared/src/pipeline.ts` says, per content directory, which builds a save
+invalidates and how the running server can take it: **hot** (swapped in
+place -- items, classes, races, recipes, objectives, the roster, the
+scenario, and the rest of the lookups), **warm** (areas: re-read, applied at
+the next round reset, because the live world is entities instantiated from
+them), **restart** (scripts: the Lua host loads them at boot), or **client**
+(garments: baked manifest only). ⚠ **A directory with no entry fails a test**
+that lists `content/` -- D-210's principle applied to the pipeline. Two
+directories had been in exactly that state for months (D-576, D-578), found
+one at a time by somebody noticing.
+
+### Publish
+
+The authoring server notes every directory it writes or deletes in.
+`GET /api/publish` says what is pending; `POST /api/publish` runs only the
+invalidated builds, in order, streaming NDJSON, then calls the game's
+`POST /api/dm/reload-content` and reports the reply. The tool's Publish
+control counts the pending work and says on hover what it will do.
+
+⚠ **Two pending sets, cleared separately.** A build that finished is
+finished whether or not the game was up to be told; a reload that could not
+be delivered stays pending until it can. One flag would let "built but the
+game never heard" read as "nothing to do".
+
+⚠ The admin port comes from `.env` the way the server reads it -- a second
+copy of the default is how `npm run bots` came to point at a port the server
+was not on (D-628). The same drift was in the LOGIN FORM (`ws://…:8080`
+while the server sat on 8095); Vite exposes `PORT` from the repository's
+`.env` now.
+
+### The reload
+
+`GameServer.reloadContent(next)` swaps the lookups, re-seeds the emote
+parser, hands the round engine its new objective pool (applied to the NEXT
+deal -- the assignment a running round made was told to the antagonist and
+must not move), hands the bot stable its roster, re-reads the live scenario,
+and tells every connection. ⚠ **It reports what it could NOT apply rather
+than claiming it did**: an area or a script that changed comes back as
+`deferred` with the reason. Proven by a headless bot refused `use_item` on a
+loaf the server had never heard of and, after the swap, answered by the
+food rule instead -- two gates past "no such thing".
+
+### Four channels to two
+
+Animation sets, ground materials, weapon grips and the part catalogue were
+Vite imports at build time -- a set authored in the tool needed a client
+rebuild, a sixth pack's weapons were invisible until somebody edited a list
+of five imports, and **`content/animations` had never been read by the game
+server at all**. They ride the wire now as `render_content`, sent the moment
+a socket opens (before auth: none of it is secret or per-player, and the
+first snapshot needs it) and again after every reload. The client's modules
+keep their synchronous lookups and gain a setter. ⚠ **`audio/sounds.json`
+stays a build-time import**, and the map says why: the menu plays music
+before a connection exists. Baked `.glb` and the Python map scripts are the
+other channel that remains.
+
+### Verified
+
+Typecheck clean; the full suite green (see the commit); content validates.
+Live, from the tool against a running game: a scenario save lit Publish
+with "reload scenarios (hot)", and one click reported the game re-reading
+21 directories; a character save lit it with "build:characters" and the
+build streamed 150 lines into the panel before the reload. A fresh client
+entered Ashfold with the wire-fed content and drew 300 placed meshes; the
+grip path is asserted by the headless test (grips arrive, before auth, and
+again after a reload) rather than by a live weapon, because nothing in the
+lobby's roster carries one.
+
+### Left open
+
+`garments` reach the client only through the baked manifest; the server does
+not load them. `EnvironmentAsset.operable` and asset `tags` still have no
+reader. The **death-model swap** and **effects as content** do not exist.
+Areas apply at a reset, not live -- making a placed asset appear in a running
+world is a delta the world does not yet emit.

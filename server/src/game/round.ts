@@ -76,7 +76,7 @@ export class RoundEngine {
   /** Set by MR2's systems for objectives the engine cannot observe itself. */
   private objectiveForced = false;
 
-  private readonly objectives: ObjectiveDef[];
+  private objectives: ObjectiveDef[];
   private readonly rng: Rng;
   private readonly lengthTicks: number;
   private readonly minCast: number;
@@ -92,6 +92,15 @@ export class RoundEngine {
 
   get phase(): RoundPhase {
     return this._phase;
+  }
+
+  /**
+   * A new objective pool (D-630). Applies to the NEXT deal: the assignment a
+   * running round already made is a fact the antagonist was told, and
+   * swapping it under them would change the win condition mid-round.
+   */
+  replaceObjectives(next: ObjectiveDef[]): void {
+    this.objectives = next;
   }
 
   get minimumCast(): number {

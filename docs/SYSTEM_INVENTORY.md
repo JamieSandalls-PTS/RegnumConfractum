@@ -24,7 +24,7 @@ sits on two servers across four pages, and nothing carries a save into the game.
 | Type | Product | Editor | Reaches runtime by | Verdict |
 |---|---|---|---|---|
 | `areas` | both | map editor (iframed) | server load | ⚠ carries no product marking — see §2 |
-| `animations` | both | tool | **Vite glob at client build** | ⚠ server never loads it |
+| `animations` | both | tool | server load → `render_content` on the wire (D-630) | wired |
 | `assets` | both | tool | server (worn) + **client build-time import** (grips) | ⚠ two channels for one file |
 | `audio` | both | tool | server (cues) + **client build-time import** | ⚠ two channels |
 | `bots` | R | tool | server load | wired (D-624) |
@@ -47,18 +47,25 @@ sits on two servers across four pages, and nothing carries a save into the game.
 | `stations` | R | tool | server load | wired |
 | **`scenarios`** | R | — | — | ⚠ **does not exist** (D-627) |
 
-### The four delivery channels
+### The delivery channels (revised for D-630)
 
-A change reaches the game by one of four routes, and which one is not written down
-anywhere but here:
+A change reaches the game by one of these routes, and which one is now DATA —
+`shared/src/pipeline.ts`, read by the tool's Publish and by a test that fails on
+a content directory with no entry:
 
-1. **Server load at boot** — most types. Costs a server restart.
-2. **Client build-time import** — `audio/sounds.json`, `assets/*.character-item.json`,
-   `parts/<pack>.json`, `animations/*.json`. Costs a client rebuild.
-3. **Baked artefacts** — `build:characters` (characters, races, garments, parts),
-   `build:environment` (area assets). Costs 1–2 minutes and must be remembered.
+1. **Server load, reloadable** — most types. `POST /api/dm/reload-content` swaps
+   them in place; Publish calls it. Presentation among them (animations, ground,
+   grips, part names) is carried to the client on `render_content`.
+2. **Baked artefacts** — `build:characters` (characters, races, garments, parts),
+   `build:environment` (area assets). Publish runs only the ones a save
+   invalidated, and the stage badges say what is unbuilt.
+3. **Client build-time import** — `audio/sounds.json` alone, because the menu
+   plays before a connection exists.
 4. **Python scripts** — `build-round-map`, `paint-areas`, `dress-areas`,
-   `build-tavern`, `build-audio`. Manual and order-dependent.
+   `build-tavern`, `build-audio`. Still manual and order-dependent.
+
+Areas are **warm** (re-read, applied at the next round reset) and scripts need a
+**restart**; the reload reply says which.
 
 ⚠ **Nothing invokes 3 or 4 from the tool, and the server cannot reload 1.** This is
 the whole of the stakeholder's complaint. Three of the tavern's four meshes sat

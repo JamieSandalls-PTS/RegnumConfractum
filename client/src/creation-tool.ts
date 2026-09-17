@@ -228,6 +228,119 @@ function status(text: string, kind: '' | 'good' | 'bad' = ''): void {
   const el = $('status');
   el.textContent = text;
   el.className = `status ${kind}`;
+  // Every save reports here, and every save may have changed what a publish
+  // needs — so the Publish control is refreshed off the same line.
+  if (kind === 'good') void refreshPublish();
+}
+
+/* ---------------------------------------------------------- publish (D-630) */
+
+interface PublishPending {
+  builds: string[];
+  reload: string[];
+  tier: 'hot' | 'warm' | 'restart' | 'client';
+  running: boolean;
+  game: { url: string };
+}
+let publishPending: PublishPending | null = null;
+let publishing = false;
+
+async function refreshPublish(): Promise<void> {
+  try {
+    const res = await fetch(`${API}/publish`);
+    if (res.ok) publishPending = (await res.json()) as PublishPending;
+  } catch {
+    publishPending = null;
+  }
+  renderPublish();
+}
+
+/**
+ * The button that carries a save into the game.
+ *
+ * ⚠ It says what it is about to do — which builds, whether the server can
+ * take the change hot or must reset or restart — because "Publish" that
+ * silently ran two minutes of builds and then quietly failed to reach a
+ * server that was not running is the loop this replaces. The log is kept on
+ * screen until the next publish.
+ */
+function renderPublish(): void {
+  const host = $('publish');
+  host.replaceChildren();
+  const p = publishPending;
+  const builds = p?.builds ?? [];
+  const reload = p?.reload ?? [];
+  const n = builds.length + (reload.length ? 1 : 0);
+  const b = document.createElement('button');
+  b.className = n ? 'primary' : '';
+  b.disabled = publishing || n === 0;
+  b.textContent = publishing ? 'Publishing…' : n ? `Publish (${n})` : 'Published';
+  const what = [
+    ...builds.map((x) => `build:${x}`),
+    ...(reload.length ? [`reload ${reload.join(', ')} (${p!.tier})`] : []),
+  ];
+  b.title = what.length ? what.join('\n') : 'nothing saved since the last publish';
+  b.onclick = () => void publish();
+  host.append(b);
+}
+
+async function publish(): Promise<void> {
+  if (publishing) return;
+  publishing = true;
+  renderPublish();
+  const log = $('publishlog');
+  log.classList.remove('hidden');
+  log.replaceChildren();
+  const line = (text: string, cls = ''): void => {
+    const d = document.createElement('div');
+    d.className = cls;
+    d.textContent = text;
+    log.append(d);
+    log.scrollTop = log.scrollHeight;
+  };
+  try {
+    const res = await fetch(`${API}/publish`, { method: 'POST' });
+    if (!res.ok || !res.body) {
+      line(`publish refused: ${res.status}`, 'bad');
+      return;
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() ?? '';
+      for (const raw of lines) {
+        if (!raw.trim()) continue;
+        const ev = JSON.parse(raw) as Record<string, unknown>;
+        if (ev['started']) line(`▶ build:${ev['step']}`, 'warn');
+        else if (ev['line'] !== undefined) line(`  ${ev['line']}`);
+        else if (ev['finished']) line(`✓ build:${ev['step']}`, 'good');
+        else if (ev['failed'] !== undefined) line(`✗ build:${ev['step']} exited ${ev['failed']}`, 'bad');
+        else if (ev['reload']) {
+          const r = ev['reload'] as { ok: boolean; error?: string; skipped?: string; applied?: string[]; deferred?: string[] };
+          if (r.skipped) line(`reload skipped — ${r.skipped}`);
+          else if (r.ok) {
+            line(`✓ the game re-read ${r.applied?.length ?? 0} directories`, 'good');
+            for (const d of r.deferred ?? []) line(`  ⚠ ${d}`, 'warn');
+          } else line(`✗ ${r.error}`, 'bad');
+        } else if (ev['error']) line(String(ev['error']), 'bad');
+        else if (ev['done'] !== undefined) {
+          line(ev['done'] ? 'done' : 'stopped', ev['done'] ? 'good' : 'bad');
+          publishPending = ev['pending'] as PublishPending;
+        }
+      }
+    }
+  } catch (e) {
+    line(`publish failed: ${(e as Error).message}`, 'bad');
+  } finally {
+    publishing = false;
+    renderPublish();
+    void loadOverview();
+  }
 }
 
 /* ---------------------------------------------------------------- preview */
@@ -1309,6 +1422,7 @@ async function boot(): Promise<void> {
   renderStageBar();
   renderTabBar();
   void loadOverview();
+  void refreshPublish();
   // Leaving with work unsaved is the one mistake this tool can make that
   // cannot be undone by looking at it again.
   window.addEventListener('beforeunload', (e) => {
@@ -4237,7 +4351,10 @@ function renderStageBar(): void {
   const status = document.createElement('span');
   status.className = 'status';
   status.id = 'status';
-  host.append(grow, status);
+  const publishHost = document.createElement('span');
+  publishHost.id = 'publish';
+  host.append(grow, status, publishHost);
+  renderPublish();
 }
 
 function renderTabBar(): void {

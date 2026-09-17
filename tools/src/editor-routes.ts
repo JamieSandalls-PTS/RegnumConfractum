@@ -36,6 +36,8 @@ import { checkAreaForSave } from './editor-check';
 export interface EditorRouteOptions {
   contentDir: string;
   send: (res: http.ServerResponse, status: number, body: unknown) => void;
+  /** A content directory was written or a file in it deleted (D-630). */
+  onChanged?: (dir: string) => void;
 }
 
 function areaFile(areasDir: string, id: string): string | null {
@@ -113,7 +115,7 @@ export function editorRoutes(
   res: http.ServerResponse,
   url: URL,
   parts: string[],
-  { contentDir, send }: EditorRouteOptions,
+  { contentDir, send, onChanged }: EditorRouteOptions,
 ): boolean {
   const areasDir = path.join(contentDir, 'areas');
   if (parts[0] !== 'api') return false;
@@ -163,6 +165,7 @@ export function editorRoutes(
         fs.writeFileSync(path.join(dir, file), Buffer.from(png.slice(prefix.length), 'base64'));
         return file;
       });
+      onChanged?.('areas');
       return send(res, 200, { saved });
     });
     return true;
@@ -228,6 +231,7 @@ export function editorRoutes(
       } catch (err) {
         return send(res, 500, { ok: false, errors: [`could not write: ${String(err)}`] });
       }
+      onChanged?.('ground');
       return send(res, 200, { ok: true });
     });
     return true;
@@ -274,6 +278,7 @@ export function editorRoutes(
       send(res, 500, { ok: false, errors: [`could not delete: ${String(err)}`] });
       return true;
     }
+    onChanged?.('ground');
     send(res, 200, { ok: true });
     return true;
   }
@@ -397,6 +402,7 @@ export function editorRoutes(
         } catch (err) {
           return send(res, 500, { ok: false, errors: [`could not write: ${String(err)}`] });
         }
+        onChanged?.('areas');
         // Written. Now the questions one area cannot answer about itself.
         let crossArea: string[] = [];
         try {

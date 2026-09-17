@@ -42,14 +42,29 @@ const texLoader = new THREE.TextureLoader();
  * run in the same function, so the first snapshot was built before the
  * manifest existed and drew everybody wrong.
  */
-const manifest: Promise<Manifest> = fetch(`${BASE}/manifest.json`)
-  .then((r) => (r.ok ? (r.json() as Promise<Manifest>) : { meshes: {}, atlases: {} }))
-  .catch(() => ({ meshes: {}, atlases: {} }));
+function readManifest(): Promise<Manifest> {
+  return fetch(`${BASE}/manifest.json`)
+    .then((r) => (r.ok ? (r.json() as Promise<Manifest>) : { meshes: {}, atlases: {} }))
+    .catch(() => ({ meshes: {}, atlases: {} }));
+}
+let manifest: Promise<Manifest> = readManifest();
 
 const meshCache = new Map<string, Promise<THREE.Object3D | null>>();
 const atlasCache = new Map<string, Promise<THREE.Texture | null>>();
 /** Said once per asset, not once per placement: a wall is placed forty times. */
 const warned = new Set<string>();
+
+/**
+ * Re-read the environment build (D-630): a Publish may have produced a mesh
+ * an area now places, and the "no built mesh" warning for it was true a
+ * minute ago. What is already standing stays; the next placement fetches.
+ */
+export function invalidateWorldAssets(): void {
+  manifest = readManifest();
+  meshCache.clear();
+  atlasCache.clear();
+  warned.clear();
+}
 
 async function meshFor(key: string): Promise<THREE.Object3D | null> {
   if (!meshCache.has(key)) {

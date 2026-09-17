@@ -3,6 +3,7 @@ import type { GameServer } from '../net/gateway';
 import type { EventEngine } from '../dm/events';
 import { EventDocSchema } from '../dm/schema';
 import type { Store } from '../store/types';
+import type { Content } from '../content';
 
 /**
  * Admin inspection UI skeleton (D-114): lets the stakeholder see world state
@@ -19,6 +20,12 @@ export interface AdminServerOptions {
   /** When set, requests must carry it (?token= or X-Admin-Token). */
   token?: string;
   host?: string;
+  /**
+   * Re-read the content tree (D-630). The authoring tool's Publish calls
+   * `POST /api/dm/reload-content` after its builds; without this the route
+   * answers that reloading is not available here.
+   */
+  reload?: () => Content;
 }
 
 export class AdminServer {
@@ -125,6 +132,16 @@ export class AdminServer {
         // somebody makes about a live game, and it is logged like the rest.
         case '/api/dm/round/restart':
           return gs.adminRestartRound();
+        // The production line's last step (D-630): a save reaches the
+        // running game. Loading throws on anything invalid, and the throw is
+        // the answer — the old content stays and nothing half-applies.
+        case '/api/dm/reload-content': {
+          if (!this.opts.reload) return { ok: false, error: 'this server cannot reload content' };
+          const next = this.opts.reload();
+          const result = gs.reloadContent(next);
+          await this.opts.store.appendEvent('content_reloaded', result);
+          return { ok: true, ...result };
+        }
         case '/api/dm/spawn-npc': {
           const entityId = gs.spawnNpc(String(body.areaId), {
             x: Number(body.x),

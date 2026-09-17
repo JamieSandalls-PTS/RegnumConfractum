@@ -1,5 +1,4 @@
-import partNames from '../../../content/parts/modular-fantasy-hero.json';
-import { PartNamesSchema } from '@rc/shared';
+import { PartNamesSchema, type PartNames } from '@rc/shared';
 
 /**
  * The hood, as a part swap (D-616).
@@ -28,19 +27,36 @@ import { PartNamesSchema } from '@rc/shared';
  * (D-568's rule that English is not a classifier applies to inferring from
  * filenames, not to reading a tag somebody set).
  */
-const CATALOGUE = PartNamesSchema.parse(partNames);
+/**
+ * Every pack's part file, as the server sent them (D-630). This was ONE
+ * pack's file imported at build time, so the hood could only ever come from
+ * `modular-fantasy-hero` whatever the tag said.
+ */
+let CATALOGUES: PartNames[] = [];
+
+export function setPartCatalogues(files: readonly unknown[]): void {
+  CATALOGUES = files.flatMap((raw) => {
+    const parsed = PartNamesSchema.safeParse(raw);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
 
 /** The part stem tagged `hood`, or null if nobody has tagged one. */
 export function hoodStem(): string | null {
-  for (const [stem, tags] of Object.entries(CATALOGUE.tags)) {
-    if (tags.includes('hood')) return stem;
+  for (const file of CATALOGUES) {
+    for (const [stem, tags] of Object.entries(file.tags)) {
+      if (tags.includes('hood')) return stem;
+    }
   }
   return null;
 }
 
-/** Which pack it comes from. One pack today; read rather than assumed. */
+/** Which pack the hood comes from — the one whose file tags it. */
 export function hoodPack(): string {
-  return CATALOGUE.pack;
+  for (const file of CATALOGUES) {
+    if (Object.values(file.tags).some((tags) => tags.includes('hood'))) return file.pack;
+  }
+  return CATALOGUES[0]?.pack ?? '';
 }
 
 /**

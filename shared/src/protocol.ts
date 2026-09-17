@@ -1,8 +1,10 @@
 import { z } from 'zod';
 import { DIRECTIONS } from './types';
 import { AttributeSchema } from './attributes';
-import { StanceSchema } from './actions';
-import { CharacterLookSchema, RaceSchema } from './creation';
+import { AnimationSetSchema, StanceSchema } from './actions';
+import { CharacterItemSchema } from './assets';
+import { GroundMaterialSchema } from './content';
+import { CharacterLookSchema, PartNamesSchema, RaceSchema } from './creation';
 import { EquipSlotSchema, EquipStatsSchema } from './equipment';
 import {
   CharacterAdvancesSchema,
@@ -790,6 +792,44 @@ export type Impression = z.infer<typeof ImpressionSchema>;
 
 export const ServerMessageSchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('error'), code: ErrorCodeSchema, message: z.string() }),
+  /**
+   * The server re-read its content (D-630). Sent to everyone, so a client
+   * drops what it cached off the build manifests — a character rebuilt with
+   * a new face, a mesh the environment build just produced — and fetches it
+   * fresh next time it draws one. Nothing already on screen is redrawn: this
+   * is a dev-loop message, not a scene update, and the existing entity
+   * stays as it was until it next changes.
+   */
+  /**
+   * Presentation content, sent the moment a socket opens and again after a
+   * reload (D-630). Animation sets, ground materials, weapon grips and the
+   * part catalogue used to reach the client as BUILD-TIME imports — a fourth
+   * channel beside server-load, the wire and the baked artefacts — so a set
+   * authored in the tool needed a client rebuild, and `content/animations`
+   * was a directory the game server had never read. It is one channel now:
+   * the server loads it, the wire carries it, and a Publish reaches a client
+   * that is already open.
+   *
+   * ⚠ Before auth, deliberately. None of this is a secret and none of it is
+   * per-player; a client that connects needs it before the first snapshot.
+   * The sound manifest is the one presentation file still imported at build
+   * time, because the menu plays music before a connection exists.
+   */
+  z.object({
+    t: z.literal('render_content'),
+    animations: z.array(AnimationSetSchema),
+    ground: z.array(GroundMaterialSchema),
+    /** `pack/id` → the fitted grip. */
+    grips: z.array(z.object({ key: z.string(), item: CharacterItemSchema })),
+    parts: z.array(PartNamesSchema),
+  }),
+  z.object({
+    t: z.literal('content_reloaded'),
+    /** Directories that changed, as the server saw them. */
+    applied: z.array(z.string()),
+    /** Changes that wait for the next reset or a restart, with why. */
+    deferred: z.array(z.string()),
+  }),
   z.object({
     t: z.literal('auth_ok'),
     accountId: UuidSchema,

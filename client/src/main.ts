@@ -19,6 +19,12 @@ import { Connection } from './net/connection';
 import { Ambience } from './audio';
 import { SoundBank, DEFAULT_VOLUMES, type Volumes } from './sound';
 import soundManifest from '../../content/audio/sounds.json';
+import { invalidateImportedModels } from './render/imported-models';
+import { setAnimationSets } from './render/animation-sets';
+import { setGroundMaterials } from './render/ground';
+import { setGrips } from './render/held-items';
+import { setPartCatalogues } from './render/hood';
+import { invalidateWorldAssets } from './render/world-assets';
 import { CreationWizard } from './creation';
 import { GameScene } from './render/scene';
 import { StationVisual } from './render/station-visual';
@@ -93,7 +99,9 @@ const chatHint = $('chat-hint');
 const chatInput = $<HTMLInputElement>('in-chat');
 const declareInput = $<HTMLInputElement>('in-declare');
 
-const defaultServer = `ws://${location.hostname || 'localhost'}:8080`;
+// The same PORT the server reads from `.env` (exposed by vite.config.ts), so
+// the form and the server cannot disagree about a default (D-630).
+const defaultServer = `ws://${location.hostname || 'localhost'}:${import.meta.env['PORT'] ?? 8080}`;
 $<HTMLInputElement>('in-server').value = localStorage.getItem('rc.server') ?? defaultServer;
 
 function setStatus(text: string, isError = true): void {
@@ -710,6 +718,25 @@ conn.onMessage = (msg: ServerMessage) => {
       localStorage.setItem('rc.token', msg.token);
       showCharacters(msg.characters);
       conn.send({ t: 'get_creation_content' }); // catalogue for the wizard
+      return;
+    case 'render_content':
+      // Presentation content, off the server's own copy (D-630): what the
+      // tool saved is what this client draws with, no rebuild between.
+      setAnimationSets(msg.animations);
+      setGroundMaterials(msg.ground);
+      setGrips(msg.grips);
+      setPartCatalogues(msg.parts);
+      return;
+    case 'content_reloaded':
+      // The production line reached the game (D-630). Drop what was read off
+      // the build manifests so the next draw sees the Publish; say so in the
+      // log because a dev loop that works silently is one nobody trusts.
+      invalidateImportedModels();
+      invalidateWorldAssets();
+      appendSystemLine(
+        `content reloaded: ${msg.applied.length} directories`
+        + (msg.deferred.length ? ` — ${msg.deferred.join('; ')}` : ''),
+      );
       return;
     case 'creation_content':
       creation.setContent(msg);

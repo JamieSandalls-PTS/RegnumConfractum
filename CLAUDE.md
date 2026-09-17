@@ -1701,6 +1701,21 @@ the finding nothing else made, and the one D-625 cost a session to.
 line there. ⚠ Tab modules live in `client/src/tool/` and take a `ToolContext`
 rather than the page's globals — the pattern to extract the rest into.
 
+**A save reaches the running game (D-630).** `shared/src/pipeline.ts` is the
+dependency map — content directory → the builds it invalidates and whether
+the server takes it **hot**, **warm** (areas, at the next reset) or after a
+**restart** (scripts) — and a test fails on a directory with no entry.
+**Publish** in the tool runs only the invalidated builds, streams them, and
+calls `POST /api/dm/reload-content`; `GameServer.reloadContent` swaps the
+lookups, tells every client (`content_reloaded`, which drops model caches)
+and reports what it could NOT apply rather than claiming it did. **Animation
+sets, ground, grips and part names ride the wire** (`render_content`, sent
+when a socket opens and after a reload) instead of being Vite imports —
+`content/animations` is loaded by the game server for the first time.
+⚠ `audio/sounds.json` stays a build-time import: the menu plays before a
+connection exists. ⚠ The login form's default port now comes from `.env`
+through Vite, the drift D-628 fixed for the bot runner.
+
 ⚠ **Unratified balance awaiting the stakeholder:** the run multiplier, the
 watch's damage and cadence and the keepers' 40 hit points (D-619); the veil's
 palette (D-621); creation
