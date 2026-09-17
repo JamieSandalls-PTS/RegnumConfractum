@@ -92,7 +92,7 @@ import { overview } from './overview';
 import { Publisher } from './publish';
 import { applyFiling, filingRows } from './filing';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import type { BufferAttribute, Mesh } from 'three';
+import { Box3, Vector3, type BufferAttribute, type Mesh } from 'three';
 
 /**
  * THE authoring server (D-558, D-560, one port since D-629).
@@ -221,6 +221,24 @@ const nodesDir = path.join(contentDir, 'nodes');
 const npcsDir = path.join(contentDir, 'npcs');
 const scenariosDir = path.join(contentDir, 'scenarios');
 const clothDir = path.join(contentDir, 'cloth');
+
+/**
+ * The longest side of a mesh's bounding box in its own units, so a filing
+ * can guess its scale the way the tool does (D-631). Null if it cannot load.
+ */
+function longestExtent(pack: Pack, stem: string): number | null {
+  const file = meshPath(pack, stem);
+  if (!file) return null;
+  try {
+    const buf = fs.readFileSync(file);
+    const group = new FBXLoader().parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), '');
+    const box = new Box3().setFromObject(group);
+    const size = box.getSize(new Vector3());
+    return Math.max(size.x, size.y, size.z);
+  } catch {
+    return null;
+  }
+}
 
 /** The cloth file for a pack, or an empty one. */
 function clothFileFor(pack: string): ClothFile {
@@ -832,7 +850,7 @@ const server = http.createServer((req, res) => {
         return send(res, 400, { error: 'expected { uses: string[] }' });
       }
       const result = applyFiling(
-        { contentDir, pack: pack.id, stems: allMeshStems(pack) },
+        { contentDir, pack: pack.id, stems: allMeshStems(pack), measure: (s) => longestExtent(pack, s) },
         stem,
         uses as never,
       );

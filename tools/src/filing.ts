@@ -52,6 +52,13 @@ export interface FilingWorld {
   pack: string;
   /** Every mesh stem in the pack, from the ingested art. */
   stems: readonly string[];
+  /**
+   * The longest extent of a mesh in its own units, when the caller can see
+   * the art. Packs disagree about units by a hundredfold (D-561), and a
+   * fresh entry at scale 1 for a centimetre mesh is a 93-metre arrow — the
+   * tool guesses the scale by measuring, and so should a filing.
+   */
+  measure?: (stem: string) => number | null;
 }
 
 function assetFile(contentDir: string, pack: string, kind: AssetKind): AssetFile {
@@ -177,15 +184,17 @@ function nameFrom(stem: string): string {
 
 /**
  * A fresh entry for a mesh filed under a kind. The same defaults the tool's
- * `blankAsset` uses, with scale 1: the tool measures the mesh to guess a
- * scale and a server cannot, so the property panel's centimetre reading is
- * where a wrong unit gets caught (D-561).
+ * `blankAsset` uses, and the same scale guess when the caller can measure
+ * the mesh; the property panel's centimetre reading is where a wrong unit
+ * gets caught either way (D-561).
  */
-function blankFor(kind: AssetKind, pack: string, mesh: string, taken: Set<string>): AssetDef {
+function blankFor(kind: AssetKind, pack: string, mesh: string, taken: Set<string>, longest: number | null): AssetDef {
   let id = idFrom(mesh);
   for (let n = 2; taken.has(id); n++) id = `${idFrom(mesh)}-${n}`;
   const core = { id, name: nameFrom(mesh), pack, mesh, tags: [] as string[] };
-  const transform = { position: [0, 0, 0] as [number, number, number], rotation: [0, 0, 0] as [number, number, number], scale: 1 };
+  // The tool's own rule (`guessScale`): over 20 units long is centimetres.
+  const scale = longest !== null && longest > 20 ? 0.01 : 1;
+  const transform = { position: [0, 0, 0] as [number, number, number], rotation: [0, 0, 0] as [number, number, number], scale };
   if (kind === 'character-item') {
     return { ...core, kind, attach: 'Hand_R', transform, stance: 'one-handed', clips: {} };
   }
@@ -268,7 +277,7 @@ export function applyFiling(world: FilingWorld, stem: string, wanted: readonly F
     if (kind) {
       const file = assetFile(contentDir, pack, kind);
       const taken = new Set(file.assets.map((a) => a.id));
-      file.assets.push(blankFor(kind, pack, stem, taken));
+      file.assets.push(blankFor(kind, pack, stem, taken, world.measure?.(stem) ?? null));
       writeAssetFile(contentDir, file);
       changed.add('assets');
     } else if (use === 'creature') {

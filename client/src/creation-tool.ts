@@ -2271,7 +2271,11 @@ function renderAssetList(): void {
   const host = $('list');
   host.replaceChildren();
   const shelf = assetShelf();
-  const mine = assetCat.meshes.filter((m) => m.shelf === shelf);
+  // ⚠ What is FILED under this kind as well as what the prefix suggests
+  // (D-631). The shelf is a guess from the vendor's naming and no prefix
+  // means "projectile", so an arrow filed as one on the Filing tab appeared
+  // on no tab at all — filed, saved, and nowhere to set its properties.
+  const mine = assetCat.meshes.filter((m) => m.shelf === shelf || Boolean(assetOf(m.stem)));
   const named = mine.filter((m) => assetOf(m.stem)).length;
   const head = document.createElement('div');
   head.innerHTML =
