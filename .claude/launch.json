@@ -19,6 +19,16 @@
         "dev:tools"
       ],
       "port": 8150
+    },
+    {
+      "name": "server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:server"
+      ],
+      "port": 8095,
+      "autoPort": false
     }
   ]
 }
