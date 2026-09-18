@@ -6,6 +6,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { TICK as SIM_TICK, sleep } from '../src/testTick';
+import { opensIn } from '../src/testScenario';
 
 /**
  * The watch does not accumulate (D-610).
@@ -42,7 +43,7 @@ const guardsSeenBy = (b: BotClient): number =>
 beforeAll(async () => {
   server = new GameServer({
     store: new MemoryStore(),
-    content: loadContent(contentDir),
+    content: opensIn(loadContent(contentDir), 'round-town'), // the round is played in the town here (D-636)
     port: 0,
     tickIntervalMs: TICK,
     rngSeed: 31,
@@ -124,7 +125,7 @@ describe('the watch can still see after a night has passed', () => {
     store = new MemoryStore();
     s = new GameServer({
       store,
-      content: loadContent(contentDir),
+      content: opensIn(loadContent(contentDir), 'round-town'), // the round is played in the town here (D-636)
       port: 0,
       tickIntervalMs: TICK,
       rngSeed: 77,

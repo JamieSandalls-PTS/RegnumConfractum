@@ -41,6 +41,7 @@ import { ImportedVisual } from './render/imported-visual';
 import * as importedModels from './render/imported-models';
 import {
   RUN_SECONDS,
+  SPRINT_SECONDS,
   TILE_SECONDS,
   isMoving,
   markMoved,
@@ -373,6 +374,21 @@ let hoveredEntityId: number | null = null;
 let hoveredTile: { x: number; y: number } | null = null;
 /** Click-to-move destination; the executor re-plans each step (drift-safe). */
 let moveDest: { x: number; y: number } | null = null;
+/** Whether `moveDest` was double-clicked: run there (D-636). */
+let moveRun = false;
+/** The last ground click, so the next one can be recognised as a double. */
+let lastGroundClick: { x: number; y: number; at: number } | null = null;
+const DOUBLE_CLICK_MS = 400;
+/**
+ * The target the player has chosen to FIGHT (D-636). Approached until it is
+ * within reach and struck every time the weapon is ready, until the player
+ * asks for anything else: a move, another target, another ability, Escape.
+ * `engagePlannedFor` is where the target stood when we last asked the
+ * server to walk us toward it, so a target that moves gets a fresh route
+ * and one that stands still does not get the walk restarted every poll.
+ */
+let engagedId: number | null = null;
+let engagePlannedFor: { x: number; y: number } | null = null;
 /**
  * Whether the server has already been asked to walk to `moveDest`.
  *
@@ -1028,6 +1044,7 @@ function addEntity(wire: WireEntity): void {
   visual.setPosture(wire.posture, wire.seated);
   visual.setPresentation(wire.presentation);
   visual.setCombat(wire.combat);
+  if (isPerson(visual)) visual.setRunning(wire.running);
   applyWorn(visual, wire);
   visual.setLootable(wire.lootable);
   if (wire.kind === 'corpse' && !inherited) {
@@ -1139,8 +1156,12 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       e.wire.z = event.z as number;
       e.wire.facing = event.facing as Direction;
       e.wire.posture = 'standing';
+      // Sprinting rides on the movement event (D-636): it is the one
+      // message every observer gets while the body moves.
+      e.wire.running = event.running === true;
       e.visual.setFacing(e.wire.facing);
       e.visual.setPosture('standing');
+      if (isPerson(e.visual)) e.visual.setRunning(e.wire.running);
     }
   } else if (event.type === 'entity_emote') {
     const e = entities.get(event.id as number);
@@ -1608,7 +1629,7 @@ function sendChat(): void {
   if (raw === '/attack') {
     const target = nearestOther();
     if (target === null) return appendSystemLine('Nothing in reach.');
-    conn.send({ t: 'attack', targetEntityId: target });
+    engage(target);
     return;
   }
   if (raw === '/treat') {
@@ -1839,6 +1860,7 @@ setInterval(() => {
     if (moveDest) conn.send({ t: 'move_stop' });
     moveDest = null; moveAsked = false;
     moveAsked = false;
+    disengage(); // walking away is the answer to "keep attacking?" (D-636)
     conn.send({ t: 'move', dir });
     return;
   }
@@ -1863,7 +1885,7 @@ setInterval(() => {
       return;
     }
     if (!moveAsked) {
-      conn.send({ t: 'move_to', x: moveDest.x, y: moveDest.y });
+      conn.send({ t: 'move_to', x: moveDest.x, y: moveDest.y, run: moveRun });
       moveAsked = true;
     }
   }
@@ -1895,10 +1917,11 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'h') toggleHood();
   if (e.key === 'f') {
     const target = selectedId ?? nearestOther();
-    if (target !== null) conn.send({ t: 'attack', targetEntityId: target });
+    if (target !== null) engage(target);
   }
   if (e.key === 'Escape' && !chatOpen()) {
     selectedId = null;
+    disengage();
     hideContextMenu();
     updateTargetFrame();
   }
@@ -2099,7 +2122,7 @@ function updateHighlights(): void {
       tileHighlight.visible = false;
     }
   }
-  autoAttackStep();
+  engageStep();
   const sel = selectedId !== null ? entities.get(selectedId) : undefined;
   if (sel) {
     selectRing.visible = true;
@@ -2146,15 +2169,114 @@ function tilesBetween(a: { x: number; y: number }, b: { x: number; y: number }):
  * damage value, and nothing here special-cases it.
  */
 function autoAttackStep(): void {
-  if (selectedId === null || youId === null || status === null || status.ghost) return;
+  if (engagedId !== null || selectedId === null || status === null || status.ghost) return;
   const target = entities.get(selectedId);
-  const you = entities.get(youId);
-  if (!target || !you) return;
+  if (!target) return;
   if (target.wire.kind !== 'npc' && target.wire.kind !== 'player') return;
   // Only things that are visibly hostile, or people who have already swung.
-  const engageable = target.wire.hostile || struckBy.has(target.wire.id);
-  if (!engageable) return;
-  if (tilesBetween(you.wire, target.wire) > status.reach) return;
+  if (target.wire.hostile || struckBy.has(target.wire.id)) engage(selectedId);
+}
+
+/**
+ * Choose somebody to fight (D-636). Every way of asking for an attack — the
+ * hotbar, the F key, the context menu, `/attack` — comes here rather than
+ * sending one swing, and `engageStep` does the rest.
+ */
+function engage(targetId: number): void {
+  if (youId === null || targetId === youId) return;
+  const target = entities.get(targetId);
+  if (!target || (target.wire.kind !== 'npc' && target.wire.kind !== 'player')) return;
+  engagedId = targetId;
+  engagePlannedFor = null;
+  // A fight replaces a walk, not the other way round.
+  moveDest = null; moveAsked = false; moveRun = false;
+  if (selectedId !== targetId) {
+    selectedId = targetId;
+    updateTargetFrame();
+  }
+  engageStep();
+}
+
+function disengage(): void {
+  if (engagedId !== null && engagePlannedFor !== null) conn.send({ t: 'move_stop' });
+  engagedId = null;
+  engagePlannedFor = null;
+}
+
+/**
+ * The nearest tile to `from` that is within `reach` of `target`, or null.
+ *
+ * Not the target's own tile: the server walks the whole route and would
+ * shove the target off theirs (the struck-worker test found exactly that,
+ * D-633). Reach is Euclidean, as the server measures it.
+ */
+function approachTile(
+  from: { x: number; y: number },
+  target: { x: number; y: number },
+  reach: number,
+): { x: number; y: number } | null {
+  const tx = Math.round(target.x);
+  const ty = Math.round(target.y);
+  const r = Math.max(1, Math.floor(reach));
+  let best: { x: number; y: number } | null = null;
+  let bestGap = Infinity;
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      const p = { x: tx + dx, y: ty + dy };
+      if (Math.hypot(p.x - target.x, p.y - target.y) > reach) continue;
+      if (!tileWalkable(p.x, p.y)) continue;
+      const gap = Math.hypot(p.x - from.x, p.y - from.y);
+      if (gap < bestGap) {
+        bestGap = gap;
+        best = p;
+      }
+    }
+  }
+  return best;
+}
+
+/**
+ * Fight the engaged target (D-636): close the distance if it is out of reach,
+ * strike whenever the weapon is ready once it is in. Runs on the poll.
+ *
+ * The client only chooses WHEN to send the intent; range, cooldown, line of
+ * sight and the roll are the server's (D-102). Sending a swing that would be
+ * refused is avoided because a stream of refusals is indistinguishable from
+ * a bug, and the approach exists because "out of reach" is not an answer a
+ * player can use — it is a request to be walked closer.
+ */
+function engageStep(): void {
+  autoAttackStep();
+  if (engagedId === null || youId === null || status === null) return;
+  const target = entities.get(engagedId);
+  const you = entities.get(youId);
+  if (status.ghost || !target || !you
+      || (target.wire.kind !== 'npc' && target.wire.kind !== 'player')) {
+    // Gone, dead, or we are: the fight is over.
+    engagedId = null;
+    engagePlannedFor = null;
+    return;
+  }
+  const gap = Math.hypot(you.wire.x - target.wire.x, you.wire.y - target.wire.y);
+  if (gap > status.reach) {
+    const at = { x: Math.round(target.wire.x), y: Math.round(target.wire.y) };
+    const stale = engagePlannedFor === null
+      || Math.max(Math.abs(engagePlannedFor.x - at.x), Math.abs(engagePlannedFor.y - at.y)) >= 1;
+    if (stale) {
+      const dest = approachTile(you.wire, target.wire, status.reach);
+      if (dest) {
+        // At the pace the weapon sets: a drawn blade already runs (D-619).
+        conn.send({ t: 'move_to', x: dest.x, y: dest.y });
+        engagePlannedFor = at;
+      }
+    }
+    return;
+  }
+  if (engagePlannedFor !== null) {
+    conn.send({ t: 'move_stop' });
+    engagePlannedFor = null;
+  }
   const spacing = attackSpacingTicks(status.attacksPerRound, status.roundTicks);
   if (serverTick - lastAttackAt < spacing) return;
   lastAttackAt = serverTick;
@@ -2193,12 +2315,22 @@ window.addEventListener('pointerup', (e) => {
   hideContextMenu();
   const entityId = entityAtScreen(e.clientX, e.clientY);
   if (entityId !== null && entityId !== youId) {
+    // Picking somebody else is a change of mind about who to fight (D-636).
+    if (engagedId !== null && engagedId !== entityId) disengage();
     selectedId = entityId;
     updateTargetFrame();
     return;
   }
   const tile = tileAtScreen(e.clientX, e.clientY);
   if (tile && tileWalkable(tile.x, tile.y)) {
+    // A second click on the same tile inside the double-click window is a
+    // RUN there (D-636); the first click already set off the walk.
+    const now = performance.now();
+    moveRun = lastGroundClick !== null
+      && lastGroundClick.x === tile.x && lastGroundClick.y === tile.y
+      && now - lastGroundClick.at < DOUBLE_CLICK_MS;
+    lastGroundClick = { x: tile.x, y: tile.y, at: now };
+    disengage(); // walking somewhere is the answer to "keep attacking?"
     moveDest = tile; moveAsked = false;
     pendingSit = null;
     // Clicking open ground drops the target, the way every game with a
@@ -2296,7 +2428,7 @@ function menuFor(entityId: number | null, tile: { x: number; y: number } | null)
       return entries;
     }
     if (kind === 'player' || kind === 'npc') {
-      entries.push({ label: 'Attack', act: () => conn.send({ t: 'attack', targetEntityId: entityId }) });
+      entries.push({ label: 'Attack', act: () => engage(entityId) });
     }
     if (kind === 'player') {
       entries.push({ label: 'Treat wounds', act: () => conn.send({ t: 'treat', targetEntityId: entityId }) });
@@ -2412,7 +2544,7 @@ interface AbilityDef {
 const ABILITIES: AbilityDef[] = [
   { id: 'attack', glyph: '⚔', label: 'Attack', use: () => {
     const t = abilityTarget();
-    if (t !== null) conn.send({ t: 'attack', targetEntityId: t });
+    if (t !== null) engage(t);
   } },
   { id: 'treat', glyph: '✚', label: 'Treat wounds', use: () => {
     const t = abilityTarget() ?? youId;
@@ -2486,6 +2618,8 @@ function saveHotbar(): void {
 function useHotbarSlot(i: number): void {
   const id = hotbar[i];
   const ability = id ? ABILITIES.find((a) => a.id === id) : undefined;
+  // Any other ability is "something else" (D-636): the standing attack ends.
+  if (ability && ability.id !== 'attack') disengage();
   ability?.use();
 }
 
@@ -2879,7 +3013,10 @@ function stepFrame(dt: number): void {
     const moving = isMoving(e.render, target, now);
     // ⚠ Glide at the pace the SERVER is moving them (D-619). A body with
     // its weapon up runs, and a walk-paced glide would trail it.
-    stepToward(e.render, target, dt, e.wire.combat ? RUN_SECONDS : TILE_SECONDS);
+    stepToward(
+      e.render, target, dt,
+      e.wire.running ? SPRINT_SECONDS : e.wire.combat ? RUN_SECONDS : TILE_SECONDS,
+    );
     // ⚠ Height comes straight from the wire, NOT interpolated with x and y.
     // A stair's treads are a series of small steps and easing between them
     // makes a character wade through the stone; arriving at each tread is what
@@ -3061,6 +3198,7 @@ frame();
 declare global {
   interface Window {
     __rc?: {
+      engaged: () => { target: number | null; plannedFor: { x: number; y: number } | null; nearest: number | null };
       /** How many pack meshes are drawn — verification, not a feature (D-567). */
       walk: () => Promise<unknown>;
       assets: () => { placed: number; drawn: number };
@@ -3136,6 +3274,8 @@ declare global {
   }
 }
 window.__rc = {
+  /** Who the standing attack is aimed at, if anyone (D-636). Verification only. */
+  engaged: () => ({ target: engagedId, plannedFor: engagePlannedFor, nearest: nearestOther() }),
   /**
    * Watch your own walk for two seconds and report what actually flips.
    *

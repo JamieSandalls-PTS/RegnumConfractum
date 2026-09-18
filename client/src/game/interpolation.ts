@@ -49,6 +49,9 @@ export const TILE_SECONDS = 1 / WALK_SPEED;
  */
 export const RUN_SECONDS = 1 / speedFor(true);
 
+/** Seconds to cross a metre at a SPRINT — the double-click (D-636). */
+export const SPRINT_SECONDS = 1 / speedFor(false, true);
+
 /** Beyond this many tiles of error, snap instead of glide (area change,
  * teleport, or resync — gliding across the map would look absurd). */
 const SNAP_DISTANCE = 2.5;

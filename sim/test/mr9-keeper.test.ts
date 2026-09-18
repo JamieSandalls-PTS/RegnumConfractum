@@ -8,6 +8,7 @@ import { MemoryStore } from '@rc/server/store/memory';
 import { ScriptHost } from '@rc/server/script/host';
 import { BotClient } from '../src/botClient';
 import { TICK as SIM_TICK, sleep } from '../src/testTick';
+import { opensIn } from '../src/testScenario';
 
 /**
  * `silence-the-keeper` can be won (D-593).
@@ -51,7 +52,7 @@ async function waitFor<T>(get: () => T | undefined, what: string, ms = 15_000): 
 
 beforeAll(async () => {
   store = new MemoryStore();
-  const content = loadContent(contentDir);
+  const content = opensIn(loadContent(contentDir), 'round-town'); // the test is about the town (D-636)
   server = new GameServer({
     store,
     content,

@@ -159,7 +159,13 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
    * The client now says where; the server decides how, and remains the only
    * thing that moves anybody (invariant 1).
    */
-  z.object({ t: z.literal('move_to'), x: z.number(), y: z.number() }),
+  z.object({
+    t: z.literal('move_to'),
+    x: z.number(),
+    y: z.number(),
+    /** Run there rather than walk (D-636): the double-click. */
+    run: z.boolean().optional(),
+  }),
   /** Stop where you are, abandoning any route. */
   z.object({ t: z.literal('move_stop') }),
   z.object({ t: z.literal('give'), itemId: UuidSchema, toEntityId: z.number().int() }),
@@ -505,6 +511,8 @@ export const WireEntitySchema = z.object({
   /** In combat: weapon drawn and held ready. Server-owned so every
    * observer sees the same stance (D-102). */
   combat: z.boolean().default(false),
+  /** Sprinting to a double-clicked spot (D-636). Server-owned, like `combat`. */
+  running: z.boolean().default(false),
   /**
    * What this character is visibly WEARING (D-554). Public, like posture —
    * everyone can see you are in mail with a blade out.
@@ -641,6 +649,12 @@ export const SimEventSchema = z.discriminatedUnion('type', [
     y: z.number(),
     z: z.number().default(0),
     facing: DirectionSchema,
+    /**
+     * Sprinting (D-636). On the movement event rather than its own delta,
+     * because it only means anything while the body is moving, and an
+     * observer glides and animates from this one message.
+     */
+    running: z.boolean().optional(),
   }),
   z.object({ type: z.literal('entity_entered'), entity: WireEntitySchema }),
   z.object({ type: z.literal('entity_left'), id: z.number().int() }),

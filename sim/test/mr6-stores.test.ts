@@ -6,6 +6,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { TICK as SIM_TICK, sleep } from '../src/testTick';
+import { opensIn } from '../src/testScenario';
 
 /**
  * The common stores (D-529, D-530, built D-580).
@@ -96,7 +97,7 @@ beforeAll(async () => {
   store = new MemoryStore();
   server = new GameServer({
     store,
-    content: loadContent(contentDir),
+    content: opensIn(loadContent(contentDir), 'round-town'), // the round is played in the town here (D-636)
     port: 0,
     tickIntervalMs: TICK,
     rngSeed: 19,
@@ -265,7 +266,7 @@ describe('what spoiled food does when it is eaten (D-580)', () => {
     st3 = new MemoryStore();
     s3 = new GameServer({
       store: st3,
-      content: loadContent(contentDir),
+      content: opensIn(loadContent(contentDir), 'round-town'), // the round is played in the town here (D-636)
       port: 0,
       tickIntervalMs: TICK,
       rngSeed: 31,
@@ -357,7 +358,7 @@ describe('the stores do not survive the round (D-522, D-529)', () => {
     st2 = new MemoryStore();
     s2 = new GameServer({
       store: st2,
-      content: loadContent(contentDir),
+      content: opensIn(loadContent(contentDir), 'round-town'), // the round is played in the town here (D-636)
       port: 0,
       tickIntervalMs: TICK,
       rngSeed: 23,

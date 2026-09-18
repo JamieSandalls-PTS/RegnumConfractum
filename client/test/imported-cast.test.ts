@@ -597,3 +597,13 @@ describe('drawing and sheathing (D-620)', () => {
     expect(step.weaponOut).toBe(true);
   });
 });
+
+describe('a sprint plays the run (D-636)', () => {
+  it('runs without a weapon up, and only while moving', () => {
+    expect(actionFor({ dead: false, posture: 'standing', moving: true, running: true })).toBe('run');
+    expect(actionFor({ dead: false, posture: 'standing', moving: true, running: false })).toBe('walk');
+    expect(actionFor({ dead: false, posture: 'standing', moving: false, running: true })).toBe('idle');
+    // Death still outranks it.
+    expect(actionFor({ dead: true, posture: 'standing', moving: true, running: true })).toBe('death');
+  });
+});

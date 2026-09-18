@@ -125,6 +125,12 @@ export interface WorldEntity {
    * COMBAT_PROXIMITY_TILES. Server-owned so every observer agrees.
    */
   combat: boolean;
+  /**
+   * Asked to RUN to the current route's end (D-636). Cleared with the route:
+   * a sprint is to a place, and arriving, stopping or being given a new
+   * destination ends it.
+   */
+  running: boolean;
   /** Tick before which combat cannot be left, whatever the proximity. */
   combatHotUntil: number;
   /** For corpses: the entity carrying this body, if any. */
@@ -189,6 +195,7 @@ export function toWireEntity(e: WorldEntity, descriptor: string): WireEntity {
     ...(e.stationType ? { variant: e.stationType } : {}),
     ...(e.stationArt ? { art: e.stationArt } : {}),
     combat: e.combat,
+    running: e.running,
     worn: e.worn ?? null,
     lootable: e.lootable === true,
     hostile: e.hostile === true && e.characterId === null,
@@ -303,6 +310,7 @@ export class World {
       attackRound: -1,
       attacksThisRound: 0,
       combat: false,
+      running: false,
       combatHotUntil: 0,
       carriedBy: null,
       diedAtTick: null,
@@ -363,19 +371,22 @@ export class World {
     // It also makes a diagonal take longer than a cardinal, which is correct
     // and which the grid version got wrong for free.
     entity.route = [{ x: entity.pos.x + v.x * STRIDE, y: entity.pos.y + v.y * STRIDE }];
+    entity.running = false;
   }
 
   /** Walk to a point, by whatever route the area allows (D-567). */
-  moveTo(entityId: number, to: Vec2): boolean {
+  moveTo(entityId: number, to: Vec2, run = false): boolean {
     const entity = this.getEntity(entityId);
     const areaId = entity && this.entityArea.get(entity.id);
     if (!entity || areaId === undefined) return false;
     const route = this.navFor(areaId).path(entity.pos, to);
     if (!route) {
       entity.route = null;
+      entity.running = false;
       return false;
     }
     entity.route = route;
+    entity.running = run;
     return true;
   }
 
@@ -385,6 +396,7 @@ export class World {
     if (!entity) return;
     entity.route = null;
     entity.intent = null;
+    entity.running = false;
   }
 
   private navFor(areaId: string): Nav {
@@ -415,6 +427,7 @@ export class World {
           y: entity.pos.y,
           z: entity.z,
           facing: entity.facing,
+          running: entity.running,
         });
       }
       if (events) out.set(areaId, events);
@@ -439,7 +452,7 @@ export class World {
     // ⚠ A weapon up means a run (D-619). It is read off the entity's own
     // combat flag, which the gateway owns and broadcasts, so the speed a
     // client GLIDES at and the speed the server MOVES at come from one fact.
-    let budget = speedFor(entity.combat) / TICK_RATE;
+    let budget = speedFor(entity.combat, entity.running) / TICK_RATE;
     const layer = areaCollision(area.def);
     let moved = false;
     while (budget > 1e-9 && route.length > 0) {
@@ -457,6 +470,7 @@ export class World {
       const next = stepTo(layer, { pos: entity.pos, z: entity.z }, to);
       if (!next) {
         entity.route = null;
+        entity.running = false;
         return moved;
       }
       entity.facing = facingOf(entity.pos, to) ?? entity.facing;
@@ -469,6 +483,7 @@ export class World {
     if (route.length === 0) {
       entity.route = null;
       entity.intent = null;
+      entity.running = false;
     }
     return moved;
   }

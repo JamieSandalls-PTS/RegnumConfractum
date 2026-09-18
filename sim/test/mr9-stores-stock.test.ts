@@ -6,6 +6,7 @@ import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
 import { BotClient } from '../src/botClient';
 import { TICK as SIM_TICK, sleep } from '../src/testTick';
+import { opensIn } from '../src/testScenario';
 
 /**
  * The town opens stocked, and the stock RUNS OUT (D-529, built D-593).
@@ -54,7 +55,7 @@ beforeAll(async () => {
   store = new MemoryStore();
   server = new GameServer({
     store,
-    content: loadContent(contentDir),
+    content: opensIn(loadContent(contentDir), 'round-town'), // the round is played in the town here (D-636)
     port: 0,
     tickIntervalMs: TICK,
     rngSeed: 31,

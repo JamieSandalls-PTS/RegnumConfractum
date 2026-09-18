@@ -11439,3 +11439,114 @@ line stays after it ends; a single file plays as one take; switching to Art
 reports nothing playing. The stakeholder heard the town bed. ⚠ Nothing here
 runs headless -- WebAudio does not exist under Node -- so the hook is the
 only automatic check, and it is a probe rather than a test.
+
+
+
+## D-636 -- Seven notes from playing: the opening, the dead, the run and the fight
+
+**Status:** implemented. Every magnitude here is unratified.
+
+The stakeholder played the build on the day D-634 and D-635 landed and sent
+seven notes. Each is answered below with what was actually wrong, because in
+four of the seven the cause was not what the note suggested.
+
+### 1. "The graphics look very pixelated -- are you sure you removed the pixelation?"
+
+The quantiser was gone (D-586), but two lines it had needed were not:
+`setPixelRatio(1)` and `antialias: false`. Both were right while a 320x200
+buffer was being upscaled anyway, and wrong the moment the scene drew to the
+canvas. On the stakeholder's 150% display the world was rendered at two
+thirds of the screen's resolution and stretched -- measured
+`devicePixelRatio` 1.5 -- with no antialiasing, which reads as pixelation.
+The renderer now draws at the device's density (capped at 2) with
+antialiasing, and the veil's render target is sized from the DRAWING buffer
+rather than the CSS size, or the dead would see a blurred world.
+
+### 2. "I am still spawning in places other than the tavern, and on top of each other"
+
+Two facts. The scenario opened in `round-town` -- the square, not the
+taproom -- and every arrival was put on the ONE spawn tile. **Ruling: the
+round opens in the taproom** (`opensIn: hanged-ferryman`, inside the round
+since D-634), and an arrival stands on the nearest free tile to the spawn:
+one a body can stand on, with nobody living within a metre, and never a
+DOOR -- the taproom's spawn is one tile from its threshold, and somebody
+placed on the threshold would walk straight out of the opening scene. The
+reset, the round's start and every `enter_world` go through the one
+`spawnPointFor`.
+
+⚠ **The watch walks the STREETS.** `guardAreas` was every settled area,
+which was the square alone until D-634 put the tavern in the round; then four
+guards stood in a room of twenty by fifteen where every round opens and
+answered the first blow of any fight before anybody else could. A guard's
+beat is settled AND outdoor now: the place D-549 built for being seen.
+
+⚠ **A bot stood on the barred door forever.** The agent compared its
+position to the door's tile with `===`, and positions are metres (D-567): a
+body settles at 1.125 on a door at 1, so "standing on it" never matched and
+the tries counter reset on every successful step. A door it stands on that
+does not fire is now remembered as leading back to the same room, and never
+routed through again. Found because `mr3-bots` stopped doing any work:
+all four bots were pressed against the taproom's yard door.
+
+### 3. "I am still seeing dead bodies at the beginning of a round"
+
+A swept corpse's ROW was never closed. `sweepTheDead` despawned the body and
+deleted its items but left the record in state `corpse`, so the next boot's
+`restoreCorpses` brought back every body every reset had cleared. The row is
+marked `gone` now; in round mode the boot sweeps whatever it restored (a
+corpse belongs to the round it fell in, which ended with the process); and
+the round's START sweeps the dead and stands any ghost back up whole, the
+way the reset always did -- the first round after a boot never went through
+a reset, which is why ghosts from an earlier session opened it on the floor.
+
+### 4. "Death animations replay over and over"
+
+`playDeath` played `CLIP.death` by name. That name is the FLOOR for a rig
+nobody has bound; the animation set binds `death` to `unarmed-death`, so no
+such clip existed, nothing played, and the next frame's `update` played the
+set's death clip through the ordinary path -- which LOOPS. The death clip is
+now resolved through the table, and `play` treats it as a one-shot whoever
+asks for it, so a corpse being re-dressed or looted holds its last frame.
+
+### 5. Double-click to RUN
+
+`move_to` carries `run`; the entity carries `running`, cleared with its
+route (arriving, stopping, a new destination or a keyed step all end it);
+the movement event carries it so every observer glides and animates from
+the one message; and the run clip plays with or without a weapon.
+**`SPRINT_SPEED` is `WALK_SPEED * 2`** -- the stakeholder's number -- which
+is ABOVE D-619's combat run, whose 1.45x was chosen so a duel is not
+decided by kiting. A sprint ends at the spot you clicked and asks nothing of
+the weapon, and whether 2x reads as kiting in a real fight is for play to
+decide. ⚠ Unratified, and the number to watch.
+
+### 6 and 7. Out of reach means "walk me closer"; the standard attack continues
+
+Every way of asking for an attack -- hotbar, F, the context menu,
+`/attack` -- now ENGAGES the target rather than sending one swing. Engaged,
+the client walks to the nearest tile within the weapon's reach (never the
+target's own tile, which the server would shove them off -- D-633's finding),
+re-routes when the target moves a tile, stops when in reach, and sends a
+swing whenever the round's spacing allows, until the player asks for
+anything else: a click on ground, a keyed step, another target, another
+ability, Escape, or the target dying. D-550's auto-attack on a visibly
+hostile selection feeds into the same loop.
+
+⚠ **Client-side, deliberately.** The client chooses WHEN to send intent;
+range, cooldown, line of sight and the roll stay the server's (D-102). Doing
+it on the server would have changed what every bot's `attack` means and
+re-timed forty wall-clock suites (D-633) for a behaviour that is about the
+player's hand. Bots are unchanged. ⚠ Line of sight is not checked on the
+client, so a bow engaged through a wall walks closer and is told "nothing
+clear to aim at" when it gets there -- an honest answer rather than a wrong
+route.
+
+### Verified
+
+Headless: `mr14-round-opening` (a restored corpse is swept and its record
+closed; three arrivals stand in the taproom on distinct non-door tiles at
+full health), the sprint in `movement.test` (twice the walk's ground, ends
+on arrival, ends on any new intent), the action table (a sprint plays the
+run, death outranks it), the boundary walk from the taproom, and the full
+suite. In the browser: the resolution, the run and the engagement are for
+the stakeholder's eyes; the client's engage loop has no headless harness.

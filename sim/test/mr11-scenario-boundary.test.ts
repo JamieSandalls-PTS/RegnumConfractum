@@ -27,6 +27,8 @@ import { TICK as SIM_TICK, sleep } from '../src/testTick';
  * ⚠ Since D-634 the tavern is INSIDE the round — it is the taproom behind the
  * door in Ashfold's square, the one tavern the stakeholder knows — so the edge
  * moved one room west: the taproom's door to the yard is what is refused now.
+ * And since D-636 the round OPENS there, so the walk is the other way about:
+ * refused at the yard door first, then out through the square door.
  */
 
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
@@ -112,22 +114,16 @@ describe('the scenario is the round map', () => {
     expect(sc.areas).not.toContain('sunken-crypt');
   });
 
-  it('⚠ opens the round in the SCENARIO, not in the server default', async () => {
-    // The server's `defaultAreaId` above is `hanged-ferryman` — the persistent
-    // world's starting room. Before D-627 that decided where a round began.
+  it('⚠ opens the round where the SCENARIO says, in the taproom (D-636)', async () => {
+    // The server's `defaultAreaId` above happens to be the same room; what
+    // is asserted is that the scenario's `opensIn` is what placed the cast,
+    // and `mr11-reset-invariants` reads it off the file for the same reason.
     expect(bot.roundState?.phase).toBe('running');
-    expect(bot.area?.id).toBe('round-town');
+    expect(bot.area?.id).toBe('hanged-ferryman');
   });
 });
 
 describe('⚠ walking out of a round is refused', () => {
-  it('carries a player through the tavern door, which is inside the round (D-634)', async () => {
-    expect(bot.area?.id).toBe('round-town');
-    bot.send({ t: 'move_to', x: TAVERN_DOOR.x, y: TAVERN_DOOR.y });
-    for (let i = 0; i < 400 && bot.area?.id !== 'hanged-ferryman'; i++) await sleep(TICK * 4);
-    expect(bot.area?.id, 'the tavern door in the square refused a player').toBe('hanged-ferryman');
-  }, 40_000);
-
   it('will not carry a player through a door outside the scenario', async () => {
     const start = bot.area!.id;
     expect(start).toBe('hanged-ferryman');
@@ -155,6 +151,17 @@ describe('⚠ walking out of a round is refused', () => {
     expect(bot.narrations.some((n) => /barred/i.test(n))).toBe(true);
     expect(bot.errors.map((e) => e.code)).toEqual([]);
   }, 40_000);
+
+  it('carries a player out through the square door, which is inside the round (D-634)', async () => {
+    const OUT = TAVERN.transitions.find((t) => t.toArea === 'round-town')!;
+    bot.send({ t: 'move_to', x: OUT.x, y: OUT.y });
+    for (let i = 0; i < 400 && bot.area?.id !== 'round-town'; i++) await sleep(TICK * 4);
+    expect(bot.area?.id, 'the taproom door to the square refused a player').toBe('round-town');
+    // And back in, so the verbs below are tested from where the round opens.
+    bot.send({ t: 'move_to', x: TAVERN_DOOR.x, y: TAVERN_DOOR.y });
+    for (let i = 0; i < 400 && bot.area?.id !== 'hanged-ferryman'; i++) await sleep(TICK * 4);
+    expect(bot.area?.id).toBe('hanged-ferryman');
+  }, 60_000);
 });
 
 /**

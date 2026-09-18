@@ -103,6 +103,8 @@ export function actionFor(state: {
   seated?: boolean;
   /** Weapon up. A fighting body RUNS (D-619). */
   combat?: boolean;
+  /** Sprinting to a double-clicked spot (D-636). */
+  running?: boolean;
 }): Action {
   // Death outranks everything. A body on the floor is not standing, sitting
   // or walking, whatever else the server last said about it.
@@ -122,7 +124,7 @@ export function actionFor(state: {
   // a fighting body at `RUN_SPEED`, so playing the walk here would be a
   // stride that does not match the ground going past -- the moonwalk every
   // renderer with a single locomotion clip eventually shows.
-  if (state.moving) return state.combat ? 'run' : 'walk';
+  if (state.moving) return state.combat || state.running ? 'run' : 'walk';
   return 'idle';
 }
 
@@ -142,6 +144,7 @@ export function clipFor(
     moving: boolean;
     seated?: boolean;
     combat?: boolean;
+    running?: boolean;
   },
   table: Partial<Record<Action, string>> = {},
 ): string {
@@ -258,6 +261,8 @@ export class ImportedVisual {
   private dead = false;
   private lootable = true;
   private inCombat = false;
+  /** Sprinting on a double-click (D-636): the run clip without the weapon. */
+  private running = false;
   private attackUntil = 0;
   /**
    * Is the weapon in the hand right now (D-620)?
@@ -631,6 +636,11 @@ export class ImportedVisual {
     this.emotingUntil = performance.now() + action.getClip().duration * 1000;
   }
 
+  /** A double-clicked destination is run to (D-636). Presentation only. */
+  setRunning(running: boolean): void {
+    this.running = running;
+  }
+
   setCombat(inCombat: boolean): void {
     if (inCombat === this.inCombat) return;
     this.inCombat = inCombat;
@@ -766,9 +776,21 @@ export class ImportedVisual {
     );
   }
 
+  /**
+   * The clip a death plays on THIS body (D-636). The animation set binds
+   * `death` to a clip name (`unarmed-death`, say); `CLIP.death` is only the
+   * floor for a rig nobody has bound. `playDeath` used to play the floor by
+   * name, found no such clip, and did nothing — and the next frame's
+   * `update` then played the set's death clip through the ordinary path,
+   * which LOOPS. That is the body dying over and over the stakeholder saw.
+   */
+  private deathClip(): string {
+    return this.table.death ?? CLIP.death;
+  }
+
   playDeath(_t: number, _impulse?: THREE.Vector3): void {
     this.dead = true;
-    this.play(CLIP.death, FADE, THREE.LoopOnce);
+    this.play(this.deathClip(), FADE, THREE.LoopOnce);
   }
 
   setDead(dead: boolean): void {
@@ -776,7 +798,7 @@ export class ImportedVisual {
     if (!dead) return;
     // Already down when first seen: hold the last frame rather than
     // replaying a collapse nobody witnessed (D-554).
-    this.play(CLIP.death, 0, THREE.LoopOnce);
+    this.play(this.deathClip(), 0, THREE.LoopOnce);
     const action = this.current;
     if (action) action.time = Math.max(0, action.getClip().duration - 0.001);
     this.mixer?.update(0);
@@ -930,6 +952,7 @@ export class ImportedVisual {
         moving,
         seated: this.seated,
         combat: this.inCombat,
+        running: this.running,
       },
       this.table,
     );
@@ -946,10 +969,14 @@ export class ImportedVisual {
     if (!clip) return this.current;
     const next = this.mixer.clipAction(clip);
     next.reset();
-    next.setLoop(loop, loop === THREE.LoopOnce ? 1 : Infinity);
+    // ⚠ A death is a one-shot WHOEVER asks for it (D-636). `update` reaches
+    // this with the default loop every frame, and a corpse whose clip
+    // repeats is a corpse that keeps dying.
+    const once = loop === THREE.LoopOnce || name === this.deathClip();
+    next.setLoop(once ? THREE.LoopOnce : loop, once ? 1 : Infinity);
     // A one-shot holds its final pose instead of snapping back to bind —
     // which is what makes a corpse stay down and a sit stay sat.
-    next.clampWhenFinished = loop === THREE.LoopOnce;
+    next.clampWhenFinished = once;
     next.play();
     if (this.current && fade > 0) this.current.crossFadeTo(next, fade, false);
     else if (this.current) this.current.stop();

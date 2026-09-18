@@ -764,15 +764,36 @@ export class BotAgent {
     const doors = area.transitions.map((t) => ({ ...t, key: `${t.x},${t.y}` }));
     if (doors.length === 0) return this.shuffle();
     if (!this.exploreTarget || this.exploreTarget.area !== area.id) {
-      const known = this.edges.get(area.id) ?? new Map();
+      const known = this.edges.get(area.id) ?? new Map<string, string>();
       const unexplored = doors.filter((d) => !known.has(d.key));
-      const pool = unexplored.length > 0 ? unexplored : doors;
+      // ⚠ A door learned to go NOWHERE is left alone (D-636). The round has
+      // edges (D-627): a transition out of the scenario is refused, and the
+      // taproom every round now opens in has one. An agent that kept
+      // choosing it stood on the threshold for the whole round.
+      const open = doors.filter((d) => known.get(d.key) !== area.id);
+      const pool = unexplored.length > 0 ? unexplored : open.length > 0 ? open : doors;
       const pick = pool[Math.floor(this.rng() * pool.length) % pool.length]!;
       this.exploreTarget = { area: area.id, key: pick.key, x: pick.x, y: pick.y, tries: 0 };
     }
     const target = this.exploreTarget;
     this.pendingExit = { area: area.id, key: target.key };
-    if (me.x === target.x && me.y === target.y) return true; // the door will fire
+    // ⚠ Within the tile, not AT its centre: positions are metres (D-567) and
+    // a body settles at 1.125 on a door at 1, so an exact comparison never
+    // matched and a barred door was pressed against for the whole round.
+    if (Math.hypot(me.x - target.x, me.y - target.y) < 0.6) {
+      // Standing on it. A door that fires does so on the server's next
+      // tick; one that has not fired after several decisions is barred, and
+      // is remembered as leading back to this same area so nothing routes
+      // through it again.
+      if (++target.tries > 4) {
+        if (!this.edges.has(area.id)) this.edges.set(area.id, new Map());
+        this.edges.get(area.id)!.set(target.key, area.id);
+        this.exploreTarget = null;
+        this.pendingExit = null;
+        return this.shuffle();
+      }
+      return true;
+    }
     if (this.stepToward(target.x, target.y)) {
       target.tries = 0;
       return true;

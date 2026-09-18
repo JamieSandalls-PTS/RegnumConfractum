@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RUN_SPEED, TICK_RATE, WALK_SPEED, distance } from '@rc/shared';
+import { RUN_SPEED, SPRINT_SPEED, TICK_RATE, WALK_SPEED, distance } from '@rc/shared';
 import { World } from '@rc/server/game/world';
 import { tinyArea } from './helpers';
 
@@ -249,5 +249,46 @@ describe('a weapon up is a run (D-619)', () => {
     world.setMoveIntent(entity.id, 'e');
     world.step();
     expect(entity.pos.x - before).toBeLessThan(fast);
+  });
+});
+
+describe('a double-clicked destination is RUN to (D-636)', () => {
+  it('covers twice the ground of a walk in the same ticks, and stops running on arrival', () => {
+    const walker = makeWorld();
+    const runner = makeWorld();
+    const a = walker.spawn('tiny-test', { characterId: 'c1', name: 'Walker', pos: { x: 1, y: 1 } }).entity;
+    const b = runner.spawn('tiny-test', { characterId: 'c2', name: 'Runner', pos: { x: 1, y: 1 } }).entity;
+    expect(walker.moveTo(a.id, { x: 6, y: 1 })).toBe(true);
+    expect(runner.moveTo(b.id, { x: 6, y: 1 }, true)).toBe(true);
+    expect(b.running).toBe(true);
+    // The runner's flag rides on its movement event, and the walker's is off.
+    const ev = runner.step().get('tiny-test')!.find((e) => e.type === 'entity_moved')!;
+    expect(ev).toMatchObject({ running: true });
+    walker.step();
+    for (let i = 0; i < 3; i++) { walker.step(); runner.step(); }
+    const walked = distance({ x: 1, y: 1 }, a.pos);
+    const ran = distance({ x: 1, y: 1 }, b.pos);
+    expect(ran / walked).toBeCloseTo(SPRINT_SPEED / WALK_SPEED, 1);
+    expect(SPRINT_SPEED).toBeCloseTo(WALK_SPEED * 2, 6);
+    expect(SPRINT_SPEED).toBeGreaterThan(RUN_SPEED);
+    // Arrive, and the sprint is over: nobody runs on the spot.
+    for (let i = 0; i < Math.ceil((5 / SPRINT_SPEED) * TICK_RATE) + 2; i++) runner.step();
+    expect(b.route, 'still walking').toBeNull();
+    expect(distance(b.pos, { x: 6, y: 1 })).toBeLessThan(0.6);
+    expect(b.running).toBe(false);
+  });
+
+  it('a new intent or a stop ends the sprint', () => {
+    const world = makeWorld();
+    const e = world.spawn('tiny-test', { characterId: 'c3', name: 'Stopper', pos: { x: 1, y: 1 } }).entity;
+    world.moveTo(e.id, { x: 6, y: 1 }, true);
+    world.stopMoving(e.id);
+    expect(e.running).toBe(false);
+    world.moveTo(e.id, { x: 6, y: 1 }, true);
+    world.setMoveIntent(e.id, 'e');
+    expect(e.running).toBe(false);
+    world.moveTo(e.id, { x: 6, y: 1 }, true);
+    world.moveTo(e.id, { x: 5, y: 1 });
+    expect(e.running).toBe(false);
   });
 });

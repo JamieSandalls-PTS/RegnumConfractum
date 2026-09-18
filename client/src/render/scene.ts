@@ -180,7 +180,13 @@ export class GameScene {
   private veilTarget01 = 0;
 
   constructor(private stage: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: false });
+    // ⚠ Antialiased, at the device's own pixel density (D-636). D-586 took
+    // the quantiser out and left `setPixelRatio(1)` and `antialias: false`
+    // behind, both of which only made sense while a 320x200 buffer was being
+    // upscaled anyway. On a 150% display that drew the world at two thirds
+    // of the screen's resolution and stretched it, which the stakeholder read
+    // as the pixelation having survived.
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     stage.appendChild(this.renderer.domElement);
@@ -229,7 +235,7 @@ export class GameScene {
   resize(): void {
     const w = this.stage.clientWidth || window.innerWidth;
     const h = this.stage.clientHeight || window.innerHeight;
-    this.renderer.setPixelRatio(1);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setSize(w, h, false);
     this.applyFrustum();
   }
@@ -403,8 +409,10 @@ export class GameScene {
     material: THREE.ShaderMaterial;
     scene: THREE.Scene;
   } {
-    const size = new THREE.Vector2();
-    this.renderer.getSize(size);
+    // ⚠ The DRAWING buffer's size, not the CSS size: with a pixel ratio
+    // above one the two differ, and a veil target at CSS size would draw
+    // the dead a blurred world at a resolution the living never see.
+    const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
     if (!this.veilTarget) {
       this.veilTarget = new THREE.WebGLRenderTarget(
         Math.max(1, size.x),

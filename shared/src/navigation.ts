@@ -83,8 +83,22 @@ export const WALK_SPEED = 2.9;
  */
 export const RUN_SPEED = 4.2;
 
-/** How fast a body moves, given whether its weapon is up (D-619). */
-export function speedFor(inCombat: boolean | undefined): number {
+/**
+ * Metres per second when a player double-clicks a destination (D-636).
+ *
+ * The stakeholder's ask, in terms: "double walking speed, and play the run
+ * animation". ⚠ That is above D-619's combat run, whose 1.45x was chosen so
+ * a duel is not decided by kiting. A sprint is a CHOICE with a cost the run
+ * does not have — it ends at the spot you clicked and asks nothing of the
+ * weapon — and whether 2x reads as kiting in a real fight is for play to
+ * decide. Unratified.
+ */
+export const SPRINT_SPEED = WALK_SPEED * 2;
+
+/** How fast a body moves, given whether its weapon is up (D-619) and
+ * whether it was asked to run (D-636). A sprint outpaces the combat run. */
+export function speedFor(inCombat: boolean | undefined, running?: boolean): number {
+  if (running) return SPRINT_SPEED;
   return inCombat ? RUN_SPEED : WALK_SPEED;
 }
 

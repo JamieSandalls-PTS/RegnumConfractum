@@ -95,7 +95,24 @@ split and the normalisation are heard as the game applies them; the line
 under the button reports takes and gains. `window.__sound.report()` is the
 probe. ⚠ Not headless-testable: WebAudio does not exist under Node.
 
+**D-636 — seven notes from playing.** Resolution (device pixel ratio, AA),
+the round opens in the taproom with spread spawns (`spawnPointFor`), the watch
+keeps to outdoor settled areas, swept corpses are closed in the store and the
+round's start sweeps and revives, the death clip is a one-shot through the
+table, double-click sprints (`SPRINT_SPEED`, unratified), and attacking
+engages (client-side loop in `main.ts`: `engage`, `engageStep`,
+`approachTile`). Fixtures about the town call `opensIn(content, 'round-town')`
+from `sim/src/testScenario.ts`.
+
 ## The things most likely to be undone by accident
+
+**0. `spawnPointFor` excludes DOOR tiles.** The taproom's spawn is one tile
+from its threshold. Drop that exclusion and the second arrival walks out of
+the opening scene on their first step.
+
+**0a. The bot agent's "standing on the door" is a DISTANCE (< 0.6 m).**
+Positions are metres; an exact comparison never matches and a barred door
+is pressed against for the whole round.
 
 **1. `render_content` goes out BEFORE auth, on socket open.** A client builds
 its first visual from it. Moving the send to after `auth_ok` or `enter_world`

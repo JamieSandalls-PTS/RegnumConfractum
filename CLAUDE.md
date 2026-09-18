@@ -1702,6 +1702,20 @@ its door to the yard. ⚠ Two keepers stand as a result — the taproom's own an
 Ashfold's at the door — and which one stays is the stakeholder's call. A
 latecomer joins on the good side; the deduction cost D-579 named is accepted.
 
+**Seven notes from playing, answered (D-636).** The "pixelation" was
+`setPixelRatio(1)` and no antialiasing left over from the quantiser; the
+world draws at device density now. **The round opens in the taproom**, each
+arrival on the nearest free non-door tile to the spawn, and **the watch walks
+outdoor settled areas only**. A swept corpse's row is closed (they were
+restored on every boot) and the round's START sweeps and stands ghosts up.
+The death clip was played by a name that did not exist and then looped
+through `update`; it is a one-shot whoever asks. **Double-click runs** at
+`SPRINT_SPEED` (2x walk, above the combat run -- unratified). **Attacking
+ENGAGES**: the client walks within reach and keeps swinging until any other
+action; bots are unchanged, and the loop is client-side on purpose.
+⚠ A bot agent standing on a barred door now learns it goes nowhere;
+positions are metres, so "on the tile" is a distance, never `===`.
+
 **A cue is heard in the tool through the game's own player (D-635).** The
 cue editor's preview is `SoundBank` handed the form's copy of the cue, so
 trim, split and normalisation are heard as the game applies them, and the

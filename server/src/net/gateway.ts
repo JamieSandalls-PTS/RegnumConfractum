@@ -125,6 +125,7 @@ import {
   type NeedStage,
   isTileWalkable,
   type ScenarioDef,
+  canStandAt,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
@@ -692,6 +693,11 @@ export class GameServer {
   async start(): Promise<void> {
     await this.store.init();
     await this.restoreCorpses();
+    // ⚠ In round mode the restored bodies are swept straight back out
+    // (D-636). A corpse belongs to the round it fell in, and that round ended
+    // with the process; the persistent world keeps its dead across a restart
+    // and a round does not.
+    if (this.round) await this.sweepTheDead();
     // The declared cast exists in the persistent world too, not only in a
     // round: the Hanged Ferryman's keeper is who a new player meets first.
     this.syncDeclaredNpcs();
@@ -961,6 +967,23 @@ export class GameServer {
     // start would be a second implementation of the reset's, and would shove
     // anybody already standing in the round somewhere else for no reason.
     await this.placeStrandedCast();
+    // ⚠ Nobody opens a round dead, and no body from before it is lying in
+    // the opening scene (D-636). The reset does both of these; the FIRST
+    // round after a boot never had a reset, so ghosts from an earlier
+    // session and corpses restored from the store were all on the floor
+    // when the cast woke up. Anyone whose entity is a ghost is stood back
+    // up the way the reset stands everyone up.
+    await this.sweepTheDead();
+    const home = this.roundHomeArea();
+    let stood = 0;
+    for (const conn of [...this.conns]) {
+      if (conn.entityId === null) continue;
+      const entity = this.world.getEntity(conn.entityId);
+      if (!entity || !entity.ghost) continue;
+      await this.standUpAtHome(conn, home, 'the round is beginning');
+      stood++;
+    }
+    if (stood > 0) await this.announceGathered(home);
     // Gear was stripped at the last reset (D-522), so the kit is granted
     // here, before anybody has had a chance to do anything with an empty
     // pack. Anyone who joined the lobby already has theirs and is skipped.
@@ -1378,7 +1401,14 @@ export class GameServer {
       const areaId = this.world.getEntityAreaId(entityId);
       const entity = this.world.getEntity(entityId);
       this.corpsesByEntity.delete(entityId);
-      if (info.corpseId) await this.store.deleteItemsByCorpse(info.corpseId);
+      if (info.corpseId) {
+        await this.store.deleteItemsByCorpse(info.corpseId);
+        // ⚠ And the ROW is closed (D-636). A swept corpse whose record stayed
+        // `corpse` was restored by the next boot, so every body a reset had
+        // cleared came back the moment the server was restarted — which is
+        // the "dead bodies at the start of a round" the stakeholder saw.
+        await this.store.updateCorpse(info.corpseId, { state: 'gone' });
+      }
       const left = this.world.despawn(entityId);
       if (left && areaId) {
         // ⚠: on the plane the thing was ON. A ghost's body is a ghost's
@@ -1443,11 +1473,44 @@ export class GameServer {
    */
   private async gatherForNewRound(): Promise<void> {
     const home = this.roundHomeArea();
-    const spawn = this.world.getAreaDef(home).spawn;
     for (const conn of [...this.conns]) {
-      if (!conn.character || conn.entityId === null || !conn.vitals || !conn.areaId) continue;
+      await this.standUpAtHome(conn, home, 'the round ended');
+    }
+    // ⚠ Announced to the others in a SECOND pass, after everybody has been
+    // placed. Announcing inside the loop tells the people already moved about
+    // the people moved after them and nobody about the people moved before —
+    // so the first arrival ends up alone in a square full of players.
+    await this.announceGathered(home);
+  }
+
+  /**
+   * Everybody placed by `standUpAtHome` gets the world as it now stands.
+   */
+  private async announceGathered(home: string): Promise<void> {
+    for (const conn of this.conns) {
+      if (!conn.character || conn.entityId === null) continue;
+      const entity = this.world.getEntity(conn.entityId);
+      if (!entity) continue;
+      await this.sendSnapshot(conn);
+      this.sendStatus(conn);
+      this.onAreaEnter?.(home, entity.id);
+    }
+  }
+
+  /**
+   * One person, stood back up whole at the round's home (D-608, D-636).
+   *
+   * ⚠ Reused by the round's START as well as the reset. The first round
+   * after a boot never went through the reset, so anybody who was a ghost
+   * from an earlier session — or a bot summoned into a lobby and killed
+   * there — opened the round dead. Every round now begins with everyone on
+   * their feet at full health, however they arrived.
+   */
+  private async standUpAtHome(conn: ConnState, home: string, why: string): Promise<void> {
+    {
+      if (!conn.character || conn.entityId === null || !conn.vitals || !conn.areaId) return;
       const old = this.world.getEntity(conn.entityId);
-      this.endSeanceInvolving(conn, 'the round ended');
+      this.endSeanceInvolving(conn, why);
       if (this.bodyObservers.delete(conn)) this.send(conn, { t: 'observing', on: false });
       // ⚠ No entity_left delta goes out for any of this, deliberately.
       // Every connection with a character is re-snapshotted below, so a delta
@@ -1462,6 +1525,9 @@ export class GameServer {
       this.entityCharacter.delete(conn.entityId);
       this.connsByArea.get(conn.areaId)?.delete(conn);
       await this.wipeRoundStatus(conn);
+      // After the despawn, so the body being replaced does not count as
+      // somebody standing on the spawn (D-636).
+      const spawn = this.spawnPointFor(home);
       const { entity } = this.world.spawn(home, {
         characterId: conn.character.id,
         name: conn.character.name,
@@ -1481,18 +1547,6 @@ export class GameServer {
       byArea.add(conn);
       this.dirtyCharacters.set(conn.character.id, { areaId: home, x: spawn.x, y: spawn.y });
       await this.store.saveCharacterVitals(conn.character.id, { hp: conn.vitals.hp });
-    }
-    // ⚠ Announced to the others in a SECOND pass, after everybody has been
-    // placed. Announcing inside the loop tells the people already moved about
-    // the people moved after them and nobody about the people moved before —
-    // so the first arrival ends up alone in a square full of players.
-    for (const conn of this.conns) {
-      if (!conn.character || conn.entityId === null) continue;
-      const entity = this.world.getEntity(conn.entityId);
-      if (!entity) continue;
-      await this.sendSnapshot(conn);
-      this.sendStatus(conn);
-      this.onAreaEnter?.(home, entity.id);
     }
   }
 
@@ -2184,9 +2238,21 @@ export class GameServer {
     });
   }
 
-  /** Settled areas — where the watch walks (D-552). */
+  /**
+   * Settled areas under the sky — where the watch walks (D-552, D-636).
+   *
+   * ⚠ The STREETS, not the taproom. This used to be every settled area,
+   * which was the square alone until D-634 put the tavern inside the round;
+   * then four guards stood in a room of twenty by fifteen where every round
+   * opens, and the first blow of any fight there was answered by the watch
+   * before anybody else could. Witnessing is line of sight (D-217), and a
+   * guard's beat is the place D-549 built for being seen: the square.
+   */
   private guardAreas(): string[] {
-    return this.world.areaIds().filter((id) => this.world.getAreaDef(id).zone === 'settled');
+    return this.world.areaIds().filter((id) => {
+      const def = this.world.getAreaDef(id);
+      return def.zone === 'settled' && def.outdoor;
+    });
   }
 
   /**
@@ -3316,11 +3382,11 @@ export class GameServer {
     if (sc === null) return;
     const home = this.roundHomeArea();
     if (!this.world.hasArea(home)) return;
-    const spawn = this.world.getAreaDef(home).spawn;
     for (const conn of [...this.conns]) {
       if (!conn.character || conn.areaId === null) continue;
       if (sc.areas.includes(conn.areaId)) continue;
-      await this.transferToArea(conn, home, spawn.x, spawn.y);
+      const at = this.spawnPointFor(home);
+      await this.transferToArea(conn, home, at.x, at.y);
     }
   }
 
@@ -3328,6 +3394,41 @@ export class GameServer {
     const opensIn = this.scenario?.opensIn;
     if (opensIn !== undefined && this.world.hasArea(opensIn)) return opensIn;
     return this.defaultAreaId;
+  }
+
+  /**
+   * Where the next arrival stands (D-636): the area's spawn, or the nearest
+   * free tile to it when somebody is already there.
+   *
+   * ⚠ Every arrival used to be put on the ONE spawn tile, so a cast of five
+   * opened the round standing inside each other and the first step shoved
+   * four people apart. A tile is free when a body can stand on it, nobody
+   * living is within a metre, and it is not a DOOR — the taproom's spawn is
+   * one tile from its threshold, and an arrival placed on the threshold
+   * would walk straight back out of the round's opening scene.
+   */
+  private spawnPointFor(areaId: string): { x: number; y: number } {
+    const def = this.world.getAreaDef(areaId);
+    const spawn = def.spawn;
+    const doors = new Set(def.transitions.map((t) => `${t.x},${t.y}`));
+    const bodies = this.world.entitiesIn(areaId).filter(
+      (e) => !e.ghost && e.objectKind !== 'corpse' && e.objectKind !== 'pile'
+        && e.objectKind !== 'node' && e.objectKind !== 'station',
+    );
+    const free = (p: { x: number; y: number }): boolean =>
+      canStandAt(def, p) && !doors.has(`${p.x},${p.y}`)
+      && !bodies.some((b) => distance(b.pos, p) < 0.9);
+    if (free(spawn)) return spawn;
+    for (let r = 1; r <= 8; r++) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const p = { x: spawn.x + dx, y: spawn.y + dy };
+          if (free(p)) return p;
+        }
+      }
+    }
+    return spawn;
   }
 
   /**
@@ -6047,7 +6148,7 @@ export class GameServer {
     const areaId = sendHome ? this.roundHomeArea() : stored;
     const at = areaId === character.areaId && !sendHome
       ? { x: character.x, y: character.y }
-      : this.world.getAreaDef(areaId).spawn;
+      : this.spawnPointFor(areaId);
     // ⚠ Restored from ANY wound, not merely from zero. The line here read
     // `if (character.hp <= 0)`, so a character stored at 7 of 20 — the normal
     // state of anyone who logged out after a bad night — walked into the next
@@ -6303,7 +6404,7 @@ export class GameServer {
    */
   private handleMoveTo(conn: ConnState, msg: Extract<ClientMessage, { t: 'move_to' }>): void {
     if (conn.entityId === null) return this.fail(conn, 'not_in_world', 'enter the world first');
-    this.world.moveTo(conn.entityId, { x: msg.x, y: msg.y });
+    this.world.moveTo(conn.entityId, { x: msg.x, y: msg.y }, msg.run === true);
   }
 
   /**
