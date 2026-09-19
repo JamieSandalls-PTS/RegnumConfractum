@@ -1,0 +1,16 @@
+{
+  "id": "steel-couter-2",
+  "name": "Steel couter 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "elbowL": "SK_Chr_ElbowAttachLeft_03",
+      "elbowR": "SK_Chr_ElbowAttachRight_03"
+    },
+    "female": {
+      "elbowL": "SK_Chr_ElbowAttachLeft_03",
+      "elbowR": "SK_Chr_ElbowAttachRight_03"
+    }
+  },
+  "swaps": []
+}

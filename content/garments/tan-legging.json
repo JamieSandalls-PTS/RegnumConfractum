@@ -1,0 +1,16 @@
+{
+  "id": "tan-legging",
+  "name": "Tan legging",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "legL": "SK_Chr_LegLeft_Male_03",
+      "legR": "SK_Chr_LegRight_Male_03"
+    },
+    "female": {
+      "legL": "SK_Chr_LegLeft_Female_03",
+      "legR": "SK_Chr_LegRight_Female_03"
+    }
+  },
+  "swaps": []
+}

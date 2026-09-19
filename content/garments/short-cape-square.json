@@ -1,0 +1,14 @@
+{
+  "id": "short-cape-square",
+  "name": "Short cape square",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "back": "SK_Chr_BackAttachment_12"
+    },
+    "female": {
+      "back": "SK_Chr_BackAttachment_12"
+    }
+  },
+  "swaps": []
+}

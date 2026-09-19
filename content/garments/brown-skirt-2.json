@@ -1,0 +1,14 @@
+{
+  "id": "brown-skirt-2",
+  "name": "Brown skirt 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hips": "SK_Chr_Hips_Male_01"
+    },
+    "female": {
+      "hips": "SK_Chr_Hips_Female_01"
+    }
+  },
+  "swaps": []
+}

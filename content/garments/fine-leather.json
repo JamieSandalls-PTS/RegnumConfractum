@@ -1,0 +1,22 @@
+{
+  "id": "fine-leather",
+  "name": "Fine leather",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_13",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_11",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_11",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_10",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_10"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_13",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_11",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_11",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_10",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_10"
+    }
+  },
+  "swaps": []
+}

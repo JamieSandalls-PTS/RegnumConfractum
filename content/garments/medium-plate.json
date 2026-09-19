@@ -1,0 +1,22 @@
+{
+  "id": "medium-plate",
+  "name": "Medium plate",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_24",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_12",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_12",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_16",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_16"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_24",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_12",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_12",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_16",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_16"
+    }
+  },
+  "swaps": []
+}

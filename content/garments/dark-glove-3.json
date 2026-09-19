@@ -1,0 +1,16 @@
+{
+  "id": "dark-glove-3",
+  "name": "Dark glove 3",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "handL": "SK_Chr_HandLeft_Male_13",
+      "handR": "SK_Chr_HandRight_Male_13"
+    },
+    "female": {
+      "handL": "SK_Chr_HandLeft_Female_13",
+      "handR": "SK_Chr_HandRight_Female_13"
+    }
+  },
+  "swaps": []
+}

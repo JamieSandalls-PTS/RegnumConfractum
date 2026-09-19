@@ -1,0 +1,14 @@
+{
+  "id": "tan-hood-5",
+  "name": "Tan hood 5",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_10"
+    },
+    "female": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_10"
+    }
+  },
+  "swaps": []
+}

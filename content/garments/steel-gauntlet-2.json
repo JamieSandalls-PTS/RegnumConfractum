@@ -1,0 +1,16 @@
+{
+  "id": "steel-gauntlet-2",
+  "name": "Steel gauntlet 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "handL": "SK_Chr_HandLeft_Male_14",
+      "handR": "SK_Chr_HandRight_Male_14"
+    },
+    "female": {
+      "handL": "SK_Chr_HandLeft_Female_14",
+      "handR": "SK_Chr_HandRight_Female_14"
+    }
+  },
+  "swaps": []
+}

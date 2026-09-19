@@ -1,0 +1,22 @@
+{
+  "id": "buddhist",
+  "name": "Buddhist",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_05",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_17",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_17",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_14",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_14"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_05",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_17",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_17",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_14",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_14"
+    }
+  },
+  "swaps": []
+}

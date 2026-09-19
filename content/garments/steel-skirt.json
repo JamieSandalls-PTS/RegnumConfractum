@@ -1,0 +1,14 @@
+{
+  "id": "steel-skirt",
+  "name": "Steel skirt",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hips": "SK_Chr_Hips_Male_22"
+    },
+    "female": {
+      "hips": "SK_Chr_Hips_Female_22"
+    }
+  },
+  "swaps": []
+}

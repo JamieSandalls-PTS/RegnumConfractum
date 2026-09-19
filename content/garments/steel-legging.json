@@ -1,0 +1,16 @@
+{
+  "id": "steel-legging",
+  "name": "Steel legging",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "legL": "SK_Chr_LegLeft_Male_05",
+      "legR": "SK_Chr_LegRight_Male_05"
+    },
+    "female": {
+      "legL": "SK_Chr_LegLeft_Female_05",
+      "legR": "SK_Chr_LegRight_Female_05"
+    }
+  },
+  "swaps": []
+}

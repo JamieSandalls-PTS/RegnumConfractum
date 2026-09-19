@@ -1,0 +1,14 @@
+{
+  "id": "blue-hood-8",
+  "name": "Blue hood 8",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_04"
+    },
+    "female": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_04"
+    }
+  },
+  "swaps": []
+}

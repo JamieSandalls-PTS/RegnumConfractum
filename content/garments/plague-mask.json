@@ -1,0 +1,14 @@
+{
+  "id": "plague-mask",
+  "name": "Plague mask",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "helmet": "SK_Chr_Head_No_Elements_Male_01"
+    },
+    "female": {
+      "helmet": "SK_Chr_Head_No_Elements_Female_01"
+    }
+  },
+  "swaps": []
+}

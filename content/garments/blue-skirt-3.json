@@ -1,0 +1,14 @@
+{
+  "id": "blue-skirt-3",
+  "name": "Blue skirt 3",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hips": "SK_Chr_Hips_Male_04"
+    },
+    "female": {
+      "hips": "SK_Chr_Hips_Female_04"
+    }
+  },
+  "swaps": []
+}

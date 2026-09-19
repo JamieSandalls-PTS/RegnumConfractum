@@ -1,0 +1,16 @@
+{
+  "id": "blue-glove-2",
+  "name": "Blue glove 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "handL": "SK_Chr_HandLeft_Male_05",
+      "handR": "SK_Chr_HandRight_Male_05"
+    },
+    "female": {
+      "handL": "SK_Chr_HandLeft_Female_05",
+      "handR": "SK_Chr_HandRight_Female_05"
+    }
+  },
+  "swaps": []
+}

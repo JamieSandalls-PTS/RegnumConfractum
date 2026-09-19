@@ -1,0 +1,22 @@
+{
+  "id": "half-plate",
+  "name": "Half plate",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_21",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_13",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_13",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_07",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_07"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_21",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_13",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_13",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_07",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_07"
+    }
+  },
+  "swaps": []
+}

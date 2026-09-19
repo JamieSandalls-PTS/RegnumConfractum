@@ -1,0 +1,14 @@
+{
+  "id": "tan-belt-piece",
+  "name": "Tan belt piece",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_08"
+    },
+    "female": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_08"
+    }
+  },
+  "swaps": []
+}

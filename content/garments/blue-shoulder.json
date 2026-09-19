@@ -1,0 +1,16 @@
+{
+  "id": "blue-shoulder",
+  "name": "Blue shoulder",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_01",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_01"
+    },
+    "female": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_01",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_01"
+    }
+  },
+  "swaps": []
+}

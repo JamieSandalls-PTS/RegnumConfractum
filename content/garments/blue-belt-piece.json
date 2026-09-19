@@ -1,0 +1,14 @@
+{
+  "id": "blue-belt-piece",
+  "name": "Blue belt piece",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_02"
+    },
+    "female": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_02"
+    }
+  },
+  "swaps": []
+}

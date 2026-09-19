@@ -1,0 +1,16 @@
+{
+  "id": "dark-legging-3",
+  "name": "Dark legging 3",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "legL": "SK_Chr_LegLeft_Male_11",
+      "legR": "SK_Chr_LegRight_Male_11"
+    },
+    "female": {
+      "legL": "SK_Chr_LegLeft_Female_11",
+      "legR": "SK_Chr_LegRight_Female_11"
+    }
+  },
+  "swaps": []
+}

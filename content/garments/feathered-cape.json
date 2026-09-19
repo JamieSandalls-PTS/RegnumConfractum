@@ -1,0 +1,14 @@
+{
+  "id": "feathered-cape",
+  "name": "Feathered cape",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "back": "SK_Chr_BackAttachment_03"
+    },
+    "female": {
+      "back": "SK_Chr_BackAttachment_03"
+    }
+  },
+  "swaps": []
+}

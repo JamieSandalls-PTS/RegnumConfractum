@@ -1,0 +1,14 @@
+{
+  "id": "dwarf-plate-helm",
+  "name": "Dwarf plate helm",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "helmet": "SK_Chr_Head_No_Elements_Male_07"
+    },
+    "female": {
+      "helmet": "SK_Chr_Head_No_Elements_Female_07"
+    }
+  },
+  "swaps": []
+}

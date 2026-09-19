@@ -1,0 +1,14 @@
+{
+  "id": "dark-belt-piece",
+  "name": "Dark belt piece",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_03"
+    },
+    "female": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_03"
+    }
+  },
+  "swaps": []
+}

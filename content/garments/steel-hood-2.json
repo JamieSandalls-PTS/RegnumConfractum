@@ -1,0 +1,14 @@
+{
+  "id": "steel-hood-2",
+  "name": "Steel hood 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_11"
+    },
+    "female": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_11"
+    }
+  },
+  "swaps": []
+}

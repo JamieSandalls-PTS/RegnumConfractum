@@ -1,0 +1,14 @@
+{
+  "id": "backpack",
+  "name": "Backpack",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "back": "SK_Chr_BackAttachment_01"
+    },
+    "female": {
+      "back": "SK_Chr_BackAttachment_01"
+    }
+  },
+  "swaps": []
+}

@@ -1,0 +1,14 @@
+{
+  "id": "pointy-cape",
+  "name": "Pointy cape",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "back": "SK_Chr_BackAttachment_08"
+    },
+    "female": {
+      "back": "SK_Chr_BackAttachment_08"
+    }
+  },
+  "swaps": []
+}

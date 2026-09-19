@@ -1,0 +1,16 @@
+{
+  "id": "brown-poleyn",
+  "name": "Brown poleyn",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "kneeL": "SK_Chr_KneeAttachLeft_05",
+      "kneeR": "SK_Chr_KneeAttachRight_05"
+    },
+    "female": {
+      "kneeL": "SK_Chr_KneeAttachLeft_05",
+      "kneeR": "SK_Chr_KneeAttachRight_05"
+    }
+  },
+  "swaps": []
+}

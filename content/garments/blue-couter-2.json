@@ -1,0 +1,16 @@
+{
+  "id": "blue-couter-2",
+  "name": "Blue couter 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "elbowL": "SK_Chr_ElbowAttachLeft_06",
+      "elbowR": "SK_Chr_ElbowAttachRight_06"
+    },
+    "female": {
+      "elbowL": "SK_Chr_ElbowAttachLeft_06",
+      "elbowR": "SK_Chr_ElbowAttachRight_06"
+    }
+  },
+  "swaps": []
+}

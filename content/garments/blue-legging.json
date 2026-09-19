@@ -1,0 +1,16 @@
+{
+  "id": "blue-legging",
+  "name": "Blue legging",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "legL": "SK_Chr_LegLeft_Male_01",
+      "legR": "SK_Chr_LegRight_Male_01"
+    },
+    "female": {
+      "legL": "SK_Chr_LegLeft_Female_01",
+      "legR": "SK_Chr_LegRight_Female_01"
+    }
+  },
+  "swaps": []
+}

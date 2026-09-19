@@ -1,0 +1,16 @@
+{
+  "id": "brown-couter",
+  "name": "Brown couter",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "elbowL": "SK_Chr_ElbowAttachLeft_01",
+      "elbowR": "SK_Chr_ElbowAttachRight_01"
+    },
+    "female": {
+      "elbowL": "SK_Chr_ElbowAttachLeft_01",
+      "elbowR": "SK_Chr_ElbowAttachRight_01"
+    }
+  },
+  "swaps": []
+}

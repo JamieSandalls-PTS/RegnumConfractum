@@ -1,0 +1,14 @@
+{
+  "id": "brown-belt-piece-7",
+  "name": "Brown belt piece 7",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_12"
+    },
+    "female": {
+      "hipsAttachment": "SK_Chr_HipsAttachment_12"
+    }
+  },
+  "swaps": []
+}

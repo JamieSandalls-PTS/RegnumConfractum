@@ -1,0 +1,22 @@
+{
+  "id": "lion-plate",
+  "name": "Lion plate",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_23",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_14",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_14",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_06",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_06"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_23",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_14",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_14",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_06",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_06"
+    }
+  },
+  "swaps": []
+}

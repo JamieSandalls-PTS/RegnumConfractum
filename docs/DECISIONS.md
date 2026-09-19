@@ -11550,3 +11550,69 @@ on arrival, ends on any new intent), the action table (a sprint plays the
 run, death outranks it), the boundary walk from the taproom, and the full
 suite. In the browser: the resolution, the run and the engagement are for
 the stakeholder's eyes; the client's engage loop has no headless harness.
+
+
+
+## D-637 -- Vertex colours are not art, the stage can be photographed, and the wardrobe is authored
+
+**Status:** implemented. The garment pairings are a first pass for the
+stakeholder to correct by looking.
+
+### Two "no texture" reports, one cause
+
+The goblin staff drew black in the tool and in the world; the taproom
+keeper's face drew black in the world and right in the tool. Both meshes
+carry a **vertex colour attribute** in the vendor's FBX -- the dungeon
+pack's staff a black one, and this pack's heads, torsos, hands and legs
+one the atlas never needed. FBXLoader switches `vertexColors` on for a mesh
+that has one, so the staff's atlas was multiplied by black wherever the FBX
+was drawn directly. The assembler's own material ignores the attribute,
+which is why every character looked right in the studio -- but the
+exporter wrote it into every `.glb` as `COLOR_0`, and GLTFLoader switches
+vertex colours on too. Same head, two loaders, one black face.
+
+**The atlas is the colour.** The attribute is dropped where files are made
+(the assembler, which the character build and the browser share; the
+environment build) and stripped by every loader for a file built before
+this. A test parses every built model and refuses one carrying `COLOR_0`.
+
+### The stage can be photographed
+
+The browser pane a session works in is too narrow to judge art in, and a
+screenshot of it is a screenshot of the pane. `window.__stage` gained
+`snapshot()` (renders a frame and returns it as a PNG data URL -- the
+canvas keeps no drawing buffer between frames, so a read has to draw
+first), `showPart`, `preview`, `showAsset`, `meshes` (materials, UV range,
+colour attribute -- how the cause above was found) and `slots`; the
+authoring server gained `POST /api/snapshot`, which writes the PNG outside
+the repository. A part is put on the mannequin, photographed, and the file
+is read by an image reader; sheets of thirty are composed with PIL. Two
+hundred and forty parts were looked at this way in an afternoon.
+⚠ Verification only. Nothing in the game reads any of it, and the launch
+config `tools-probe` (port 8151) exists so a probe never shares the
+stakeholder's authoring server.
+
+### The wardrobe
+
+The stakeholder authored the Gothic set as five garments -- plate (torso
+and arms), helm, gloves, greaves (hips), boots (legs) -- and asked for the
+rest of the pack the same way. 192 garments follow that shape:
+
+- **One per torso**, carrying the torso and both arms. The arms are the
+  judgement: numbering means nothing across slots (D-562, measured), so
+  each upper and lower arm was chosen by looking at the sheets for the
+  colour and material of the torso. Named as the stakeholder named the
+  torso ("Templar", "Fly plaid", "Shirt and leather jerkin").
+- **One per part** for every other wearable slot -- hips, hands, legs,
+  helmets, shoulders, knees, elbows, capes and packs, hoods, belt pieces --
+  named from the part's authored name with the body word removed. Paired
+  slots carry both sides; twice-cut slots carry both bodies by number
+  (D-562's measurement); base parts are skipped.
+
+⚠ **The arm pairings are a first pass and will be wrong somewhere.** They
+are one afternoon of looking at thumbnails, not the stakeholder's eye. The
+garment editor shows each on a body; changing a sleeve is one pick.
+⚠ **Cost: every part is exported now.** `build:characters` ships a `.glb`
+per part a garment names (D-571), which was 183 files and is 700 --
+40 MB under `client/public/models/parts/`, in git as the built models
+always have been (D-556). A client still downloads only what it looks at.

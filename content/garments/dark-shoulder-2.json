@@ -1,0 +1,16 @@
+{
+  "id": "dark-shoulder-2",
+  "name": "Dark shoulder 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_16",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_16"
+    },
+    "female": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_16",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_16"
+    }
+  },
+  "swaps": []
+}

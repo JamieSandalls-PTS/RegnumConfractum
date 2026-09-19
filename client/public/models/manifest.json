@@ -624,6 +624,1640 @@
   ],
   "garments": [
     {
+      "id": "archer",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_06",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_07",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_07",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_01",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_01"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_06",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_07",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_07",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_01",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_01"
+        }
+      }
+    },
+    {
+      "id": "backpack",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_01"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_01"
+        }
+      }
+    },
+    {
+      "id": "banded-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_19",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_01",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_01",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_06",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_06"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_19",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_01",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_01",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_06",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_06"
+        }
+      }
+    },
+    {
+      "id": "blue-belt-piece",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_02"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_02"
+        }
+      }
+    },
+    {
+      "id": "blue-couter-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_06",
+          "elbowR": "SK_Chr_ElbowAttachRight_06"
+        },
+        "female": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_06",
+          "elbowR": "SK_Chr_ElbowAttachRight_06"
+        }
+      }
+    },
+    {
+      "id": "blue-couter",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_05",
+          "elbowR": "SK_Chr_ElbowAttachRight_05"
+        },
+        "female": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_05",
+          "elbowR": "SK_Chr_ElbowAttachRight_05"
+        }
+      }
+    },
+    {
+      "id": "blue-glove-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_05",
+          "handR": "SK_Chr_HandRight_Male_05"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_05",
+          "handR": "SK_Chr_HandRight_Female_05"
+        }
+      }
+    },
+    {
+      "id": "blue-glove-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_06",
+          "handR": "SK_Chr_HandRight_Male_06"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_06",
+          "handR": "SK_Chr_HandRight_Female_06"
+        }
+      }
+    },
+    {
+      "id": "blue-glove-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_07",
+          "handR": "SK_Chr_HandRight_Male_07"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_07",
+          "handR": "SK_Chr_HandRight_Female_07"
+        }
+      }
+    },
+    {
+      "id": "blue-glove-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_08",
+          "handR": "SK_Chr_HandRight_Male_08"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_08",
+          "handR": "SK_Chr_HandRight_Female_08"
+        }
+      }
+    },
+    {
+      "id": "blue-glove-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_10",
+          "handR": "SK_Chr_HandRight_Male_10"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_10",
+          "handR": "SK_Chr_HandRight_Female_10"
+        }
+      }
+    },
+    {
+      "id": "blue-glove-7",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_11",
+          "handR": "SK_Chr_HandRight_Male_11"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_11",
+          "handR": "SK_Chr_HandRight_Female_11"
+        }
+      }
+    },
+    {
+      "id": "blue-glove",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_01",
+          "handR": "SK_Chr_HandRight_Male_01"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_01",
+          "handR": "SK_Chr_HandRight_Female_01"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-10",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_12"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_12"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_07"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_07"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_09"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_09"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_11"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_11"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_03"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_03"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_01"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_01"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-7",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_02"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_02"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-8",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_04"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_04"
+        }
+      }
+    },
+    {
+      "id": "blue-hood-9",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_05"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_05"
+        }
+      }
+    },
+    {
+      "id": "blue-hood",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_02"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_02"
+        }
+      }
+    },
+    {
+      "id": "blue-legging-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_02",
+          "legR": "SK_Chr_LegRight_Male_02"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_02",
+          "legR": "SK_Chr_LegRight_Female_02"
+        }
+      }
+    },
+    {
+      "id": "blue-legging-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_08",
+          "legR": "SK_Chr_LegRight_Male_08"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_08",
+          "legR": "SK_Chr_LegRight_Female_08"
+        }
+      }
+    },
+    {
+      "id": "blue-legging-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_16",
+          "legR": "SK_Chr_LegRight_Male_16"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_16",
+          "legR": "SK_Chr_LegRight_Female_16"
+        }
+      }
+    },
+    {
+      "id": "blue-legging",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_01",
+          "legR": "SK_Chr_LegRight_Male_01"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_01",
+          "legR": "SK_Chr_LegRight_Female_01"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_03",
+          "kneeR": "SK_Chr_KneeAttachRight_03"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_03",
+          "kneeR": "SK_Chr_KneeAttachRight_03"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_04",
+          "kneeR": "SK_Chr_KneeAttachRight_04"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_04",
+          "kneeR": "SK_Chr_KneeAttachRight_04"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_06",
+          "kneeR": "SK_Chr_KneeAttachRight_06"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_06",
+          "kneeR": "SK_Chr_KneeAttachRight_06"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_07",
+          "kneeR": "SK_Chr_KneeAttachRight_07"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_07",
+          "kneeR": "SK_Chr_KneeAttachRight_07"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_08",
+          "kneeR": "SK_Chr_KneeAttachRight_08"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_08",
+          "kneeR": "SK_Chr_KneeAttachRight_08"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-7",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_09",
+          "kneeR": "SK_Chr_KneeAttachRight_09"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_09",
+          "kneeR": "SK_Chr_KneeAttachRight_09"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-8",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_10",
+          "kneeR": "SK_Chr_KneeAttachRight_10"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_10",
+          "kneeR": "SK_Chr_KneeAttachRight_10"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn-9",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_11",
+          "kneeR": "SK_Chr_KneeAttachRight_11"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_11",
+          "kneeR": "SK_Chr_KneeAttachRight_11"
+        }
+      }
+    },
+    {
+      "id": "blue-poleyn",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_02",
+          "kneeR": "SK_Chr_KneeAttachRight_02"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_02",
+          "kneeR": "SK_Chr_KneeAttachRight_02"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-10",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_20",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_20"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_20",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_20"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-11",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_21",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_21"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_21",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_21"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_02",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_02"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_02",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_02"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_07",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_07"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_07",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_07"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_08",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_08"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_08",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_08"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_10",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_10"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_10",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_10"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_11",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_11"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_11",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_11"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-7",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_12",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_12"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_12",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_12"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-8",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_13",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_13"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_13",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_13"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder-9",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_14",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_14"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_14",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_14"
+        }
+      }
+    },
+    {
+      "id": "blue-shoulder",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_01",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_01"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_01",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_01"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-10",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_16"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_16"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-11",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_18"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_18"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-12",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_19"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_19"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-13",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_21"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_21"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-14",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_23"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_23"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-15",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_24"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_24"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-16",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_25"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_25"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-17",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_26"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_26"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-18",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_28"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_28"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_03"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_03"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_04"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_04"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_05"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_05"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_07"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_07"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_08"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_08"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-7",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_11"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_11"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-8",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_12"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_12"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt-9",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_14"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_14"
+        }
+      }
+    },
+    {
+      "id": "blue-skirt",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_02"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_02"
+        }
+      }
+    },
+    {
+      "id": "brown-belt-piece-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_04"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_04"
+        }
+      }
+    },
+    {
+      "id": "brown-belt-piece-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_07"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_07"
+        }
+      }
+    },
+    {
+      "id": "brown-belt-piece-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_09"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_09"
+        }
+      }
+    },
+    {
+      "id": "brown-belt-piece-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_10"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_10"
+        }
+      }
+    },
+    {
+      "id": "brown-belt-piece-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_11"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_11"
+        }
+      }
+    },
+    {
+      "id": "brown-belt-piece-7",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_12"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_12"
+        }
+      }
+    },
+    {
+      "id": "brown-belt-piece",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_01"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_01"
+        }
+      }
+    },
+    {
+      "id": "brown-couter",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_01",
+          "elbowR": "SK_Chr_ElbowAttachRight_01"
+        },
+        "female": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_01",
+          "elbowR": "SK_Chr_ElbowAttachRight_01"
+        }
+      }
+    },
+    {
+      "id": "brown-glove-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_04",
+          "handR": "SK_Chr_HandRight_Male_04"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_04",
+          "handR": "SK_Chr_HandRight_Female_04"
+        }
+      }
+    },
+    {
+      "id": "brown-glove-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_15",
+          "handR": "SK_Chr_HandRight_Male_15"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_15",
+          "handR": "SK_Chr_HandRight_Female_15"
+        }
+      }
+    },
+    {
+      "id": "brown-glove",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_02",
+          "handR": "SK_Chr_HandRight_Male_02"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_02",
+          "handR": "SK_Chr_HandRight_Female_02"
+        }
+      }
+    },
+    {
+      "id": "brown-hood-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_04"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_04"
+        }
+      }
+    },
+    {
+      "id": "brown-hood-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_03"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_03"
+        }
+      }
+    },
+    {
+      "id": "brown-hood-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_06"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_06"
+        }
+      }
+    },
+    {
+      "id": "brown-hood-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_07"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_07"
+        }
+      }
+    },
+    {
+      "id": "brown-hood-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_09"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_09"
+        }
+      }
+    },
+    {
+      "id": "brown-hood-7",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_13"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_13"
+        }
+      }
+    },
+    {
+      "id": "brown-hood",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_05"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_05"
+        }
+      }
+    },
+    {
+      "id": "brown-legging",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_07",
+          "legR": "SK_Chr_LegRight_Male_07"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_07",
+          "legR": "SK_Chr_LegRight_Female_07"
+        }
+      }
+    },
+    {
+      "id": "brown-poleyn",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_05",
+          "kneeR": "SK_Chr_KneeAttachRight_05"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_05",
+          "kneeR": "SK_Chr_KneeAttachRight_05"
+        }
+      }
+    },
+    {
+      "id": "brown-shoulder-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_09",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_09"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_09",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_09"
+        }
+      }
+    },
+    {
+      "id": "brown-shoulder",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_06",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_06"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_06",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_06"
+        }
+      }
+    },
+    {
+      "id": "brown-skirt-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_01"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_01"
+        }
+      }
+    },
+    {
+      "id": "brown-skirt-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_13"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_13"
+        }
+      }
+    },
+    {
+      "id": "brown-skirt-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_17"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_17"
+        }
+      }
+    },
+    {
+      "id": "brown-skirt-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_27"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_27"
+        }
+      }
+    },
+    {
+      "id": "buddhist",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_05",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_17",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_17",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_14",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_14"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_05",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_17",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_17",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_14",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_14"
+        }
+      }
+    },
+    {
+      "id": "cross-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_11"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_11"
+        }
+      }
+    },
+    {
+      "id": "dark-belt-piece-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_05"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_05"
+        }
+      }
+    },
+    {
+      "id": "dark-belt-piece-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_06"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_06"
+        }
+      }
+    },
+    {
+      "id": "dark-belt-piece",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_03"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_03"
+        }
+      }
+    },
+    {
+      "id": "dark-glove-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_09",
+          "handR": "SK_Chr_HandRight_Male_09"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_09",
+          "handR": "SK_Chr_HandRight_Female_09"
+        }
+      }
+    },
+    {
+      "id": "dark-glove-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_13",
+          "handR": "SK_Chr_HandRight_Male_13"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_13",
+          "handR": "SK_Chr_HandRight_Female_13"
+        }
+      }
+    },
+    {
+      "id": "dark-glove-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_16",
+          "handR": "SK_Chr_HandRight_Male_16"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_16",
+          "handR": "SK_Chr_HandRight_Female_16"
+        }
+      }
+    },
+    {
+      "id": "dark-glove-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_17",
+          "handR": "SK_Chr_HandRight_Male_17"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_17",
+          "handR": "SK_Chr_HandRight_Female_17"
+        }
+      }
+    },
+    {
+      "id": "dark-glove",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_03",
+          "handR": "SK_Chr_HandRight_Male_03"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_03",
+          "handR": "SK_Chr_HandRight_Female_03"
+        }
+      }
+    },
+    {
+      "id": "dark-hood-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_10"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_10"
+        }
+      }
+    },
+    {
+      "id": "dark-hood-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_01"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_01"
+        }
+      }
+    },
+    {
+      "id": "dark-hood",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_08"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_08"
+        }
+      }
+    },
+    {
+      "id": "dark-legging-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_09",
+          "legR": "SK_Chr_LegRight_Male_09"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_09",
+          "legR": "SK_Chr_LegRight_Female_09"
+        }
+      }
+    },
+    {
+      "id": "dark-legging-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_11",
+          "legR": "SK_Chr_LegRight_Male_11"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_11",
+          "legR": "SK_Chr_LegRight_Female_11"
+        }
+      }
+    },
+    {
+      "id": "dark-legging-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_17",
+          "legR": "SK_Chr_LegRight_Male_17"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_17",
+          "legR": "SK_Chr_LegRight_Female_17"
+        }
+      }
+    },
+    {
+      "id": "dark-legging-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_19",
+          "legR": "SK_Chr_LegRight_Male_19"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_19",
+          "legR": "SK_Chr_LegRight_Female_19"
+        }
+      }
+    },
+    {
+      "id": "dark-legging",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_04",
+          "legR": "SK_Chr_LegRight_Male_04"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_04",
+          "legR": "SK_Chr_LegRight_Female_04"
+        }
+      }
+    },
+    {
+      "id": "dark-shoulder-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_16",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_16"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_16",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_16"
+        }
+      }
+    },
+    {
+      "id": "dark-shoulder",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_15",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_15"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_15",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_15"
+        }
+      }
+    },
+    {
+      "id": "dark-skirt",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_06"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_06"
+        }
+      }
+    },
+    {
+      "id": "diamond-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_02"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_02"
+        }
+      }
+    },
+    {
+      "id": "dwarf-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_07"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_07"
+        }
+      }
+    },
+    {
+      "id": "elven-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_20",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_08",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_08",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_11",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_11"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_20",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_08",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_08",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_11",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_11"
+        }
+      }
+    },
+    {
+      "id": "evil-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_06"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_06"
+        }
+      }
+    },
+    {
+      "id": "feathered-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_03"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_03"
+        }
+      }
+    },
+    {
+      "id": "fine-jacket",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_04",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_20",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_20",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_18",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_18"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_04",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_20",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_20",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_18",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_18"
+        }
+      }
+    },
+    {
+      "id": "fine-leather",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_13",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_11",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_11",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_10",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_10"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_13",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_11",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_11",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_10",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_10"
+        }
+      }
+    },
+    {
+      "id": "fly-plaid",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_26",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_19",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_19",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_01",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_01"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_26",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_19",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_19",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_01",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_01"
+        }
+      }
+    },
+    {
+      "id": "fur-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_04"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_04"
+        }
+      }
+    },
+    {
+      "id": "fur",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_02",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_04",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_04",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_03",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_03"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_02",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_04",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_04",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_03",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_03"
+        }
+      }
+    },
+    {
       "id": "garment-1",
       "pack": "modular-fantasy-hero",
       "parts": {
@@ -692,6 +2326,1024 @@
           "armUpperR": "SK_Chr_ArmUpperRight_Female_15",
           "armLowerL": "SK_Chr_ArmLowerLeft_Female_15",
           "armLowerR": "SK_Chr_ArmLowerRight_Female_15"
+        }
+      }
+    },
+    {
+      "id": "half-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_21",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_13",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_13",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_07",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_07"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_21",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_13",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_13",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_07",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_07"
+        }
+      }
+    },
+    {
+      "id": "heavy-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_25",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_15",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_15",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_15",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_15"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_25",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_15",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_15",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_15",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_15"
+        }
+      }
+    },
+    {
+      "id": "jacket-with-straps",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_27",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_05",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_05",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_14",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_14"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_27",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_05",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_05",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_14",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_14"
+        }
+      }
+    },
+    {
+      "id": "jacket",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_03",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_05",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_05",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_04",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_04"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_03",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_05",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_05",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_04",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_04"
+        }
+      }
+    },
+    {
+      "id": "jousting-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_04"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_04"
+        }
+      }
+    },
+    {
+      "id": "leather",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_14",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_02",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_02",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_09",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_09"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_14",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_02",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_02",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_09",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_09"
+        }
+      }
+    },
+    {
+      "id": "lion-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_23",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_14",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_14",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_06",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_06"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_23",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_14",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_14",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_06",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_06"
+        }
+      }
+    },
+    {
+      "id": "long-cape-square",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_13"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_13"
+        }
+      }
+    },
+    {
+      "id": "long-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_15"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_15"
+        }
+      }
+    },
+    {
+      "id": "martial-arts",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_11",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_13",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_13"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_11",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_13",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_13"
+        }
+      }
+    },
+    {
+      "id": "medium-cape-plain",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_11"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_11"
+        }
+      }
+    },
+    {
+      "id": "medium-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_10"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_10"
+        }
+      }
+    },
+    {
+      "id": "medium-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_24",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_12",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_12",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_16",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_16"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_24",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_12",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_12",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_16",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_16"
+        }
+      }
+    },
+    {
+      "id": "mercenary-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_18",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_18",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_18",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_16",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_16"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_18",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_18",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_18",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_16",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_16"
+        }
+      }
+    },
+    {
+      "id": "muscle-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_16",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_14",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_14",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_07",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_07"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_16",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_14",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_14",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_07",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_07"
+        }
+      }
+    },
+    {
+      "id": "odd-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_09"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_09"
+        }
+      }
+    },
+    {
+      "id": "plague-mask",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_01"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_01"
+        }
+      }
+    },
+    {
+      "id": "pointy-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_08"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_08"
+        }
+      }
+    },
+    {
+      "id": "ragged-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_14"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_14"
+        }
+      }
+    },
+    {
+      "id": "robe",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_09",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_06",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_06",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_17",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_17"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_09",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_06",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_06",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_17",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_17"
+        }
+      }
+    },
+    {
+      "id": "rogue",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_07",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_10",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_10",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_05",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_05"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_07",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_10",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_10",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_05",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_05"
+        }
+      }
+    },
+    {
+      "id": "scrap-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_22",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_09",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_09",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_03",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_03"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_22",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_09",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_09",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_03",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_03"
+        }
+      }
+    },
+    {
+      "id": "shirt-and-leather-jerkin",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_28",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_11",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_11",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_01",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_01"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_28",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_11",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_11",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_01",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_01"
+        }
+      }
+    },
+    {
+      "id": "short-cape-square",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_12"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_12"
+        }
+      }
+    },
+    {
+      "id": "short-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_09"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_09"
+        }
+      }
+    },
+    {
+      "id": "small-backpack",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_02"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_02"
+        }
+      }
+    },
+    {
+      "id": "small-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_03"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_03"
+        }
+      }
+    },
+    {
+      "id": "square-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_13"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_13"
+        }
+      }
+    },
+    {
+      "id": "steel-couter-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_03",
+          "elbowR": "SK_Chr_ElbowAttachRight_03"
+        },
+        "female": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_03",
+          "elbowR": "SK_Chr_ElbowAttachRight_03"
+        }
+      }
+    },
+    {
+      "id": "steel-couter-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_04",
+          "elbowR": "SK_Chr_ElbowAttachRight_04"
+        },
+        "female": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_04",
+          "elbowR": "SK_Chr_ElbowAttachRight_04"
+        }
+      }
+    },
+    {
+      "id": "steel-couter",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_02",
+          "elbowR": "SK_Chr_ElbowAttachRight_02"
+        },
+        "female": {
+          "elbowL": "SK_Chr_ElbowAttachLeft_02",
+          "elbowR": "SK_Chr_ElbowAttachRight_02"
+        }
+      }
+    },
+    {
+      "id": "steel-gauntlet-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_14",
+          "handR": "SK_Chr_HandRight_Male_14"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_14",
+          "handR": "SK_Chr_HandRight_Female_14"
+        }
+      }
+    },
+    {
+      "id": "steel-greave-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_12",
+          "legR": "SK_Chr_LegRight_Male_12"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_12",
+          "legR": "SK_Chr_LegRight_Female_12"
+        }
+      }
+    },
+    {
+      "id": "steel-greave-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_13",
+          "legR": "SK_Chr_LegRight_Male_13"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_13",
+          "legR": "SK_Chr_LegRight_Female_13"
+        }
+      }
+    },
+    {
+      "id": "steel-greave-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_14",
+          "legR": "SK_Chr_LegRight_Male_14"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_14",
+          "legR": "SK_Chr_LegRight_Female_14"
+        }
+      }
+    },
+    {
+      "id": "steel-greave-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_15",
+          "legR": "SK_Chr_LegRight_Male_15"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_15",
+          "legR": "SK_Chr_LegRight_Female_15"
+        }
+      }
+    },
+    {
+      "id": "steel-greave-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_18",
+          "legR": "SK_Chr_LegRight_Male_18"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_18",
+          "legR": "SK_Chr_LegRight_Female_18"
+        }
+      }
+    },
+    {
+      "id": "steel-hood-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_11"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_11"
+        }
+      }
+    },
+    {
+      "id": "steel-hood",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_02"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_FacialHair_02"
+        }
+      }
+    },
+    {
+      "id": "steel-legging-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_10",
+          "legR": "SK_Chr_LegRight_Male_10"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_10",
+          "legR": "SK_Chr_LegRight_Female_10"
+        }
+      }
+    },
+    {
+      "id": "steel-legging",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_05",
+          "legR": "SK_Chr_LegRight_Male_05"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_05",
+          "legR": "SK_Chr_LegRight_Female_05"
+        }
+      }
+    },
+    {
+      "id": "steel-poleyn",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "kneeL": "SK_Chr_KneeAttachLeft_01",
+          "kneeR": "SK_Chr_KneeAttachRight_01"
+        },
+        "female": {
+          "kneeL": "SK_Chr_KneeAttachLeft_01",
+          "kneeR": "SK_Chr_KneeAttachRight_01"
+        }
+      }
+    },
+    {
+      "id": "steel-shoulder-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_04",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_04"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_04",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_04"
+        }
+      }
+    },
+    {
+      "id": "steel-shoulder-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_05",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_05"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_05",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_05"
+        }
+      }
+    },
+    {
+      "id": "steel-shoulder-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_17",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_17"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_17",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_17"
+        }
+      }
+    },
+    {
+      "id": "steel-shoulder-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_18",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_18"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_18",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_18"
+        }
+      }
+    },
+    {
+      "id": "steel-shoulder-6",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_19",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_19"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_19",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_19"
+        }
+      }
+    },
+    {
+      "id": "steel-shoulder",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_03",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_03"
+        },
+        "female": {
+          "shoulderL": "SK_Chr_ShoulderAttachLeft_03",
+          "shoulderR": "SK_Chr_ShoulderAttachRight_03"
+        }
+      }
+    },
+    {
+      "id": "steel-skirt",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_22"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_22"
+        }
+      }
+    },
+    {
+      "id": "strapped-plate",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_17",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_13",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_13",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_06",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_06"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_17",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_13",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_13",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_06",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_06"
+        }
+      }
+    },
+    {
+      "id": "straps",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_01",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_03",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_03",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_02",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_02"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_01",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_03",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_03",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_02",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_02"
+        }
+      }
+    },
+    {
+      "id": "striped-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_12"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_12"
+        }
+      }
+    },
+    {
+      "id": "studded-leather",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_12",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_12",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_12",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_08",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_08"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_12",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_12",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_12",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_08",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_08"
+        }
+      }
+    },
+    {
+      "id": "tan-belt-piece",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_08"
+        },
+        "female": {
+          "hipsAttachment": "SK_Chr_HipsAttachment_08"
+        }
+      }
+    },
+    {
+      "id": "tan-hood-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_03"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_03"
+        }
+      }
+    },
+    {
+      "id": "tan-hood-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_04"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_04"
+        }
+      }
+    },
+    {
+      "id": "tan-hood-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_06"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_06"
+        }
+      }
+    },
+    {
+      "id": "tan-hood-5",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_10"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_No_Hair_10"
+        }
+      }
+    },
+    {
+      "id": "tan-hood",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_01"
+        },
+        "female": {
+          "headCovering": "SK_Chr_HeadCoverings_Base_Hair_01"
+        }
+      }
+    },
+    {
+      "id": "tan-legging",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_03",
+          "legR": "SK_Chr_LegRight_Male_03"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_03",
+          "legR": "SK_Chr_LegRight_Female_03"
+        }
+      }
+    },
+    {
+      "id": "tan-skirt-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_10"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_10"
+        }
+      }
+    },
+    {
+      "id": "tan-skirt-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_20"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_20"
+        }
+      }
+    },
+    {
+      "id": "tan-skirt",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_09"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_09"
+        }
+      }
+    },
+    {
+      "id": "templar-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_08"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_08"
+        }
+      }
+    },
+    {
+      "id": "templar",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_10",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Male_08",
+          "armUpperR": "SK_Chr_ArmUpperRight_Male_08",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Male_11",
+          "armLowerR": "SK_Chr_ArmLowerRight_Male_11"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_10",
+          "armUpperL": "SK_Chr_ArmUpperLeft_Female_08",
+          "armUpperR": "SK_Chr_ArmUpperRight_Female_08",
+          "armLowerL": "SK_Chr_ArmLowerLeft_Female_11",
+          "armLowerR": "SK_Chr_ArmLowerRight_Female_11"
+        }
+      }
+    },
+    {
+      "id": "thick-plate-helm",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_10"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_10"
+        }
+      }
+    },
+    {
+      "id": "thin-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_07"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_07"
+        }
+      }
+    },
+    {
+      "id": "toga",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "torso": "SK_Chr_Torso_Male_08"
+        },
+        "female": {
+          "torso": "SK_Chr_Torso_Female_08"
+        }
+      }
+    },
+    {
+      "id": "tri-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_05"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_05"
+        }
+      }
+    },
+    {
+      "id": "wrinkled-cape",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "back": "SK_Chr_BackAttachment_06"
+        },
+        "female": {
+          "back": "SK_Chr_BackAttachment_06"
         }
       }
     }

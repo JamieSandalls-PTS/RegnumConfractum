@@ -1,0 +1,22 @@
+{
+  "id": "straps",
+  "name": "Straps",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_01",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_03",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_03",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_02",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_02"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_01",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_03",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_03",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_02",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_02"
+    }
+  },
+  "swaps": []
+}

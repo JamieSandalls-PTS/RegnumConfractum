@@ -1,0 +1,14 @@
+{
+  "id": "thick-plate-helm",
+  "name": "Thick plate helm",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "helmet": "SK_Chr_Head_No_Elements_Male_10"
+    },
+    "female": {
+      "helmet": "SK_Chr_Head_No_Elements_Female_10"
+    }
+  },
+  "swaps": []
+}

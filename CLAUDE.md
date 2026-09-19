@@ -1716,6 +1716,19 @@ action; bots are unchanged, and the loop is client-side on purpose.
 ⚠ A bot agent standing on a barred door now learns it goes nowhere;
 positions are metres, so "on the tile" is a distance, never `===`.
 
+**Vertex colours are not art (D-637).** Pack FBX carry a colour attribute
+on some meshes -- black on the goblin staff, unneeded on this pack's heads
+-- and both FBXLoader and GLTFLoader turn vertex colours ON for such a
+mesh, multiplying the atlas by it. The assembler and the environment build
+drop the attribute; every loader strips it from older files; a test refuses
+a built file carrying `COLOR_0`. **The stage can be photographed:**
+`window.__stage.snapshot()` plus `POST /api/snapshot` write the tool's
+stage to a PNG for an image reader, which is how 240 parts were looked at.
+**192 garments** cover the pack the way the stakeholder authored the Gothic
+set: one per torso with arms chosen by looking, one per other wearable
+part. ⚠ The arm pairings are a first pass; every part is exported now
+(700 files, 40 MB).
+
 **A cue is heard in the tool through the game's own player (D-635).** The
 cue editor's preview is `SoundBank` handed the form's copy of the cue, so
 trim, split and normalisation are heard as the game applies them, and the

@@ -4606,6 +4606,11 @@ interface StageMesh {
     });
     return out;
   },
+  /** The pack's catalogue: every stem per slot, with its cut. */
+  slots: (): Record<string, [string, string][]> =>
+    Object.fromEntries(
+      Object.entries(catalogue.slots).map(([slot, list]) => [slot, list.map((o) => [o.stem, o.sex] as [string, string])]),
+    ),
   /** How the stage is framed. */
   view: (fy: number, oh: number, z: number): void => {
     focusY = fy;

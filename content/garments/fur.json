@@ -1,0 +1,22 @@
+{
+  "id": "fur",
+  "name": "Fur",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_02",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_04",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_04",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_03",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_03"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_02",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_04",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_04",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_03",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_03"
+    }
+  },
+  "swaps": []
+}

@@ -1,0 +1,22 @@
+{
+  "id": "templar",
+  "name": "Templar",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_10",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Male_08",
+      "armUpperR": "SK_Chr_ArmUpperRight_Male_08",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Male_11",
+      "armLowerR": "SK_Chr_ArmLowerRight_Male_11"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_10",
+      "armUpperL": "SK_Chr_ArmUpperLeft_Female_08",
+      "armUpperR": "SK_Chr_ArmUpperRight_Female_08",
+      "armLowerL": "SK_Chr_ArmLowerLeft_Female_11",
+      "armLowerR": "SK_Chr_ArmLowerRight_Female_11"
+    }
+  },
+  "swaps": []
+}

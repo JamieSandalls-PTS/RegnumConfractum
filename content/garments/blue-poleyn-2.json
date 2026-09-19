@@ -1,0 +1,16 @@
+{
+  "id": "blue-poleyn-2",
+  "name": "Blue poleyn 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "kneeL": "SK_Chr_KneeAttachLeft_03",
+      "kneeR": "SK_Chr_KneeAttachRight_03"
+    },
+    "female": {
+      "kneeL": "SK_Chr_KneeAttachLeft_03",
+      "kneeR": "SK_Chr_KneeAttachRight_03"
+    }
+  },
+  "swaps": []
+}

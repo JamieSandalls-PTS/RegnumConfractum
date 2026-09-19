@@ -1,0 +1,14 @@
+{
+  "id": "tan-skirt",
+  "name": "Tan skirt",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hips": "SK_Chr_Hips_Male_09"
+    },
+    "female": {
+      "hips": "SK_Chr_Hips_Female_09"
+    }
+  },
+  "swaps": []
+}

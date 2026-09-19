@@ -1,0 +1,14 @@
+{
+  "id": "long-cape",
+  "name": "Long cape",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "back": "SK_Chr_BackAttachment_15"
+    },
+    "female": {
+      "back": "SK_Chr_BackAttachment_15"
+    }
+  },
+  "swaps": []
+}

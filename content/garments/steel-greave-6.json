@@ -1,0 +1,16 @@
+{
+  "id": "steel-greave-6",
+  "name": "Steel greave 6",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "legL": "SK_Chr_LegLeft_Male_18",
+      "legR": "SK_Chr_LegRight_Male_18"
+    },
+    "female": {
+      "legL": "SK_Chr_LegLeft_Female_18",
+      "legR": "SK_Chr_LegRight_Female_18"
+    }
+  },
+  "swaps": []
+}

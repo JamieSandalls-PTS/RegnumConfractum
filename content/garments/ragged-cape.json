@@ -1,0 +1,14 @@
+{
+  "id": "ragged-cape",
+  "name": "Ragged cape",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "back": "SK_Chr_BackAttachment_14"
+    },
+    "female": {
+      "back": "SK_Chr_BackAttachment_14"
+    }
+  },
+  "swaps": []
+}

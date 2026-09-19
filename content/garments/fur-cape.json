@@ -1,0 +1,14 @@
+{
+  "id": "fur-cape",
+  "name": "Fur cape",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "back": "SK_Chr_BackAttachment_04"
+    },
+    "female": {
+      "back": "SK_Chr_BackAttachment_04"
+    }
+  },
+  "swaps": []
+}

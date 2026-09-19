@@ -1,0 +1,16 @@
+{
+  "id": "brown-glove",
+  "name": "Brown glove",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "handL": "SK_Chr_HandLeft_Male_02",
+      "handR": "SK_Chr_HandRight_Male_02"
+    },
+    "female": {
+      "handL": "SK_Chr_HandLeft_Female_02",
+      "handR": "SK_Chr_HandRight_Female_02"
+    }
+  },
+  "swaps": []
+}

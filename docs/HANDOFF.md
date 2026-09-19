@@ -104,7 +104,19 @@ engages (client-side loop in `main.ts`: `engage`, `engageStep`,
 `approachTile`). Fixtures about the town call `opensIn(content, 'round-town')`
 from `sim/src/testScenario.ts`.
 
+**D-637 — textures, the stage probe, the wardrobe.** Vertex colours are
+dropped at the assembler and every loader (the goblin staff and the keeper's
+face). `window.__stage.snapshot()` → `POST /api/snapshot` photographs the
+tool's stage; run a second authoring server with the `tools-probe` launch
+config (8151) and open the tool with `?api=8151` so the probe never touches
+the stakeholder's. 192 garments generated; the torso→arm pairings are a
+first pass to be corrected by eye in the garment editor.
+
 ## The things most likely to be undone by accident
+
+**00. `geometry.deleteAttribute('color')` in `assembly.ts` is load-bearing.**
+Remove it and the next `build:characters` writes COLOR_0 into every part
+file, and every face in the world goes black while the studio stays right.
 
 **0. `spawnPointFor` excludes DOOR tiles.** The taproom's spawn is one tile
 from its threshold. Drop that exclusion and the second arrival walks out of

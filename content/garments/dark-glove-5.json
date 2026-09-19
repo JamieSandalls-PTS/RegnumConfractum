@@ -1,0 +1,16 @@
+{
+  "id": "dark-glove-5",
+  "name": "Dark glove 5",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "handL": "SK_Chr_HandLeft_Male_17",
+      "handR": "SK_Chr_HandRight_Male_17"
+    },
+    "female": {
+      "handL": "SK_Chr_HandLeft_Female_17",
+      "handR": "SK_Chr_HandRight_Female_17"
+    }
+  },
+  "swaps": []
+}

@@ -1,0 +1,16 @@
+{
+  "id": "brown-shoulder-2",
+  "name": "Brown shoulder 2",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_09",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_09"
+    },
+    "female": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_09",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_09"
+    }
+  },
+  "swaps": []
+}

@@ -1,0 +1,14 @@
+{
+  "id": "templar-plate-helm",
+  "name": "Templar plate helm",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "helmet": "SK_Chr_Head_No_Elements_Male_08"
+    },
+    "female": {
+      "helmet": "SK_Chr_Head_No_Elements_Female_08"
+    }
+  },
+  "swaps": []
+}

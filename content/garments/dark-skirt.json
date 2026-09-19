@@ -1,0 +1,14 @@
+{
+  "id": "dark-skirt",
+  "name": "Dark skirt",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hips": "SK_Chr_Hips_Male_06"
+    },
+    "female": {
+      "hips": "SK_Chr_Hips_Female_06"
+    }
+  },
+  "swaps": []
+}

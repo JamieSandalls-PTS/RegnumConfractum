@@ -1,0 +1,14 @@
+{
+  "id": "brown-hood-6",
+  "name": "Brown hood 6",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_09"
+    },
+    "female": {
+      "headCovering": "SK_Chr_HeadCoverings_No_Hair_09"
+    }
+  },
+  "swaps": []
+}

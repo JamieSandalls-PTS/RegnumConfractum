@@ -1,0 +1,16 @@
+{
+  "id": "steel-shoulder-6",
+  "name": "Steel shoulder 6",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_19",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_19"
+    },
+    "female": {
+      "shoulderL": "SK_Chr_ShoulderAttachLeft_19",
+      "shoulderR": "SK_Chr_ShoulderAttachRight_19"
+    }
+  },
+  "swaps": []
+}

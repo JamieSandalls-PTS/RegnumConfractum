@@ -1,0 +1,14 @@
+{
+  "id": "toga",
+  "name": "Toga",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "torso": "SK_Chr_Torso_Male_08"
+    },
+    "female": {
+      "torso": "SK_Chr_Torso_Female_08"
+    }
+  },
+  "swaps": []
+}
