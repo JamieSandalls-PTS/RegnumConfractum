@@ -1,0 +1,51 @@
+{
+  "id": "ember-glow",
+  "name": "Ember glow",
+  "notes": "For a held weapon: a warm glow with a few motes climbing off the blade or the stave head. Follows the weapon; hides when it is sheathed.",
+  "loop": true,
+  "particles": {
+    "rate": 9,
+    "life": [
+      0.5,
+      0.9
+    ],
+    "speed": [
+      0.15,
+      0.35
+    ],
+    "direction": "up",
+    "spread": 0.6,
+    "gravity": -0.3,
+    "drift": 0.1,
+    "size": [
+      0.05,
+      0.01
+    ],
+    "colour": [
+      "#ffc36b",
+      "#ff5a1a"
+    ],
+    "additive": true,
+    "radius": 0.1
+  },
+  "light": {
+    "colour": "#ffa050",
+    "intensity": 5,
+    "distance": 3,
+    "flicker": {
+      "amount": 0.2,
+      "speed": 6
+    },
+    "height": 0.0
+  },
+  "glow": {
+    "colour": "#ffae5a",
+    "radius": 0.14,
+    "opacity": 0.4,
+    "pulse": {
+      "amount": 0.3,
+      "speed": 2
+    },
+    "height": 0.0
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "arcane-burst",
+  "name": "Arcane burst",
+  "notes": "A one-shot impact: motes thrown out in every direction with a flash of blue light. The impact half of arcane-bolt.",
+  "loop": false,
+  "duration": 0.5,
+  "particles": {
+    "rate": 26,
+    "life": [
+      0.3,
+      0.7
+    ],
+    "speed": [
+      1.4,
+      3.2
+    ],
+    "direction": "out",
+    "spread": 1,
+    "gravity": 2.4,
+    "drift": 0.05,
+    "size": [
+      0.08,
+      0.01
+    ],
+    "colour": [
+      "#dff2ff",
+      "#3c8ae6"
+    ],
+    "additive": true,
+    "radius": 0.05
+  },
+  "light": {
+    "colour": "#a8dcff",
+    "intensity": 22,
+    "distance": 6,
+    "flicker": {
+      "amount": 0,
+      "speed": 0
+    },
+    "height": 0.0
+  },
+  "glow": {
+    "colour": "#dff2ff",
+    "radius": 0.3,
+    "opacity": 0.6,
+    "pulse": {
+      "amount": 0,
+      "speed": 0
+    },
+    "height": 0.0
+  }
+}

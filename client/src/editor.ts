@@ -23,6 +23,7 @@ import { SPLAT_CHANNELS } from './render/ground-splat';
 import { VolumeView } from './render/volume-view';
 import { StationVisual } from './render/station-visual';
 import { LightRig } from './render/lights';
+import { VfxSystem, pixelsPerMetre, setVfxDefinitions, vfxDefinitions } from './render/vfx';
 import { Roofs } from './render/roofs';
 import { setOcclusionFocus } from './render/occlusion';
 
@@ -79,7 +80,9 @@ const stage = $('stage');
 // with the 1,916 of them that stood in the authored areas. A map is built from
 // pack meshes.
 type Tool = 'select' | 'asset' | 'station' | 'node' | 'npc' | 'spawn' | 'exit' | 'roof'
-  | 'paint';
+  | 'paint'
+  // Effects standing in the area (D-639): a fire in a fireplace.
+  | 'vfx';
 
 // ---------------------------------------------------------------------------
 // State
@@ -135,6 +138,16 @@ let ghostFor: EnvironmentAsset | null = null;
 let hoverGround: { x: number; y: number } | null = null;
 /** Which asset the next click places, and the catalogue to choose it from. */
 let assetPick: EnvironmentAsset | null = null;
+/**
+ * The effect the next click places (D-639), how high, and how big.
+ *
+ * ⚠ Previewed LIVE through the game's own `VfxSystem`, on the game's own
+ * light pool, so what burns here is what burns in play — the promise the
+ * editor makes about meshes (D-543), kept for light.
+ */
+let vfxPick: string | null = null;
+let vfxZ = 0;
+let vfxScale = 1;
 let assetPack = '';
 let assetPacks: string[] = [];
 let assetList: EnvironmentAsset[] = [];
@@ -201,6 +214,7 @@ let paintedGround: THREE.Object3D | null = null;
 let roofView: Roofs | null = null;
 let stationVisuals = new Map<string, StationVisual>();
 const lightRig = new LightRig(scene.scene);
+const vfxPreview = new VfxSystem(scene.scene, lightRig);
 let markerGroup = new THREE.Group();
 scene.scene.add(markerGroup);
 
@@ -456,7 +470,35 @@ function rebuildMarkers(): void {
     m.position.set(person.x, 0.85, person.y);
     markerGroup.add(m);
   }
+  // Effects (D-639): the effect itself, burning, and a small plate under it
+  // so one whose definition has gone still shows WHERE it was placed.
+  vfxPreview.clearPlaced();
+  for (const v of area.vfx) {
+    vfxPreview.place(v.vfx, v.x, v.y, v.z, v.scale);
+    const m = new THREE.Mesh(
+      new THREE.RingGeometry(0.18, 0.28, 12),
+      new THREE.MeshBasicMaterial({ color: 0xff8a3c, transparent: true, opacity: 0.8, side: THREE.DoubleSide }),
+    );
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(v.x, 0.1, v.y);
+    markerGroup.add(m);
+  }
   scene.scene.add(markerGroup);
+}
+
+/** The placed effect nearest a point, within a tile, or -1. */
+function nearestVfx(x: number, y: number): number {
+  if (!area) return -1;
+  let best = -1;
+  let bestD = 0.75;
+  area.vfx.forEach((v, i) => {
+    const d = Math.hypot(v.x - x, v.y - y);
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  });
+  return best;
 }
 
 // ---------------------------------------------------------------------------
@@ -1134,6 +1176,20 @@ function applyAt(x: number, y: number, erase: boolean): boolean {
   // ⚠ Handled BEFORE the brush loop and outside it. Ground is continuous and a
   // brush over it makes sense; a brush of 7 over assets placed forty-nine
   // overlapping houses on one click. One click, one object.
+  if (tool === 'vfx') {
+    if (erase) {
+      const at = nearestVfx(x, y);
+      if (at < 0) return false;
+      area.vfx.splice(at, 1);
+    } else {
+      if (!vfxPick) return false;
+      area.vfx.push({ vfx: vfxPick, x, y, z: vfxZ, scale: vfxScale });
+    }
+    rebuildMarkers();
+    setDirty(true);
+    renderPanel();
+    return true;
+  }
   if (tool === 'asset') {
     if (!erase) return placeAsset(x, y);
     const hit = assetAt(x, y);
@@ -1502,7 +1558,7 @@ function chip(label: string, on: boolean, onClick: () => void, swatch?: string):
 function renderPanel(): void {
   const tools = $('tools');
   tools.innerHTML = '';
-  for (const t of ['select', 'asset', 'paint', 'station', 'node', 'npc', 'spawn', 'exit', 'roof'] as Tool[]) {
+  for (const t of ['select', 'asset', 'paint', 'vfx', 'station', 'node', 'npc', 'spawn', 'exit', 'roof'] as Tool[]) {
     tools.appendChild(chip(t, tool === t, () => { tool = t; }));
   }
 
@@ -1557,6 +1613,8 @@ function renderPanel(): void {
     opts.appendChild(note);
   } else if (tool === 'exit') {
     renderExitTool(opts);
+  } else if (tool === 'vfx') {
+    renderVfxTool(opts);
   } else if (tool === 'roof') {
     const chips = section('Roofing');
     const styles: typeof roofStyle[] = ['thatch', 'tile', 'slate', 'plank'];
@@ -1974,6 +2032,78 @@ function slider(
   };
   wrap.append(name, input, read);
   host.appendChild(wrap);
+}
+
+/**
+ * The effects tool (D-639): pick an effect authored on the tool's Effects
+ * tab, click to stand it in the map. Height and scale are the two numbers a
+ * placement carries; everything else is the definition's.
+ */
+function renderVfxTool(opts: HTMLElement): void {
+  const h = document.createElement('h2');
+  h.textContent = 'Effect';
+  opts.appendChild(h);
+  const chips = document.createElement('div');
+  chips.className = 'chips';
+  const defs = vfxDefinitions();
+  for (const d of defs) {
+    const c = chip(`${d.name}${d.loop ? '' : ' (one-shot)'}`, vfxPick === d.id, () => { vfxPick = d.id; renderPanel(); });
+    c.title = d.notes || d.id;
+    chips.appendChild(c);
+  }
+  opts.appendChild(chips);
+  if (defs.length === 0) {
+    const none = document.createElement('div');
+    none.className = 'hint';
+    none.textContent = 'No effects are defined yet. They are made on the creation tool under Art → Effects, and placed here.';
+    opts.appendChild(none);
+  }
+
+  const num = (label: string, value: number, step: number, set: (v: number) => void): void => {
+    const l = document.createElement('label');
+    l.textContent = label;
+    const i = document.createElement('input');
+    i.type = 'number';
+    i.step = String(step);
+    i.value = String(value);
+    i.oninput = () => set(Number(i.value) || 0);
+    opts.append(l, i);
+  };
+  num('Height (m)', vfxZ, 0.1, (v) => { vfxZ = v; });
+  num('Scale', vfxScale, 0.1, (v) => { vfxScale = Math.max(0.1, v); });
+
+  if (area && area.vfx.length) {
+    const ph = document.createElement('h2');
+    ph.textContent = `Placed (${area.vfx.length})`;
+    opts.appendChild(ph);
+    area.vfx.forEach((v, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:3px';
+      const label = document.createElement('span');
+      label.className = 'hint';
+      label.style.flex = '1';
+      label.textContent = `${v.vfx} at (${v.x.toFixed(1)}, ${v.y.toFixed(1)}) z ${v.z.toFixed(2)} ×${v.scale.toFixed(2)}`;
+      const del = document.createElement('button');
+      del.textContent = '×';
+      del.title = 'take it away';
+      del.onclick = () => {
+        snapshot();
+        area!.vfx.splice(i, 1);
+        rebuildMarkers();
+        setDirty(true);
+        renderPanel();
+      };
+      row.append(label, del);
+      opts.appendChild(row);
+    });
+  }
+
+  const note = document.createElement('div');
+  note.className = 'hint';
+  note.innerHTML = 'Click to stand the effect there; right-click near one to take it away. '
+    + 'It burns here exactly as it will in the game, on the same light pool. '
+    + 'A fire wants a height near the logs; a torch flame sits at about 1.5m.';
+  opts.appendChild(note);
 }
 
 function renderAssetTool(opts: HTMLElement): void {
@@ -2878,6 +3008,10 @@ function step(dt: number): void {
   scene.follow(camTarget);
   roofView?.update(null, dt);
   lightRig.update(camTarget, clock.elapsedTime);
+  {
+    const size = scene.renderer.getDrawingBufferSize(new THREE.Vector2());
+    vfxPreview.update(dt, clock.elapsedTime, camTarget, pixelsPerMetre(scene.camera, size.y));
+  }
   ensureCursor();
   updateGhost();
   if (cursor) {
@@ -2932,6 +3066,10 @@ declare global {
       resize: (w: number, h: number, ox?: number, oy?: number) => string;
       setExit: (toArea: string, toX: number, toY: number) => void;
       setRoof: (style: 'thatch' | 'tile' | 'slate' | 'plank') => void;
+      /** Picks the effect the next click places (D-639). */
+      setVfx: (id: string, z?: number, scale?: number) => void;
+      /** What is burning on the stage: placed effects and live motes. */
+      vfx: () => { placed: number; live: number; motes: number; defs: number };
       /** Forces a frame and returns the canvas — the browser pane does not
        * composite when it is not displayed, so rAF alone is not enough. */
       pick: (i: number) => PlacedAsset | null;
@@ -2986,6 +3124,8 @@ window.__editor = {
     exitTarget = toArea; exitToX = toX; exitToY = toY; renderPanel();
   },
   setRoof: (style: 'thatch' | 'tile' | 'slate' | 'plank') => { roofStyle = style; renderPanel(); },
+  setVfx: (id: string, z = 0, scale = 1) => { vfxPick = id; vfxZ = z; vfxScale = scale; renderPanel(); },
+  vfx: () => ({ ...vfxPreview.stats(), defs: vfxDefinitions().length }),
   /** Select by index into `area().assets`, or -1 for nothing. */
   pick: (i: number) => {
     select(i < 0 ? null : (area?.assets[i] ?? null));
@@ -3009,5 +3149,16 @@ renderPanel();
 // Ground materials before the first area, or the first rebuild paints nothing.
 void loadGround().then(() => loadAreaList());
 void loadPalette();
+/** The effects that can be placed (D-639), from the authoring server. */
+async function loadVfx(): Promise<void> {
+  try {
+    const got = (await (await fetch(`${STUDIO}/vfx`)).json()) as { vfx: unknown[] };
+    setVfxDefinitions(got.vfx);
+    if (area) rebuildMarkers();
+  } catch {
+    setVfxDefinitions([]);
+  }
+}
+void loadVfx();
 void loadAssetPacks();
 frame();

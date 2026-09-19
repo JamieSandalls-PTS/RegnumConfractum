@@ -80,6 +80,7 @@ import type { ToolContext, ToolTab } from './tool/context';
 import { SoundPreview, describePreview } from './tool/sound-preview';
 import { charactersTab } from './tool/characters';
 import { clothTab } from './tool/cloth';
+import { vfxTab, vfxStageStats } from './tool/vfx';
 import { scenariosTab } from './tool/scenarios';
 import { filingTab } from './tool/filing';
 
@@ -3866,9 +3867,29 @@ let itemSel = '';
 /** The colours the SELECTED item's mesh actually samples, biggest share first. */
 let itemColours: { hex: string; share: number }[] = [];
 let itemAssets: AssetDef[] = [];
+/** The effects an item may name (D-639), and the projectile meshes it may fire. */
+let vfxChoices: { id: string; name: string; loop: boolean }[] = [];
+let projectileChoices: { key: string; name: string }[] = [];
 
 async function loadItems(): Promise<void> {
   items = (await (await fetch(`${API}/items`)).json()) as ItemTemplate[];
+  try {
+    const got = (await (await fetch(`${API}/vfx`)).json()) as { vfx: { id: string; name: string; loop: boolean }[] };
+    vfxChoices = got.vfx.map((v) => ({ id: v.id, name: v.name, loop: v.loop }));
+  } catch {
+    vfxChoices = [];
+  }
+  // Every projectile mesh across every pack: a bow in one pack fires an arrow
+  // from another, so the list is not narrowed to the item's own art pack.
+  projectileChoices = [];
+  for (const packId of assetPacks) {
+    try {
+      const file = (await (await fetch(`${API}/assets/${encodeURIComponent(packId)}/projectile`)).json()) as { assets?: { id: string; name: string }[] };
+      for (const a of file.assets ?? []) projectileChoices.push({ key: `${packId}/${a.id}`, name: `${a.name} (${packId})` });
+    } catch {
+      /* a pack with no projectiles */
+    }
+  }
   if (!items.some((i) => i.id === itemSel)) itemSel = items[0]?.id ?? '';
   await loadItemArt();
 }
@@ -4275,6 +4296,89 @@ function renderItemSide(): void {
     stat('Mana', item.equip.mana, (v) => (item.equip!.mana = v));
   }
 
+  /* ------------------------------------------------- what it shows (D-639) */
+  const vh = document.createElement('h2');
+  vh.textContent = 'Effects';
+  host.appendChild(vh);
+  const vfxSelect = (label: string, value: string | undefined, set: (v: string | undefined) => void, loopOnly: boolean | null): void => {
+    const sel = document.createElement('select');
+    sel.add(new Option('— none —', ''));
+    for (const v of vfxChoices) {
+      if (loopOnly !== null && v.loop !== loopOnly) continue;
+      sel.add(new Option(`${v.name}${v.loop ? '' : ' (one-shot)'}`, v.id));
+    }
+    sel.value = value ?? '';
+    sel.onchange = () => {
+      set(sel.value || undefined);
+      markDirty();
+      render();
+    };
+    field(label, sel);
+  };
+  const vfxOf = (): NonNullable<ItemTemplate['vfx']> => (item.vfx ??= {});
+  const tidy = (): void => {
+    const v = item.vfx;
+    if (v && !v.held && !v.attack && !v.projectile && !v.impact) item.vfx = undefined;
+  };
+  vfxSelect('Held — burns on it while it is out', item.vfx?.held, (v) => { vfxOf().held = v; tidy(); }, true);
+  vfxSelect('Attack — plays at the weapon as the blow begins', item.vfx?.attack, (v) => { vfxOf().attack = v; tidy(); }, null);
+  const fires = document.createElement('label');
+  fires.style.cssText = 'display:flex;gap:8px;align-items:center;text-transform:none';
+  const firesCb = document.createElement('input');
+  firesCb.type = 'checkbox';
+  firesCb.style.width = 'auto';
+  firesCb.checked = Boolean(item.vfx?.projectile);
+  firesCb.onchange = () => {
+    if (firesCb.checked) vfxOf().projectile = { speed: 18, arc: 0.6 };
+    else if (item.vfx) { delete item.vfx.projectile; tidy(); }
+    markDirty();
+    render();
+  };
+  fires.append(firesCb, document.createTextNode('Fires a projectile'));
+  host.appendChild(fires);
+  if (item.vfx?.projectile) {
+    const proj = item.vfx.projectile;
+    const assetSel = document.createElement('select');
+    assetSel.add(new Option('— no mesh (a pure effect) —', ''));
+    for (const c of projectileChoices) assetSel.add(new Option(c.name, c.key));
+    assetSel.value = proj.asset ?? '';
+    assetSel.onchange = () => {
+      if (assetSel.value) proj.asset = assetSel.value;
+      else delete proj.asset;
+      markDirty();
+    };
+    field('Projectile mesh (an arrow, a bolt)', assetSel);
+    vfxSelect('Projectile effect — flies with it, or alone (a fireball)', proj.vfx, (v) => { if (v) proj.vfx = v; else delete proj.vfx; }, true);
+    const num = (label: string, value: number, min: number, max: number, step: number, set: (v: number) => void): void => {
+      const i = document.createElement('input');
+      i.type = 'number';
+      i.min = String(min);
+      i.max = String(max);
+      i.step = String(step);
+      i.value = String(value);
+      i.oninput = () => {
+        const v = Number(i.value);
+        if (Number.isFinite(v)) set(Math.min(max, Math.max(min, v)));
+        markDirty();
+      };
+      field(label, i);
+    };
+    num('Speed (m/s)', proj.speed, 1, 80, 1, (v) => (proj.speed = v));
+    num('Arc height (m)', proj.arc, 0, 5, 0.1, (v) => (proj.arc = v));
+    if (!proj.asset && !proj.vfx) {
+      const warn = document.createElement('div');
+      warn.className = 'hint bad';
+      warn.textContent = 'A projectile with neither a mesh nor an effect is invisible in flight — pick one or both.';
+      host.appendChild(warn);
+    }
+  }
+  vfxSelect('Impact — where the blow or the projectile lands', item.vfx?.impact, (v) => { vfxOf().impact = v; tidy(); }, false);
+  const vnote = document.createElement('div');
+  vnote.className = 'hint';
+  vnote.innerHTML = 'Effects are made under <b>Art → Effects</b>. A weapon with no projectile is melee whatever its reach; '
+    + 'one with a projectile fires it at the release point of the swing, an arrow mesh, a flying effect, or both together.';
+  host.appendChild(vnote);
+
   const save = document.createElement('button');
   save.textContent = 'Save item';
   save.className = 'primary';
@@ -4319,7 +4423,9 @@ type Section = 'core' | 'map' | 'items' | 'classes' | 'progression' | 'round' | 
   // that did not exist until the scenario did.
   | 'characters' | 'cloth' | 'scenarios'
   // The filing tab (D-631), which replaced Unfiled.
-  | 'filing';
+  | 'filing'
+  // Effects (D-639): one page to make a VFX, usable wherever one applies.
+  | 'vfx';
 let section: Section = 'core';
 
 /* ------------------------------------------------ the production line ---- */
@@ -4378,6 +4484,9 @@ const STAGES: Record<StageId, Stage> = {
       core('environment', 'Environment assets'),
       core('pickup', 'Pickups'),
       core('projectile', 'Projectiles'),
+      // An effect is art too (D-639): light and motes, authored once and
+      // placed on maps, items and blows.
+      sec('vfx', 'Effects'),
     ],
   },
   motion: {
@@ -4544,6 +4653,8 @@ interface StageMesh {
 }
 
 (window as unknown as { __stage: unknown }).__stage = {
+  /** What the Effects tab is burning (D-639). */
+  vfx: () => vfxStageStats(),
   children: () => mount.children.length,
   mixers: () => sheetMixers.length + (bodyMixer ? 1 : 0),
   step: (seconds: number) => {
@@ -4656,6 +4767,7 @@ const MODULES: Partial<Record<Section, ToolTab>> = {
   characters: charactersTab,
   cloth: clothTab,
   scenarios: scenariosTab,
+  vfx: vfxTab,
 };
 
 interface Soon {
@@ -6888,7 +7000,7 @@ function applySection(): void {
     || section === 'progression' || section === 'round' || section === 'world'
     || section === 'garments' || section === 'interactive'
     || section === 'characters' || section === 'cloth' || section === 'scenarios'
-    || section === 'filing';
+    || section === 'filing' || section === 'vfx';
   const map = section === 'map';
   $('body').classList.toggle('hidden', !built);
   $('editor').classList.toggle('hidden', !map);

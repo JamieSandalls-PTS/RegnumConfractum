@@ -91,6 +91,9 @@ export function placedAssetIds(
   for (const file of listJson(itemDir)) {
     const def = ItemTemplateSchema.parse(JSON.parse(readFileSync(file, 'utf8')));
     if (def.art) used.add(`${def.art.pack}/${def.art.asset}`);
+    // And what it FIRES (D-639): an arrow is a mesh in flight, built on the
+    // same terms as the bow that looses it.
+    if (def.vfx?.projectile?.asset) used.add(def.vfx.projectile.asset);
   }
   return used;
 }

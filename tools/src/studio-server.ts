@@ -81,6 +81,9 @@ import {
   ClothSettingsSchema,
   type ClothFile,
   clothProblems,
+  VfxDefSchema,
+  itemVfxRefs,
+  vfxReferenceProblems,
 } from '@rc/shared';
 // Shared with `build:characters`, so the studio and the build resolve a pack
 // name the same way. Two copies drift, and the failure is a character that
@@ -223,6 +226,7 @@ const nodesDir = path.join(contentDir, 'nodes');
 const npcsDir = path.join(contentDir, 'npcs');
 const scenariosDir = path.join(contentDir, 'scenarios');
 const clothDir = path.join(contentDir, 'cloth');
+const vfxDir = path.join(contentDir, 'vfx');
 
 /**
  * Which rig a mesh's skeleton is on, read the way the build reads it (D-556):
@@ -588,6 +592,43 @@ function wornByGarment(): Record<string, string[]> {
       if (t.garment) (out[t.garment] ??= []).push(t.id);
     } catch {
       /* a malformed item is the content validator's problem */
+    }
+  }
+  return out;
+}
+
+/**
+ * Who uses each effect (D-639): items by field, areas by placement. A save
+ * on the Effects tab shows this, and a delete is refused by name while any
+ * of it stands — a renamed effect is otherwise a dark hearth nobody reports.
+ */
+function vfxUsers(): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  const note = (vfx: string, who: string): void => {
+    (out[vfx] ??= []).push(who);
+  };
+  const itemsDir = path.join(contentDir, 'items');
+  if (fs.existsSync(itemsDir)) {
+    for (const f of fs.readdirSync(itemsDir).filter((x) => x.endsWith('.json'))) {
+      try {
+        const t = ItemTemplateSchema.parse(JSON.parse(fs.readFileSync(path.join(itemsDir, f), 'utf8')));
+        for (const ref of itemVfxRefs(t.id, t.vfx)) note(ref.vfx, ref.where);
+      } catch {
+        /* a malformed item is the content validator's problem */
+      }
+    }
+  }
+  const areasDir = path.join(contentDir, 'areas');
+  if (fs.existsSync(areasDir)) {
+    for (const f of fs.readdirSync(areasDir).filter((x) => x.endsWith('.json'))) {
+      try {
+        const a = AreaSchema.parse(JSON.parse(fs.readFileSync(path.join(areasDir, f), 'utf8')));
+        const counts = new Map<string, number>();
+        for (const v of a.vfx) counts.set(v.vfx, (counts.get(v.vfx) ?? 0) + 1);
+        for (const [vfx, n] of counts) note(vfx, `area '${a.id}' (${n} placed)`);
+      } catch {
+        /* likewise */
+      }
     }
   }
   return out;
@@ -1244,6 +1285,11 @@ function savedCharacterDefs(): CharacterDef[] {
           });
         }
       }
+      // And an effect that does not exist (D-639): a glow nobody defined is a
+      // sword that looks ordinary, and nothing would say why.
+      const known = new Set(savedDocs(vfxDir, (r) => VfxDefSchema.parse(r)).map((v) => v.id));
+      const vfxProblems = vfxReferenceProblems(known, itemVfxRefs(item.id, item.vfx));
+      if (vfxProblems.length) return send(res, 400, { error: 'would not build', problems: vfxProblems });
       writeJson(path.join(contentDir, 'items'), `${item.id}.json`, item);
       return send(res, 200, { saved: item.id });
     });
@@ -1476,6 +1522,47 @@ function savedCharacterDefs(): CharacterDef[] {
         error: 'would not build',
         problems: wearers.map((i) => `item '${i}' wears this garment`),
       });
+    }
+    fs.unlinkSync(file);
+    publisher.note(contentTypeOf(path.dirname(file)));
+    return send(res, 200, { deleted: id });
+  }
+
+  /* ------------------------------------------------- effects (D-639) ---- */
+
+  // /api/vfx — every effect, and who uses each.
+  if (req.method === 'GET' && parts[1] === 'vfx' && parts.length === 2) {
+    return send(res, 200, {
+      vfx: savedDocs(vfxDir, (r) => VfxDefSchema.parse(r)),
+      usedBy: vfxUsers(),
+    });
+  }
+
+  // PUT /api/vfx/:id — the schema is the whole rule; an effect is presentation.
+  if (req.method === 'PUT' && parts[1] === 'vfx' && parts.length === 3) {
+    return withBody(req, res, (raw) => {
+      const parsed = VfxDefSchema.safeParse(raw);
+      if (!parsed.success) return send(res, 400, { error: 'schema', issues: parsed.error.issues });
+      const def = parsed.data;
+      if (def.id !== decodeURIComponent(parts[2]!)) {
+        return send(res, 400, { error: 'id does not match the url' });
+      }
+      if (!def.particles && !def.light && !def.glow) {
+        return send(res, 400, { error: 'would not build', problems: ['an effect with no particles, light or glow draws nothing'] });
+      }
+      writeJson(vfxDir, `${def.id}.json`, def);
+      return send(res, 200, { saved: def.id });
+    });
+  }
+
+  // DELETE /api/vfx/:id — refused by name while an item or an area uses it.
+  if (req.method === 'DELETE' && parts[1] === 'vfx' && parts.length === 3) {
+    const id = decodeURIComponent(parts[2]!);
+    const file = path.join(vfxDir, `${id}.json`);
+    if (!fs.existsSync(file)) return send(res, 404, { error: 'no such effect' });
+    const users = vfxUsers()[id] ?? [];
+    if (users.length) {
+      return send(res, 400, { error: 'would not build', problems: users.map((u) => `${u} names this effect`) });
     }
     fs.unlinkSync(file);
     publisher.note(contentTypeOf(path.dirname(file)));

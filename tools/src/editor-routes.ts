@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { AreaSchema, GROUND_MASKS, GroundMaterialSchema, type AreaDef } from '@rc/shared';
 import { validateContent } from './validate-content';
-import { checkAreaForSave } from './editor-check';
+import { checkAreaForSave, knownVfxIds } from './editor-check';
 
 /**
  * The map editor's routes (D-543), mounted on the ONE authoring server (D-629).
@@ -390,7 +390,7 @@ export function editorRoutes(
         const id = typeof (doc as { id?: unknown }).id === 'string'
           ? (doc as { id: string }).id
           : parts[2]!;
-        const { errors, area } = checkAreaForSave(doc, otherAreas(areasDir, id));
+        const { errors, area } = checkAreaForSave(doc, otherAreas(areasDir, id), knownVfxIds(contentDir));
         if (errors.length > 0 || !area) {
           // Refused BEFORE writing: the editor cannot produce content that
           // would fail the build.

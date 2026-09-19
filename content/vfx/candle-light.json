@@ -1,0 +1,51 @@
+{
+  "id": "candle-light",
+  "name": "Candle light",
+  "notes": "The pool of light from a cluster of candles on a table. Barely any motes; mostly the light. Place at the candle tops.",
+  "loop": true,
+  "particles": {
+    "rate": 4,
+    "life": [
+      0.3,
+      0.6
+    ],
+    "speed": [
+      0.15,
+      0.3
+    ],
+    "direction": "up",
+    "spread": 0.2,
+    "gravity": -0.2,
+    "drift": 0.04,
+    "size": [
+      0.04,
+      0.01
+    ],
+    "colour": [
+      "#fff0b0",
+      "#ff9040"
+    ],
+    "additive": true,
+    "radius": 0.06
+  },
+  "light": {
+    "colour": "#ffd9a0",
+    "intensity": 4,
+    "distance": 3.5,
+    "flicker": {
+      "amount": 0.3,
+      "speed": 7
+    },
+    "height": 0.1
+  },
+  "glow": {
+    "colour": "#ffe0a8",
+    "radius": 0.09,
+    "opacity": 0.4,
+    "pulse": {
+      "amount": 0.2,
+      "speed": 4
+    },
+    "height": 0.06
+  }
+}

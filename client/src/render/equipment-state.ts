@@ -29,6 +29,8 @@ export interface EquipmentState {
    * an item that names no art still fills a hand, it just has no fitted mesh.
    */
   weaponArt?: string;
+  /** The effect burning on that weapon while it is out (D-639), a vfx id. */
+  weaponVfx?: string;
   /**
    * Garments worn, in the wire's canonical order (D-571).
    *

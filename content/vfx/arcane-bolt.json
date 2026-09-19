@@ -1,0 +1,51 @@
+{
+  "id": "arcane-bolt",
+  "name": "Arcane bolt",
+  "notes": "A projectile effect: a pale blue core with a trail of motes left behind it. Name it as the projectile effect of a staff or a wand; pair with arcane-burst as the impact.",
+  "loop": true,
+  "particles": {
+    "rate": 90,
+    "life": [
+      0.2,
+      0.45
+    ],
+    "speed": [
+      0.1,
+      0.3
+    ],
+    "direction": "none",
+    "spread": 1,
+    "gravity": 0,
+    "drift": 0.2,
+    "size": [
+      0.09,
+      0.01
+    ],
+    "colour": [
+      "#dff2ff",
+      "#3c8ae6"
+    ],
+    "additive": true,
+    "radius": 0.06
+  },
+  "light": {
+    "colour": "#8ecbff",
+    "intensity": 9,
+    "distance": 6,
+    "flicker": {
+      "amount": 0.1,
+      "speed": 12
+    },
+    "height": 0.0
+  },
+  "glow": {
+    "colour": "#a8dcff",
+    "radius": 0.16,
+    "opacity": 0.7,
+    "pulse": {
+      "amount": 0.15,
+      "speed": 8
+    },
+    "height": 0.0
+  }
+}

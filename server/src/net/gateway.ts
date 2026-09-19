@@ -126,6 +126,8 @@ import {
   isTileWalkable,
   type ScenarioDef,
   canStandAt,
+  attackShowOf,
+  type AttackShow,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
@@ -390,6 +392,8 @@ interface ConnState {
   character: CharacterRecord | null;
   entityId: number | null;
   areaId: string | null;
+  /** The template of the weapon in hand, for what a blow shows (D-639). */
+  weaponTemplateId?: string;
   /** Live vitals cache; persisted immediately on death/logout (D-106). */
   vitals: {
     hp: number;
@@ -3931,6 +3935,16 @@ export class GameServer {
   }
 
   /** What the worn set contributes right now. */
+  /**
+   * What this character's weapon SHOWS when it strikes (D-639), or nothing.
+   * The weapon is the one `lookOf` picked, so the projectile leaves the
+   * weapon that is drawn.
+   */
+  private attackShowFor(conn: ConnState): AttackShow | undefined {
+    const weapon = conn.weaponTemplateId ? this.content.itemTemplates.get(conn.weaponTemplateId) : undefined;
+    return attackShowOf(weapon?.vfx);
+  }
+
   private loadoutOf(conn: ConnState): LoadoutTotals {
     return conn.loadout ?? { armour: 0, damage: 0, mana: 0, weight: 0, range: 1, ac: 0 };
   }
@@ -3944,10 +3958,26 @@ export class GameServer {
    * leaves has to take its reserve with it or removing and re-equipping it
    * would be a refill.
    */
+  /**
+   * The template of the weapon in hand — the best-damage item in either
+   * hand, the same choice `lookOf` makes (D-639).
+   */
+  private weaponTemplateOf(items: readonly ItemRecord[]): string | undefined {
+    let best: { damage: number; id: string } | null = null;
+    for (const item of items) {
+      if (item.equippedSlot !== 'main-hand' && item.equippedSlot !== 'off-hand') continue;
+      const template = this.content.itemTemplates.get(item.templateId);
+      const damage = template?.equip?.damage ?? 0;
+      if (!best || damage > best.damage) best = { damage, id: item.templateId };
+    }
+    return best?.id;
+  }
+
   private async refreshLoadout(conn: ConnState): Promise<void> {
     if (!conn.character) return;
     const items = await this.store.getItemsByCharacter(conn.character.id);
     const worn = this.wornOf(items);
+    conn.weaponTemplateId = this.weaponTemplateOf(items);
     // Set the silhouette HERE as well as in sendInventory (D-554): entering
     // the world grants the kit and then builds a snapshot, and without this
     // that first snapshot showed everybody wearing nothing.
@@ -3991,6 +4021,8 @@ export class GameServer {
         // the stance is: the item names its art in content, and a client that
         // had to look that up would need the whole item catalogue.
         art: template?.art ? `${template.art.pack}/${template.art.asset}` : undefined,
+        // The glow on it, if any (D-639): resolved here for the same reason.
+        heldVfx: template?.vfx?.held,
       });
     }
     return worn;
@@ -4555,6 +4587,9 @@ export class GameServer {
         roll: blow.attack.roll,
         critical: blow.attack.critical,
         variant,
+        // What the weapon shows for it (D-639), off the same item the
+        // silhouette and the stance came from.
+        ...(this.attackShowFor(conn) ? { show: this.attackShowFor(conn)! } : {}),
       }],
     });
 
@@ -6295,6 +6330,7 @@ export class GameServer {
           seat: a.seat,
         })),
         roofs: def.roofs,
+        vfx: def.vfx,
         // What the ground is painted with (D-588). Sent as a pair: a mask
         // without its material list is unlabelled numbers, and the list
         // without the mask covers nothing.
@@ -6962,6 +6998,7 @@ export class GameServer {
       grips: [...this.content.wornAssets.entries()].map(([key, item]) => ({ key, item })),
       parts: this.content.partFiles,
       cloth: this.content.cloth,
+      vfx: [...this.content.vfx.values()],
     };
   }
 
@@ -6986,7 +7023,7 @@ export class GameServer {
     // keeps the set it started with only in the sense that its cast is
     // already inside it — the edge moves at once.
     this.scenario = next.scenarios.find((sc) => sc.status === 'live') ?? null;
-    applied.push('scenarios', 'animations', 'cloth');
+    applied.push('scenarios', 'animations', 'cloth', 'vfx');
 
     if (changed(prev.areas, next.areas)) {
       deferred.push('areas: applied at the next round reset (the live world was built from the old ones)');
@@ -7403,6 +7440,7 @@ export class GameServer {
     const items = await this.store.getItemsByCharacter(conn.character.id);
     const coin = await this.store.getCoin(conn.character.id);
     const worn = this.wornOf(items);
+    conn.weaponTemplateId = this.weaponTemplateOf(items);
     conn.loadout = loadoutTotals(worn);
     conn.carried = items.reduce(
       (sum, i) => sum + (this.content.itemTemplates.get(i.templateId)?.equip?.weight ?? 0) * i.qty,
@@ -7456,6 +7494,10 @@ export class GameServer {
       // judged "no visible change" and never broadcast: the wielder sees
       // the new blade and nobody else does.
       && before.weaponArt === look.weaponArt
+      // ⚠ And `weaponVfx`, the FOURTH time (D-639). Written with the field
+      // this time, and the test still had to find that the delta EVENT's
+      // schema is a second copy of the shape that stripped it on the way in.
+      && before.weaponVfx === look.weaponVfx
       && sameGarments) {
       return;
     }

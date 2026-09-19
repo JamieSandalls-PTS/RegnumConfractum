@@ -18,6 +18,7 @@ import {
 import { ARMOUR_MATERIALS } from './characters';
 import { StanceSchema } from './actions';
 import { PlacedAssetSchema, assetVolumes, type PlacedAsset } from './placement';
+import { ItemVfxSchema, PlacedVfxSchema } from './vfx';
 import type { Vec2 } from './types';
 
 /**
@@ -469,6 +470,8 @@ export const AreaSchema = z
      * type is a closed enum of 44 while this reaches 1,402.
      */
     assets: z.array(PlacedAssetSchema).default([]),
+    /** Effects standing in the area (D-639): a fire in a fireplace. */
+    vfx: z.array(PlacedVfxSchema).default([]),
     /**
      * Where a body may be, in metres (D-567).
      *
@@ -882,6 +885,8 @@ export const ItemTemplateSchema = z.object({
    * the category, is what tells the pack which verbs an item offers.
    */
   equip: EquipStatsSchema.optional(),
+  /** What the item shows: a glow in hand, a projectile, an impact (D-639). */
+  vfx: ItemVfxSchema.optional(),
 });
 
 export type ItemTemplate = z.infer<typeof ItemTemplateSchema>;

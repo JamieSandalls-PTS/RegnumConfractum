@@ -1,0 +1,51 @@
+{
+  "id": "torch-flame",
+  "name": "Torch flame",
+  "notes": "A small open flame for a wall torch or a torch-stick. Place at the flame, about 1.5m up on a stick, 2m on a wall bracket.",
+  "loop": true,
+  "particles": {
+    "rate": 22,
+    "life": [
+      0.35,
+      0.7
+    ],
+    "speed": [
+      0.4,
+      0.8
+    ],
+    "direction": "up",
+    "spread": 0.25,
+    "gravity": -0.6,
+    "drift": 0.1,
+    "size": [
+      0.09,
+      0.02
+    ],
+    "colour": [
+      "#ffd27a",
+      "#ff4a12"
+    ],
+    "additive": true,
+    "radius": 0.08
+  },
+  "light": {
+    "colour": "#ffb060",
+    "intensity": 10,
+    "distance": 6,
+    "flicker": {
+      "amount": 0.4,
+      "speed": 11
+    },
+    "height": 0.15
+  },
+  "glow": {
+    "colour": "#ffb35a",
+    "radius": 0.18,
+    "opacity": 0.45,
+    "pulse": {
+      "amount": 0.25,
+      "speed": 3
+    },
+    "height": 0.08
+  }
+}

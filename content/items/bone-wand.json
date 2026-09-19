@@ -1,7 +1,7 @@
 {
   "id": "bone-wand",
   "name": "Bone Wand",
-  "description": "A finger of something that walked upright. It is not yours and it never stops being somebody\u2019s.",
+  "description": "A finger of something that walked upright. It is not yours and it never stops being somebody’s.",
   "category": "equipment",
   "stackable": false,
   "value": 19,
@@ -15,5 +15,13 @@
     "pack": "dungeon-pack",
     "asset": "wep-goblin-staff-01",
     "swaps": []
+  },
+  "vfx": {
+    "projectile": {
+      "vfx": "arcane-bolt",
+      "speed": 18,
+      "arc": 0.2
+    },
+    "impact": "arcane-burst"
   }
 }

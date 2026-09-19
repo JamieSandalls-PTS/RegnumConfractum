@@ -422,3 +422,50 @@ describe('reachability is measured against a BODY, not a tile', () => {
     expect(unreachableTiles(twoRooms([]))).toEqual([]);
   });
 });
+
+/* ----------------------------------------------------- effects (D-639) --- */
+
+/** A throwaway tree with one area, the given effects, and the given items. */
+function validateVfx(vfx: unknown[], items: unknown[] = [], areaVfx: unknown[] = []): string[] {
+  const dir = mkdtempSync(join(tmpdir(), 'rc-vfx-'));
+  mkdirSync(join(dir, 'areas'), { recursive: true });
+  mkdirSync(join(dir, 'vfx'), { recursive: true });
+  mkdirSync(join(dir, 'items'), { recursive: true });
+  writeFileSync(join(dir, 'areas', 'yard.json'), JSON.stringify({ ...MINIMAL_AREA, vfx: areaVfx }));
+  vfx.forEach((v, i) => writeFileSync(join(dir, 'vfx', `v${i}.json`), JSON.stringify(v)));
+  items.forEach((it, i) => writeFileSync(join(dir, 'items', `i${i}.json`), JSON.stringify(it)));
+  try {
+    return validateContent(dir).errors;
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const FIRE = { id: 'fire', name: 'Fire', particles: {}, light: {} };
+const STAFF = {
+  id: 'staff', name: 'Staff', description: 'a stick', category: 'equipment', stackable: false, value: 1,
+  equip: { slot: 'both-hands', damage: 1 },
+};
+
+describe('effects validator (D-639)', () => {
+  it('accepts an effect, an item that shows it and an area that places it', () => {
+    const errors = validateVfx([FIRE], [{ ...STAFF, vfx: { held: 'fire' } }], [{ vfx: 'fire', x: 2, y: 2 }]);
+    expect(errors.filter((e) => /vfx/.test(e))).toEqual([]);
+  });
+
+  it('⚠ refuses an item naming an effect that does not exist — a glow nobody defined is an ordinary sword', () => {
+    const errors = validateVfx([FIRE], [{ ...STAFF, vfx: { projectile: { vfx: 'bolt' }, impact: 'burst' } }]);
+    expect(errors.some((e) => e.includes("'bolt'"))).toBe(true);
+    expect(errors.some((e) => e.includes("'burst'"))).toBe(true);
+  });
+
+  it('⚠ refuses an area placing an effect that does not exist — a dark hearth with no error anywhere', () => {
+    const errors = validateVfx([FIRE], [], [{ vfx: 'hearth', x: 2, y: 2 }]);
+    expect(errors.some((e) => e.includes("'hearth'") && e.includes('vfx[0]'))).toBe(true);
+  });
+
+  it('refuses an effect that would draw nothing, and two with one id', () => {
+    expect(validateVfx([{ id: 'ghost', name: 'Ghost' }]).some((e) => e.includes('draws nothing'))).toBe(true);
+    expect(validateVfx([FIRE, FIRE]).some((e) => e.includes('duplicate vfx id'))).toBe(true);
+  });
+});

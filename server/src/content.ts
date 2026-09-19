@@ -50,6 +50,10 @@ import {
   type SkillDef,
   type SoundCueDef,
   type SpellDef,
+  VfxDefSchema,
+  itemVfxRefs,
+  vfxReferenceProblems,
+  type VfxDef,
 } from '@rc/shared';
 
 /**
@@ -124,6 +128,8 @@ export interface Content {
   animations: AnimationSet[];
   /** Cloth physics per clothing part (D-631). */
   cloth: ClothFile[];
+  /** Visual effects by id (D-639): carried to the client, never read here. */
+  vfx: Map<string, VfxDef>;
   /** What a patch of ground is made of (D-585), by id. */
   ground: Map<string, GroundMaterial>;
   /** Creation content (D-208): what a build may allocate and pick. */
@@ -359,6 +365,29 @@ export function loadContent(contentDir: string): Content {
     cloth.push(parsed.data);
   }
 
+  // Visual effects (D-639): presentation, carried to the client whole. The
+  // server checks only that what an item or an area names exists.
+  const vfx = new Map<string, VfxDef>();
+  for (const { file, data } of readJsonFiles(join(contentDir, 'vfx'))) {
+    const parsed = VfxDefSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    }
+    if (vfx.has(parsed.data.id)) throw new Error(`${file}: duplicate vfx id '${parsed.data.id}'`);
+    vfx.set(parsed.data.id, parsed.data);
+  }
+  for (const [id, item] of itemTemplates) {
+    for (const problem of vfxReferenceProblems(new Set(vfx.keys()), itemVfxRefs(id, item.vfx))) {
+      throw new Error(`items/${id}.json: ${problem}`);
+    }
+  }
+  for (const [id, area] of areas) {
+    const refs = area.vfx.map((v, i) => ({ where: `area '${id}' vfx[${i}]`, vfx: v.vfx }));
+    for (const problem of vfxReferenceProblems(new Set(vfx.keys()), refs)) {
+      throw new Error(`areas/${id}.json: ${problem}`);
+    }
+  }
+
   const animations: AnimationSet[] = [];
   for (const { file, data } of readJsonFiles(join(contentDir, 'animations'))) {
     const parsed = AnimationSetSchema.safeParse(data);
@@ -536,6 +565,7 @@ export function loadContent(contentDir: string): Content {
     partFiles,
     animations,
     cloth,
+    vfx,
     ground,
     skills,
     feats,

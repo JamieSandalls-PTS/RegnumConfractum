@@ -3643,5 +3643,56 @@
   "groundMaterials": [
     "boards",
     "flag"
+  ],
+  "vfx": [
+    {
+      "vfx": "hearth-fire",
+      "x": 6.0,
+      "y": 1.15,
+      "z": 0.25,
+      "scale": 1.1
+    },
+    {
+      "vfx": "candle-light",
+      "x": 5.0,
+      "y": 6.0,
+      "z": 1.18,
+      "scale": 1
+    },
+    {
+      "vfx": "candle-light",
+      "x": 10.0,
+      "y": 6.0,
+      "z": 1.18,
+      "scale": 1
+    },
+    {
+      "vfx": "candle-light",
+      "x": 16.0,
+      "y": 6.0,
+      "z": 1.18,
+      "scale": 1
+    },
+    {
+      "vfx": "candle-light",
+      "x": 5.0,
+      "y": 12.0,
+      "z": 1.18,
+      "scale": 1
+    },
+    {
+      "vfx": "candle-light",
+      "x": 10.0,
+      "y": 12.0,
+      "z": 1.18,
+      "scale": 1
+    },
+    {
+      "vfx": "candle-light",
+      "x": 16.0,
+      "y": 12.0,
+      "z": 1.18,
+      "scale": 1
+    }
   ]
 }

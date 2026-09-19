@@ -24,3 +24,4 @@ export * from './gathering';
 export * from './needs';
 export * from './pipeline';
 export * from './cloth';
+export * from './vfx';

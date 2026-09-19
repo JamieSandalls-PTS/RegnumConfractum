@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AttackShowSchema, PlacedVfxSchema, VfxDefSchema } from './vfx';
 import { DIRECTIONS } from './types';
 import { AttributeSchema } from './attributes';
 import { AnimationSetSchema, StanceSchema } from './actions';
@@ -566,6 +567,8 @@ export const WireEntitySchema = z.object({
        * sword -- the flag beside it still says whether a hand is full.
        */
       weaponArt: z.string().optional(),
+      /** The effect burning on the weapon in hand (D-639). */
+      weaponVfx: z.string().optional(),
     })
     .nullable()
     .default(null),
@@ -704,6 +707,12 @@ export const SimEventSchema = z.discriminatedUnion('type', [
      * sees the same blow — the animation is cosmetic, but disagreeing
      * clients would be a desync in the one place players are watching. */
     variant: z.number().int().min(0).default(0),
+    /**
+     * What the blow SHOWS (D-639): the weapon's attack effect, the projectile
+     * it fires (an asset, a VFX, or both) and the impact. Resolved by the
+     * server off the attacker's weapon, as `stance` and `art` are.
+     */
+    show: AttackShowSchema.optional(),
   }),
   /**
    * A visible/audible act at an entity that is not a blow (D-541): a wound
@@ -777,6 +786,15 @@ export const SimEventSchema = z.discriminatedUnion('type', [
        * base layer, never a stance (D-564).
        */
       stance: StanceSchema.optional(),
+      /**
+       * ⚠ This event is a SECOND COPY of the wire entity's `worn` shape, and
+       * a field added to one and not the other is stripped by the schema on
+       * the way in. `weaponArt` (D-614) was never here: a validating client
+       * learnt a change of sword only from the next full snapshot. Both it
+       * and the held glow (D-639) are now carried; keep the two in step.
+       */
+      weaponArt: z.string().optional(),
+      weaponVfx: z.string().optional(),
     }),
   }),
   /**
@@ -854,6 +872,8 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     parts: z.array(PartNamesSchema),
     /** Cloth physics per clothing part (D-631). */
     cloth: z.array(ClothFileSchema).default([]),
+    /** Every effect the client may be asked to draw (D-639). */
+    vfx: z.array(VfxDefSchema).default([]),
   }),
   z.object({
     t: z.literal('content_reloaded'),
@@ -985,6 +1005,8 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
         .default([]),
       /** Roofed tiles (D-545). Presentation only — the server never reads
        * them, and they change nothing about movement or sight. */
+      /** Effects standing in the area (D-639). */
+      vfx: z.array(PlacedVfxSchema).default([]),
       roofs: z
         .array(z.object({ x: z.number().int(), y: z.number().int(), style: z.string() }))
         .default([]),

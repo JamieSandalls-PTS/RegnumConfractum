@@ -27,6 +27,18 @@ describe('the editor refuses to write content that would fail the build', () => 
     }
   });
 
+  it('⚠ refuses a placed effect nothing defines, when it is told what exists (D-639)', () => {
+    const area = load('hanged-ferryman');
+    const doc = { ...area, vfx: [...area.vfx, { vfx: 'will-o-wisp', x: 4, y: 4, z: 0, scale: 1 }] };
+    const known = new Set(area.vfx.map((v) => v.vfx));
+    const { errors } = checkAreaForSave(doc, [], known);
+    expect(errors.some((e) => e.includes("'will-o-wisp'"))).toBe(true);
+    // And accepts the shipped placements against the shipped effects.
+    expect(checkAreaForSave(area, [], known).errors).toEqual([]);
+    // Without a known set the check is skipped, as CI's partial scans are.
+    expect(checkAreaForSave(doc).errors).toEqual([]);
+  });
+
   it('refuses a wall that seals a corner off', () => {
     // A purpose-built room rather than a real area: the point is the ring of
     // crates, and hemming in a spawn that already hugs a wall would be caught

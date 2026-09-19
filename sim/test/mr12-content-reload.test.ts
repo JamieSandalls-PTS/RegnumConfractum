@@ -61,6 +61,8 @@ describe('content reload', () => {
     expect(rc.ground.length).toBeGreaterThan(0);
     expect(rc.grips.length).toBeGreaterThan(0);
     expect(rc.parts.length).toBeGreaterThan(0);
+    // Effects ride the same channel (D-639).
+    expect(rc.vfx.length).toBeGreaterThan(0);
   });
 
   it('⚠ a template that did not exist at connect time feeds a player after a reload', async () => {

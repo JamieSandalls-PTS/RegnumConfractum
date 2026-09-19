@@ -15,6 +15,7 @@ import { clipTable } from './animation-sets';
 import { HOOD_ID } from './hood';
 import { gripFor } from './held-items';
 import { loadOneAsset } from './world-assets';
+import { activeVfx, type VfxHandle } from './vfx';
 import type { EquipmentState } from './equipment-state';
 import {
   available,
@@ -251,6 +252,9 @@ export class ImportedVisual {
   /** ⚠ Which request owns the hand. Two quick equips would otherwise
    * leave the slower weapon parented on top of the faster one. */
   private heldToken = 0;
+  /** The effect burning on the weapon (D-639), and the one drawn. */
+  private heldVfxWanted: string | undefined;
+  private heldGlow: VfxHandle | null = null;
   private held: THREE.Object3D | null = null;
   private disposed = false;
 
@@ -447,6 +451,12 @@ export class ImportedVisual {
     if ('weaponArt' in next && next.weaponArt !== this.heldWanted) {
       this.heldWanted = next.weaponArt;
       void this.refreshHeld();
+    }
+    // The glow on it (D-639): a change of effect with the same blade changes
+    // no mesh at all, so it is handled here for the same reason the art is.
+    if ('weaponVfx' in next && next.weaponVfx !== this.heldVfxWanted) {
+      this.heldVfxWanted = next.weaponVfx;
+      this.refreshHeldGlow();
     }
     // ⚠ The stance is handled BEFORE the early return below. Drawing a
     // different weapon need not change a single mesh — a bow and a sword are
@@ -828,6 +838,10 @@ export class ImportedVisual {
     const want = this.heldWanted ?? null;
     if (want === this.heldShown) return;
     const mine = ++this.heldToken;
+    // ⚠ Put out before the holder goes: the glow reads the holder's world
+    // position each frame, and a holder off the model would leave it burning
+    // where the old sword was.
+    this.stopHeldGlow();
     if (this.held) {
       this.held.parent?.remove(this.held);
       this.held = null;
@@ -887,6 +901,24 @@ export class ImportedVisual {
     holder.visible = this.weaponOut;
     bone.add(holder);
     this.held = holder;
+    this.refreshHeldGlow();
+  }
+
+  private stopHeldGlow(): void {
+    this.heldGlow?.stop();
+    this.heldGlow = null;
+  }
+
+  /**
+   * The effect burning on the weapon (D-639), hung on the holder the grip
+   * made — so it follows the fitted position, hides when the weapon is
+   * sheathed (D-620) and goes when the weapon does. Nothing when there is no
+   * weapon in hand yet: `refreshHeld` calls back here once there is.
+   */
+  private refreshHeldGlow(): void {
+    this.stopHeldGlow();
+    if (!this.heldVfxWanted || !this.held) return;
+    this.heldGlow = activeVfx()?.attach(this.heldVfxWanted, this.held) ?? null;
   }
 
   weaponMuzzle(out: THREE.Vector3): THREE.Vector3 {
@@ -1017,6 +1049,7 @@ export class ImportedVisual {
   dispose(): void {
     this.disposed = true;
     this.mixer?.stopAllAction();
+    this.stopHeldGlow();
     this.dropCloth();
     this.parent.remove(this.root);
     // Geometry, materials and textures are SHARED with every other instance

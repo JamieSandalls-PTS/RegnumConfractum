@@ -1,0 +1,51 @@
+{
+  "id": "hearth-fire",
+  "name": "Hearth fire",
+  "notes": "A fire in a fireplace: embers rising off the logs, an orange light that gutters, a low glow. Place at floor level in front of the hearth.",
+  "loop": true,
+  "particles": {
+    "rate": 36,
+    "life": [
+      0.6,
+      1.3
+    ],
+    "speed": [
+      0.5,
+      1.1
+    ],
+    "direction": "up",
+    "spread": 0.3,
+    "gravity": -0.4,
+    "drift": 0.18,
+    "size": [
+      0.12,
+      0.03
+    ],
+    "colour": [
+      "#ffb347",
+      "#c8320a"
+    ],
+    "additive": true,
+    "radius": 0.35
+  },
+  "light": {
+    "colour": "#ff9a3c",
+    "intensity": 18,
+    "distance": 9,
+    "flicker": {
+      "amount": 0.35,
+      "speed": 9
+    },
+    "height": 0.5
+  },
+  "glow": {
+    "colour": "#ff8c2a",
+    "radius": 0.45,
+    "opacity": 0.35,
+    "pulse": {
+      "amount": 0.2,
+      "speed": 1.6
+    },
+    "height": 0.3
+  }
+}

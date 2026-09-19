@@ -46,6 +46,7 @@ sits on two servers across four pages, and nothing carries a save into the game.
 | `roamers` | R | tool | server load | wired |
 | `scripts` | both | **none** | server load | ⚠ Lua is hand-edited only |
 | `stations` | R | tool | server load | wired |
+| `vfx` | both | tool (Art › Effects) + map editor (`vfx` tool) | server load → `render_content`; items and areas name ids (D-639) | wired |
 | **`scenarios`** | R | — | — | ⚠ **does not exist** (D-627) |
 
 ### The delivery channels (revised for D-630)

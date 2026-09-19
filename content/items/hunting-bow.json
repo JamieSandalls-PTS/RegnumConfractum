@@ -15,5 +15,13 @@
     "pack": "bow-crossbow",
     "asset": "wep-longbow-01",
     "swaps": []
+  },
+  "vfx": {
+    "projectile": {
+      "asset": "bow-crossbow/arrow-01",
+      "speed": 30,
+      "arc": 0.5
+    },
+    "impact": "blood-spray"
   }
 }

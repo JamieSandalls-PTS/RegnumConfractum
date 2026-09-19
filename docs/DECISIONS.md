@@ -11702,3 +11702,102 @@ over the converted maps. In the browser: the taproom's painted boards and
 authored walls, and a converted dungeon in the map builder, photographed.
 ⚠ Not measured: the frame rate of a dungeon floor under instancing; the
 count of objects is `worldAssets.objects` against `drawn`.
+
+
+
+## D-639 -- Visual effects are content: one page to make one, usable wherever one applies
+
+**Status:** implemented. Extends D-630 (content reaches a running game) and
+D-544 (the light pool); supersedes nothing -- the built-in bolt and spray in
+`effects.ts` stay as the fallback for a weapon that declares no effect.
+
+The stakeholder's brief: *the option to generate VFX, then add them to maps
+(a fire in a fireplace), items (glowing weapons) and weapon attacks (a
+fireball from a staff); weapons should have an option to fire a projectile
+that is an asset (an arrow), a VFX, or both; one page for creating VFX that
+can be used anywhere a VFX option can be applied.*
+
+### What a VFX is
+
+A document in `content/vfx/` (`VfxDefSchema`): **particles** (motes with a
+rate, a life, a speed, a direction -- up, out, down, none -- spread,
+gravity, drift, a size and a colour at birth and at death, additive or
+plain), a **light** (colour, intensity, reach, flicker, height) and a
+**glow** (a soft additive sphere that pulses). Any of the three may be
+absent; an effect with none is refused as drawing nothing. `loop` says
+whether it burns until removed or plays once for `duration`. Everything is
+presentation: the server never reads a colour (D-102), it carries ids.
+
+### Where one applies
+
+- **A map** -- `AreaSchema.vfx`: `{ vfx, x, y, z, scale }`. The editor has a
+  `vfx` tool that previews the placement live through the game's own
+  renderer, and the save is refused if the effect does not exist.
+- **An item** -- `ItemTemplate.vfx`: `held` burns on the weapon while it is
+  out; `attack` plays at the weapon as a blow begins; `projectile` is what
+  leaves the weapon -- an asset (`pack/asset`), a looping VFX as its trail,
+  or both -- at a speed and on an arc; `impact` plays where it lands. A
+  weapon with no projectile is melee whatever its reach.
+- **A blow** -- `entity_attacked.show` (`AttackShow`), resolved SERVER-side
+  off the attacker's weapon exactly as `stance` and `art` are (D-578,
+  D-614), so a client draws a fight without the item catalogue.
+- **A silhouette** -- `worn.weaponVfx`, the held glow, broadcast on the same
+  terms as `weaponArt`. ⚠ It never reaches the descriptor pipeline: a glowing
+  sword is not a change of appearance (D-539, D-547).
+
+The catalogue rides `render_content` (D-630), so a Publish reaches a running
+client hot; `content/vfx` is a `hot` route in the pipeline map.
+
+### The renderer
+
+`client/src/render/vfx.ts`, ONE class (`VfxSystem`) used by the game, the
+map editor and the authoring tool's Effects tab -- what is tuned is what is
+drawn, D-543's promise kept for light. Motes are a `Points` with a shader
+sized in METRES: the camera is orthographic (D-102), where perspective point
+attenuation does nothing, so a size in pixels would grow with zoom.
+⚠ **Lights go through the `LightRig` pool (D-544), never as their own
+`PointLight`** -- an effect re-registers its source every frame (a Map write)
+and the rig hands the eight real lights to the nearest. Thirteen torches and
+braziers in Ashfold and seven placements in the taproom cost no shader
+recompile. ⚠ **Motes are simulated in world space whatever they ride on**: a
+held glow's parent is a bone at a scale of 0.01 with a bind matrix of its own
+(D-563), and parenting a particle system under that is the class of bug that
+made a sword a dot in a fist. A hidden parent (a sheathed weapon, D-620)
+pauses emission without ending the effect.
+
+**Projectiles:** the mesh is turned to fly tip first along its flight by
+MEASUREMENT -- the longest extent of its box is the shaft and the end with
+the smaller cross-section is the point -- because packs disagree about which
+axis an arrow lies along and nothing in a file listing says (D-561's units
+finding, one axis over). The trail is a looping effect following the flight;
+the impact is a one-shot where it lands.
+
+### Authored
+
+Seven effects (`hearth-fire`, `torch-flame`, `candle-light`, `ember-glow`,
+`arcane-bolt`, `arcane-burst`, `blood-spray`); the apprentice's staff glows
+and fires an arcane bolt that bursts, the bone wand fires the bolt, the
+hunting bow looses the pack's arrow mesh and lands as blood; the taproom's
+hearth and six candle clusters burn, Ashfold's ten torch-sticks and three
+braziers burn. ⚠ Every magnitude is a first pass for the stakeholder to tune
+on the Effects tab; none is ratified.
+
+### Guards
+
+`validate:content` refuses an item or an area naming an effect that does not
+exist, an effect that draws nothing, and duplicate ids; the authoring server
+refuses the same on save and refuses a delete by name while anything uses
+the effect; the editor's save is handed the known set. `build:environment`
+ships a projectile's mesh on the same terms as the bow that looses it.
+
+### Verified
+
+Headless: the schema and the two rules (`shared/test/vfx.test.ts`); the
+renderer's bookkeeping -- a loop ends when stopped and its light leaves the
+rig, a one-shot bursts and goes, an attached effect follows a scaled bone in
+world space and pauses when hidden, a projectile flies at the item's speed
+on its arc and lands as its impact, a cone is turned tip-first whichever axis
+it lay on (`client/test/vfx.test.ts`); the wire -- the catalogue on
+`render_content`, `weaponVfx` on `worn` as the victim sees it, and `show`
+on a staff's blow resolved off the item (`sim/test/mr15-vfx-wire.test.ts`);
+the validator's refusals and the editor's (tools tests).

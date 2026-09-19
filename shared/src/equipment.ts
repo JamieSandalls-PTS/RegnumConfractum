@@ -190,6 +190,8 @@ export interface EquippedItem {
    * it travels with the item rather than being guessed from it.
    */
   garment?: string;
+  /** The effect that burns on it while it is out (D-639), a vfx id. */
+  heldVfx?: string;
   /**
    * The pack mesh this item IS, as `pack/asset` (D-614).
    *
@@ -338,6 +340,8 @@ export interface WornLook {
    * (D-539, D-547): drawing a bow is not a change of appearance.
    */
   stance?: Stance;
+  /** The effect burning on the weapon in hand (D-639), a vfx id. */
+  weaponVfx?: string;
 }
 
 export const BARE_LOOK: WornLook = {
@@ -385,6 +389,7 @@ export function lookOf(worn: readonly EquippedItem[]): WornLook {
       // for the same reason: drawing one weapon while animating another is a
       // man swinging a sword he is not holding.
       look.weaponArt = item.art;
+      look.weaponVfx = item.heldVfx;
       // ⚠ The stance follows the SAME weapon the silhouette picked, not a
       // separate scan. A character holding a bow and a dagger is drawn with
       // one of them, and choosing the silhouette from one while animating the

@@ -5904,5 +5904,98 @@
   ],
   "scripts": [
     "ashfold-keeper"
+  ],
+  "vfx": [
+    {
+      "vfx": "hearth-fire",
+      "x": 42.5,
+      "y": 41,
+      "z": 0.75,
+      "scale": 0.8
+    },
+    {
+      "vfx": "hearth-fire",
+      "x": 21.5,
+      "y": 21.5,
+      "z": 0.75,
+      "scale": 0.8
+    },
+    {
+      "vfx": "hearth-fire",
+      "x": 28.5,
+      "y": 21.5,
+      "z": 0.75,
+      "scale": 0.8
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 22,
+      "y": 20,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 28,
+      "y": 20,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 37,
+      "y": 46.5,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 43,
+      "y": 46.5,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 22.5,
+      "y": 3,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 26.5,
+      "y": 3,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 22.5,
+      "y": 46,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 26.5,
+      "y": 46,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 3,
+      "y": 22.5,
+      "z": 1.55,
+      "scale": 1
+    },
+    {
+      "vfx": "torch-flame",
+      "x": 46,
+      "y": 22.5,
+      "z": 1.55,
+      "scale": 1
+    }
   ]
 }

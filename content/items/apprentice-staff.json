@@ -1,6 +1,6 @@
 {
   "id": "apprentice-staff",
-  "name": "Apprentice\u2019s Staff",
+  "name": "Apprentice’s Staff",
   "description": "A shaft of ash bound at both ends. The wood at the grip has gone dark and slightly warm.",
   "category": "equipment",
   "stackable": false,
@@ -15,5 +15,14 @@
     "pack": "modular-fantasy-hero",
     "asset": "wep-staff-01",
     "swaps": []
+  },
+  "vfx": {
+    "held": "ember-glow",
+    "projectile": {
+      "vfx": "arcane-bolt",
+      "speed": 14,
+      "arc": 0.4
+    },
+    "impact": "arcane-burst"
   }
 }

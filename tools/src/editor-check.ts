@@ -1,5 +1,19 @@
-import { AreaSchema, canStandAt, tileProblems, type AreaDef } from '@rc/shared';
-import { unreachableTiles } from './validate-content';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { AreaSchema, VfxDefSchema, canStandAt, tileProblems, vfxReferenceProblems, type AreaDef } from '@rc/shared';
+import { listJson, unreachableTiles } from './validate-content';
+
+/** The effects a map may place (D-639), read off `content/vfx`. */
+export function knownVfxIds(contentDir: string): Set<string> {
+  const out = new Set<string>();
+  const dir = join(contentDir, 'vfx');
+  if (!existsSync(dir)) return out;
+  for (const file of listJson(dir)) {
+    const parsed = VfxDefSchema.safeParse(JSON.parse(readFileSync(file, 'utf8')));
+    if (parsed.success) out.add(parsed.data.id);
+  }
+  return out;
+}
 
 /**
  * What must be true before the map editor writes a file (D-543).
@@ -22,6 +36,8 @@ export function checkAreaForSave(
    * exists, and the area on its own has no way to know.
    */
   others: readonly AreaDef[] = [],
+  /** The effects that exist (D-639); null skips the check, as CI's partial scans do. */
+  knownVfx: ReadonlySet<string> | null = null,
 ): { errors: string[]; area?: AreaDef } {
   const parsed = AreaSchema.safeParse(doc);
   if (!parsed.success) {
@@ -33,6 +49,13 @@ export function checkAreaForSave(
   // Tiles are not walls and an unpainted area has no floor (D-638): the
   // editor refuses what the build refuses.
   errors.push(...tileProblems(area));
+  // A placed effect nothing defines is a dark hearth (D-639).
+  if (knownVfx) {
+    errors.push(...vfxReferenceProblems(
+      knownVfx,
+      area.vfx.map((v, i) => ({ where: `vfx[${i}] at (${v.x}, ${v.y})`, vfx: v.vfx })),
+    ));
+  }
 
   const missing = unreachableTiles(area);
   if (missing.length > 0) {

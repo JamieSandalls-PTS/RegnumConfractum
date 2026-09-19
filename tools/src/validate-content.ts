@@ -70,6 +70,9 @@ import {
   parsePolygonPart,
   partProblems,
   type ParsedPart,
+  VfxDefSchema,
+  itemVfxRefs,
+  vfxReferenceProblems,
 } from '@rc/shared';
 
 /**
@@ -246,6 +249,45 @@ export function validateContent(contentDir: string): ValidationResult {
     itemIds.add(parsed.data.id);
     itemsById.set(parsed.data.id, parsed.data);
     itemsForGraph.push({ id: parsed.data.id, category: parsed.data.category });
+  }
+
+  /*
+   * Visual effects (D-639) — presentation the client draws; the build's only
+   * question is whether what an item or an area names EXISTS. A renamed
+   * effect is otherwise a hearth that stops burning with no error anywhere.
+   */
+  const vfxIds = new Set<string>();
+  for (const file of listJson(join(contentDir, 'vfx'))) {
+    checked++;
+    let data: unknown;
+    try {
+      data = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (err) {
+      errors.push(`${file}: invalid JSON — ${(err as Error).message}`);
+      continue;
+    }
+    const parsed = VfxDefSchema.safeParse(data);
+    if (!parsed.success) {
+      errors.push(`${file}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+      continue;
+    }
+    if (vfxIds.has(parsed.data.id)) {
+      errors.push(`${file}: duplicate vfx id '${parsed.data.id}'`);
+      continue;
+    }
+    if (!parsed.data.particles && !parsed.data.light && !parsed.data.glow) {
+      errors.push(`${file}: an effect with no particles, light or glow draws nothing`);
+    }
+    vfxIds.add(parsed.data.id);
+  }
+  for (const [id, item] of itemsById) {
+    for (const problem of vfxReferenceProblems(vfxIds, itemVfxRefs(id, item.vfx))) {
+      errors.push(`items/${id}.json: ${problem}`);
+    }
+  }
+  for (const [id, area] of parsedAreas) {
+    const refs = area.vfx.map((v, i) => ({ where: `vfx[${i}]`, vfx: v.vfx }));
+    for (const problem of vfxReferenceProblems(vfxIds, refs)) errors.push(`areas/${id}.json: ${problem}`);
   }
 
   /*

@@ -120,8 +120,9 @@ export function overview(contentDir: string, root: string): Overview {
       assets += doc?.assets?.length ?? 0;
       if (doc?.pack) packs.add(doc.pack);
     }
-    report.art.count = parts + assets;
-    report.art.notes.push(`${parts} named parts`, `${assets} named assets across ${packs.size} pack(s)`);
+    const vfx = countJson(contentDir, 'vfx');
+    report.art.count = parts + assets + vfx;
+    report.art.notes.push(`${parts} named parts`, `${assets} named assets across ${packs.size} pack(s)`, `${vfx} visual effects`);
     if (parts === 0) report.art.warnings.push('no part has a name — the creation screen would show file stems');
   }
 

@@ -1740,6 +1740,17 @@ after `build-round-map.py`, which still lays tiles. The editor has no tile
 tool. `WorldAssets` instances a mesh placed four or more times; seats stay
 objects. ⚠ The converter's unit volumes are counter-rotated on purpose.
 
+**Effects are content, made on one page and applied anywhere (D-639).**
+`content/vfx/` holds particles + light + glow definitions; the authoring
+tool's **Art → Effects** tab previews them live through the game's own
+`VfxSystem`. They are placed on maps (`AreaSchema.vfx`, the editor's `vfx`
+tool), named on items (`held`, `attack`, `projectile` -- an asset, a VFX or
+both -- and `impact`), and a blow carries `show` resolved SERVER-side off the
+weapon, as stance and art are. ⚠ Lights go through the eight-light pool
+(D-544); motes are simulated in world space whatever bone they ride on.
+Every magnitude is unratified; the built-in bolt and spray remain the
+fallback for a weapon with no effect.
+
 **A cue is heard in the tool through the game's own player (D-635).** The
 cue editor's preview is `SoundBank` handed the form's copy of the cue, so
 trim, split and normalisation are heard as the game applies them, and the

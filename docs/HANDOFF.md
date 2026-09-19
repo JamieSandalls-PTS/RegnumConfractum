@@ -119,7 +119,20 @@ painted now (it was the one unpainted area). ⚠ `build-round-map.py` still
 writes tiles: generate → paint → dress → prune → **convert**, or the build
 refuses the map by name.
 
+**D-639 — effects are content.** `content/vfx/`, the Effects tab (Art), the
+editor's `vfx` tool, `ItemTemplate.vfx`, `entity_attacked.show`,
+`worn.weaponVfx`, `render_content.vfx`. One renderer (`render/vfx.ts`) for
+game, editor and tool. ⚠ Verified headless and on the wire; the three sites in
+`main.ts` (placing on snapshot, the shot at the release point, the per-frame
+update) were checked in the browser against a probe server, not by a test.
+⚠ Open: scripts (Lua) cannot yet spawn an effect; a placed effect has no
+on/off (a hearth that can be put out); `castsSpells` is still hard-coded
+`false`, so a staff swings its cast animation as a melee variant.
+
 ## The things most likely to be undone by accident
+
+**00. An effect that draws nothing is refused; an effect nothing names is
+fine.** Do not relax the first to make the second easier.
 
 **000. Unwalkable tiles are refused by the build (D-638).** Do not "fix" a
 map that fails that check by relaxing the rule; convert it.
@@ -249,6 +262,12 @@ that wants the per-set check has to ship a manifest with one built clip.
 **Eating a reloaded loaf is refused for a different reason.** A fresh
 character is sated, so `use_item` on the new template answers `not_hungry`,
 not a narration — and that is the proof: two gates past `no_such_item`.
+
+**A background tab in the browser pane pauses `requestAnimationFrame`.** Any
+probe that reads frame-driven state — `__rc.vfx().motes`, `__editor.vfx()`,
+`__stage.vfx()` — reads zero until the tab is fronted (`tabs_select`) or
+stepped by hand (`__stage.step(1)`). A zero there is the pane, not the code;
+D-639's renderer read as dead for twenty minutes because of it.
 
 **Screenshots of the browser pane time out** when the pane is not fronted.
 `javascript_tool` reads state fine; `find` and `get_page_text` too. Do not

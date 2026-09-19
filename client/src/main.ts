@@ -14,6 +14,7 @@ import {
   type WireEntity,
   attackSpacingTicks,
   xpForLevel,
+  type AttackShow,
 } from '@rc/shared';
 import { Connection } from './net/connection';
 import { Ambience } from './audio';
@@ -33,6 +34,7 @@ import { LightRig } from './render/lights';
 import { Roofs } from './render/roofs';
 import { occlusionState, setOcclusionFocus } from './render/occlusion';
 import { CombatEffects } from './render/effects';
+import { VfxSystem, pixelsPerMetre, setActiveVfx, setVfxDefinitions, vfxCount } from './render/vfx';
 import { buildPaintedGround } from './render/ground';
 import { WorldAssets, loadOneAsset } from './render/world-assets';
 import { HoverOutline } from './render/hover-outline';
@@ -743,6 +745,7 @@ conn.onMessage = (msg: ServerMessage) => {
       setGrips(msg.grips);
       setPartCatalogues(msg.parts);
       setClothSettings(msg.cloth);
+      setVfxDefinitions(msg.vfx);
       return;
     case 'content_reloaded':
       // The production line reached the game (D-630). Drop what was read off
@@ -957,6 +960,7 @@ function ensureScene(): GameScene {
 }
 
 function clearWorld(): void {
+  vfxSystem?.clearPlaced();
   for (const e of entities.values()) e.visual.dispose();
   entities.clear();
   if (paintedGround && scene) {
@@ -1089,6 +1093,15 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   worldAssets = new WorldAssets(s.scene, snap.area.assets);
   effects?.dispose();
   effects = new CombatEffects(s.scene);
+  // Effects standing in the area (D-639): the fire in the fireplace. The
+  // system is one per session — it shares the light pool and outlives the
+  // area — and only its placed set changes with the map.
+  if (!vfxSystem) {
+    vfxSystem = new VfxSystem(s.scene, lightRig!);
+    setActiveVfx(vfxSystem);
+  }
+  vfxSystem.clearPlaced();
+  for (const v of snap.area.vfx) vfxSystem.place(v.vfx, v.x, v.y, v.z, v.scale);
   // Lights (including the hearth's, added by Terrain just now) and the
   // camera must reach both layers or the split pass renders black.
   s.enableAllLayers();
@@ -1194,7 +1207,12 @@ function applyEvent(event: { type: string } & Record<string, unknown>): void {
       if (isPerson(e.visual)) e.visual.setCombat(e.wire.combat);
     }
   } else if (event.type === 'entity_attacked') {
-    playAttack(event.attackerId as number, event.targetId as number, event.variant as number);
+    playAttack(
+      event.attackerId as number,
+      event.targetId as number,
+      event.variant as number,
+      event.show as AttackShow | undefined,
+    );
     // ⚠ A MISS is a result, not an absence (D-606). Zero damage and a blow
     // that never connected are the same number on the wire and must not be the
     // same picture: without this a fight where nothing lands looks like a
@@ -1352,6 +1370,9 @@ function applyWorn(visual: ImportedVisual, wire: WireEntity): void {
     // says 'sword' for every weapon in the game, so without this the imported
     // cast had nothing to put in the hand and fought empty-handed.
     weaponArt: worn.weaponArt,
+    // And what burns on it (D-639). Resolved by the server off the item, as
+    // the art and the stance are.
+    weaponVfx: worn.weaponVfx,
     // ⚠ The imported cast re-assembles a body out of these (D-571); the
     // procedural one ignores them and draws its generated armour from the
     // flags above. One call, two casts, and `main.ts` still does not know
@@ -1404,7 +1425,7 @@ function voiceCue(entityId: number, kind: 'hurt' | 'death'): string | null {
   return `${kind}-${sex}`;
 }
 
-function playAttack(attackerId: number, targetId: number, variant: number): void {
+function playAttack(attackerId: number, targetId: number, variant: number, show?: AttackShow): void {
   const attacker = entities.get(attackerId);
   // ⚠ BOTH casts, and this is the one that was reported: "the animations
   // for combat do not play at all". `ImportedVisual.playAttack` has been a
@@ -1428,13 +1449,32 @@ function playAttack(attackerId: number, targetId: number, variant: number): void
   // as the anonymous procedural cue instead, which is what keeps hearing a
   // fight from telling you who is in it (D-531).
   const at = placementOf(attacker.render.x, attacker.render.y);
-  sounds.play(attacker.visual.castsSpells ? 'attack-bolt' : 'attack-swing', at);
+  sounds.play(show?.projectile?.vfx || attacker.visual.castsSpells ? 'attack-bolt' : 'attack-swing', at);
   const hurtCue = voiceCue(targetId, 'hurt');
   if (hurtCue && target) {
     const there = placementOf(target.render.x, target.render.y);
     // A beat after the swing, so the cry answers the blow rather than
     // arriving with it.
     window.setTimeout(() => sounds.play(hurtCue, there), 220);
+  }
+  // What the weapon SHOWS (D-639), when content says: the attack effect at
+  // the muzzle now, the projectile at the release point of the swing, the
+  // impact where it lands. A weapon with no `show` keeps the built-in bolt
+  // and spray below, so nothing that fought before draws less.
+  if (show && vfxSystem) {
+    const muzzle = attacker.visual.weaponMuzzle(new THREE.Vector3());
+    if (show.attack) vfxSystem.spawn(show.attack, muzzle);
+    const aim = new THREE.Vector3(
+      target ? target.render.x : attacker.render.x,
+      1.0,
+      target ? target.render.y : attacker.render.y,
+    );
+    if (show.projectile) {
+      pendingShots.push({ at: t + 0.3, to: aim, visual: attacker.visual, show });
+    } else if (show.impact && target) {
+      pendingShows.push({ at: t + 0.28, at3: aim, vfx: show.impact });
+    }
+    return;
   }
   if (!effects) return;
   const muzzle = attacker.visual.weaponMuzzle(new THREE.Vector3());
@@ -2880,6 +2920,16 @@ interface Bubble {
 // ---------------------------------------------------------------------------
 
 let effects: CombatEffects | null = null;
+/**
+ * Effects from content (D-639): what stands in the area, what burns on a
+ * weapon, what a blow shows. One per session; the placed set is swapped per
+ * area, the rest come and go with what they ride on.
+ */
+let vfxSystem: VfxSystem | null = null;
+/** Shots waiting for the release point of the attack animation (D-639). */
+const pendingShots: { at: number; to: THREE.Vector3; visual: ImportedVisual; show: AttackShow }[] = [];
+/** Impacts from content, timed as the built-in spray is. */
+const pendingShows: { at: number; at3: THREE.Vector3; vfx: string }[] = [];
 /** Bolts released partway through a cast, not at the moment of the message. */
 // ⚠ Either cast (D-612). `weaponMuzzle` is implemented by both, and typing
 // this to the procedural one is what stopped a modelled caster's bolt.
@@ -2945,6 +2995,30 @@ function stepCombatVisuals(dt: number): void {
     }
   }
   effects?.update(dt);
+  // Content effects (D-639): shots leave at the release point, impacts land
+  // when the blade would, and everything burning advances.
+  for (let i = pendingShots.length - 1; i >= 0; i--) {
+    const sh = pendingShots[i]!;
+    if (t < sh.at) continue;
+    vfxSystem?.fireProjectile(sh.show, sh.visual.weaponMuzzle(new THREE.Vector3()), sh.to);
+    pendingShots.splice(i, 1);
+  }
+  for (let i = pendingShows.length - 1; i >= 0; i--) {
+    const sh = pendingShows[i]!;
+    if (t < sh.at) continue;
+    vfxSystem?.spawn(sh.vfx, sh.at3);
+    pendingShows.splice(i, 1);
+  }
+  if (vfxSystem && scene) {
+    const you = youId !== null ? entities.get(youId) : undefined;
+    const size = scene.renderer.getDrawingBufferSize(new THREE.Vector2());
+    vfxSystem.update(
+      dt,
+      t,
+      you ? new THREE.Vector3(you.render.x, 0, you.render.y) : null,
+      pixelsPerMetre(scene.camera, size.y),
+    );
+  }
 }
 
 const bubbleLayer = document.createElement('div');
@@ -3201,6 +3275,8 @@ declare global {
     __rc?: {
       snapshot: () => string | null;
       hover: (id: number | null) => { hovered: number | null; outlining: boolean; hulls: number; ringVisible: boolean | null };
+      /** What is burning (D-639): live effects, placed ones, motes, shots in the air, and how many definitions arrived. */
+      vfx: () => { live: number; placed: number; motes: number; flights: number; lights: number; defs: number } | null;
       engaged: () => { target: number | null; plannedFor: { x: number; y: number } | null; nearest: number | null };
       /** How many pack meshes are drawn — verification, not a feature (D-567). */
       walk: () => Promise<unknown>;
@@ -3289,6 +3365,7 @@ window.__rc = {
    * Hover an entity (or nothing) as the mouse would, and report the outline
    * (D-622, probed for D-638). Verification only.
    */
+  vfx: () => (vfxSystem ? { ...vfxSystem.stats(), defs: vfxCount() } : null),
   hover: (id: number | null) => {
     hoveredEntityId = id;
     hoveredTile = null;
