@@ -2046,6 +2046,13 @@ let hoverRing: THREE.Mesh | null = null;
 let selectRing: THREE.Mesh | null = null;
 
 function ensureHighlights(): void {
+  // ⚠ The outline is rebuilt on its OWN condition (D-638). `clearWorld`
+  // disposes it on every snapshot — a door, a round starting, a reconnect —
+  // while the rings below survive, and this function used to return early
+  // whenever the rings existed. So the hover edge D-622 built worked until
+  // the first area change and never again, which read as the feature having
+  // been removed.
+  if (scene && !hoverOutline) hoverOutline = new HoverOutline(scene.scene);
   if (!scene || tileHighlight) return;
   const half = 0.48;
   const pts = [
@@ -2076,7 +2083,6 @@ function ensureHighlights(): void {
   selectRing.position.y = 0.025;
   selectRing.visible = false;
   scene.scene.add(selectRing);
-  hoverOutline = new HoverOutline(scene.scene);
 }
 
 /**
@@ -3199,6 +3205,7 @@ declare global {
   interface Window {
     __rc?: {
       snapshot: () => string | null;
+      hover: (id: number | null) => { hovered: number | null; outlining: boolean; hulls: number; ringVisible: boolean | null };
       engaged: () => { target: number | null; plannedFor: { x: number; y: number } | null; nearest: number | null };
       /** How many pack meshes are drawn — verification, not a feature (D-567). */
       walk: () => Promise<unknown>;
@@ -3283,6 +3290,21 @@ window.__rc = {
   },
   /** Who the standing attack is aimed at, if anyone (D-636). Verification only. */
   engaged: () => ({ target: engagedId, plannedFor: engagePlannedFor, nearest: nearestOther() }),
+  /**
+   * Hover an entity (or nothing) as the mouse would, and report the outline
+   * (D-622, probed for D-638). Verification only.
+   */
+  hover: (id: number | null) => {
+    hoveredEntityId = id;
+    hoveredTile = null;
+    updateHighlights();
+    return {
+      hovered: hoveredEntityId,
+      outlining: hoverOutline?.outlining !== null && hoverOutline?.outlining !== undefined,
+      hulls: hoverOutline?.hullCount ?? -1,
+      ringVisible: hoverRing?.visible ?? null,
+    };
+  },
   /**
    * Watch your own walk for two seconds and report what actually flips.
    *
