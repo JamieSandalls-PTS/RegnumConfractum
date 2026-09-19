@@ -50,11 +50,17 @@ const cfg = {
   port: Number(process.env.PORT ?? fileEnv.PORT ?? 8080),
   adminPort: Number(process.env.ADMIN_PORT ?? fileEnv.ADMIN_PORT ?? 8081),
   adminToken: process.env.ADMIN_TOKEN ?? fileEnv.ADMIN_TOKEN ?? '',
-  /** Where a round is played. The cross's town, not the first-slice tavern. */
-  area: process.env.DEFAULT_AREA_ID ?? fileEnv.DEFAULT_AREA_ID ?? 'round-town',
+  /**
+   * The persistent world's starting room, if overridden. ⚠ Where a ROUND
+   * opens is the scenario's `opensIn` (D-627, D-636), not this; the launcher
+   * used to force `round-town` here from the days before scenarios existed.
+   */
+  area: process.env.DEFAULT_AREA_ID ?? fileEnv.DEFAULT_AREA_ID,
   /** D-522's floor. Bots make up the difference. */
   minCast: Number(process.env.ROUND_MIN_CAST ?? fileEnv.ROUND_MIN_CAST ?? 3),
   clientPort: 5173,
+  /** The authoring server (D-629): studio, creation tool and map editor. */
+  toolsPort: Number(process.env.STUDIO_PORT ?? fileEnv.STUDIO_PORT ?? 8150),
 };
 
 // ---------------------------------------------------------------------------
@@ -127,10 +133,9 @@ function stopAll(): void {
 // Probes
 // ---------------------------------------------------------------------------
 
-/** Is anything listening? Cheaper and more honest than asking a process. */
-function portOpen(port: number, timeoutMs = 400): Promise<boolean> {
+function portOpenOn(port: number, host: string, timeoutMs = 400): Promise<boolean> {
   return new Promise((res) => {
-    const sock = createConnection({ port, host: '127.0.0.1' });
+    const sock = createConnection({ port, host });
     const done = (ok: boolean): void => {
       sock.destroy();
       res(ok);
@@ -140,6 +145,18 @@ function portOpen(port: number, timeoutMs = 400): Promise<boolean> {
     sock.once('timeout', () => done(false));
     sock.once('error', () => done(false));
   });
+}
+
+/**
+ * Is anything listening? Cheaper and more honest than asking a process.
+ *
+ * ⚠ BOTH loopback addresses. Vite binds `localhost`, which Node 22 resolves
+ * to `::1` alone, so a probe of 127.0.0.1 reported the client DOWN while it
+ * was serving — and the launcher gave up waiting for a client that was
+ * already up. The game server and Postgres answer on both.
+ */
+async function portOpen(port: number, timeoutMs = 400): Promise<boolean> {
+  return (await portOpenOn(port, '127.0.0.1', timeoutMs)) || portOpenOn(port, '::1', timeoutMs);
 }
 
 async function waitForPort(port: number, what: string, ms = 30_000): Promise<boolean> {
@@ -169,23 +186,104 @@ async function roundState(): Promise<Record<string, unknown> | null> {
 // Actions
 // ---------------------------------------------------------------------------
 
+/** Runs a command to completion and reports its exit code, output hidden. */
+function run(command: string, args: string[]): Promise<number> {
+  const proc = spawn(command, args, { cwd: ROOT, shell: true, stdio: 'ignore' });
+  return new Promise<number>((res) => proc.on('exit', (c) => res(c ?? 1)));
+}
+
+/** Is the Docker engine answering? `docker info` is the honest probe. */
+async function dockerUp(): Promise<boolean> {
+  return (await run('docker', ['info'])) === 0;
+}
+
+/**
+ * Starts Docker Desktop and waits for its engine.
+ *
+ * ⚠ This is the failure that made the launcher "not work any more": Docker
+ * Desktop does not start with Windows on this machine, so after every reboot
+ * `docker compose up` failed and the launcher stopped at "start Docker
+ * Desktop and try again" — a message that reads as broken when the thing you
+ * double-clicked exists to spare you exactly that. The engine takes half a
+ * minute or more to come up after the window appears, so this waits on
+ * `docker info` rather than on the process.
+ */
+async function ensureDocker(): Promise<boolean> {
+  if (await dockerUp()) return true;
+  say('Docker is not running. Starting Docker Desktop…');
+  if (process.platform === 'win32') {
+    const exe = resolve(process.env['ProgramFiles'] ?? 'C:\\Program Files', 'Docker', 'Docker', 'Docker Desktop.exe');
+    if (!existsSync(exe)) {
+      say(`Docker Desktop is not installed at ${exe}.`);
+      say('Install it from https://www.docker.com/products/docker-desktop and try again.');
+      return false;
+    }
+    // PowerShell's Start-Process rather than cmd's `start`: the latter's
+    // quoting through a shell shim is exactly the kind of thing that fails
+    // silently, and this path was measured to work on the machine.
+    spawn('powershell', ['-NoProfile', '-Command', `Start-Process -FilePath '${exe}'`], {
+      stdio: 'ignore', detached: true, windowsHide: true,
+    }).unref();
+  } else {
+    spawn('open', ['-a', 'Docker'], { stdio: 'ignore', detached: true }).unref();
+  }
+  // ⚠ Four minutes, reported as it goes. The engine can take well over two
+  // on a cold start (measured here: the window appears at once and `docker
+  // info` answers a good while later), and a launcher that gives up first
+  // then tells you to do what it just did.
+  const began = Date.now();
+  const until = began + 240_000;
+  let told = 0;
+  while (Date.now() < until) {
+    if (await dockerUp()) {
+      say('Docker is up.');
+      return true;
+    }
+    const waited = Math.round((Date.now() - began) / 1000);
+    if (waited >= told + 30) {
+      told = waited;
+      say(`  still waiting for the Docker engine (${waited}s)…`);
+    }
+    await sleep(3000);
+  }
+  say('Docker Desktop did not come up within four minutes. Open it yourself and run this again.');
+  return false;
+}
+
 async function ensureDatabase(): Promise<boolean> {
   if (await portOpen(5433)) return true;
+  if (!(await ensureDocker())) return false;
   say('Postgres is not up on 5433. Starting it with Docker…');
-  const up = spawn('docker', ['compose', 'up', '-d', 'db'], {
-    cwd: ROOT,
-    shell: true,
-    stdio: 'inherit',
-  });
-  const code = await new Promise<number>((res) => up.on('exit', (c) => res(c ?? 1)));
+  const code = await run('docker', ['compose', 'up', '-d', 'db']);
   if (code !== 0) {
-    say('Docker would not start the database.');
-    say('Start Docker Desktop and try again, or run: npm run db:up');
+    say('Docker would not start the database. Run `npm run db:up` to see why.');
     return false;
   }
   // The container answers before Postgres does; the server's own migration
   // step is what would fail, and it fails opaquely.
   return waitForPort(5433, 'the database', 60_000);
+}
+
+async function startTools(): Promise<void> {
+  if (running('tools')) return say('The authoring server is already running.');
+  if (await portOpen(cfg.toolsPort)) {
+    say(`Something is already listening on ${cfg.toolsPort}; the authoring server may be up already.`);
+    return;
+  }
+  say('Starting the authoring server…');
+  start('tools', 'npm', ['run', 'dev:tools'], { STUDIO_PORT: String(cfg.toolsPort) });
+  if (await waitForPort(cfg.toolsPort, 'the authoring server', 30_000)) {
+    say(`Authoring server up. The tool is at http://localhost:${cfg.clientPort}/creation-tool.html`);
+  }
+}
+
+/** Opens the game in the default browser, once. Windows `start`, or `open`. */
+function openBrowser(url: string): void {
+  if (process.platform === 'win32') {
+    spawn('cmd', ['/c', 'start', '""', url], { shell: true, stdio: 'ignore', detached: true }).unref();
+  } else {
+    spawn(process.platform === 'darwin' ? 'open' : 'xdg-open', [url], { stdio: 'ignore', detached: true }).unref();
+  }
 }
 
 async function startServer(): Promise<void> {
@@ -206,7 +304,7 @@ async function startServer(): Promise<void> {
     ADMIN_PORT: String(cfg.adminPort),
     ROUND_MODE: '1',
     ROUND_MIN_CAST: String(cfg.minCast),
-    DEFAULT_AREA_ID: cfg.area,
+    ...(cfg.area ? { DEFAULT_AREA_ID: cfg.area } : {}),
   });
   if (await waitForPort(cfg.adminPort, 'the server')) {
     say(`Server up. Game on ws://localhost:${cfg.port}, admin on http://localhost:${cfg.adminPort}`);
@@ -215,6 +313,10 @@ async function startServer(): Promise<void> {
 
 async function startClient(): Promise<void> {
   if (running('client')) return say('The client is already running.');
+  if (await portOpen(cfg.clientPort)) {
+    say(`Something is already listening on ${cfg.clientPort}; the client may be up already.`);
+    return;
+  }
   say('Starting the client…');
   start('client', 'npm', ['run', 'dev:client']);
   // Vite picks the next free port when its own is taken and says so in its
@@ -225,6 +327,8 @@ async function startClient(): Promise<void> {
   }
   say('Log in there and point it at ws://localhost:' + cfg.port);
 }
+
+let opened = false;
 
 async function restartRound(): Promise<void> {
   if (!(await portOpen(cfg.adminPort))) {
@@ -270,12 +374,14 @@ async function status(): Promise<void> {
   const db = await portOpen(5433);
   const server = await portOpen(cfg.port);
   const client = await portOpen(cfg.clientPort);
+  const tools = await portOpen(cfg.toolsPort);
   const round = server ? await roundState() : null;
   const bots = children.filter((c) => c.name.startsWith('bots:')).length;
   line();
   say(`database   ${db ? 'up' : 'down'}   (5433)`);
   say(`server     ${server ? 'up' : 'down'}   (ws ${cfg.port}, admin ${cfg.adminPort})`);
   say(`client     ${client ? 'up' : 'down'}   (http ${cfg.clientPort})`);
+  say(`tool       ${tools ? 'up' : 'down'}   (http ${cfg.toolsPort})`);
   say(`bot batches ${bots}`);
   if (round) {
     const phase = String(round.phase);
@@ -311,9 +417,10 @@ function menu(): void {
   process.stdout.write(`
 ${warm('REGNUM CONFRACTUM')} ${dim('— launcher')}
 
-  ${warm('1')}  Start everything    ${dim('database, server and client')}
+  ${warm('1')}  Start everything    ${dim('Docker, database, server, client and the authoring tool')}
   ${warm('2')}  Start the server    ${dim('only')}
   ${warm('3')}  Start the client    ${dim('only')}
+  ${warm('8')}  Start the tool      ${dim('the authoring server only')}
   ${warm('4')}  Add bots            ${dim('4 3  sends three; 4 alone sends three')}
   ${warm('5')}  Restart the round   ${dim('ends this one, wipes gear and memory')}
   ${warm('6')}  Status
@@ -361,12 +468,21 @@ async function handle(input: string): Promise<void> {
     case '1':
       await startServer();
       if (running('server')) await startClient();
+      await startTools();
       await status();
+      // Straight to the login screen. Once per launcher session, so a second
+      // "1" after a stop does not open a second tab.
+      if (!opened && (await portOpen(cfg.clientPort))) {
+        opened = true;
+        openBrowser(`http://localhost:${cfg.clientPort}/`);
+      }
       return;
     case '2':
       return startServer();
     case '3':
       return startClient();
+    case '8':
+      return startTools();
     case '4':
       return addBots(Math.max(1, Math.min(12, Number(arg ?? '3') || 3)));
     case '5':

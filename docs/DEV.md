@@ -29,10 +29,13 @@ Double-click **`rc.cmd`** in the repository root, or:
 npm run play
 ```
 
-A menu with seven options: start everything, add bots, restart the round,
-stop. It starts the database with Docker if it is not already up, and it reads
-`.env` the same way the server does, so the launcher and the server can never
-disagree about which port or database is in play.
+A menu: start everything, add bots, restart the round, stop. "Everything" is
+Docker Desktop itself if it is not running (it does not start with Windows on
+the development machine, and the launcher waits for the engine rather than
+telling you to open it), the database, the game server, the client, and the
+authoring server — then it opens the game in your browser. It reads `.env` the
+same way the server does, so the launcher and the server can never disagree
+about which port or database is in play.
 
 It is deliberately a thin wrapper — every option shells out to the script the
 rest of this document describes, so there is exactly one way each thing starts
