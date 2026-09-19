@@ -4,6 +4,7 @@
 import './node-dom';
 import http from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {
   CHARACTER_SLOTS,
@@ -828,7 +829,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     });
     return res.end();
@@ -840,6 +841,30 @@ const server = http.createServer((req, res) => {
   // on this server so the tools have one port and one origin. Answered here
   // first; anything they do not own falls through.
   if (editorRoutes(req, res, url, parts, { contentDir, send, onChanged: (dir) => publisher.note(dir) })) return;
+
+  // POST /api/snapshot — the stage, as a PNG on disk (D-637).
+  //
+  // The browser pane a session works in is too small to judge art in, and
+  // a screenshot of it is a screenshot of the pane. The tool renders the
+  // stage into a data URL (`window.__stage.snapshot()`) and posts it here,
+  // and the file is looked at with an image reader instead. Verification
+  // only: nothing in the game reads this, and the directory is outside the
+  // repository.
+  if (req.method === 'POST' && parts[1] === 'snapshot' && parts.length === 2) {
+    return withBody(req, res, (raw) => {
+      const { name, png } = raw as { name?: unknown; png?: unknown };
+      if (typeof name !== 'string' || !/^[\w.-]{1,80}$/.test(name) || typeof png !== 'string') {
+        return send(res, 400, { error: 'name (word characters) and png (a data URL) are required' });
+      }
+      const m = /^data:image\/png;base64,(.+)$/.exec(png);
+      if (!m) return send(res, 400, { error: 'png must be a PNG data URL' });
+      const dir = process.env.SNAPSHOT_DIR ?? path.join(os.tmpdir(), 'rc-snapshots');
+      fs.mkdirSync(dir, { recursive: true });
+      const file = path.join(dir, `${name}.png`);
+      fs.writeFileSync(file, Buffer.from(m[1]!, 'base64'));
+      return send(res, 200, { ok: true, file });
+    });
+  }
 
   // /api/publish — what a save still needs, and the button that does it (D-630).
   if (parts[1] === 'publish' && parts.length === 2) {

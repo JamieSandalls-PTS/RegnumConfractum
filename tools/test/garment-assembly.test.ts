@@ -272,3 +272,59 @@ describe.skipIf(!built)('what the manifest promises about dressing (D-571)', () 
     }
   });
 });
+
+/**
+ * No built file carries vertex colours (D-637).
+ *
+ * ⚠ The pack's heads, torsos, hands and legs carry a colour attribute, and the
+ * dungeon pack's goblin staff carries a black one. The assembler's material
+ * ignores them, so the tool never showed the fault; the exporter wrote them
+ * out as COLOR_0 and GLTFLoader switches vertex colours ON for a mesh that
+ * has them — the keeper's face was black in the world and right in the tool.
+ * The attribute is dropped where the files are made; this checks the files.
+ */
+describe.skipIf(!built)('the built files carry no vertex colours (D-637)', () => {
+  it('character and part files', async () => {
+    const dir = MODELS;
+    const files = (await import('node:fs')).readdirSync(dir).filter((f) => f.endsWith('.glb') && !f.startsWith('animations'));
+    expect(files.length).toBeGreaterThan(0);
+    const offenders: string[] = [];
+    for (const f of files) {
+      const root = await parse(join(dir, f));
+      root.traverse((o) => {
+        const m = o as SkinnedMesh;
+        if (!m.isMesh) return;
+        if (m.geometry.getAttribute('color')) offenders.push(`${f}:${m.name} has COLOR_0`);
+        const mats = Array.isArray(m.material) ? m.material : [m.material];
+        if (mats.some((x) => x.vertexColors)) offenders.push(`${f}:${m.name} uses vertex colours`);
+      });
+    }
+    expect(offenders).toEqual([]);
+  }, 120_000);
+
+  it('environment files', async () => {
+    const dir = join(MODELS, 'env');
+    if (!existsSync(join(dir, 'manifest.json'))) return;
+    const files = (await import('node:fs')).readdirSync(dir).filter((f) => f.endsWith('.glb'));
+    const offenders: string[] = [];
+    let read = 0;
+    for (const f of files) {
+      let root: Object3D;
+      try {
+        root = await parse(join(dir, f));
+      } catch {
+        // The skinned bows do not survive GLTFLoader under the node stubs
+        // (`isBone` on an undefined node); they are the game's to load.
+        continue;
+      }
+      read++;
+      root.traverse((o) => {
+        const m = o as SkinnedMesh;
+        if (!m.isMesh) return;
+        if (m.geometry.getAttribute('color')) offenders.push(`${f}:${m.name}`);
+      });
+    }
+    expect(read).toBeGreaterThan(0);
+    expect(offenders).toEqual([]);
+  }, 120_000);
+});

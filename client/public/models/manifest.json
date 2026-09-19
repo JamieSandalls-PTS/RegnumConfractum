@@ -310,6 +310,198 @@
       "parts": null
     },
     {
+      "id": "chr-ghost-01",
+      "model": "chr-ghost-01.glb",
+      "palette": "chr-ghost-01.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-ghost-02",
+      "model": "chr-ghost-02.glb",
+      "palette": "chr-ghost-02.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-goblin-female",
+      "model": "chr-goblin-female.glb",
+      "palette": "chr-goblin-female.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-goblin-male",
+      "model": "chr-goblin-male.glb",
+      "palette": "chr-goblin-male.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-goblin-shaman",
+      "model": "chr-goblin-shaman.glb",
+      "palette": "chr-goblin-shaman.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-goblin-warchief",
+      "model": "chr-goblin-warchief.glb",
+      "palette": "chr-goblin-warchief.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-goblin-warrior-female",
+      "model": "chr-goblin-warrior-female.glb",
+      "palette": "chr-goblin-warrior-female.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-goblin-warrior-male",
+      "model": "chr-goblin-warrior-male.glb",
+      "palette": "chr-goblin-warrior-male.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-hero-knight-female",
+      "model": "chr-hero-knight-female.glb",
+      "palette": "chr-hero-knight-female.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-hero-knight-male",
+      "model": "chr-hero-knight-male.glb",
+      "palette": "chr-hero-knight-male.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-rock-golem",
+      "model": "chr-rock-golem.glb",
+      "palette": "chr-rock-golem.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-skeleton-knight",
+      "model": "chr-skeleton-knight.glb",
+      "palette": "chr-skeleton-knight.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-skeleton-slave-01",
+      "model": "chr-skeleton-slave-01.glb",
+      "palette": "chr-skeleton-slave-01.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-skeleton-soldier-01",
+      "model": "chr-skeleton-soldier-01.glb",
+      "palette": "chr-skeleton-soldier-01.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-skeleton-soldier-02",
+      "model": "chr-skeleton-soldier-02.glb",
+      "palette": "chr-skeleton-soldier-02.png",
+      "animations": "animations.glb",
+      "rig": "unreal",
+      "variant": "unreal",
+      "source": "mesh",
+      "height": 1.7,
+      "kind": "creature",
+      "parts": null
+    },
+    {
+      "id": "chr-tormented-soul",
+      "model": "chr-tormented-soul.glb",
+      "palette": "chr-tormented-soul.png",
+      "animations": "animations-unreal-1jg4fpj.glb",
+      "rig": "unreal",
+      "variant": "unreal-1jg4fpj",
+      "source": "mesh",
+      "height": 1.264,
+      "kind": "creature",
+      "parts": null
+    },
+    {
       "id": "drowned-shade",
       "model": "drowned-shade.glb",
       "palette": "drowned-shade.png",
@@ -431,6 +623,58 @@
     }
   ],
   "garments": [
+    {
+      "id": "garment-1",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "helmet": "SK_Chr_Head_No_Elements_Male_05"
+        },
+        "female": {
+          "helmet": "SK_Chr_Head_No_Elements_Female_05"
+        }
+      }
+    },
+    {
+      "id": "garment-2",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "handL": "SK_Chr_HandLeft_Male_12",
+          "handR": "SK_Chr_HandRight_Male_12"
+        },
+        "female": {
+          "handL": "SK_Chr_HandLeft_Female_12",
+          "handR": "SK_Chr_HandRight_Female_12"
+        }
+      }
+    },
+    {
+      "id": "garment-3",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "hips": "SK_Chr_Hips_Male_15"
+        },
+        "female": {
+          "hips": "SK_Chr_Hips_Female_15"
+        }
+      }
+    },
+    {
+      "id": "garment-4",
+      "pack": "modular-fantasy-hero",
+      "parts": {
+        "male": {
+          "legL": "SK_Chr_LegLeft_Male_06",
+          "legR": "SK_Chr_LegRight_Male_06"
+        },
+        "female": {
+          "legL": "SK_Chr_LegLeft_Female_06",
+          "legR": "SK_Chr_LegRight_Female_06"
+        }
+      }
+    },
     {
       "id": "gothic-plate",
       "pack": "modular-fantasy-hero",

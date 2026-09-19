@@ -744,11 +744,15 @@ function showPart(stem: string): void {
     wanted = [...body, stem];
   }
   frameFor(namingSlot);
-  void preview(wanted);
+  lastPreview = preview(wanted);
+  void lastPreview;
   for (const tr of Array.from($('list').querySelectorAll('tr'))) {
     tr.classList.toggle('on', tr.querySelector('td.stem')?.getAttribute('title') === stem);
   }
 }
+
+/** The preview most recently asked for, so a probe can wait for it (D-637). */
+let lastPreview: Promise<void> = Promise.resolve();
 
 /**
  * Carry every name across to the other body.
@@ -4533,6 +4537,12 @@ soundPreview.onChange = () => {
  * The verification hook (D-114): what the stage holds, how many things are
  * animating on it, and a way to advance them without the frame loop.
  */
+/** One mesh on the stage, as the probe reports it (D-637). */
+interface StageMesh {
+  name: string; materials: string[]; array: boolean; uv: boolean; verts: number;
+  uvRange: number[] | null; color: boolean; vertexColors: boolean;
+}
+
 (window as unknown as { __stage: unknown }).__stage = {
   children: () => mount.children.length,
   mixers: () => sheetMixers.length + (bodyMixer ? 1 : 0),
@@ -4540,6 +4550,68 @@ soundPreview.onChange = () => {
     for (let i = 0; i < seconds * 60; i++) stepStage(1 / 60);
   },
   banner: () => $('banner').textContent,
+  /**
+   * The stage as a PNG data URL, rendered now (D-637). The canvas does not
+   * preserve its drawing buffer, so a read between frames is blank; this
+   * draws a frame and reads it in one go.
+   */
+  snapshot: (): string => {
+    scene.follow(new THREE.Vector3(0, focusY, 0));
+    scene.renderer.render(scene.scene, scene.camera);
+    return scene.renderer.domElement.toDataURL('image/png');
+  },
+  /** Put one part on the naming mannequin, as the Body parts tab would. */
+  showPart: async (stem: string, slot: CharacterSlot, sex: 'male' | 'female'): Promise<void> => {
+    namingSlot = slot;
+    namingSex = sex;
+    showPart(stem);
+    await lastPreview;
+  },
+  /** Assemble exactly these parts, framed as a whole body. */
+  preview: async (stems: string[], animate = false): Promise<void> => {
+    await preview(stems, animate);
+  },
+  /** One asset from the loaded asset pack, as the asset tabs show it. */
+  showAsset: async (pack: string, stem: string): Promise<void> => {
+    if (assetPack !== pack) await loadAssetPack(pack);
+    await showAsset(stem);
+  },
+  /** What is on the stage: each mesh, its material(s) and whether it has UVs. */
+  meshes: (): StageMesh[] => {
+    const out: StageMesh[] = [];
+    mount.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      const uv = m.geometry.getAttribute('uv');
+      let uvRange: number[] | null = null;
+      if (uv) {
+        let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+        for (let i = 0; i < uv.count; i++) {
+          const u = uv.getX(i), v = uv.getY(i);
+          u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v);
+        }
+        uvRange = [u0, u1, v0, v1].map((x) => Math.round(x * 1000) / 1000);
+      }
+      out.push({
+        name: m.name,
+        materials: mats.map((x) => `${x.name || '?'}:${x.type}${(x as THREE.MeshStandardMaterial).map ? '+map' : ''}`),
+        array: Array.isArray(m.material),
+        uv: Boolean(uv),
+        verts: m.geometry.getAttribute('position')?.count ?? 0,
+        uvRange,
+        color: Boolean(m.geometry.getAttribute('color')),
+        vertexColors: mats.some((x) => x.vertexColors),
+      });
+    });
+    return out;
+  },
+  /** How the stage is framed. */
+  view: (fy: number, oh: number, z: number): void => {
+    focusY = fy;
+    orbitH = oh;
+    zoom = z;
+  },
 };
 
 /** The page, described once, for the tab modules (`tool/`). */

@@ -2,6 +2,7 @@
   "id": "undercroft-warden",
   "descriptor": "something tall and patient that has been waiting a long time",
   "hp": 34,
+  "armourClass": 10,
   "damageMin": 6,
   "damageMax": 10,
   "aggroMetres": 22,
@@ -10,6 +11,8 @@
   "perArea": 4,
   "habitat": "dungeon",
   "floor": 3,
+  "character": "character-skeleton-soldier-02",
+  "heightMetres": 3.3,
   "xp": 55,
   "loot": [
     {
@@ -18,7 +21,5 @@
       "chance": 0.8
     }
   ],
-  "notes": "Floor three, open only for the round's closing daylight (D-535). Wants the cast. UNRATIFIED tuning - this is the number most likely to be wrong.",
-  "character": "skeleton-knight",
-  "heightMetres": 1.95
+  "notes": "Floor three, open only for the round's closing daylight (D-535). Wants the cast. UNRATIFIED tuning - this is the number most likely to be wrong."
 }

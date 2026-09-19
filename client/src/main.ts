@@ -3198,6 +3198,7 @@ frame();
 declare global {
   interface Window {
     __rc?: {
+      snapshot: () => string | null;
       engaged: () => { target: number | null; plannedFor: { x: number; y: number } | null; nearest: number | null };
       /** How many pack meshes are drawn — verification, not a feature (D-567). */
       walk: () => Promise<unknown>;
@@ -3274,6 +3275,12 @@ declare global {
   }
 }
 window.__rc = {
+  /** The world as drawn now, as a PNG data URL (D-637). Verification only. */
+  snapshot: (): string | null => {
+    if (!scene) return null;
+    scene.render();
+    return scene.renderer.domElement.toDataURL('image/png');
+  },
   /** Who the standing attack is aimed at, if anyone (D-636). Verification only. */
   engaged: () => ({ target: engagedId, plannedFor: engagePlannedFor, nearest: nearestOther() }),
   /**

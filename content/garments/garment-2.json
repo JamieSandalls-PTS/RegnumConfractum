@@ -1,0 +1,16 @@
+{
+  "id": "garment-2",
+  "name": "Gothic Gloves",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "handL": "SK_Chr_HandLeft_Male_12",
+      "handR": "SK_Chr_HandRight_Male_12"
+    },
+    "female": {
+      "handL": "SK_Chr_HandLeft_Female_12",
+      "handR": "SK_Chr_HandRight_Female_12"
+    }
+  },
+  "swaps": []
+}

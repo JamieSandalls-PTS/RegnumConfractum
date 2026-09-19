@@ -256,6 +256,14 @@ export function assemble(files: readonly { slot: string; mesh: SkinnedMesh }[]):
     // the same cached part in repeatedly — remapping an already-remapped
     // skinIndex scrambles the weights of every part after the first.
     const geometry = mesh.geometry.clone();
+    // ⚠ The pack's VERTEX COLOURS are discarded (D-637). Some parts carry a
+    // colour attribute — the heads, torsos, hands and legs of this pack — and
+    // it is not art: the atlas is. This material ignores it, so the studio
+    // and the tool never showed it; but the exporter wrote it into every
+    // .glb as COLOR_0, and GLTFLoader turns vertex colours ON for a mesh that
+    // has them, multiplying the atlas by black. That was the keeper's face in
+    // the game: right in the tool, black in the world, same head.
+    geometry.deleteAttribute('color');
     const repair = repairLopsidedWeights(mesh, geometry, slot);
     if (repair) repairs.push(repair);
     const skinIndex = geometry.getAttribute('skinIndex');

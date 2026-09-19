@@ -1,0 +1,14 @@
+{
+  "id": "garment-3",
+  "name": "Gothic Greaves",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "hips": "SK_Chr_Hips_Male_15"
+    },
+    "female": {
+      "hips": "SK_Chr_Hips_Female_15"
+    }
+  },
+  "swaps": []
+}

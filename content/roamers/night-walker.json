@@ -1,14 +1,18 @@
 {
   "id": "night-walker",
-  "descriptor": "something man-shaped that does not walk like a man",
+  "descriptor": "A skeletal warrior",
   "hp": 14,
+  "armourClass": 10,
   "damageMin": 3,
   "damageMax": 6,
   "aggroMetres": 26,
   "attackCooldownTicks": 16,
   "moveCooldownTicks": 5,
   "perArea": 3,
-  "notes": "The heavier night thing. Two or three of these plus the dogs is what makes an unarmed solo walk fatal without making a pair's walk hopeless (D-529). UNRATIFIED tuning. ⚠ Was the pack's Tormented Soul, which is DROPPED (D-594): its skeleton is spelled differently enough to be its own rig variant, the clips retargeted onto it do not drive its bones, and the D-555 shape tests caught it — a character that cannot walk must not ship. D-557's precedent: keep the machinery, drop the character.",
-  "character": "skeleton-soldier",
-  "heightMetres": 1.8
+  "habitat": "night",
+  "character": "skeleton-knight",
+  "heightMetres": 1.8,
+  "xp": 10,
+  "loot": [],
+  "notes": "The heavier night thing. Two or three of these plus the dogs is what makes an unarmed solo walk fatal without making a pair's walk hopeless (D-529). UNRATIFIED tuning. ⚠ Was the pack's Tormented Soul, which is DROPPED (D-594): its skeleton is spelled differently enough to be its own rig variant, the clips retargeted onto it do not drive its bones, and the D-555 shape tests caught it — a character that cannot walk must not ship. D-557's precedent: keep the machinery, drop the character."
 }

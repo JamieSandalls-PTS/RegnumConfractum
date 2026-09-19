@@ -304,6 +304,12 @@ export function load(outfit: ImportedOutfit): Promise<Loaded> {
       // then culls the whole body at the screen edge.
       mesh.frustumCulled = false;
       const material = mesh.material as THREE.MeshStandardMaterial;
+      // A file built before D-637 still carries COLOR_0; the atlas is the
+      // colour, whatever the file says.
+      if (material.vertexColors) {
+        material.vertexColors = false;
+        material.needsUpdate = true;
+      }
       if (palette && !material.map) {
         material.map = palette;
         material.needsUpdate = true;

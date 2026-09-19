@@ -1,0 +1,14 @@
+{
+  "id": "garment-1",
+  "name": "Gothic Helm",
+  "pack": "modular-fantasy-hero",
+  "parts": {
+    "male": {
+      "helmet": "SK_Chr_Head_No_Elements_Male_05"
+    },
+    "female": {
+      "helmet": "SK_Chr_Head_No_Elements_Female_05"
+    }
+  },
+  "swaps": []
+}

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { stripVertexColours } from './world-assets';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { assetAtlas, originCorrection, type PlacedAsset } from '@rc/shared';
 
@@ -77,7 +78,11 @@ async function meshFor(src: AssetSource, pack: string, stem: string): Promise<TH
       key,
       fetch(`${src.api}/assetpacks/${encodeURIComponent(pack)}/fbx/${encodeURIComponent(stem)}`)
         .then((r) => r.arrayBuffer())
-        .then((buf) => loader.parse(buf, '')),
+        .then((buf) => {
+          const object = loader.parse(buf, '');
+          stripVertexColours(object); // the atlas is the colour (D-637)
+          return object;
+        }),
     );
   }
   return meshCache.get(key)!;

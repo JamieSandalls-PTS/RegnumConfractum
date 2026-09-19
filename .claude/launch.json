@@ -29,6 +29,18 @@
       ],
       "port": 8095,
       "autoPort": false
+    },
+    {
+      "name": "tools-probe",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:tools",
+        "--",
+        "8151"
+      ],
+      "port": 8151,
+      "autoPort": false
     }
   ]
 }

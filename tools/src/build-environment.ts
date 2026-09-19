@@ -207,6 +207,9 @@ function normalise(
     const mesh = o as Mesh;
     if (!mesh.isMesh) return;
     vertices += mesh.geometry.getAttribute('position')?.count ?? 0;
+    // ⚠ Vertex colours are dropped (D-637): the goblin staff carries a black
+    // one, and a loader that finds COLOR_0 multiplies the atlas by it.
+    mesh.geometry.deleteAttribute('color');
     // ⚠ The FBX's own materials are REPLACED, not merely left unembedded.
     // They carry texture references into the exporter, which then tries to
     // rasterise them and dies with "No valid image data found" — `embedImages:

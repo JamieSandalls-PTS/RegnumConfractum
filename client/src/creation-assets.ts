@@ -1,5 +1,6 @@
 import { API } from './authoring-api';
 import * as THREE from 'three';
+import { stripVertexColours } from './render/world-assets';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import {
   ACTION_GROUPS,
@@ -70,7 +71,9 @@ export async function assetMesh(pack: string, stem: string): Promise<THREE.Objec
     ).arrayBuffer();
     bytes.set(key, buf);
   }
-  return loader.parse(buf.slice(0), '');
+  const object = loader.parse(buf.slice(0), '');
+  stripVertexColours(object); // the atlas is the colour (D-637)
+  return object;
 }
 
 /**

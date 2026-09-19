@@ -66,6 +66,26 @@ export function invalidateWorldAssets(): void {
   warned.clear();
 }
 
+/**
+ * The atlas is the colour (D-637). A pack mesh that carries a vertex colour
+ * attribute — the dungeon pack's goblin staff does, and it is black — would
+ * otherwise have the atlas multiplied by it, in every loader that honours
+ * COLOR_0. Dropped at the source too; this covers a file built before that.
+ */
+export function stripVertexColours(root: THREE.Object3D): void {
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    mesh.geometry.deleteAttribute('color');
+    for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+      if (m.vertexColors) {
+        m.vertexColors = false;
+        m.needsUpdate = true;
+      }
+    }
+  });
+}
+
 async function meshFor(key: string): Promise<THREE.Object3D | null> {
   if (!meshCache.has(key)) {
     meshCache.set(
@@ -74,6 +94,7 @@ async function meshFor(key: string): Promise<THREE.Object3D | null> {
         const file = m.meshes[key];
         if (!file) return null;
         const gltf = await loader.loadAsync(`${BASE}/${file}`);
+        stripVertexColours(gltf.scene);
         return gltf.scene;
       }),
     );
