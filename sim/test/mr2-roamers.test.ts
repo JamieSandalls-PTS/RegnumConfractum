@@ -60,16 +60,21 @@ async function join(bot: BotClient, username: string, charName: string, seed: nu
   return characterId;
 }
 
+// ⚠ What a roamer is CALLED is content (D-532), authored in the tool and
+// changed there; a test that matched the prose broke the day the stakeholder
+// renamed a dog a golem. The set is read off the loaded content instead.
+const content = loadContent(contentDir);
+const NIGHT_PROSE = new Set(content.roamers.filter((r) => r.habitat === 'night').map((r) => r.descriptor));
 const roamersSeenBy = (bot: BotClient): number =>
   [...bot.entities.values()].filter(
-    (e) => e.kind === 'npc' && /four legs|man-shaped/.test(e.descriptor ?? ''),
+    (e) => e.kind === 'npc' && NIGHT_PROSE.has(e.descriptor ?? ''),
   ).length;
 
 beforeAll(async () => {
   store = new MemoryStore();
   server = new GameServer({
     store,
-    content: loadContent(contentDir),
+    content,
     port: 0,
     tickIntervalMs: TICK,
     rngSeed: 41,
@@ -152,7 +157,7 @@ describe('the shape of night (D-527)', () => {
     const heard = homebody.sounds.concat(walker.sounds);
     for (const sound of heard) {
       expect(sound.kind).toBe('combat');
-      expect(JSON.stringify(sound)).not.toMatch(/four legs|man-shaped|Hesk|Perrin/);
+      for (const prose of [...NIGHT_PROSE, 'Hesk', 'Perrin']) expect(JSON.stringify(sound)).not.toContain(prose);
     }
   });
 

@@ -1729,6 +1729,17 @@ set: one per torso with arms chosen by looking, one per other wearable
 part. ⚠ The arm pairings are a first pass; every part is exported now
 (700 files, 40 MB).
 
+**Nothing procedural is drawn (D-638, the stakeholder's ruling).** The tile
+renderer is DELETED. The tile grid is the walkability lattice and nothing
+else: every tile in every map is walkable, the ground is a painted mask, and
+anything that blocks a body or an eye is a placed mesh with a collision
+volume. `validate:content` and the editor's save refuse an unwalkable tile;
+`npm run map:convert` (`tiles-to-assets.py`) turns a map's wall, rock, tree
+and water tiles into meshes carrying the tiles' exact collision -- run it
+after `build-round-map.py`, which still lays tiles. The editor has no tile
+tool. `WorldAssets` instances a mesh placed four or more times; seats stay
+objects. ⚠ The converter's unit volumes are counter-rotated on purpose.
+
 **A cue is heard in the tool through the game's own player (D-635).** The
 cue editor's preview is `SoundBank` handed the form's copy of the cue, so
 trim, split and normalisation are heard as the game applies them, and the

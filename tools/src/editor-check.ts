@@ -1,4 +1,4 @@
-import { AreaSchema, canStandAt, type AreaDef } from '@rc/shared';
+import { AreaSchema, canStandAt, tileProblems, type AreaDef } from '@rc/shared';
 import { unreachableTiles } from './validate-content';
 
 /**
@@ -29,6 +29,10 @@ export function checkAreaForSave(
   }
   const area = parsed.data;
   const errors: string[] = [];
+
+  // Tiles are not walls and an unpainted area has no floor (D-638): the
+  // editor refuses what the build refuses.
+  errors.push(...tileProblems(area));
 
   const missing = unreachableTiles(area);
   if (missing.length > 0) {

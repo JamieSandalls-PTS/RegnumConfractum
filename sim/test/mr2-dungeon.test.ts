@@ -96,9 +96,13 @@ afterAll(async () => {
   await server.stop();
 });
 
+// ⚠ Read off content rather than matched as prose: the descriptors are
+// authored in the tool and were renamed there (see mr2-roamers).
+const DUNGEON_PROSE = new Set(content.roamers.filter((r) => r.habitat === 'dungeon').map((r) => r.descriptor));
+const CRAWLER_PROSE = content.roamers.find((r) => r.id === 'crypt-crawler')!.descriptor;
 const dwellersNear = (bot: BotClient): number =>
   [...bot.entities.values()].filter(
-    (e) => e.kind === 'npc' && /many-legged|underwater|patient/.test(e.descriptor ?? ''),
+    (e) => e.kind === 'npc' && DUNGEON_PROSE.has(e.descriptor ?? ''),
   ).length;
 
 describe('the dungeon is stocked when the round opens', () => {
@@ -159,7 +163,7 @@ describe('the reward gets better the deeper you go', () => {
 async function killNearestCrawler(bot: BotClient): Promise<boolean> {
   const me = bot.entities.get(bot.you!)!;
   const target = [...bot.entities.values()]
-    .filter((e) => e.kind === 'npc' && /many-legged/.test(e.descriptor ?? ''))
+    .filter((e) => e.kind === 'npc' && e.descriptor === CRAWLER_PROSE)
     .map((e) => ({ e, d: Math.max(Math.abs(e.x - me.x), Math.abs(e.y - me.y)) }))
     .sort((a, b) => a.d - b.d)[0]?.e;
   if (!target) return false;

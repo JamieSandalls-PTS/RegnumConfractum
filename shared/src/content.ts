@@ -723,6 +723,34 @@ export function sightBlockedIn(area: AreaDef, a: Vec2, b: Vec2): boolean {
   return sightBlocked(areaCollision(area), a, b);
 }
 
+/**
+ * Tiles that are still drawn as walls, which nothing draws (D-638).
+ *
+ * The tile renderer is gone: the ground is painted and a wall is a placed
+ * mesh with a collision mask. An unwalkable tile is therefore a thing a body
+ * bumps into and nobody can see — the failure D-542 calls an invisible
+ * obstacle. `validate:content` and the editor's save both refuse it, and
+ * `tiles-to-assets.py` is how a map that still has them is converted.
+ */
+export function tileProblems(area: AreaDef): string[] {
+  const out: string[] = [];
+  for (const [ch, def] of Object.entries(area.legend)) {
+    if (!def.walkable) {
+      out.push(
+        `legend '${ch}' (${def.kind}) is an unwalkable tile — nothing draws tiles any more (D-638); ` +
+          'place a mesh with a collision mask instead, or run `npm run map:convert`',
+      );
+    }
+  }
+  return out;
+}
+
+/** An unpainted area has no floor at all now (D-638); said as a warning. */
+export function unpaintedProblem(area: AreaDef): string | null {
+  if (area.groundPaint && area.groundPaint.length > 0) return null;
+  return 'the ground is not painted, and an unpainted area has no floor (D-638); run `npm run map:paint`';
+}
+
 export function isTileWalkable(area: AreaDef, pos: Vec2): boolean {
   if (pos.x < 0 || pos.y < 0 || pos.x >= area.width || pos.y >= area.height) return false;
   const ch = area.tiles[pos.y]![pos.x]!;

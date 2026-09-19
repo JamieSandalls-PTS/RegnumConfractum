@@ -76,24 +76,26 @@ describe('reachability validator', () => {
 // the validator has to be the thing that catches them.
 // ---------------------------------------------------------------------------
 
+// ⚠ No wall TILES (D-638): a tile is walkable ground and nothing else now,
+// and the validator refuses one that is not. The yard is bounded by the
+// area's own edge.
 const MINIMAL_AREA = {
   id: 'test-yard',
   name: 'Test Yard',
   width: 8,
   height: 8,
   legend: {
-    '#': { walkable: false, kind: 'wall' },
     '.': { walkable: true, kind: 'floor' },
   },
   tiles: [
-    '########',
-    '#......#',
-    '#......#',
-    '#......#',
-    '#......#',
-    '#......#',
-    '#......#',
-    '########',
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
   ],
   spawn: { x: 1, y: 1 },
 };

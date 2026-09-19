@@ -36,10 +36,11 @@ describe('the editor refuses to write content that would fail the build', () => 
       name: 'Test Room',
       width: 9,
       height: 9,
-      legend: { '.': { walkable: true, kind: 'floor' }, '#': { walkable: false, kind: 'wall' } },
+      // No wall tiles (D-638): the room is bounded by the area's own edge.
+      legend: { '.': { walkable: true, kind: 'floor' } },
       tiles: [
-        '#########', '#.......#', '#.......#', '#.......#', '#.......#',
-        '#.......#', '#.......#', '#.......#', '#########',
+        '.........', '.........', '.........', '.........', '.........',
+        '.........', '.........', '.........', '.........',
       ],
       spawn: { x: 1, y: 1 },
     });
@@ -58,7 +59,7 @@ describe('the editor refuses to write content that would fail the build', () => 
         {
           asset: 'wall', pack: 'test', x: 6.5, y: 5.5, z: 0, rotation: 0, scale: 1,
           overrideCollision: true,
-    seat: false, dressed: false,
+    seat: false, dressed: false, fromTiles: false,
           collision: [{
             shape: { kind: 'rect', x: 0, y: 0, w: 4, h: 0.5, rotation: 0 },
             base: 0, top: 3, walkable: false, opaque: true,
@@ -67,7 +68,7 @@ describe('the editor refuses to write content that would fail the build', () => 
         {
           asset: 'wall', pack: 'test', x: 5.5, y: 6.5, z: 0, rotation: 90, scale: 1,
           overrideCollision: true,
-    seat: false, dressed: false,
+    seat: false, dressed: false, fromTiles: false,
           collision: [{
             shape: { kind: 'rect', x: 0, y: 0, w: 4, h: 0.5, rotation: 0 },
             base: 0, top: 3, walkable: false, opaque: true,
@@ -88,7 +89,7 @@ describe('the editor refuses to write content that would fail the build', () => 
         {
           asset: 'boulder', pack: 'test', x: exit.x, y: exit.y, z: 0, rotation: 0, scale: 1,
           overrideCollision: true,
-    seat: false, dressed: false,
+    seat: false, dressed: false, fromTiles: false,
           collision: [{
             shape: { kind: 'circle', x: 0, y: 0, r: 0.8 },
             base: 0, top: 2, walkable: false, opaque: true,
@@ -114,7 +115,7 @@ describe('the editor refuses to write content that would fail the build', () => 
           asset: 'slab', pack: 'test',
           x: station.x, y: station.y, z: 0, rotation: 0, scale: 1,
           overrideCollision: true,
-    seat: false, dressed: false,
+    seat: false, dressed: false, fromTiles: false,
           collision: [{
             shape: { kind: 'rect', x: 0, y: 0, w: 6, h: 6, rotation: 0 },
             base: 0, top: 3, walkable: false, opaque: true,

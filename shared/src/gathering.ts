@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CREATURE_HEIGHT } from './appearance';
 import { ContentIdSchema } from './content';
 
 /**
@@ -241,7 +242,7 @@ export const RoamerSchema = z
      * the DESCRIPTOR pipeline (D-201), so a thing a player is told is
      * towering actually is.
      */
-    heightMetres: z.number().min(0.3).max(4).optional(),
+    heightMetres: z.number().min(CREATURE_HEIGHT[0]).max(CREATURE_HEIGHT[1]).optional(),
     /** Experience for putting it down. Deeper floors are worth more. */
     xp: z.number().int().min(0).default(10),
     /**

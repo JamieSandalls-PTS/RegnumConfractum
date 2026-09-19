@@ -33,7 +33,6 @@ import { LightRig } from './render/lights';
 import { Roofs } from './render/roofs';
 import { occlusionState, setOcclusionFocus } from './render/occlusion';
 import { CombatEffects } from './render/effects';
-import { Terrain } from './render/terrain';
 import { buildPaintedGround } from './render/ground';
 import { WorldAssets, loadOneAsset } from './render/world-assets';
 import { HoverOutline } from './render/hover-outline';
@@ -321,16 +320,16 @@ void importedModels.loadManifest();
 
 const conn = new Connection();
 let scene: GameScene | null = null;
-let terrain: Terrain | null = null;
 /**
  * The painted ground for the area you are standing in (D-585 → D-588).
  *
- * ⚠ Its own object rather than part of `Terrain`, because it is not made of
- * tiles: it is one plane over the whole area carrying a mask, and the terrain
- * is instanced per tile kind. Keeping them separate is also what lets the map
- * editor and the game share ONE implementation — the reason D-558 gives for
- * sharing the character assembler. A floor that draws differently in the
- * painter from the way it draws in the world is a painter that lies.
+ * ⚠ The ONLY floor there is (D-638). The tile renderer that used to draw
+ * grass, dirt, boards and seven wall families under and around it is gone;
+ * the ground is a painted mask over one plane, and everything standing on it
+ * is a placed pack mesh. The map editor and the game share this one
+ * implementation — the reason D-558 gives for sharing the character
+ * assembler. A floor that draws differently in the painter from the way it
+ * draws in the world is a painter that lies.
  */
 let paintedGround: THREE.Mesh | null = null;
 let worldAssets: WorldAssets | null = null;
@@ -960,8 +959,6 @@ function ensureScene(): GameScene {
 function clearWorld(): void {
   for (const e of entities.values()) e.visual.dispose();
   entities.clear();
-  if (terrain && scene) terrain.dispose(scene.scene);
-  terrain = null;
   if (paintedGround && scene) {
     scene.scene.remove(paintedGround);
     paintedGround.geometry.dispose();
@@ -1076,9 +1073,10 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   const s = ensureScene();
   clearWorld();
   s.applyLighting(snap.area.lighting);
-  terrain = new Terrain(snap.area, s.scene);
   // What somebody painted in the editor (D-588). Null when the area is
-  // unpainted, which is most of them — bare terrain, exactly as before.
+  // unpainted, and an unpainted area now has NO floor at all (D-638): the
+  // tile renderer that used to stand in is gone, and `validate:content`
+  // refuses an unpainted area for that reason.
   paintedGround = buildPaintedGround(snap.area);
   if (paintedGround) s.scene.add(paintedGround);
   lightRig?.clear();
@@ -1102,14 +1100,12 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   currentArea = snap.area;
   moveDest = null; moveAsked = false;
   pendingSit = null;
-  // Ambience derives from the area data: hearth tiles crackle, interior
-  // and underground profiles carry a room tone.
+  // Ambience derives from the area data: hearths crackle, interior and
+  // underground profiles carry a room tone. A hearth is a placed mesh now
+  // (D-618, D-638), found by what the pack calls it.
   const hearths: { x: number; y: number }[] = [];
-  for (let ty = 0; ty < snap.area.height; ty++) {
-    for (let tx = 0; tx < snap.area.width; tx++) {
-      const ch = snap.area.tiles[ty]![tx]!;
-      if (snap.area.legend[ch]?.kind === 'hearth') hearths.push({ x: tx, y: ty });
-    }
+  for (const a of snap.area.assets) {
+    if (/hearth|fireplace/i.test(a.asset)) hearths.push({ x: Math.round(a.x), y: Math.round(a.y) });
   }
   ambience.setScene(hearths, snap.area.lighting === 'interior' || snap.area.lighting === 'underground');
   // The bed follows the area (D-541); the same cue twice is a no-op, so
@@ -3039,7 +3035,6 @@ function stepFrame(dt: number): void {
   }
   updateHighlights();
 
-  terrain?.update(t);
   stepCombatVisuals(dt);
   updateSpeechBubbles(dt);
   const you = youId !== null ? entities.get(youId) : undefined;

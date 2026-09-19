@@ -912,3 +912,14 @@ for aid, doc in areas.items():
     if aid in SHAPE_IS_AUTHORED:
         note += ' [shape is hand-authored — left alone]'
     print('wrote', aid, note)
+
+# WARNING (D-638): the maps above are TILE grids -- mazes, borders, rocks and
+# trees as legend kinds -- and nothing draws a tile any more. The build refuses
+# an unwalkable tile, so a generated map is not finished until it has been
+# painted and CONVERTED:
+#
+#     npm run map:paint && npm run map:dress && npm run map:prune && npm run map:convert
+#
+# in that order: the painter and the placer read the tile kinds, and the
+# converter is what takes the blocking ones away.
+print('\nNext: npm run map:paint && npm run map:dress && npm run map:prune && npm run map:convert  (D-638)')

@@ -11616,3 +11616,89 @@ garment editor shows each on a body; changing a sleeve is one pick.
 per part a garment names (D-571), which was 183 files and is 700 --
 40 MB under `client/public/models/parts/`, in git as the built models
 always have been (D-556). A client still downloads only what it looks at.
+
+
+
+## D-638 -- Nothing procedural is drawn: tiles are a lattice, walls are meshes, floors are paint
+
+**Status:** implemented. Supersedes the rendering half of D-542, D-545 and
+D-567's "kept beside it rather than replacing it": the tile renderer is
+deleted.
+
+The stakeholder's ruling, in capitals: *all procedural objects should be
+removed from the game and replaced with proper assets; floors should be
+painted, not tiles; the tile option needs to be completely removed from the
+editor.* The taproom was the visible case -- its boards were tile geometry
+under an unpainted floor -- but the survey found 17,000 wall tiles, 1,500
+rock tiles, 460 tree tiles and 32 water tiles still drawn by `terrain.ts`
+across eleven areas, mostly the dungeon mazes and the spokes' borders.
+
+### The ruling, in three parts
+
+**The tile grid stays and nothing draws it.** It is the walkability
+lattice the server, the pathfinder and CI's flood have spoken since D-567,
+and the painter reads its ground kinds to decide what to paint. After this
+every tile in every map is walkable: what blocks a body or a line of sight
+is a collision volume on a placed asset, as the taproom's walls have been
+since D-618. `validate:content` and the editor's save both **refuse an
+unwalkable tile** -- it would be an obstacle nobody can see -- and warn on
+an unpainted area, which has no floor at all now.
+
+**`tiles-to-assets.py` converts a map, copying the collision.** A run of
+wall tiles becomes the pack's wall pieces tiled to its exact length
+(5/3/2/1 from D-567) with ONE volume covering the run; a farm or wood's
+border becomes a treeline, a mine or quarry's a rockfall; a rock or tree
+tile becomes a rock or tree with the tile's own unit square; water becomes
+the knights pack's water tile. ⚠ The unit squares are COUNTER-ROTATED: a
+volume is authored in the mesh's frame and turned with the placement, so a
+square on a tree turned eighteen degrees leaned a fifth of a metre into the
+four cells round it and the flood found two hundred tiles a body could
+stand on and never reach. The tile was axis-aligned; so is its volume. The
+taproom places nothing -- its authored walls already carry masks, and its
+border tiles only duplicated them. Twelve areas converted; every sim suite
+that walks them passes, because they walk the same volumes.
+
+**The editor has no tile tool.** The palette, the brush, the legend minting
+and the terrain rebuild are gone; the ground is the paint tool, an
+obstacle is a placed asset. `build-round-map.py` still lays its mazes and
+borders as tiles, so a re-run fails the build until `npm run map:convert`
+has been run again -- D-590's trap, made visible instead of silent.
+
+### Instancing, because the dungeon is two thousand meshes now
+
+A dungeon floor's maze is 1,300-2,000 wall pieces, and a cloned object per
+placement is a draw call per placement -- the frame the tile renderer never
+paid because it was instanced per kind. `WorldAssets` now draws any mesh
+placed four or more times as one `InstancedMesh` per part with a matrix per
+placement. Seats stay objects, because the hover outline and the sit verb
+hand out the object on a tile (D-605, D-622), and an instance is not an
+object.
+
+### Also here
+
+The hover outline (D-622) had been dead since the first door: `clearWorld`
+disposed it on every snapshot and it was only rebuilt while the rings were
+missing. It is rebuilt on its own condition now, and `window.__rc.hover(id)`
+probes it.
+
+⚠ **A 2.2m golem was invisible to every client.** The stakeholder renamed
+and resized the roamers in the tool today (a golem at 2.2m, a warden at
+3.3m). The wire entity carries a creature's height in the same `appearance`
+override a player uses, and the wire schema copied the PLAYER bound of 2.1m
+-- so the golem spawned, hunted, struck, and was refused by every parser
+that received it. The wire takes `CREATURE_HEIGHT` (0.3-4m, the roamer
+content's own bound) and the server still refuses a player outside
+`APPEARANCE_LIMITS` at creation. ⚠ And two suites matched roamers by their
+PROSE ("four legs", "many-legged"); they read the descriptors off content
+now, because what a roamer is called is the tool's to change.
+
+### Verified
+
+Headless: every area validates with every tile walkable and the same
+reachability; the walls-and-roofs suite asserts no authored map keeps an
+unwalkable tile, every map is painted, and every map has walls you can bump
+into (the test skipped since D-582, back); the sim and server suites pass
+over the converted maps. In the browser: the taproom's painted boards and
+authored walls, and a converted dungeon in the map builder, photographed.
+⚠ Not measured: the frame rate of a dungeon floor under instancing; the
+count of objects is `worldAssets.objects` against `drawn`.

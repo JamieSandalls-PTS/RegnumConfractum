@@ -36,6 +36,7 @@
     "map:generate": "python tools/src/build-round-map.py",
     "map:tavern": "python tools/src/build-tavern.py",
     "map:walls": "python tools/src/walls-to-assets.py",
+    "map:convert": "python tools/src/tiles-to-assets.py",
     "map:paint": "python tools/src/paint-areas.py",
     "map:dress": "python tools/src/dress-areas.py",
     "map:dress-town": "python tools/src/dress-ashfold.py",

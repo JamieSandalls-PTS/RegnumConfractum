@@ -219,6 +219,19 @@ export interface AppearanceOverride {
  * building deliberately is allowed the whole human range. They are narrow
  * enough that no build breaks the rig or the garment cutter (D-519).
  */
+/**
+ * How tall anything on the WIRE may be (D-638's finding).
+ *
+ * ⚠ Wider than a player may be. `APPEARANCE_LIMITS.height` below is what a
+ * PLAYER may choose, enforced by `validateAppearanceOverride` at creation.
+ * The wire entity carries the same override for creatures too — a roamer's
+ * `heightMetres` rides there (D-594) — and when the wire schema copied the
+ * player bound, a 2.2m golem authored in the tool was an entity every client
+ * silently refused: it spawned, it hunted, and nobody could see it. The
+ * bound here is the roamer content's own.
+ */
+export const CREATURE_HEIGHT: readonly [number, number] = [0.3, 4];
+
 export const APPEARANCE_LIMITS = {
   height: [1.5, 2.1],
   bulk: [0.16, 0.8],

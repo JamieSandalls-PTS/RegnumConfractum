@@ -64,39 +64,12 @@ const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) 
 const stage = $('stage');
 
 // ---------------------------------------------------------------------------
-// The tile palette
-//
-// Kinds the terrain renderer actually draws. Anything else falls back to
-// floor-or-wall, which is exactly the trap that left the round map grey
-// (D-542) — so the palette is the renderer's list, not a free-text field.
+// ⚠ There is no tile palette (D-638). Ground is PAINTED and everything that
+// stands on it is a placed pack mesh with a collision mask; the tile grid
+// under a map is the walkability lattice the server speaks and nothing draws
+// it. `validate:content` refuses an unwalkable tile, so the only way to put a
+// wall in a map is to place one.
 // ---------------------------------------------------------------------------
-
-interface TileKind {
-  kind: string;
-  walkable: boolean;
-  label: string;
-  swatch: string;
-}
-
-const TILE_KINDS: TileKind[] = [
-  { kind: 'floor', walkable: true, label: 'floor', swatch: '#6e6862' },
-  { kind: 'dirt', walkable: true, label: 'dirt', swatch: '#796450' },
-  { kind: 'grass', walkable: true, label: 'grass', swatch: '#5e6943' },
-  { kind: 'wood', walkable: true, label: 'boards', swatch: '#7d654b' },
-  { kind: 'wall', walkable: false, label: 'stone wall', swatch: '#958b7e' },
-  { kind: 'wall-timber', walkable: false, label: 'timber wall', swatch: '#8a6f4e' },
-  { kind: 'wall-plaster', walkable: false, label: 'plaster wall', swatch: '#c0b49e' },
-  { kind: 'wall-brick', walkable: false, label: 'brick wall', swatch: '#9a6350' },
-  { kind: 'wall-cave', walkable: false, label: 'cave wall', swatch: '#7b756c' },
-  { kind: 'wall-forest', walkable: false, label: 'treeline', swatch: '#506442' },
-  { kind: 'palisade', walkable: false, label: 'palisade', swatch: '#776146' },
-  { kind: 'rock', walkable: false, label: 'rock', swatch: '#847b70' },
-  { kind: 'tree', walkable: false, label: 'tree', swatch: '#506442' },
-  { kind: 'water', walkable: false, label: 'water', swatch: '#24303c' },
-  { kind: 'table', walkable: false, label: 'table', swatch: '#5a4633' },
-  { kind: 'chair', walkable: true, label: 'chair', swatch: '#69523a' },
-  { kind: 'hearth', walkable: false, label: 'hearth', swatch: '#756d62' },
-];
 
 /** Prop palette, grouped so a list of thirty-one is navigable. */
 
@@ -105,7 +78,7 @@ const TILE_KINDS: TileKind[] = [
 // code-built types were the tile system's scenery and they are gone, along
 // with the 1,916 of them that stood in the authored areas. A map is built from
 // pack meshes.
-type Tool = 'select' | 'tile' | 'asset' | 'station' | 'node' | 'npc' | 'spawn' | 'exit' | 'roof'
+type Tool = 'select' | 'asset' | 'station' | 'node' | 'npc' | 'spawn' | 'exit' | 'roof'
   | 'paint';
 
 // ---------------------------------------------------------------------------
@@ -115,8 +88,7 @@ type Tool = 'select' | 'tile' | 'asset' | 'station' | 'node' | 'npc' | 'spawn' |
 let area: AreaDef | null = null;
 let original = '';
 let dirty = false;
-let tool: Tool = 'tile';
-let tileKind = TILE_KINDS[0]!;
+let tool: Tool = 'asset';
 /**
  * The ground materials content offers, and which one the brush paints (D-585).
  *
@@ -152,9 +124,9 @@ let assetZ = 0;
  *
  * ⚠ Remembered rather than assumed, because the point of the key is to
  * glance at what is already placed and carry on with the SAME brush. Snapping
- * back to `tile` would lose the asset picked out of 1,402.
+ * back to a default would lose the asset picked out of 1,402.
  */
-let lastPaintTool: Tool = 'tile';
+let lastPaintTool: Tool = 'asset';
 /** The translucent preview of what the next click would place. */
 let ghost: AssetVisual | null = null;
 /** Which asset the ghost was built for, so it is rebuilt only on a change. */
@@ -232,8 +204,6 @@ const lightRig = new LightRig(scene.scene);
 let markerGroup = new THREE.Group();
 scene.scene.add(markerGroup);
 
-/** Terrain rebuilds are expensive on a 100×100 map, so strokes defer them. */
-let terrainDirty = false;
 
 const camTarget = new THREE.Vector3(0, 0, 0);
 /** Opens on the whole building rather than a few tiles of it. */
@@ -420,7 +390,6 @@ function rebuildAll(): void {
   scene.enableAllLayers();
   rebuildProps();
   rebuildMarkers();
-  terrainDirty = false;
 }
 
 function rebuildProps(): void {
@@ -516,43 +485,18 @@ window.addEventListener('beforeunload', (e) => {
   e.returnValue = '';
 });
 
-/** The legend character for a kind, adding one to the legend if needed. */
-function charFor(a: AreaDef, kind: TileKind): string {
-  for (const [ch, def] of Object.entries(a.legend)) {
-    if (def.kind === kind.kind && def.walkable === kind.walkable) return ch;
-  }
-  // A kind the area has never used: mint a character for it. Preferring the
-  // conventional ones keeps hand-authored files readable afterwards.
-  const preferred: Record<string, string> = {
-    floor: '.', dirt: ',', grass: 'g', wall: '#', water: '~', tree: 'T',
-    rock: 'r', wood: '=', table: 'B', chair: 'h', hearth: 'F',
-  };
-  const candidates = [preferred[kind.kind] ?? '', ...'abcdefijklmnopqstuvwxyzABCDEGHIJKLMNOPQRSUVWXYZ0123456789'];
-  for (const ch of candidates) {
-    if (ch && !(ch in a.legend)) {
-      a.legend[ch] = { walkable: kind.walkable, kind: kind.kind };
-      return ch;
-    }
-  }
-  throw new Error('the legend is full');
+/**
+ * The legend character a resized or trimmed map is filled with (D-638).
+ *
+ * Every tile is walkable ground now; the kind is the painter's hint and
+ * nothing else reads it, so a map with no legend at all gets plain floor.
+ */
+function groundChar(a: AreaDef): string {
+  const existing = Object.entries(a.legend).find(([, d]) => d.walkable)?.[0];
+  if (existing) return existing;
+  a.legend['.'] = { walkable: true, kind: 'floor' };
+  return '.';
 }
-
-function setTile(x: number, y: number, kind: TileKind): boolean {
-  if (!area || x < 0 || y < 0 || x >= area.width || y >= area.height) return false;
-  const ch = charFor(area, kind);
-  const row = area.tiles[y]!;
-  if (row[x] === ch) return false;
-  area.tiles[y] = row.slice(0, x) + ch + row.slice(x + 1);
-  // Anything standing here that now cannot be: scenery inside a wall reads as
-  // a bug in the renderer rather than a mistake in the map.
-  if (!kind.walkable) {
-    area.stations = area.stations.filter((s) => s.x !== x || s.y !== y);
-    area.nodes = area.nodes.filter((n) => n.x !== x || n.y !== y);
-  }
-  terrainDirty = true;
-  return true;
-}
-
 
 /**
  * Every pack's environment assets, so an area that mixes packs still draws.
@@ -591,7 +535,7 @@ function updateGhost(): void {
       ghost = new AssetVisual(
         scene.scene,
         { asset: want.id, pack: want.pack, x: 0, y: 0, z: 0, rotation: 0, scale: 1,
-          collision: [], overrideCollision: false, dressed: false, seat: want.seat ?? false },
+          collision: [], overrideCollision: false, dressed: false, fromTiles: false, seat: want.seat ?? false },
         { api: STUDIO, lookup: (pack, id) => assetIndex.get(`${pack}/${id}`) },
       );
       ghost.setGhost(true);
@@ -611,7 +555,7 @@ function updateGhost(): void {
     seat: ghostFor!.seat ?? false,
     // ⚠ A person is placing this, so it is never `dressed` — that flag marks
     // scatter a tool owns and may replace wholesale (D-592).
-    dressed: false,
+    dressed: false, fromTiles: false,
     // Snapped exactly as a real placement is, or the preview lies about
     // where the click will land by up to half a snap.
     x: snapped(hoverGround.x), y: snapped(hoverGround.y),
@@ -664,7 +608,7 @@ function placeAsset(x: number, y: number): boolean {
     // catalogue, so a placement has to carry what the simulation will ask of
     // it — and "can somebody sit here" is now one of those questions.
     seat: assetPick.seat ?? false,
-    dressed: false,
+    dressed: false, fromTiles: false,
     x,
     y,
     z: assetZ,
@@ -1206,9 +1150,7 @@ function applyAt(x: number, y: number, erase: boolean): boolean {
       const tx = x + dx;
       const ty = y + dy;
       if (tx < 0 || ty < 0 || tx >= area.width || ty >= area.height) continue;
-      if (tool === 'tile') {
-        changed = setTile(tx, ty, erase ? TILE_KINDS[0]! : tileKind) || changed;
-      } else if (tool === 'station') {
+      if (tool === 'station') {
         area.stations = area.stations.filter((s) => s.x !== tx || s.y !== ty);
         stationVisuals.get(`st:${tx}:${ty}`)?.dispose();
         stationVisuals.delete(`st:${tx}:${ty}`);
@@ -1326,8 +1268,7 @@ function applyAt(x: number, y: number, erase: boolean): boolean {
 function resizeArea(width: number, height: number, offsetX: number, offsetY: number): string {
   if (!area) return 'no area';
   snapshot();
-  const fillChar = Object.entries(area.legend).find(([, d]) => d.walkable)?.[0]
-    ?? charFor(area, TILE_KINDS[0]!);
+  const fillChar = groundChar(area);
   const rows: string[] = [];
   for (let y = 0; y < height; y++) {
     let row = '';
@@ -1561,7 +1502,7 @@ function chip(label: string, on: boolean, onClick: () => void, swatch?: string):
 function renderPanel(): void {
   const tools = $('tools');
   tools.innerHTML = '';
-  for (const t of ['select', 'asset', 'paint', 'tile', 'station', 'node', 'npc', 'spawn', 'exit', 'roof'] as Tool[]) {
+  for (const t of ['select', 'asset', 'paint', 'station', 'node', 'npc', 'spawn', 'exit', 'roof'] as Tool[]) {
     tools.appendChild(chip(t, tool === t, () => { tool = t; }));
   }
 
@@ -1579,18 +1520,6 @@ function renderPanel(): void {
 
   if (tool === 'select') {
     renderSelectTool(opts);
-  } else if (tool === 'tile') {
-    const chips = section('Ground & walls');
-    for (const k of TILE_KINDS) {
-      chips.appendChild(
-        chip(k.label, tileKind.kind === k.kind, () => { tileKind = k; }, k.swatch),
-      );
-    }
-    const note = document.createElement('div');
-    note.className = 'hint';
-    note.textContent = 'Only kinds the renderer draws are offered — anything else '
-      + 'falls back to grey floor, which is exactly how the round map ended up bare.';
-    opts.appendChild(note);
   } else if (tool === 'paint') {
     renderPaintTool(opts);
   } else if (tool === 'asset') {
@@ -1643,7 +1572,7 @@ function renderPanel(): void {
     opts.appendChild(note);
   }
 
-  if (tool === 'tile' || tool === 'roof') {
+  if (tool === 'roof') {
     const chips = section('Brush');
     for (const size of [1, 3, 5, 7]) {
       chips.appendChild(chip(`${size}×${size}`, brush === size, () => { brush = size; }));
@@ -2748,7 +2677,6 @@ window.addEventListener('pointerup', (e) => {
     runFrom = null;
     renderPanel();
   }
-  if (painting && terrainDirty) rebuildAll();
   painting = false;
   grab = null;
   drag = null;
@@ -2989,8 +2917,8 @@ declare global {
       apply: (x: number, y: number, erase?: boolean) => boolean;
       setTool: (t: Tool) => void;
       setAsset: (id: string, rot?: 0 | 90 | 180 | 270) => void;
-      setTile: (kind: string) => void;
       setBrush: (n: number) => void;
+      snapshot: () => string;
       save: () => Promise<void>;
       status: () => string;
       counts: () => {
@@ -3021,7 +2949,6 @@ window.__editor = {
   apply: (x, y, erase = false) => {
     snapshot();
     const changed = applyAt(x, y, erase);
-    if (terrainDirty) rebuildAll();
     return changed;
   },
   setTool: (t) => { tool = t; renderPanel(); },
@@ -3032,12 +2959,12 @@ window.__editor = {
     assetRot = rot;
     renderPanel();
   },
-  setTile: (kind) => {
-    const found = TILE_KINDS.find((k) => k.kind === kind);
-    if (found) tileKind = found;
-    renderPanel();
-  },
   setBrush: (n) => { brush = n; renderPanel(); },
+  /** The stage as a PNG data URL, drawn now (D-637's probe, here too). */
+  snapshot: () => {
+    scene.renderer.render(scene.scene, scene.camera);
+    return scene.renderer.domElement.toDataURL('image/png');
+  },
   save: () => save(),
   status: () => $('status').textContent ?? '',
   counts: () => ({

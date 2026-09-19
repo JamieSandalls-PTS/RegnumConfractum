@@ -192,9 +192,16 @@ export async function loadOneAsset(
   return object;
 }
 
+/** A mesh placed this many times is drawn instanced (D-638). */
+const INSTANCE_FROM = 4;
+
+/** A placement as the snapshot carries it; `seat` rides along from the area document (D-605). */
+type Placement = WireAsset & { seat?: boolean };
+
 export class WorldAssets {
   private readonly group = new THREE.Group();
   private disposed = false;
+  private drawnCount = 0;
   /**
    * What stands on each tile, keyed `x,y` (D-622).
    *
@@ -211,15 +218,77 @@ export class WorldAssets {
 
   constructor(
     private readonly scene: THREE.Scene,
-    assets: readonly WireAsset[],
+    assets: readonly Placement[],
   ) {
     scene.add(this.group);
     void this.build(assets);
   }
 
-  private async build(assets: readonly WireAsset[]): Promise<void> {
+  /**
+   * Placements are INSTANCED once a mesh repeats (D-638).
+   *
+   * ⚠ A dungeon floor is two thousand placements now that its walls are
+   * meshes rather than tiles, and two thousand cloned objects is two thousand
+   * draw calls — the frame the tile renderer never had to pay because it was
+   * instanced per kind. So any mesh placed `INSTANCE_FROM` times or more is
+   * drawn as one `InstancedMesh` per part with a matrix per placement,
+   * which is the same shape the terrain used to have, made of the pack's art.
+   *
+   * ⚠ Seats stay objects. The hover outline and the sit verb ask for the
+   * object standing on a tile (D-605, D-622), and an instance is not an
+   * object anybody can hand out.
+   */
+  private async build(assets: readonly Placement[]): Promise<void> {
+    const counts = new Map<string, number>();
+    for (const a of assets) counts.set(`${a.pack}/${a.asset}`, (counts.get(`${a.pack}/${a.asset}`) ?? 0) + 1);
+    const batches = new Map<string, Placement[]>();
     for (const a of assets) {
       const key = `${a.pack}/${a.asset}`;
+      if (a.seat || (counts.get(key) ?? 0) < INSTANCE_FROM) continue;
+      let list = batches.get(key);
+      if (!list) batches.set(key, (list = []));
+      list.push(a);
+    }
+    for (const [key, list] of batches) {
+      const source = await meshFor(key);
+      if (this.disposed) return;
+      if (!source) continue;
+      const atlas = await atlasFor(list[0]!.pack);
+      if (this.disposed) return;
+      source.updateMatrixWorld(true);
+      const placementMatrix = (a: Placement): THREE.Matrix4 =>
+        new THREE.Matrix4().compose(
+          new THREE.Vector3(a.x, a.z, a.y),
+          new THREE.Quaternion().setFromEuler(new THREE.Euler(0, (-a.rotation * Math.PI) / 180, 0)),
+          new THREE.Vector3(a.scale, a.scale, a.scale),
+        );
+      const placed = list.map(placementMatrix);
+      source.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const mat = (mesh.material as THREE.MeshStandardMaterial).clone();
+        if (atlas) mat.map = atlas;
+        mat.needsUpdate = true;
+        const inst = new THREE.InstancedMesh(mesh.geometry, mat, placed.length);
+        inst.castShadow = true;
+        inst.receiveShadow = true;
+        inst.frustumCulled = false;
+        // The part's own place inside its object, then the placement.
+        const local = mesh.matrixWorld.clone();
+        const m = new THREE.Matrix4();
+        for (let i = 0; i < placed.length; i++) {
+          m.multiplyMatrices(placed[i]!, local);
+          inst.setMatrixAt(i, m);
+        }
+        inst.instanceMatrix.needsUpdate = true;
+        this.group.add(inst);
+      });
+      this.drawnCount += list.length;
+    }
+
+    for (const a of assets) {
+      const key = `${a.pack}/${a.asset}`;
+      if (!a.seat && (counts.get(key) ?? 0) >= INSTANCE_FROM) continue; // drawn above
       const source = await meshFor(key);
       if (this.disposed) return;
       if (!source) {
@@ -260,6 +329,7 @@ export class WorldAssets {
         mesh.material = mat;
       });
       this.group.add(object);
+      this.drawnCount += 1;
       this.byTile.set(`${Math.round(a.x)},${Math.round(a.y)}`, object);
     }
   }
@@ -269,8 +339,13 @@ export class WorldAssets {
     return this.byTile.get(`${Math.round(x)},${Math.round(y)}`) ?? null;
   }
 
-  /** How many are actually in the scene — a verification hook, not a feature. */
+  /** How many placements are drawn — instanced or not. A verification hook. */
   get drawn(): number {
+    return this.drawnCount;
+  }
+
+  /** How many objects the scene holds for them: the draw calls, roughly. */
+  get objects(): number {
     return this.group.children.length;
   }
 

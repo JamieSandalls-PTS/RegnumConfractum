@@ -112,7 +112,17 @@ config (8151) and open the tool with `?api=8151` so the probe never touches
 the stakeholder's. 192 garments generated; the torso→arm pairings are a
 first pass to be corrected by eye in the garment editor.
 
+**D-638 — no tiles are drawn.** `terrain.ts` is deleted; the editor's tile
+tool is gone; `tiles-to-assets.py` converted every area (`npm run
+map:convert`); `WorldAssets` instances repeated meshes. The taproom is
+painted now (it was the one unpainted area). ⚠ `build-round-map.py` still
+writes tiles: generate → paint → dress → prune → **convert**, or the build
+refuses the map by name.
+
 ## The things most likely to be undone by accident
+
+**000. Unwalkable tiles are refused by the build (D-638).** Do not "fix" a
+map that fails that check by relaxing the rule; convert it.
 
 **00. `geometry.deleteAttribute('color')` in `assembly.ts` is load-bearing.**
 Remove it and the next `build:characters` writes COLOR_0 into every part

@@ -7,31 +7,27 @@
     "f": {
       "walkable": true,
       "kind": "wood"
-    },
-    "x": {
-      "walkable": false,
-      "kind": "wood"
     }
   },
   "tiles": [
-    "xxxxxxxxxxxxxxxxxxxxxxxx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "fffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xffffffffffffffffffffffx",
-    "xxxxxxxxxxxxfxxxxxxxxxxx"
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffffffffff"
   ],
   "spawn": {
     "x": 12,
@@ -3640,5 +3636,12 @@
   "scripts": [
     "ferryman-keeper"
   ],
-  "live": true
+  "live": true,
+  "groundPaint": [
+    "hanged-ferryman-0.png"
+  ],
+  "groundMaterials": [
+    "boards",
+    "flag"
+  ]
 }

@@ -24,6 +24,7 @@ import { NeedStageSchema } from './needs';
 import {
   ACCENT_COLORS,
   APPEARANCE_LIMITS,
+  CREATURE_HEIGHT,
   ARCHETYPE_NAMES,
   CLOTH_COLORS,
   HAIR_COLORS,
@@ -64,7 +65,9 @@ const swatch = (palette: readonly number[]) =>
 export const AppearanceOverrideSchema = z.object({
   archetype: z.enum(ARCHETYPE_NAMES as [string, ...string[]]).optional(),
   sex: z.enum(['male', 'female']).optional(),
-  height: range(APPEARANCE_LIMITS.height).optional(),
+  // ⚠ The CREATURE bound, not the player's: the server refuses a player
+  // outside APPEARANCE_LIMITS at creation, and a golem is 2.2m.
+  height: range(CREATURE_HEIGHT).optional(),
   bulk: range(APPEARANCE_LIMITS.bulk).optional(),
   shoulder: range(APPEARANCE_LIMITS.shoulder).optional(),
   limb: range(APPEARANCE_LIMITS.limb).optional(),

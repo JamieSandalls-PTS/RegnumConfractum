@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  AreaSchema,
+  tileProblems,  AreaSchema,
   WALL_KINDS,
   isTileOpaque,
   isWallKind,
@@ -44,29 +44,30 @@ describe('the wall family', () => {
     expect(isTileOpaque({ kind: 'grass', opaque: true })).toBe(true);
   });
 
-  it('⚠ no longer describes any authored map, and that is the point', () => {
-    // The wall FAMILY is still the rule for terrain opacity and a future area
-    // may use it, so `isTileOpaque` above still has to be right. But no
-    // authored map is made of wall tiles any more: they are pack meshes with
-    // collision masks (D-567), and a test demanding that content still use
-    // two wall kinds would demand the thing that was just removed.
+  it('⚠ describes no authored map at all: every tile is walkable ground (D-638)', () => {
+    // The wall FAMILY is still the rule for a tile's opacity, so
+    // `isTileOpaque` above still has to be right — but nothing draws a tile
+    // any more. A wall is a placed mesh with a collision mask, the ground is
+    // painted, and an unwalkable tile would be an obstacle nobody can see.
+    // `validate:content` refuses one; this is the same rule from the tests.
     for (const area of areas()) {
+      expect(tileProblems(area), area.id).toEqual([]);
       for (const def of Object.values(area.legend)) {
-        if (!isWallKind(def.kind)) continue;
-        expect(def.walkable, `${area.id}: ${def.kind} must not be walkable`).toBe(false);
+        expect(def.walkable, `${area.id}: '${def.kind}' is an unwalkable tile`).toBe(true);
       }
     }
   });
 
-  // ⚠ SKIPPED DELIBERATELY, and it must come back (D-582). Every map's
-  // scenery was machine-placed by `walls-to-assets.py` and has been cleared so
-  // the maps can be designed by hand; until they are, "every map has walls you
-  // can bump into" is false BY INSTRUCTION rather than by accident. Deleting
-  // it would lose the rule; leaving it red would train people to ignore a red
-  // suite, which is the one thing D-114 cannot afford.
-  //
-  // Un-skip it as each area is designed.
-  it.skip('gives every map walls you can bump into — restore as maps are designed', () => {
+  it('paints every map, because an unpainted map has no floor (D-638)', () => {
+    for (const area of areas()) {
+      expect(area.groundPaint?.length ?? 0, `${area.id} is unpainted`).toBeGreaterThan(0);
+    }
+  });
+
+  // Skipped from D-582 to D-638: the maps' scenery had been cleared to be
+  // designed by hand. Every wall tile became a placed mesh in D-638, so the
+  // rule holds again and the test is back.
+  it('gives every map walls you can bump into', () => {
     for (const area of areas()) {
       const solid = area.assets.filter((a) =>
         a.collision.some((v) => !v.walkable && v.top > 1.5),

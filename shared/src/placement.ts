@@ -104,6 +104,17 @@ export const PlacedAssetSchema = z.object({
    * next dressing run would double the map.
    */
   dressed: z.boolean().default(false),
+  /**
+   * This placement was made from a TILE by `tiles-to-assets.py` (D-638): a
+   * wall run, a rock, a tree or a pool the map used to draw procedurally,
+   * now a pack mesh carrying the tile's exact collision.
+   *
+   * ⚠ In the schema for the reason `dressed` is: the converter replaces its
+   * own work on a re-run and leaves a person's placements alone, and a flag
+   * zod stripped would turn every converted wall into a hand placement and
+   * double the map next time.
+   */
+  fromTiles: z.boolean().default(false),
 });
 export type PlacedAsset = z.infer<typeof PlacedAssetSchema>;
 

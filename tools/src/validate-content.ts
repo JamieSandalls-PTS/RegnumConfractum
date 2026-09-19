@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
+  tileProblems,
+  unpaintedProblem,
   AreaSchema,
   ClassSchema,
   FeatsFileSchema,
@@ -206,6 +208,9 @@ export function validateContent(contentDir: string): ValidationResult {
     }
     areaIds.add(parsed.data.id);
     parsedAreas.set(parsed.data.id, parsed.data);
+    for (const problem of tileProblems(parsed.data)) errors.push(`${file}: ${problem}`);
+    const unpainted = unpaintedProblem(parsed.data);
+    if (unpainted) warnings.push(`${file}: ${unpainted}`);
     const missing = unreachableTiles(parsed.data);
     if (missing.length > 0) {
       const sample = missing.slice(0, 5).map((p) => `(${p.x},${p.y})`).join(' ');
