@@ -1,7 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { AreaSchema, GROUND_MASKS, GroundMaterialSchema, type AreaDef } from '@rc/shared';
+import { AreaSchema, GROUND_MASKS, GroundMaterialSchema, markerProblems, type AreaDef } from '@rc/shared';
 import { validateContent } from './validate-content';
 import { checkAreaForSave, knownVfxIds } from './editor-check';
 
@@ -335,6 +335,98 @@ export function editorRoutes(
       npcs: ids('npcs'),
       cues,
       scripts,
+    });
+    return true;
+  }
+
+  /* ------------------------------------------------ way-markers (D-641) */
+
+  /** Every marker in every area, for the Links panel. */
+  if (req.method === 'GET' && url.pathname === '/api/markers') {
+    const out: { area: string; name: string; markers: AreaDef['markers'] }[] = [];
+    for (const a of otherAreas(areasDir, '')) out.push({ area: a.id, name: a.name, markers: a.markers });
+    out.sort((x, y) => x.area.localeCompare(y.area));
+    send(res, 200, { areas: out });
+    return true;
+  }
+
+  /**
+   * Link two markers, or unlink one. Written on BOTH files, through the same
+   * check the save button uses, so a link is never half made: if either
+   * side would not build, neither is written.
+   *
+   * POST   /api/link   { a: {area, marker}, b: {area, marker} }
+   * DELETE /api/link   { area, marker }
+   */
+  if ((req.method === 'POST' || req.method === 'DELETE') && url.pathname === '/api/link') {
+    let body = '';
+    req.on('data', (c: Buffer) => (body += c.toString()));
+    req.on('end', () => {
+      let doc: { a?: { area: string; marker: string }; b?: { area: string; marker: string }; area?: string; marker?: string };
+      try {
+        doc = JSON.parse(body || '{}');
+      } catch (err) {
+        return send(res, 400, { ok: false, errors: [`invalid JSON: ${String(err)}`] });
+      }
+      const all = new Map(otherAreas(areasDir, '').map((a) => [a.id, a]));
+      const lookup = (id: string): AreaDef | null => all.get(id) ?? null;
+      const touched = new Set<string>();
+      const errors: string[] = [];
+      const find = (ref: { area: string; marker: string } | undefined, label: string) => {
+        const area = ref ? all.get(ref.area) : undefined;
+        const marker = area?.markers.find((m) => m.id === ref!.marker);
+        if (!area || !marker) errors.push(`${label}: no marker '${ref?.marker}' in '${ref?.area}'`);
+        return area && marker ? { area, marker } : null;
+      };
+      if (req.method === 'POST') {
+        const a = find(doc.a, 'a');
+        const b = find(doc.b, 'b');
+        if (a && b) {
+          if (a.marker === b.marker) errors.push('a marker cannot link to itself');
+          // Anything either end was linked to before is let go, both ways.
+          for (const end of [a, b]) {
+            const old = end.marker.to ? find(end.marker.to, 'old link') : null;
+            if (old && old.marker !== a.marker && old.marker !== b.marker) {
+              delete old.marker.to;
+              touched.add(old.area.id);
+            }
+          }
+          a.marker.to = { area: b.area.id, marker: b.marker.id };
+          b.marker.to = { area: a.area.id, marker: a.marker.id };
+          touched.add(a.area.id);
+          touched.add(b.area.id);
+        }
+      } else {
+        const a = doc.area && doc.marker ? find({ area: doc.area, marker: doc.marker }, 'marker') : null;
+        if (a) {
+          const partner = a.marker.to ? find(a.marker.to, 'partner') : null;
+          if (partner) {
+            delete partner.marker.to;
+            touched.add(partner.area.id);
+          }
+          delete a.marker.to;
+          touched.add(a.area.id);
+        }
+      }
+      if (errors.length) return send(res, 400, { ok: false, errors });
+      for (const id of touched) {
+        for (const problem of markerProblems(all.get(id)!, lookup)) errors.push(`${id}: ${problem}`);
+      }
+      if (errors.length) return send(res, 400, { ok: false, errors });
+      for (const id of touched) {
+        const file = path.join(areasDir, `${id}.json`);
+        // ⚠ The parsed document is not the file: defaults would be baked in.
+        // Only the markers are rewritten, into the raw document as it stands.
+        const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as { markers?: unknown };
+        raw.markers = all.get(id)!.markers;
+        backup(contentDir, id, file);
+        fs.writeFileSync(file, `${JSON.stringify(raw, null, 2)}\n`, 'utf8');
+      }
+      onChanged?.('areas');
+      return send(res, 200, {
+        ok: true,
+        areas: [...touched].map((id) => ({ area: id, markers: all.get(id)!.markers })),
+      });
     });
     return true;
   }

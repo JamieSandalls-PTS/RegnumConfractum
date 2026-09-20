@@ -208,22 +208,7 @@
       "type": "game-trail"
     }
   ],
-  "transitions": [
-    {
-      "x": 99,
-      "y": 50,
-      "toArea": "round-town",
-      "toX": 1,
-      "toY": 25
-    },
-    {
-      "x": 99,
-      "y": 49,
-      "toArea": "round-town",
-      "toX": 1,
-      "toY": 24
-    }
-  ],
+  "transitions": [],
   "ambience": "ambience-forest",
   "assets": [
     {
@@ -19770,5 +19755,27 @@
     "dirt",
     "mud",
     "gravel"
+  ],
+  "markers": [
+    {
+      "id": "to-ashfold",
+      "name": "To Ashfold",
+      "x": 99,
+      "y": 50,
+      "to": {
+        "area": "round-town",
+        "marker": "to-thornhallow"
+      }
+    },
+    {
+      "id": "to-ashfold-2",
+      "name": "To Ashfold",
+      "x": 99,
+      "y": 49,
+      "to": {
+        "area": "round-town",
+        "marker": "to-thornhallow-2"
+      }
+    }
   ]
 }

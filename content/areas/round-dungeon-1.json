@@ -127,36 +127,7 @@
   "zone": "wilderness",
   "outdoor": false,
   "dungeonFloor": 1,
-  "transitions": [
-    {
-      "x": 50,
-      "y": 0,
-      "toArea": "round-south",
-      "toX": 50,
-      "toY": 98
-    },
-    {
-      "x": 49,
-      "y": 0,
-      "toArea": "round-south",
-      "toX": 49,
-      "toY": 98
-    },
-    {
-      "x": 50,
-      "y": 99,
-      "toArea": "round-dungeon-2",
-      "toX": 50,
-      "toY": 1
-    },
-    {
-      "x": 49,
-      "y": 99,
-      "toArea": "round-dungeon-2",
-      "toX": 49,
-      "toY": 1
-    }
-  ],
+  "transitions": [],
   "ambience": "ambience-cave",
   "assets": [
     {
@@ -27968,5 +27939,47 @@
     "sand",
     "dirt",
     "leafmould"
+  ],
+  "markers": [
+    {
+      "id": "to-the-sunken-approach",
+      "name": "To The Sunken Approach",
+      "x": 50,
+      "y": 0,
+      "to": {
+        "area": "round-south",
+        "marker": "to-the-flooded-steps"
+      }
+    },
+    {
+      "id": "to-the-sunken-approach-2",
+      "name": "To The Sunken Approach",
+      "x": 49,
+      "y": 0,
+      "to": {
+        "area": "round-south",
+        "marker": "to-the-flooded-steps-2"
+      }
+    },
+    {
+      "id": "to-the-drowned-gallery",
+      "name": "To The Drowned Gallery",
+      "x": 50,
+      "y": 99,
+      "to": {
+        "area": "round-dungeon-2",
+        "marker": "to-the-flooded-steps"
+      }
+    },
+    {
+      "id": "to-the-drowned-gallery-2",
+      "name": "To The Drowned Gallery",
+      "x": 49,
+      "y": 99,
+      "to": {
+        "area": "round-dungeon-2",
+        "marker": "to-the-flooded-steps-2"
+      }
+    }
   ]
 }

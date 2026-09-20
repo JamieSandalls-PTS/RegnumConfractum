@@ -127,22 +127,7 @@
   "zone": "wilderness",
   "outdoor": false,
   "dungeonFloor": 3,
-  "transitions": [
-    {
-      "x": 50,
-      "y": 0,
-      "toArea": "round-dungeon-2",
-      "toX": 50,
-      "toY": 98
-    },
-    {
-      "x": 49,
-      "y": 0,
-      "toArea": "round-dungeon-2",
-      "toX": 49,
-      "toY": 98
-    }
-  ],
+  "transitions": [],
   "ambience": "ambience-cave",
   "assets": [
     {
@@ -37884,5 +37869,27 @@
     "dirt",
     "sand",
     "leafmould"
+  ],
+  "markers": [
+    {
+      "id": "to-the-drowned-gallery",
+      "name": "To The Drowned Gallery",
+      "x": 50,
+      "y": 0,
+      "to": {
+        "area": "round-dungeon-2",
+        "marker": "to-the-undercroft"
+      }
+    },
+    {
+      "id": "to-the-drowned-gallery-2",
+      "name": "To The Drowned Gallery",
+      "x": 49,
+      "y": 0,
+      "to": {
+        "area": "round-dungeon-2",
+        "marker": "to-the-undercroft-2"
+      }
+    }
   ]
 }

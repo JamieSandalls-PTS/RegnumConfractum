@@ -456,6 +456,12 @@
      near the top and overlapped by 77x25px. The right-hand column now reads
      compass-and-clock at the edge, the settings button to their left, and
      everything that OPENS below both of them. */
+  .identity-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  .identity-row input[type=text] { flex: 1; min-width: 0; }
+  .identity-row input[type=text][readonly] { opacity: .7; }
+  .identity-spacer { width: 13px; flex: none; }
+  .identity-label { width: 150px; flex: none; display: flex; flex-direction: column; }
+  .identity-label .blurb { font-size: 11px; opacity: .6; }
   #btn-settings {
     position: absolute; top: 10px; right: 152px; z-index: 5;
     background: rgba(22,21,26,.85); color: var(--text); border: 1px solid var(--line);
@@ -648,8 +654,6 @@
       </div>
     </div>
     <div id="chat-bar">
-      <input id="in-declare" placeholder="declare as…" spellcheck="false" autocomplete="off"
-             title="Speak under a name — yours, or any other. Listeners may see through it.">
       <input id="in-chat" placeholder="say something… (*emotes* animate; /w whisper, /y shout)"
              spellcheck="false" autocomplete="off" maxlength="400">
     </div>
@@ -694,6 +698,7 @@
       <button class="ctab active" data-tab="gear">Gear</button>
       <button class="ctab" data-tab="sheet">Sheet</button>
       <button class="ctab" data-tab="book">Abilities</button>
+      <button class="ctab" data-tab="identity">Identity</button>
     </div>
     <div id="tab-gear">
       <div id="paperdoll"></div>
@@ -708,6 +713,11 @@
       <div id="book-actions"></div>
       <h3>Rites &amp; spells</h3>
       <div id="book-rites"></div>
+    </div>
+    <!-- Identity (D-645): what others hear you called when you speak. -->
+    <div id="tab-identity" class="hidden">
+      <div class="book-hint">What others hear you called when you speak. A sharp listener may notice a name that is not yours.</div>
+      <div id="identity-form"></div>
     </div>
     <div id="tab-sheet" class="hidden">
       <div id="sheet-attrs"></div>
@@ -819,6 +829,21 @@
     <div class="note">
       Every sound is levelled against the same target on load, so these are
       balance between layers rather than repairs to individual files.
+    </div>
+
+    <!-- The developer menu (D-647): shown only when the server says it is on. -->
+    <div id="dev-menu" class="hidden">
+      <h2 style="margin-top:16px">Developer</h2>
+      <label>spawn</label>
+      <select id="dev-spawn-id" style="width:100%"></select>
+      <button id="dev-spawn-arm" class="small" style="margin-top:6px">Spawn at next click</button>
+      <label style="margin-top:10px">give</label>
+      <select id="dev-item" style="width:100%"></select>
+      <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
+        <input id="dev-qty" type="number" min="1" max="100" value="1" style="width:5em">
+        <button id="dev-give" class="small">Give to me</button>
+      </div>
+      <div class="note" id="dev-note">Spawned creatures hunt; people and models stand. Everything here is logged.</div>
     </div>
   </div>
 

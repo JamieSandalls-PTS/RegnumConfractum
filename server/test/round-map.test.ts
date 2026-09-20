@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { isTileWalkable, type AreaDef } from '@rc/shared';
+import { allTransitions, isTileWalkable, type AreaDef } from '@rc/shared';
 import { loadContent } from '@rc/server/content';
 
 /**
@@ -21,6 +21,8 @@ const area = (id: string): AreaDef => {
   if (!a) throw new Error(`missing area ${id}`);
   return a;
 };
+/** The doors out of an area, as the server derives them from its linked markers (D-641). */
+const doors = (id: string) => allTransitions(area(id), (o) => content.areas.get(o) ?? null);
 
 const TOWN = 'round-town';
 const SPOKES = ['round-farm', 'round-mine', 'round-wood', 'round-south'] as const;
@@ -57,21 +59,21 @@ describe('the cross (D-529)', () => {
     // must not be counted as one. Comparing the whole exit set made the tavern
     // door look like a fifth road out of town.
     const out = new Set(
-      town.transitions.map((t) => t.toArea).filter((id) => (SPOKES as readonly string[]).includes(id)),
+      doors(TOWN).map((t) => t.toArea).filter((id) => (SPOKES as readonly string[]).includes(id)),
     );
     expect([...out].sort()).toEqual([...SPOKES].sort());
     // And the tavern is reachable, which is the point of putting it there.
-    expect(town.transitions.some((t) => t.toArea === 'hanged-ferryman')).toBe(true);
+    expect(doors(TOWN).some((t) => t.toArea === 'hanged-ferryman')).toBe(true);
     for (const id of SPOKES) {
-      expect(area(id).transitions.some((t) => t.toArea === TOWN)).toBe(true);
+      expect(doors(id).some((t) => t.toArea === TOWN)).toBe(true);
     }
     // Only the south approach descends, and the dungeon only comes back up.
-    expect(area('round-south').transitions.some((t) => t.toArea === DUNGEON)).toBe(true);
+    expect(doors('round-south').some((t) => t.toArea === DUNGEON)).toBe(true);
     for (const id of ['round-farm', 'round-mine', 'round-wood'] as const) {
-      expect(area(id).transitions.some((t) => t.toArea === DUNGEON)).toBe(false);
+      expect(doors(id).some((t) => t.toArea === DUNGEON)).toBe(false);
     }
     // Floor one goes back up to the approach and down to floor two.
-    expect(new Set(area(DUNGEON).transitions.map((t) => t.toArea))).toEqual(
+    expect(new Set(doors(DUNGEON).map((t) => t.toArea))).toEqual(
       new Set(['round-south', 'round-dungeon-2']),
     );
   });
@@ -152,7 +154,7 @@ describe('pacing: a spoke is 20-40 seconds out (D-530, re-measured by D-549)', (
     // the spawn because D-549 put the tavern in the middle of the square,
     // and counting it as a gate made the spread 20 tiles and this test a
     // complaint about the town having an inn in it.
-    const legs = town.transitions
+    const legs = doors(TOWN)
       .filter((t) => t.toArea.startsWith('round-'))
       .map((t) => fromSpawn.get(`${t.x},${t.y}`) ?? Infinity);
     expect(Math.min(...legs)).toBeGreaterThan(0);
@@ -163,7 +165,7 @@ describe('pacing: a spoke is 20-40 seconds out (D-530, re-measured by D-549)', (
   });
 
   it('lands a mid-depth errand near 30s and a deep one near 45s', () => {
-    const gate = town.transitions.find((t) => t.toArea === 'round-farm')!;
+    const gate = doors(TOWN).find((t) => t.toArea === 'round-farm')!;
     const townLeg = fromSpawn.get(`${gate.x},${gate.y}`)!;
     const farm = area('round-farm');
     const inFarm = [...distancesFrom(farm, { x: gate.toX, y: gate.toY }).values()];

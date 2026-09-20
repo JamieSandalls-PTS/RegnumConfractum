@@ -252,6 +252,11 @@ export class ImportedVisual {
   /** ⚠ Which request owns the hand. Two quick equips would otherwise
    * leave the slower weapon parented on top of the faster one. */
   private heldToken = 0;
+  /** The off-hand's thing (D-646): what is wanted, what is shown, its holder. */
+  private offhandWanted: string | undefined;
+  private offhandShown: string | null = null;
+  private offhand: THREE.Object3D | null = null;
+  private offhandToken = 0;
   /** The effect burning on the weapon (D-639), and the one drawn. */
   private heldVfxWanted: string | undefined;
   private heldGlow: VfxHandle | null = null;
@@ -458,6 +463,11 @@ export class ImportedVisual {
       this.heldVfxWanted = next.weaponVfx;
       this.refreshHeldGlow();
     }
+    // The other hand (D-646), on the same terms as the weapon.
+    if ('offhandArt' in next && next.offhandArt !== this.offhandWanted) {
+      this.offhandWanted = next.offhandArt;
+      void this.refreshOffhand();
+    }
     // ⚠ The stance is handled BEFORE the early return below. Drawing a
     // different weapon need not change a single mesh — a bow and a sword are
     // both `art`, not garments — so a character who swapped one for the other
@@ -602,6 +612,8 @@ export class ImportedVisual {
     // to lose.
     this.heldShown = null;
     void this.refreshHeld();
+    this.offhandShown = null;
+    void this.refreshOffhand();
 
     this.mixer = new THREE.AnimationMixer(model);
     this.clips.clear();
@@ -711,6 +723,7 @@ export class ImportedVisual {
    */
   private applyWeaponVisibility(): void {
     if (this.held) this.held.visible = this.weaponOut;
+    if (this.offhand) this.offhand.visible = this.weaponOut;
   }
 
   /**
@@ -865,12 +878,30 @@ export class ImportedVisual {
     const bone = this.model.getObjectByName(grip.attach) ?? this.hand;
     if (!bone) return;
 
+    const holder = this.holderFor(bone, grip.transform, object);
+    // ⚠ Hidden unless the weapon is OUT (D-620). A character who equips a
+    // sword out of combat -- which is every character, every round, at the
+    // moment their kit lands -- must not be standing in the tavern holding it.
+    holder.visible = this.weaponOut;
+    bone.add(holder);
+    this.held = holder;
+    this.refreshHeldGlow();
+  }
+
+  /**
+   * A fitted item's holder under its bone, from the grip the tool measured
+   * (D-563, D-614). Shared by both hands (D-646).
+   */
+  private holderFor(
+    bone: THREE.Object3D,
+    t: { position: readonly number[]; rotation: readonly number[]; scale: number },
+    object: THREE.Object3D,
+  ): THREE.Group {
     const holder = new THREE.Group();
-    const t = grip.transform;
     holder.rotation.set(
-      THREE.MathUtils.degToRad(t.rotation[0]),
-      THREE.MathUtils.degToRad(t.rotation[1]),
-      THREE.MathUtils.degToRad(t.rotation[2]),
+      THREE.MathUtils.degToRad(t.rotation[0]!),
+      THREE.MathUtils.degToRad(t.rotation[1]!),
+      THREE.MathUtils.degToRad(t.rotation[2]!),
     );
     // ⚠ MEASURE the bone's world scale, never assume it (D-563). The body
     // is scaled because the art is centimetres, but a bind matrix can carry
@@ -878,7 +909,7 @@ export class ImportedVisual {
     // and getting it wrong by a little makes a sword a dot in a fist. Dividing
     // by what the bone actually is makes the stored offsets mean metres,
     // whatever the rig does.
-    this.model.updateMatrixWorld(true);
+    this.model?.updateMatrixWorld(true);
     const boneScale = new THREE.Vector3();
     bone.getWorldScale(boneScale);
     const inherited = Math.max(1e-6, boneScale.x);
@@ -890,18 +921,44 @@ export class ImportedVisual {
     // divided both since D-563; the offsets were MEASURED through that
     // division, so anything reading them has to undo it the same way.
     holder.position.set(
-      t.position[0] / inherited,
-      t.position[1] / inherited,
-      t.position[2] / inherited,
+      t.position[0]! / inherited,
+      t.position[1]! / inherited,
+      t.position[2]! / inherited,
     );
     holder.add(object);
-    // ⚠ Hidden unless the weapon is OUT (D-620). A character who equips a
-    // sword out of combat -- which is every character, every round, at the
-    // moment their kit lands -- must not be standing in the tavern holding it.
+    return holder;
+  }
+
+  /**
+   * The other hand (D-646): a shield, a torch. Mounted exactly as the weapon
+   * is — the grip the tool measured names the bone (a shield fits the left
+   * forearm, D-564) — and shown only while the weapon is out, so a shield is
+   * raised with the sword and put away with it.
+   */
+  private async refreshOffhand(): Promise<void> {
+    const want = this.offhandWanted ?? null;
+    if (want === this.offhandShown) return;
+    const mine = ++this.offhandToken;
+    if (this.offhand) {
+      this.offhand.parent?.remove(this.offhand);
+      this.offhand = null;
+    }
+    this.offhandShown = want;
+    if (!want || !this.model) return;
+    const grip = gripFor(want);
+    if (!grip) return;
+    const [pack, asset] = want.split('/');
+    if (!pack || !asset) return;
+    const object = await loadOneAsset(pack, asset);
+    if (!object || mine !== this.offhandToken || !this.model) return;
+    const bone = this.model.getObjectByName(grip.attach)
+      ?? this.model.getObjectByName('hand_l')
+      ?? this.model.getObjectByName('Hand_L');
+    if (!bone) return;
+    const holder = this.holderFor(bone, grip.transform, object);
     holder.visible = this.weaponOut;
     bone.add(holder);
-    this.held = holder;
-    this.refreshHeldGlow();
+    this.offhand = holder;
   }
 
   private stopHeldGlow(): void {

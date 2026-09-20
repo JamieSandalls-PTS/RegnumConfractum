@@ -74,105 +74,21 @@
     "y": 25
   },
   "lighting": "overcast",
-  "zone": "settled",
   "outdoor": true,
-  "stations": [
-    {
-      "x": 10,
-      "y": 8,
-      "type": "workshop"
-    },
-    {
-      "x": 40,
-      "y": 8,
-      "type": "storehouse"
-    },
-    {
-      "x": 10,
-      "y": 43,
-      "type": "infirmary"
-    },
-    {
-      "x": 24,
-      "y": 34,
-      "type": "well"
-    }
+  "groundPaint": [
+    "round-town-0.png",
+    "round-town-1.png"
   ],
-  "npcs": [
-    {
-      "x": 25,
-      "y": 19,
-      "type": "ashfold-keeper",
-      "facing": "s"
-    }
+  "groundMaterials": [
+    "grass",
+    "dirt",
+    "cobble",
+    "boards",
+    "mud",
+    "leafmould"
   ],
-  "roofs": [],
-  "transitions": [
-    {
-      "x": 25,
-      "y": 0,
-      "toArea": "round-farm",
-      "toX": 50,
-      "toY": 98
-    },
-    {
-      "x": 24,
-      "y": 0,
-      "toArea": "round-farm",
-      "toX": 49,
-      "toY": 98
-    },
-    {
-      "x": 49,
-      "y": 25,
-      "toArea": "round-mine",
-      "toX": 1,
-      "toY": 50
-    },
-    {
-      "x": 49,
-      "y": 24,
-      "toArea": "round-mine",
-      "toX": 1,
-      "toY": 49
-    },
-    {
-      "x": 0,
-      "y": 25,
-      "toArea": "round-wood",
-      "toX": 98,
-      "toY": 50
-    },
-    {
-      "x": 0,
-      "y": 24,
-      "toArea": "round-wood",
-      "toX": 98,
-      "toY": 49
-    },
-    {
-      "x": 25,
-      "y": 49,
-      "toArea": "round-south",
-      "toX": 50,
-      "toY": 1
-    },
-    {
-      "x": 24,
-      "y": 49,
-      "toArea": "round-south",
-      "toX": 49,
-      "toY": 1
-    },
-    {
-      "x": 26,
-      "y": 19,
-      "toArea": "hanged-ferryman",
-      "toX": 12,
-      "toY": 15
-    }
-  ],
-  "ambience": "ambience-town",
+  "live": true,
+  "nodes": [],
   "assets": [
     {
       "asset": "sm-env-tile-water-01",
@@ -193,12 +109,14 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3.0,
+          "top": 3,
           "walkable": false,
           "opaque": false
         }
       ],
+      "seat": false,
       "overrideCollision": true,
+      "dressed": false,
       "fromTiles": true
     },
     {
@@ -220,12 +138,14 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3.0,
+          "top": 3,
           "walkable": false,
           "opaque": false
         }
       ],
+      "seat": false,
       "overrideCollision": true,
+      "dressed": false,
       "fromTiles": true
     },
     {
@@ -247,12 +167,14 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3.0,
+          "top": 3,
           "walkable": false,
           "opaque": false
         }
       ],
+      "seat": false,
       "overrideCollision": true,
+      "dressed": false,
       "fromTiles": true
     },
     {
@@ -274,12 +196,14 @@
             "rotation": 0
           },
           "base": 0,
-          "top": 3.0,
+          "top": 3,
           "walkable": false,
           "opaque": false
         }
       ],
+      "seat": false,
       "overrideCollision": true,
+      "dressed": false,
       "fromTiles": true
     },
     {
@@ -306,7 +230,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -332,7 +259,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -358,7 +288,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -384,7 +317,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -410,7 +346,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -436,7 +375,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -462,7 +404,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -488,7 +433,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -514,7 +462,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -540,7 +491,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -566,7 +520,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -592,7 +549,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -618,7 +578,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -644,7 +607,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -670,7 +636,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -696,7 +665,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -722,7 +694,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -748,7 +723,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -774,7 +752,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -800,7 +781,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -826,7 +810,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -852,7 +839,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -878,7 +868,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -904,7 +897,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -930,7 +926,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -956,7 +955,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -982,7 +984,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1008,7 +1013,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1034,7 +1042,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1060,7 +1071,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1086,7 +1100,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1112,7 +1129,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1138,7 +1158,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1164,7 +1187,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1190,7 +1216,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1216,7 +1245,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1242,7 +1274,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1268,7 +1303,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1294,7 +1332,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-01",
@@ -1320,7 +1361,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-gate-01",
@@ -1360,7 +1404,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-gate-01",
@@ -1400,7 +1447,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-gate-01",
@@ -1440,7 +1490,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-wall-gate-01",
@@ -1480,7 +1533,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-tower-01",
@@ -1506,7 +1562,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-tower-01",
@@ -1532,7 +1591,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-tower-01",
@@ -1558,7 +1620,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-castle-tower-01",
@@ -1584,7 +1649,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1595,7 +1663,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1606,7 +1677,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1617,7 +1691,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1628,7 +1705,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1639,7 +1719,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1650,7 +1733,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1661,7 +1747,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1672,7 +1761,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1683,7 +1775,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1694,7 +1789,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1705,7 +1803,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1716,7 +1817,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1727,7 +1831,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1738,7 +1845,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1749,7 +1859,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1760,7 +1873,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1771,7 +1887,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1782,7 +1901,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1793,7 +1915,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1804,7 +1929,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1815,7 +1943,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1826,7 +1957,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1837,7 +1971,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-01",
@@ -1848,7 +1985,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1859,7 +1999,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1870,7 +2013,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1881,7 +2027,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1892,7 +2041,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1903,7 +2055,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1914,7 +2069,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1925,7 +2083,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1936,7 +2097,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1947,7 +2111,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1958,7 +2125,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1969,7 +2139,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1980,7 +2153,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -1991,7 +2167,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2002,7 +2181,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2013,7 +2195,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2024,7 +2209,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2035,7 +2223,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2046,7 +2237,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2057,7 +2251,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2068,7 +2265,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-path-cobble-02",
@@ -2079,7 +2279,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-house-room-03",
@@ -2105,7 +2308,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-house-roomtall-02",
@@ -2131,7 +2337,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-house-chimney-01",
@@ -2157,7 +2366,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-shopsign-01",
@@ -2183,7 +2395,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-lampost-01",
@@ -2209,7 +2424,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-lampost-01",
@@ -2235,7 +2453,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-house-room-01",
@@ -2261,7 +2482,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-anvil-stump-01",
@@ -2287,7 +2511,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-house-room-05",
@@ -2313,7 +2540,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-cart-01",
@@ -2339,7 +2569,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-house-room-02",
@@ -2365,7 +2598,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-house-room-06",
@@ -2391,7 +2627,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-banner-01",
@@ -2417,7 +2656,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-brazier-01",
@@ -2443,7 +2685,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-stall-cover-01",
@@ -2469,7 +2714,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-bld-stall-cover-01",
@@ -2495,7 +2743,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-crate-base-01",
@@ -2521,7 +2772,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-crate-01",
@@ -2547,7 +2801,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-barrel-half-01",
@@ -2573,7 +2830,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-brazier-01",
@@ -2599,7 +2859,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-brazier-01",
@@ -2625,7 +2888,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-lampost-01",
@@ -2651,7 +2917,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-lampost-01",
@@ -2677,7 +2946,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-01",
@@ -2703,7 +2975,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-02",
@@ -2729,7 +3004,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-03",
@@ -2755,7 +3033,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-02",
@@ -2781,7 +3062,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-01",
@@ -2807,7 +3091,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-03",
@@ -2833,7 +3120,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-03",
@@ -2859,7 +3149,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-01",
@@ -2885,7 +3178,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-02",
@@ -2911,7 +3207,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-01",
@@ -2937,7 +3236,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-03",
@@ -2963,7 +3265,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-02",
@@ -2989,7 +3294,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-table-01",
@@ -3015,7 +3323,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-crate-open-01",
@@ -3041,7 +3352,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-crate-base-01",
@@ -3067,7 +3381,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-clay-pot-01",
@@ -3093,7 +3410,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-clay-pot-02",
@@ -3119,7 +3439,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fish-hanging-01",
@@ -3145,7 +3468,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fur-roll-01",
@@ -3171,7 +3497,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-bench-01",
@@ -3197,7 +3526,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-bench-01",
@@ -3223,7 +3555,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-seat-01",
@@ -3249,7 +3584,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-barrel-half-01",
@@ -3275,7 +3613,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-weathervane-01",
@@ -3301,7 +3642,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -3327,7 +3671,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -3353,7 +3700,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-logs-01",
@@ -3379,7 +3729,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-log-01",
@@ -3405,7 +3758,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-cartwheel-01",
@@ -3431,7 +3787,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-rack-01",
@@ -3457,7 +3816,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-anvil-01",
@@ -3483,7 +3845,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-crate-base-01",
@@ -3509,7 +3874,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-carthay-01",
@@ -3535,7 +3903,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-crate-open-01",
@@ -3561,7 +3932,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-crate-base-01",
@@ -3587,7 +3961,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-barrel-half-01",
@@ -3613,7 +3990,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-barrel-half-02",
@@ -3639,7 +4019,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-wheel-barrow-01",
@@ -3665,7 +4048,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-net-01",
@@ -3691,7 +4077,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-chest-01",
@@ -3717,7 +4106,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-clay-pot-01",
@@ -3743,7 +4135,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-clay-pot-02",
@@ -3769,7 +4164,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-rack-01",
@@ -3795,7 +4193,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-bench-01",
@@ -3821,7 +4222,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-table-01",
@@ -3847,7 +4251,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-rack-01",
@@ -3873,7 +4280,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-shield-decor-01",
@@ -3899,7 +4309,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-spikes-01",
@@ -3925,7 +4338,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-banner-02",
@@ -3951,7 +4367,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-flag-01",
@@ -3977,7 +4396,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4003,7 +4425,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4029,7 +4454,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4055,7 +4483,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4081,7 +4512,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4107,7 +4541,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4133,7 +4570,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4159,7 +4599,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-torchstick-01",
@@ -4185,7 +4628,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-banner-03",
@@ -4211,7 +4657,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-banner-03",
@@ -4237,7 +4686,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-banner-03",
@@ -4263,7 +4715,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-banner-03",
@@ -4289,7 +4744,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fence-wood-01",
@@ -4315,7 +4773,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fence-wood-01",
@@ -4341,7 +4802,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fence-wood-01",
@@ -4367,7 +4831,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fence-wood-01",
@@ -4393,7 +4860,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fence-wood-01",
@@ -4419,7 +4889,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fence-wood-01",
@@ -4445,7 +4918,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-prop-fence-wood-01",
@@ -4471,7 +4947,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-01",
@@ -4497,7 +4976,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-02",
@@ -4523,7 +5005,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-03",
@@ -4549,7 +5034,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-tree-01",
@@ -4575,7 +5063,10 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-rock-01",
@@ -4601,7 +5092,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-rock-01",
@@ -4627,7 +5121,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-rock-02",
@@ -4653,7 +5150,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-rock-01",
@@ -4679,7 +5179,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-rock-02",
@@ -4705,7 +5208,10 @@
           "opaque": false
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4716,7 +5222,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4727,7 +5236,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4738,7 +5250,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -4749,7 +5264,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4760,7 +5278,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -4771,7 +5292,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4782,7 +5306,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4793,7 +5320,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4804,7 +5334,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4815,7 +5348,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4826,7 +5362,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4837,7 +5376,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4848,7 +5390,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4859,7 +5404,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -4870,7 +5418,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4881,7 +5432,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -4892,7 +5446,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4903,7 +5460,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -4914,7 +5474,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4925,7 +5488,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4936,7 +5502,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4947,7 +5516,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4958,7 +5530,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -4969,7 +5544,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4980,7 +5558,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -4991,7 +5572,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5002,7 +5586,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5013,7 +5600,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5024,7 +5614,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5035,7 +5628,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5046,7 +5642,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5057,7 +5656,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5068,7 +5670,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5079,7 +5684,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5090,7 +5698,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5101,7 +5712,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5112,7 +5726,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5123,7 +5740,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5134,7 +5754,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5145,7 +5768,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5156,7 +5782,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5167,7 +5796,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5178,7 +5810,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5189,7 +5824,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5200,7 +5838,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5211,7 +5852,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5222,7 +5866,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5233,7 +5880,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5244,7 +5894,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5255,7 +5908,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5266,7 +5922,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5277,7 +5936,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5288,7 +5950,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5299,7 +5964,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5310,7 +5978,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5321,7 +5992,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5332,7 +6006,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5343,7 +6020,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5354,7 +6034,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5365,7 +6048,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5376,7 +6062,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5387,7 +6076,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5398,7 +6090,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5409,7 +6104,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5420,7 +6118,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5431,7 +6132,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-02",
@@ -5442,7 +6146,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5453,7 +6160,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5464,7 +6174,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5475,7 +6188,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5486,7 +6202,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grass-01",
@@ -5497,7 +6216,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-grasspatch-01",
@@ -5508,7 +6230,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5519,7 +6244,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5530,7 +6258,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5541,7 +6272,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5552,7 +6286,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5563,7 +6300,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5574,7 +6314,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5585,7 +6328,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5596,7 +6342,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5607,7 +6356,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5618,7 +6370,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5629,7 +6384,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5640,7 +6398,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5651,7 +6412,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5662,7 +6426,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5673,7 +6440,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5684,7 +6454,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5695,7 +6468,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5706,7 +6482,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5717,7 +6496,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5728,7 +6510,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5739,7 +6524,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5750,7 +6538,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5761,7 +6552,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5772,7 +6566,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5783,7 +6580,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5794,7 +6594,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5805,7 +6608,10 @@
       "rotation": 0,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5816,7 +6622,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5827,7 +6636,10 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5838,7 +6650,10 @@
       "rotation": 270,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5849,7 +6664,10 @@
       "rotation": 90,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-flower-01",
@@ -5860,15 +6678,18 @@
       "rotation": 180,
       "scale": 1,
       "collision": [],
-      "overrideCollision": true
+      "seat": false,
+      "overrideCollision": true,
+      "dressed": false,
+      "fromTiles": false
     },
     {
       "asset": "sm-env-statue-03",
       "pack": "dungeon-pack",
-      "x": 25,
-      "y": 21,
+      "x": 24.508194270761557,
+      "y": 21.55366110229521,
       "z": 0,
-      "rotation": 90,
+      "rotation": 355.4545593261719,
       "scale": 1,
       "collision": [
         {
@@ -5886,24 +6707,11 @@
           "opaque": true
         }
       ],
-      "overrideCollision": false
+      "seat": false,
+      "overrideCollision": false,
+      "dressed": false,
+      "fromTiles": false
     }
-  ],
-  "live": true,
-  "groundPaint": [
-    "round-town-0.png",
-    "round-town-1.png"
-  ],
-  "groundMaterials": [
-    "grass",
-    "dirt",
-    "cobble",
-    "boards",
-    "mud",
-    "leafmould"
-  ],
-  "scripts": [
-    "ashfold-keeper"
   ],
   "vfx": [
     {
@@ -5996,6 +6804,135 @@
       "y": 22.5,
       "z": 1.55,
       "scale": 1
+    }
+  ],
+  "stations": [
+    {
+      "x": 10,
+      "y": 8,
+      "type": "workshop"
+    },
+    {
+      "x": 40,
+      "y": 8,
+      "type": "storehouse"
+    },
+    {
+      "x": 10,
+      "y": 43,
+      "type": "infirmary"
+    },
+    {
+      "x": 24,
+      "y": 34,
+      "type": "well"
+    }
+  ],
+  "npcs": [
+    {
+      "x": 25,
+      "y": 19,
+      "type": "ashfold-keeper",
+      "facing": "s"
+    }
+  ],
+  "zone": "settled",
+  "transitions": [],
+  "roofs": [],
+  "ambience": "ambience-town",
+  "scripts": [
+    "ashfold-keeper"
+  ],
+  "markers": [
+    {
+      "id": "to-the-ashfold-furrows",
+      "name": "To The Ashfold Furrows",
+      "x": 25,
+      "y": 0,
+      "to": {
+        "area": "round-farm",
+        "marker": "to-ashfold"
+      }
+    },
+    {
+      "id": "to-the-ashfold-furrows-2",
+      "name": "To The Ashfold Furrows",
+      "x": 24,
+      "y": 0,
+      "to": {
+        "area": "round-farm",
+        "marker": "to-ashfold-2"
+      }
+    },
+    {
+      "id": "to-the-redcut",
+      "name": "To The Redcut",
+      "x": 49,
+      "y": 25,
+      "to": {
+        "area": "round-mine",
+        "marker": "to-ashfold"
+      }
+    },
+    {
+      "id": "to-the-redcut-2",
+      "name": "To The Redcut",
+      "x": 49,
+      "y": 24,
+      "to": {
+        "area": "round-mine",
+        "marker": "to-ashfold-2"
+      }
+    },
+    {
+      "id": "to-thornhallow",
+      "name": "To Thornhallow",
+      "x": 0,
+      "y": 25,
+      "to": {
+        "area": "round-wood",
+        "marker": "to-ashfold"
+      }
+    },
+    {
+      "id": "to-thornhallow-2",
+      "name": "To Thornhallow",
+      "x": 0,
+      "y": 24,
+      "to": {
+        "area": "round-wood",
+        "marker": "to-ashfold-2"
+      }
+    },
+    {
+      "id": "to-the-sunken-approach",
+      "name": "To The Sunken Approach",
+      "x": 25,
+      "y": 49,
+      "to": {
+        "area": "round-south",
+        "marker": "to-ashfold"
+      }
+    },
+    {
+      "id": "to-the-sunken-approach-2",
+      "name": "To The Sunken Approach",
+      "x": 24,
+      "y": 49,
+      "to": {
+        "area": "round-south",
+        "marker": "to-ashfold-2"
+      }
+    },
+    {
+      "id": "to-the-hanged-ferryman",
+      "name": "To The Hanged Ferryman",
+      "x": 26,
+      "y": 19,
+      "to": {
+        "area": "hanged-ferryman",
+        "marker": "to-ashfold"
+      }
     }
   ]
 }

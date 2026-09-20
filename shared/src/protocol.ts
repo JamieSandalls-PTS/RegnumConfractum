@@ -54,6 +54,24 @@ const CharacterNameSchema = z
 const UuidSchema = z.string().uuid();
 
 /**
+ * How a character presents themselves when they speak (D-645).
+ *
+ * The stakeholder's rework of the "declare as" box: three identities on the
+ * character sheet. The REAL one is the character's own name and cannot be
+ * edited; the HOODED one is what is heard while the hood is up; the DISGUISED
+ * one is heard when chosen over the real one. Speaking under whichever is in
+ * use is a declaration (D-218) — true or false — contested by every listener's
+ * Insight the first time they hear it, so a change of identity is exactly the
+ * moment a sharp listener notices something is off.
+ */
+export const StoredIdentitySchema = z.object({
+  hooded: CharacterNameSchema.nullable().default(null),
+  disguised: CharacterNameSchema.nullable().default(null),
+  use: z.enum(['real', 'disguised']).default('real'),
+});
+export type CharacterIdentity = z.infer<typeof StoredIdentitySchema>;
+
+/**
  * A player-authored appearance (D-539). Sparse: anything omitted comes from
  * the seed, which is what keeps every pre-existing character, NPC and monster
  * rendering exactly as before. The bounds mirror APPEARANCE_LIMITS so an
@@ -151,6 +169,25 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   }),
   /** Asks for the creation catalogue (classes, skills, feats, spells). */
   z.object({ t: z.literal('get_creation_content') }),
+  /**
+   * The developer menu (D-647): what the tool defines, put into the world
+   * from the client, so the stakeholder can look at an item on their own
+   * character or stand a creature on the floor without a script. Refused
+   * unless the server runs with it on; every use is logged.
+   */
+  z.object({ t: z.literal('get_dev_catalogue') }),
+  z.object({
+    t: z.literal('dev_spawn'),
+    kind: z.enum(['roamer', 'npc', 'character']),
+    id: ContentIdSchema,
+    x: z.number(),
+    y: z.number(),
+  }),
+  z.object({
+    t: z.literal('dev_grant'),
+    templateId: ContentIdSchema,
+    qty: z.number().int().min(1).max(100).default(1),
+  }),
   z.object({ t: z.literal('enter_world'), characterId: UuidSchema }),
   z.object({ t: z.literal('move'), dir: DirectionSchema }),
   /**
@@ -327,6 +364,13 @@ export const ClientMessageSchema = z.discriminatedUnion('t', [
   z.object({
     t: z.literal('set_hotbar'),
     slots: z.array(z.string().max(40).nullable()).max(16),
+  }),
+  /** Set the hooded and disguised names, and which of real or disguise is in use (D-645). */
+  z.object({
+    t: z.literal('set_identity'),
+    hooded: CharacterNameSchema.nullable(),
+    disguised: CharacterNameSchema.nullable(),
+    use: z.enum(['real', 'disguised']),
   }),
   /**
    * Spend a level (D-546). The WHOLE advancement record, not a delta, so a
@@ -569,6 +613,8 @@ export const WireEntitySchema = z.object({
       weaponArt: z.string().optional(),
       /** The effect burning on the weapon in hand (D-639). */
       weaponVfx: z.string().optional(),
+      /** What the other hand holds — a shield (D-646). */
+      offhandArt: z.string().optional(),
     })
     .nullable()
     .default(null),
@@ -795,6 +841,7 @@ export const SimEventSchema = z.discriminatedUnion('type', [
        */
       weaponArt: z.string().optional(),
       weaponVfx: z.string().optional(),
+      offhandArt: z.string().optional(),
     }),
   }),
   /**
@@ -910,6 +957,14 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
    * screen is rendered from CONTENT rather than hardcoded in the client —
    * adding a feat is a data change, not a client deploy.
    */
+  /** What the developer menu may spawn or grant (D-647). Sent only where the menu is on. */
+  z.object({
+    t: z.literal('dev_catalogue'),
+    roamers: z.array(z.object({ id: z.string(), name: z.string() })),
+    npcs: z.array(z.object({ id: z.string(), name: z.string() })),
+    characters: z.array(z.object({ id: z.string(), kind: z.string() })),
+    items: z.array(z.object({ id: z.string(), name: z.string(), category: z.string() })),
+  }),
   z.object({
     t: z.literal('creation_content'),
     classes: z.array(ClassSchema),
@@ -1039,7 +1094,8 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
       ),
       tiles: z.array(z.string()),
       /** Where the exits are — targets stay server-side. */
-      transitions: z.array(z.object({ x: z.number().int(), y: z.number().int() })),
+      /** Where the doors are, and what each is called (D-641) — never where they lead. */
+      transitions: z.array(z.object({ x: z.number().int(), y: z.number().int(), name: z.string().optional() })),
     }),
     entities: z.array(WireEntitySchema),
     inventory: z.array(WireItemSchema),
@@ -1355,6 +1411,8 @@ export const ServerMessageSchema = z.discriminatedUnion('t', [
     roundTicks: z.number().int().min(1).default(40),
     /** The character's saved hotbar (D-553); null means "use the defaults". */
     hotbar: z.array(z.string().nullable()).nullable().default(null),
+    /** How the character presents themselves (D-645), with the real name beside it. */
+    identity: StoredIdentitySchema.extend({ real: z.string() }).nullable().default(null),
   }),
 ]);
 

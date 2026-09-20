@@ -54,6 +54,8 @@ export interface CharacterPanelCallbacks {
   onLookAtStores: () => void;
   /** What this character can do right now, for the Abilities tab. */
   book: () => { actions: BookEntry[]; rites: BookEntry[] };
+  /** The names they speak under, and which is in use (D-645). */
+  onSetIdentity: (identity: { hooded: string | null; disguised: string | null; use: 'real' | 'disguised' }) => void;
 }
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -65,7 +67,7 @@ function storeName(station: string): string {
 }
 
 export class CharacterPanel {
-  private tab: 'gear' | 'sheet' | 'book' = 'gear';
+  private tab: 'gear' | 'sheet' | 'book' | 'identity' = 'gear';
   private inventory: readonly WireItem[] = [];
   private catalogue: readonly CatalogueItem[] = [];
   private status: Status | null = null;
@@ -84,7 +86,7 @@ export class CharacterPanel {
   constructor(private cb: CharacterPanelCallbacks) {
     for (const btn of document.querySelectorAll<HTMLButtonElement>('.ctab')) {
       btn.addEventListener('click', () => {
-        this.tab = (btn.dataset.tab as 'gear' | 'sheet' | 'book') ?? 'gear';
+        this.tab = (btn.dataset.tab as 'gear' | 'sheet' | 'book' | 'identity') ?? 'gear';
         this.render();
       });
     }
@@ -194,8 +196,10 @@ export class CharacterPanel {
     $('tab-gear').classList.toggle('hidden', this.tab !== 'gear');
     $('tab-sheet').classList.toggle('hidden', this.tab !== 'sheet');
     $('tab-book').classList.toggle('hidden', this.tab !== 'book');
+    $('tab-identity').classList.toggle('hidden', this.tab !== 'identity');
     if (this.tab === 'gear') this.renderGear();
     else if (this.tab === 'book') this.renderBook();
+    else if (this.tab === 'identity') this.renderIdentity();
     else this.renderSheet();
   }
 
@@ -365,6 +369,89 @@ export class CharacterPanel {
   // -------------------------------------------------------------------------
   // Sheet
   // -------------------------------------------------------------------------
+
+  // -------------------------------------------------------------------------
+  // Identity (D-645)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Three names and a choice. The real name is shown and cannot be edited;
+   * the hooded name is what the hood speaks under; the disguise is used when
+   * its radio is chosen. Sent on change, never on every keystroke.
+   */
+  private renderIdentity(): void {
+    const host = $('identity-form');
+    host.innerHTML = '';
+    const id = this.status?.identity;
+    if (!id) {
+      const none = document.createElement('div');
+      none.className = 'pack-empty';
+      none.textContent = 'Not in the world yet.';
+      host.appendChild(none);
+      return;
+    }
+    let hooded = id.hooded ?? '';
+    let disguised = id.disguised ?? '';
+    let use: 'real' | 'disguised' = id.use;
+    const send = (): void => {
+      const clean = (v: string): string | null => {
+        const t = v.trim();
+        return t.length >= 2 ? t : null;
+      };
+      // A disguise with no name in it is no disguise.
+      const nextUse = use === 'disguised' && !clean(disguised) ? 'real' : use;
+      this.cb.onSetIdentity({ hooded: clean(hooded), disguised: clean(disguised), use: nextUse });
+    };
+    const row = (label: string, value: string, opts: {
+      radio?: boolean; readonly?: boolean; onInput?: (v: string) => void; blurb: string;
+    }): void => {
+      const line = document.createElement('label');
+      line.className = 'identity-row';
+      if (opts.radio) {
+        const r = document.createElement('input');
+        r.type = 'radio';
+        r.name = 'identity-use';
+        const which: 'real' | 'disguised' = label === 'Real identity' ? 'real' : 'disguised';
+        r.checked = use === which;
+        r.onchange = () => { use = which; send(); };
+        line.appendChild(r);
+      } else {
+        const spacer = document.createElement('span');
+        spacer.className = 'identity-spacer';
+        line.appendChild(spacer);
+      }
+      const name = document.createElement('span');
+      name.className = 'identity-label';
+      name.innerHTML = `${label}<span class="blurb">${opts.blurb}</span>`;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = value;
+      input.maxLength = 32;
+      input.spellcheck = false;
+      input.readOnly = opts.readonly ?? false;
+      if (opts.onInput) {
+        input.oninput = () => opts.onInput!(input.value);
+        input.onchange = () => send();
+      }
+      line.append(name, input);
+      host.appendChild(line);
+    };
+    row('Real identity', id.real, { radio: true, readonly: true, blurb: 'your own name, always' });
+    row('Hooded identity', hooded, {
+      onInput: (v) => { hooded = v; },
+      blurb: 'heard while your hood is up; blank means no name at all',
+    });
+    row('Disguised identity', disguised, {
+      radio: true,
+      onInput: (v) => { disguised = v; },
+      blurb: 'heard when chosen instead of your real name',
+    });
+    const note = document.createElement('div');
+    note.className = 'book-hint';
+    note.textContent = 'Letters, spaces, apostrophes and hyphens; two to thirty-two of them. '
+      + 'Whichever name you speak under is what people learn — and a false one can ring false to a good ear.';
+    host.appendChild(note);
+  }
 
   private renderSheet(): void {
     const s = this.status;

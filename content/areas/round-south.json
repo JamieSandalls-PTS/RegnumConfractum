@@ -218,36 +218,7 @@
       "type": "iron-vein"
     }
   ],
-  "transitions": [
-    {
-      "x": 50,
-      "y": 0,
-      "toArea": "round-town",
-      "toX": 25,
-      "toY": 48
-    },
-    {
-      "x": 49,
-      "y": 0,
-      "toArea": "round-town",
-      "toX": 24,
-      "toY": 48
-    },
-    {
-      "x": 50,
-      "y": 99,
-      "toArea": "round-dungeon-1",
-      "toX": 50,
-      "toY": 1
-    },
-    {
-      "x": 49,
-      "y": 99,
-      "toArea": "round-dungeon-1",
-      "toX": 49,
-      "toY": 1
-    }
-  ],
+  "transitions": [],
   "ambience": "ambience-forest",
   "assets": [
     {
@@ -10527,5 +10498,47 @@
     "sand",
     "mud",
     "stone"
+  ],
+  "markers": [
+    {
+      "id": "to-ashfold",
+      "name": "To Ashfold",
+      "x": 50,
+      "y": 0,
+      "to": {
+        "area": "round-town",
+        "marker": "to-the-sunken-approach"
+      }
+    },
+    {
+      "id": "to-ashfold-2",
+      "name": "To Ashfold",
+      "x": 49,
+      "y": 0,
+      "to": {
+        "area": "round-town",
+        "marker": "to-the-sunken-approach-2"
+      }
+    },
+    {
+      "id": "to-the-flooded-steps",
+      "name": "To The Flooded Steps",
+      "x": 50,
+      "y": 99,
+      "to": {
+        "area": "round-dungeon-1",
+        "marker": "to-the-sunken-approach"
+      }
+    },
+    {
+      "id": "to-the-flooded-steps-2",
+      "name": "To The Flooded Steps",
+      "x": 49,
+      "y": 99,
+      "to": {
+        "area": "round-dungeon-1",
+        "marker": "to-the-sunken-approach-2"
+      }
+    }
   ]
 }

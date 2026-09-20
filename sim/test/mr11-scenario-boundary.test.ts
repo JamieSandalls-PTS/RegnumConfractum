@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ScenarioSchema } from '@rc/shared';
+import { AreaSchema, ScenarioSchema, allTransitions } from '@rc/shared';
 import { loadContent } from '@rc/server/content';
 import { GameServer } from '@rc/server/net/gateway';
 import { MemoryStore } from '@rc/server/store/memory';
@@ -34,14 +34,17 @@ import { TICK as SIM_TICK, sleep } from '../src/testTick';
 const contentDir = fileURLToPath(new URL('../../content', import.meta.url));
 const TICK = SIM_TICK; // see sim/src/testTick.ts (D-633)
 
-type Doors = { transitions: { x: number; y: number; toArea: string }[] };
-/** Both doors read from the maps rather than written here. */
-const TOWN = JSON.parse(readFileSync(`${contentDir}/areas/round-town.json`, 'utf8')) as Doors;
-const TAVERN = JSON.parse(readFileSync(`${contentDir}/areas/hanged-ferryman.json`, 'utf8')) as Doors;
+/** Both doors read from the maps rather than written here — derived from linked markers (D-641). */
+const loadArea = (id: string) => AreaSchema.parse(JSON.parse(readFileSync(`${contentDir}/areas/${id}.json`, 'utf8')));
+const AREAS = new Map(['round-town', 'hanged-ferryman', 'broken-yard'].map((id) => [id, loadArea(id)]));
+const lookup = (id: string) => AREAS.get(id) ?? null;
+const TOWN = AREAS.get('round-town')!;
+const TAVERN = AREAS.get('hanged-ferryman')!;
+const doorsOf = (a: typeof TOWN) => allTransitions(a, lookup);
 /** The tavern door in the square: inside the round (D-634). */
-const TAVERN_DOOR = TOWN.transitions.find((t) => t.toArea === 'hanged-ferryman')!;
+const TAVERN_DOOR = doorsOf(TOWN).find((t) => t.toArea === 'hanged-ferryman')!;
 /** The taproom's door to the yard: the round's edge, and the road to the crypt. */
-const WAY_OUT = TAVERN.transitions.find((t) => t.toArea === 'broken-yard')!;
+const WAY_OUT = doorsOf(TAVERN).find((t) => t.toArea === 'broken-yard')!;
 
 let store: MemoryStore;
 let server: GameServer;
@@ -153,7 +156,7 @@ describe('⚠ walking out of a round is refused', () => {
   }, 40_000);
 
   it('carries a player out through the square door, which is inside the round (D-634)', async () => {
-    const OUT = TAVERN.transitions.find((t) => t.toArea === 'round-town')!;
+    const OUT = doorsOf(TAVERN).find((t) => t.toArea === 'round-town')!;
     bot.send({ t: 'move_to', x: OUT.x, y: OUT.y });
     for (let i = 0; i < 400 && bot.area?.id !== 'round-town'; i++) await sleep(TICK * 4);
     expect(bot.area?.id, 'the taproom door to the square refused a player').toBe('round-town');

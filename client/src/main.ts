@@ -32,9 +32,10 @@ import { GameScene } from './render/scene';
 import { StationVisual } from './render/station-visual';
 import { LightRig } from './render/lights';
 import { Roofs } from './render/roofs';
+import { TransitionVisual } from './render/transition-visual';
 import { occlusionState, setOcclusionFocus } from './render/occlusion';
 import { CombatEffects } from './render/effects';
-import { VfxSystem, pixelsPerMetre, setActiveVfx, setVfxDefinitions, vfxCount } from './render/vfx';
+import { VfxSystem, pixelsPerMetre, setActiveVfx, setVfxDefinitions, vfxCount, vfxDefinition } from './render/vfx';
 import { buildPaintedGround } from './render/ground';
 import { WorldAssets, loadOneAsset } from './render/world-assets';
 import { HoverOutline } from './render/hover-outline';
@@ -100,7 +101,6 @@ const eventLog = $('event-log');
 const chatBar = $('chat-bar');
 const chatHint = $('chat-hint');
 const chatInput = $<HTMLInputElement>('in-chat');
-const declareInput = $<HTMLInputElement>('in-declare');
 
 // The same PORT the server reads from `.env` (exposed by vite.config.ts), so
 // the form and the server cannot disagree about a default (D-630).
@@ -345,6 +345,8 @@ const SEE_THROUGH_RADIUS_PX = 110;
 let lightRig: LightRig | null = null;
 /** Roofs (D-545). They lift away when you are under them. */
 let roofs: Roofs | null = null;
+/** The way-markers of the area you are in (D-641): a ring, a column, a name. */
+let transitionVisuals: TransitionVisual[] = [];
 const entities = new Map<number, EntityState>();
 let youId: number | null = null;
 let areaName = '';
@@ -466,6 +468,7 @@ const charPanel = new CharacterPanel({
   onTake: (itemId) => conn.send({ t: 'store_withdraw', itemId }),
   onLookAtStores: () => conn.send({ t: 'store_look' }),
   book: () => characterBook(),
+  onSetIdentity: (identity) => conn.send({ t: 'set_identity', ...identity }),
 });
 const levelUp = new LevelUpScreen({
   onSubmit: (advances) => conn.send({ t: 'advance', advances }),
@@ -736,6 +739,8 @@ conn.onMessage = (msg: ServerMessage) => {
       localStorage.setItem('rc.token', msg.token);
       showCharacters(msg.characters);
       conn.send({ t: 'get_creation_content' }); // catalogue for the wizard
+      // Refused where the menu is off, which is the ordinary case (D-647).
+      conn.send({ t: 'get_dev_catalogue' });
       return;
     case 'render_content':
       // Presentation content, off the server's own copy (D-630): what the
@@ -757,6 +762,9 @@ conn.onMessage = (msg: ServerMessage) => {
         `content reloaded: ${msg.applied.length} directories`
         + (msg.deferred.length ? ` — ${msg.deferred.join('; ')}` : ''),
       );
+      return;
+    case 'dev_catalogue':
+      showDevMenu(msg);
       return;
     case 'creation_content':
       creation.setContent(msg);
@@ -808,6 +816,10 @@ conn.onMessage = (msg: ServerMessage) => {
       status = msg;
       renderVitals(msg);
       adoptHotbar(msg.hotbar);
+      // The book may have changed (a level, a new calling's grant): the
+      // drawer follows it, and a slot holding something no longer known is
+      // shown empty rather than lying.
+      renderDrawer();
       charPanel.setStatus(msg);
       levelUp.setStatus(msg);
       $('hud-ghost').textContent = msg.ghost ? '☽ dead — /respawn when released' : '';
@@ -961,6 +973,8 @@ function ensureScene(): GameScene {
 
 function clearWorld(): void {
   vfxSystem?.clearPlaced();
+  for (const v of transitionVisuals) v.dispose();
+  transitionVisuals = [];
   for (const e of entities.values()) e.visual.dispose();
   entities.clear();
   if (paintedGround && scene) {
@@ -1091,6 +1105,11 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   // colliding with them all along; this is the half that draws them.
   worldAssets?.dispose();
   worldAssets = new WorldAssets(s.scene, snap.area.assets);
+  // Where the doors are (D-641). The wire says where and what each is
+  // called, never where it leads. A `waymark` effect, if content defines
+  // one, burns at each as well — placed by the client, not by the map.
+  for (const v of transitionVisuals) v.dispose();
+  transitionVisuals = snap.area.transitions.map((tr) => new TransitionVisual(s.scene, tr));
   effects?.dispose();
   effects = new CombatEffects(s.scene);
   // Effects standing in the area (D-639): the fire in the fireplace. The
@@ -1102,6 +1121,7 @@ function applySnapshot(snap: Extract<ServerMessage, { t: 'snapshot' }>): void {
   }
   vfxSystem.clearPlaced();
   for (const v of snap.area.vfx) vfxSystem.place(v.vfx, v.x, v.y, v.z, v.scale);
+  for (const tr of snap.area.transitions) if (vfxDefinition('waymark')) vfxSystem.place('waymark', tr.x, tr.y, 0, 1);
   // Lights (including the hearth's, added by Terrain just now) and the
   // camera must reach both layers or the split pass renders black.
   s.enableAllLayers();
@@ -1373,6 +1393,8 @@ function applyWorn(visual: ImportedVisual, wire: WireEntity): void {
     // And what burns on it (D-639). Resolved by the server off the item, as
     // the art and the stance are.
     weaponVfx: worn.weaponVfx,
+    // And the other hand (D-646).
+    offhandArt: worn.offhandArt,
     // ⚠ The imported cast re-assembles a body out of these (D-571); the
     // procedural one ignores them and draws its generated armour from the
     // flags above. One call, two casts, and `main.ts` still does not know
@@ -1742,16 +1764,14 @@ function sendChat(): void {
     text = text.slice(text.indexOf(' ') + 1).trim();
   }
   if (!text) return;
-  const declareAs = declareInput.value.trim();
+  // No declaration here (D-645): the name others hear is the identity on
+  // the character sheet, chosen there, and the server speaks it for you.
   conn.send({
     t: 'say',
     channel,
     text,
     ...(currentLanguage ? { language: currentLanguage } : {}),
-    ...(declareAs ? { declareAs } : {}),
   });
-  declareInput.value = '';
-  declareInput.classList.remove('armed');
 }
 
 /** Nearest other entity by chebyshev distance, within speech range. */
@@ -1804,9 +1824,6 @@ function chatOpen(): boolean {
   return chatBar.classList.contains('open');
 }
 
-declareInput.addEventListener('input', () => {
-  declareInput.classList.toggle('armed', declareInput.value.trim().length > 0);
-});
 
 // ---------------------------------------------------------------------------
 // Input → intent
@@ -1868,7 +1885,6 @@ window.addEventListener('keydown', (e) => {
     chatBar.classList.remove('open');
     chatHint.classList.remove('hidden');
     chatInput.blur();
-    declareInput.blur();
     held.clear();
   }
 });
@@ -2364,6 +2380,13 @@ window.addEventListener('pointerup', (e) => {
     return;
   }
   const tile = tileAtScreen(e.clientX, e.clientY);
+  // The developer menu's spawn, armed (D-647): this click places, not walks.
+  if (devSpawnArmed && tile) {
+    conn.send({ t: 'dev_spawn', ...devSpawnArmed, x: tile.x, y: tile.y });
+    devSpawnArmed = null;
+    $('dev-spawn-arm').textContent = 'Spawn at next click';
+    return;
+  }
   if (tile && tileWalkable(tile.x, tile.y)) {
     // A second click on the same tile inside the double-click window is a
     // RUN there (D-636); the first click already set off the walk.
@@ -2673,14 +2696,13 @@ function renderHotbar(): void {
     const ability = hotbar[i] ? ABILITIES.find((a) => a.id === hotbar[i]) : undefined;
     slot.innerHTML = `<span class="hb-key">${i + 1}</span><span class="hb-glyph">${ability?.glyph ?? ''}</span>`;
     slot.title = ability
-      ? `${ability.label} — key ${i + 1}. Drag it off the bar, or double-click, to clear it.`
+      ? `${ability.label} — key ${i + 1}. Drag it off the bar to clear it.`
       : 'Drop an ability here';
     slot.addEventListener('click', () => useHotbarSlot(i));
-    slot.addEventListener('dblclick', () => {
-      hotbar[i] = null;
-      saveHotbar();
-      renderHotbar();
-    });
+    // ⚠ No double-click to clear (stakeholder). A double-click on a slot is
+    // two uses of it a fraction apart, and losing the ability for the rest
+    // of the fight was the cost; dragging it off the bar is the only way to
+    // clear a slot now.
     slot.addEventListener('dragover', (e) => {
       e.preventDefault();
       slot.classList.add('over');
@@ -2692,6 +2714,13 @@ function renderHotbar(): void {
       const abilityId = e.dataTransfer?.getData('rc/ability');
       const fromSlot = e.dataTransfer?.getData('rc/from-slot');
       if (!abilityId) return;
+      // ⚠ Only what THIS character can do. The drawer no longer offers a
+      // rite the calling lacks, but a drag from anywhere else is judged here
+      // too, so a bar cannot hold Animate Dead for a man-at-arms.
+      if (!usableAbility(abilityId)) {
+        appendSystemLine('Your calling does not know that.');
+        return;
+      }
       if (fromSlot !== '' && fromSlot !== undefined && fromSlot !== null && fromSlot !== 'palette') {
         const j = Number(fromSlot);
         hotbar[j] = hotbar[i] ?? null; // swap
@@ -2726,9 +2755,23 @@ function renderHotbar(): void {
   hotbarEl.appendChild(book);
 }
 
+/** Whether this character may put an ability on the bar (D-644). */
+function usableAbility(id: string): boolean {
+  const { actions, rites } = characterBook();
+  return [...actions, ...rites].some((entry) => entry.id === id && !entry.inert);
+}
+
 function renderDrawer(): void {
   drawerEl.innerHTML = '<div class="drawer-title">Abilities — drag to the bar</div>';
-  for (const ability of ABILITIES) {
+  // ⚠ The drawer lists the BOOK — what this calling can do — not every
+  // ability the client knows how to send (D-644). It listed all of them, so
+  // a man-at-arms could drag Animate Dead to his bar and press a key that
+  // did nothing. Redrawn whenever `status` arrives, because that is where
+  // the abilities come from.
+  const { actions, rites } = characterBook();
+  for (const entry of [...actions, ...rites]) {
+    const ability = ABILITIES.find((a) => a.id === entry.id);
+    if (!ability || entry.inert) continue;
     const item = document.createElement('div');
     item.className = 'drawer-item';
     item.draggable = true;
@@ -2860,6 +2903,46 @@ function applyGraphics(): void {
   scene.resize();
   localStorage.setItem('rc.graphics', JSON.stringify(graphics));
 }
+
+// ---------------------------------------------------------------------------
+// The developer menu (D-647)
+// ---------------------------------------------------------------------------
+
+/** What the next ground click spawns, if anything. */
+let devSpawnArmed: { kind: 'roamer' | 'npc' | 'character'; id: string } | null = null;
+
+function showDevMenu(cat: Extract<ServerMessage, { t: 'dev_catalogue' }>): void {
+  const spawn = $<HTMLSelectElement>('dev-spawn-id');
+  spawn.innerHTML = '';
+  const group = (label: string, entries: { value: string; label: string }[]): void => {
+    if (entries.length === 0) return;
+    const g = document.createElement('optgroup');
+    g.label = label;
+    for (const e of entries) g.appendChild(new Option(e.label, e.value));
+    spawn.appendChild(g);
+  };
+  group('Enemies (roamers)', cat.roamers.map((r) => ({ value: `roamer:${r.id}`, label: r.name })));
+  group('People (npcs)', cat.npcs.map((n) => ({ value: `npc:${n.id}`, label: n.name })));
+  group('Models (characters)', cat.characters.map((c) => ({ value: `character:${c.id}`, label: `${c.id} (${c.kind})` })));
+  const items = $<HTMLSelectElement>('dev-item');
+  items.innerHTML = '';
+  for (const it of cat.items) items.appendChild(new Option(`${it.name} — ${it.category}`, it.id));
+  $('dev-menu').classList.remove('hidden');
+}
+
+$('dev-spawn-arm').addEventListener('click', () => {
+  const value = $<HTMLSelectElement>('dev-spawn-id').value;
+  const [kind, id] = value.split(':') as ['roamer' | 'npc' | 'character', string];
+  if (!kind || !id) return;
+  devSpawnArmed = devSpawnArmed ? null : { kind, id };
+  $('dev-spawn-arm').textContent = devSpawnArmed ? 'Click the floor… (click again to cancel)' : 'Spawn at next click';
+  if (devSpawnArmed) $('settings').classList.add('hidden');
+});
+$('dev-give').addEventListener('click', () => {
+  const templateId = $<HTMLSelectElement>('dev-item').value;
+  const qty = Math.max(1, Math.min(100, Number($<HTMLInputElement>('dev-qty').value) || 1));
+  if (templateId) conn.send({ t: 'dev_grant', templateId, qty });
+});
 
 function syncSettingsUi(): void {
   // ⚠ Says whether the bodies exist, since there is no second cast to fall
@@ -3124,6 +3207,7 @@ function stepFrame(dt: number): void {
     lightRig?.update(new THREE.Vector3(you.render.x, 0, you.render.y), t);
     // The roof over your head lifts away (D-545).
     roofs?.update({ x: you.render.x, y: you.render.y }, dt);
+    for (const v of transitionVisuals) v.update(t);
     if (scene) {
       occlusionFocus.set(you.render.x, 1.0, you.render.y);
       setOcclusionFocus(

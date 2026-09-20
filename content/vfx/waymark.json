@@ -1,0 +1,26 @@
+{
+  "id": "waymark",
+  "name": "Waymark shimmer",
+  "notes": "Drawn at every way-marker (D-641) beside the ring and the label: a few pale motes rising slowly, so a door reads as a place from across the room. Placed by the client, not by a map — remove or edit here to change every door at once.",
+  "loop": true,
+  "particles": {
+    "rate": 6,
+    "life": [1.2, 2.2],
+    "speed": [0.15, 0.3],
+    "direction": "up",
+    "spread": 0.35,
+    "gravity": -0.05,
+    "drift": 0.06,
+    "size": [0.05, 0.01],
+    "colour": ["#bfe0ff", "#4d86d8"],
+    "additive": true,
+    "radius": 0.3
+  },
+  "glow": {
+    "colour": "#9fd0ff",
+    "radius": 0.12,
+    "opacity": 0.25,
+    "pulse": { "amount": 0.3, "speed": 0.9 },
+    "height": 0.15
+  }
+}

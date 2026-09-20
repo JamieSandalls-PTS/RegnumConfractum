@@ -102,7 +102,11 @@ beforeAll(async () => {
   // happened inside one iteration of this loop, so the status read "alive"
   // both before and after and the fixture reported that nobody had died.
   const victim = b.you!;
-  const died = (): boolean => a.deaths.includes(victim) || b.status?.ghost === true;
+  // ⚠ EITHER of them (D-643's guards): the watch stands in the taproom now and
+  // answers a crime it sees, so the attacker going down is an ordinary outcome.
+  const died = (): boolean =>
+    a.deaths.includes(victim) || b.status?.ghost === true
+    || b.deaths.includes(a.you!) || a.status?.ghost === true;
   for (let i = 0; i < 400 && !died(); i++) {
     a.send({ t: 'attack', targetEntityId: victim });
     await sleep(TICK * 6);

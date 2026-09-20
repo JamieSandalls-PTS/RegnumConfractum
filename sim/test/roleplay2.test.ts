@@ -184,6 +184,12 @@ describe('third-party introduction (D-201)', () => {
   });
 
   it('an introduction never overwrites a name already held', async () => {
+    // ⚠ Every line now carries the name it is spoken under (D-645), so a
+    // scholar who wants to stay "Doctor Voss" to the peasant says so on the
+    // sheet — otherwise the next plain word would be spoken as Serane Voss
+    // and the introduction's name would be overwritten by the truth.
+    scholar.send({ t: 'set_identity', hooded: null, disguised: 'Doctor Voss', use: 'disguised' });
+    await sleep(250);
     await store.upsertKnowledge({
       observerCharacterId: keeperChar,
       subjectCharacterId: peasantChar,

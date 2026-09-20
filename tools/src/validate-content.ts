@@ -73,6 +73,8 @@ import {
   VfxDefSchema,
   itemVfxRefs,
   vfxReferenceProblems,
+  allTransitions,
+  markerProblems,
 } from '@rc/shared';
 
 /**
@@ -959,7 +961,10 @@ export function validateContent(contentDir: string): ValidationResult {
     const parsed = AreaSchema.safeParse(JSON.parse(readFileSync(file, 'utf8')));
     if (!parsed.success) continue;
     zones.set(parsed.data.id, parsed.data.zone);
-    exits.set(parsed.data.id, parsed.data.transitions.map((t) => t.toArea));
+    exits.set(parsed.data.id, [
+      ...parsed.data.transitions.map((t) => t.toArea),
+      ...parsed.data.markers.flatMap((m) => (m.to ? [m.to.area] : [])),
+    ]);
   }
   const scenarioIds = new Set<string>();
   for (const file of listJson(join(contentDir, 'scenarios'))) {
@@ -1059,8 +1064,11 @@ export function validateContent(contentDir: string): ValidationResult {
   } catch {
     // no scripts directory — fine unless something references one
   }
+  const areaLookup = (id: string): AreaDef | null => parsedAreas.get(id) ?? null;
   for (const area of parsedAreas.values()) {
-    for (const tr of area.transitions) {
+    // Way-markers (D-641): unique, standable, linked both ways, somewhere to arrive.
+    for (const problem of markerProblems(area, areaLookup)) errors.push(`area '${area.id}': ${problem}`);
+    for (const tr of allTransitions(area, areaLookup)) {
       const target = parsedAreas.get(tr.toArea);
       if (!target) {
         errors.push(`area '${area.id}': transition targets unknown area '${tr.toArea}'`);

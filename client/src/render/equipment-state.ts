@@ -31,6 +31,8 @@ export interface EquipmentState {
   weaponArt?: string;
   /** The effect burning on that weapon while it is out (D-639), a vfx id. */
   weaponVfx?: string;
+  /** What the other hand holds, as `pack/asset` (D-646): a shield. */
+  offhandArt?: string;
   /**
    * Garments worn, in the wire's canonical order (D-571).
    *

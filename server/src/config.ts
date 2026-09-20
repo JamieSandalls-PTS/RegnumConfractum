@@ -33,6 +33,8 @@ export interface ServerConfig {
    * and the cast floor is three.
    */
   allowBots: boolean;
+  /** The in-game developer menu (D-647): spawn and grant from the client. Never in production. */
+  devMenu: boolean;
 }
 
 /** Reads .env (if present) into process.env without overriding real env vars. */
@@ -77,6 +79,9 @@ export function loadConfig(): ServerConfig {
     },
     allowBots: process.env.ALLOW_BOTS
       ? process.env.ALLOW_BOTS === '1'
+      : process.env.NODE_ENV !== 'production',
+    devMenu: process.env.DEV_MENU
+      ? process.env.DEV_MENU === '1'
       : process.env.NODE_ENV !== 'production',
   };
 }

@@ -12,6 +12,19 @@ const FRUSTUM = 5.2; // vertical half-extent in world units (1 unit = 1 tile)
  * radius and height keep |offset| ≈ 15.3 regardless of azimuth, so the
  * fog-vs-camera-distance contract holds at every rotation. */
 const ORBIT_RADIUS = Math.hypot(9, 9);
+/**
+ * How much further back the camera sits than the orbit describes.
+ *
+ * ⚠ An orthographic camera draws the same picture from any distance along
+ * its own axis, so where it SITS only decides what is behind its near plane.
+ * At the orbit's own radius the camera was inside the world: a wall or a tree
+ * standing between the player and the corner of the map was behind the
+ * camera and cut open, which the stakeholder saw as the camera "cutting
+ * through assets" at some zooms and angles. Three times further out the same
+ * frame is drawn and nothing authored stands behind the lens. The fog is
+ * measured from the camera and is shifted by the same amount in `follow`.
+ */
+const CAMERA_PUSH = 3;
 const ORBIT_HEIGHT = 8.5;
 const DEFAULT_AZIMUTH = Math.PI / 4; // reproduces the original (9, 8.5, 9)
 const ZOOM_MIN = 0.55; // tighter than this and heads leave the frame
@@ -197,7 +210,7 @@ export class GameScene {
     // fog-vs-camera-distance lesson, rediscovered at game frustum size).
     this.scene.fog = new THREE.Fog(0x0c0b10, 24, 48);
 
-    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 400);
 
     // cold ambient + warm key + cool rim — tuned in the prototype
     this.hemi = new THREE.HemisphereLight(0x9cc0dd, 0x40332a, 2.9);
@@ -219,10 +232,16 @@ export class GameScene {
     this.resize();
   }
 
+  /** The authored fog distances, before the camera push is added. */
+  private fogNear = 24;
+  private fogFar = 48;
+
   applyLighting(profile: LightingProfile): void {
     const p = LIGHTING[profile];
     this.scene.background = new THREE.Color(p.background);
-    this.scene.fog = new THREE.Fog(p.background, p.fogNear, p.fogFar);
+    this.fogNear = p.fogNear;
+    this.fogFar = p.fogFar;
+    this.scene.fog = new THREE.Fog(p.background, p.fogNear + this.fogShift(), p.fogFar + this.fogShift());
     this.hemi.color.setHex(p.hemiSky);
     this.hemi.groundColor.setHex(p.hemiGround);
     this.hemi.intensity = p.hemiIntensity;
@@ -342,13 +361,24 @@ export class GameScene {
   }
 
   /** Follows a world point: camera, look-at, and the shadow frustum together. */
+  /** How much further from the focus the camera is than the orbit says. */
+  private fogShift(): number {
+    return Math.hypot(ORBIT_RADIUS, this.orbitHeight) * (CAMERA_PUSH - 1);
+  }
+
   follow(point: THREE.Vector3): void {
     this.focus.copy(point);
     this.camera.position.set(
-      point.x + Math.cos(this.azimuth) * ORBIT_RADIUS,
-      point.y + this.orbitHeight,
-      point.z + Math.sin(this.azimuth) * ORBIT_RADIUS,
+      point.x + Math.cos(this.azimuth) * ORBIT_RADIUS * CAMERA_PUSH,
+      point.y + this.orbitHeight * CAMERA_PUSH,
+      point.z + Math.sin(this.azimuth) * ORBIT_RADIUS * CAMERA_PUSH,
     );
+    // Fog is measured from the camera, and the camera moved.
+    const fog = this.scene.fog;
+    if (fog instanceof THREE.Fog) {
+      fog.near = this.fogNear + this.fogShift();
+      fog.far = this.fogFar + this.fogShift();
+    }
     this.camera.lookAt(point.x, point.y + 0.9, point.z);
     this.key.position.set(point.x + 8, point.y + 6.5, point.z + 5);
     this.key.target.position.copy(point);

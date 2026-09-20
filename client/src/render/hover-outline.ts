@@ -75,6 +75,15 @@ function outlineMaterial(localWidth: number): THREE.MeshBasicMaterial {
   return material;
 }
 
+/** Whether every ancestor from `object` up to (and including) `root` is visible. */
+function visibleUnder(object: THREE.Object3D, root: THREE.Object3D): boolean {
+  for (let o: THREE.Object3D | null = object; o; o = o.parent) {
+    if (!o.visible) return false;
+    if (o === root) break;
+  }
+  return true;
+}
+
 interface Hull {
   hull: THREE.Mesh;
   source: THREE.Object3D;
@@ -118,7 +127,11 @@ export class HoverOutline {
     const scale = new THREE.Vector3();
     target.traverse((object) => {
       const mesh = object as THREE.Mesh;
-      if (!mesh.isMesh || !mesh.visible) return;
+      // ⚠ Visible up the CHAIN, not only on the mesh. A sheathed weapon is a
+      // visible mesh inside a hidden holder (D-620), and `traverse` walks
+      // into hidden groups — so the outline drew the sword around a body
+      // that was not showing one.
+      if (!mesh.isMesh || !visibleUnder(mesh, target)) return;
       // ⚠ No normals, no hull. A few built-in shapes are drawn from geometry
       // that carries none, and pushing along a vector that is not there
       // produces a copy of the object in flat orange sitting exactly on top of

@@ -100,6 +100,25 @@ describe('effects on the wire (D-639)', () => {
     expect(seen, 'the victim sees the caster\'s staff glowing').toBe('ember-glow');
   });
 
+  it('⚠ the other hand rides on `worn` as well (D-646): a shield is seen on the arm', async () => {
+    const victimId = [...store['characters'].values()].find((c: { name: string }) => c.name === 'Tam Reed')!.id as string;
+    // A sword AND a shield: the shield beside a weapon is the case that never
+    // drew, because the silhouette picks one weapon by damage.
+    const sword = await store.grantItem(victimId, 'arming-sword', 1);
+    victim.send({ t: 'equip', itemId: sword.id });
+    await sleep(TICK * 8);
+    const shield = await store.grantItem(victimId, 'banded-shield', 1);
+    victim.send({ t: 'equip', itemId: shield.id });
+    const deadline = Date.now() + 5000;
+    let seen: string | undefined;
+    while (Date.now() < deadline) {
+      seen = caster.entities.get(victimEntity)?.worn?.offhandArt;
+      if (seen) break;
+      await sleep(TICK * 4);
+    }
+    expect(seen, "the caster sees the shield on the victim's arm").toBe('dungeon-pack/wep-shield-heater-01');
+  });
+
   it('⚠ a blow from a weapon that fires carries what it shows, resolved off the item', async () => {
     let show: unknown;
     for (let i = 0; i < 40 && !show; i++) {

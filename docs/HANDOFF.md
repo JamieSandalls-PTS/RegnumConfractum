@@ -129,7 +129,19 @@ update) were checked in the browser against a probe server, not by a test.
 on/off (a hearth that can be put out); `castsSpells` is still hard-coded
 `false`, so a staff swings its cast animation as a melee variant.
 
+**D-640 — D-647, fourteen notes from playing.** Way-markers replaced
+transitions in content (`markers`, linked pairs; `npm run map:convert` and
+`build-round-map.py` both write them); the map builder has `marker` and
+`links` tools and alt-drag orbits; ground materials have `variation`; the
+select tool picks effects; identity lives on the sheet (`set_identity`,
+migration 0018); the developer menu (`DEV_MENU`) spawns and grants. ⚠ Not
+reproduced: companions missing after a round — `mr16` proves the clock-ended
+case; an objective-ended round with a dead companion is the case still to see.
+
 ## The things most likely to be undone by accident
+
+**0000. A marker link is written on BOTH files.** Never set `to` on one side
+by hand; the build refuses a one-sided link.
 
 **00. An effect that draws nothing is refused; an effect nothing names is
 fine.** Do not relax the first to make the second easier.

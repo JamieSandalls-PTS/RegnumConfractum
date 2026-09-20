@@ -2,6 +2,8 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
+  allTransitions,
+  type AreaDef,
   tileProblems,  AreaSchema,
   WALL_KINDS,
   isTileOpaque,
@@ -142,18 +144,20 @@ describe('the tavern, at the size it was asked to be', () => {
     expect(tavern.groundMaterials).not.toContain('mud');
     // The town can reach it: the whole reason it was rebuilt.
     const town = all.find((a) => a.id === 'round-town')!;
-    expect(town.transitions.some((t) => t.toArea === 'hanged-ferryman')).toBe(true);
-    expect(tavern.transitions.some((t) => t.toArea === 'round-town')).toBe(true);
+    // Doors are derived from linked markers (D-641), landing beside the partner.
+    const doorsOf = (a: AreaDef) => allTransitions(a, (id) => all.find((x) => x.id === id) ?? null);
+    expect(doorsOf(town).some((t) => t.toArea === 'hanged-ferryman')).toBe(true);
+    expect(doorsOf(tavern).some((t) => t.toArea === 'round-town')).toBe(true);
 
     // Out of the tavern...
-    const out = tavern.transitions.find((t) => t.toArea === 'broken-yard')!;
+    const out = doorsOf(tavern).find((t) => t.toArea === 'broken-yard')!;
     expect(out, 'the tavern needs a way out').toBeDefined();
     const landing = yard.tiles[out.toY]?.[out.toX];
     expect(landing, 'it must arrive somewhere that exists').toBeDefined();
     expect(yard.legend[landing!]!.walkable).toBe(true);
 
     // ...and back in. A door that only works one way is the classic bug.
-    const back = yard.transitions.find((t) => t.toArea === 'hanged-ferryman')!;
+    const back = doorsOf(yard).find((t) => t.toArea === 'hanged-ferryman')!;
     expect(back, 'the yard needs a way in').toBeDefined();
     const arrival = tavern.tiles[back.toY]?.[back.toX];
     expect(arrival, 'the yard door must arrive inside the resized tavern').toBeDefined();

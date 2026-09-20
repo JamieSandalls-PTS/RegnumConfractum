@@ -128,6 +128,8 @@ import {
   canStandAt,
   attackShowOf,
   type AttackShow,
+  allTransitions,
+  type Doorway,
 } from '@rc/shared';
 import { hashPassword, newSessionToken, verifyPassword } from '../auth';
 import type { Content } from '../content';
@@ -333,6 +335,8 @@ export interface GameServerOptions {
    * asked for — see `server/src/dev/bots.ts` for why that direction.
    */
   allowBots?: boolean;
+  /** The in-game developer menu (D-647). Off unless asked for. */
+  devMenu?: boolean;
   log?: (msg: string) => void;
 }
 
@@ -526,6 +530,8 @@ export class GameServer {
   private roundResetAtTick: number | null = null;
   /** Lobby-summoned bots (D-607). Null unless this server allows them. */
   private bots: BotStable | null = null;
+  /** Whether the developer menu answers (D-647). */
+  private devMenu = false;
   /** Whether arrivals are gathered to the round's opening point (D-608). */
   private placeArrivals = true;
   /** Ticks a round tolerates a cast below the minimum before abandoning. */
@@ -643,6 +649,7 @@ export class GameServer {
       this.roundGraceTicks = opts.round.graceTicks ?? ROUND_GRACE_TICKS;
       this.placeArrivals = opts.round.placeArrivals ?? true;
       this.thinCastTicks = opts.round.thinCastTicks ?? ROUND_THIN_CAST_TICKS;
+      this.devMenu = opts.devMenu ?? false;
       if (opts.allowBots) {
         this.bots = new BotStable({
           // ⚠ Resolved lazily. The port is 0 until `start()` binds one, and
@@ -2212,6 +2219,45 @@ export class GameServer {
     await this.store.saveCharacterHotbar(conn.character.id, conn.character.hotbar);
   }
 
+  /**
+   * The names a character speaks under (D-645). Persisted, because a
+   * disguise is a decision about who you are being and not about this
+   * session; the real name is never stored twice.
+   */
+  private async handleSetIdentity(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'set_identity' }>,
+  ): Promise<void> {
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    conn.character.identity = { hooded: msg.hooded, disguised: msg.disguised, use: msg.use };
+    await this.store.saveCharacterIdentity(conn.character.id, conn.character.identity);
+    await this.store.appendEvent('identity_set', {
+      characterId: conn.character.id,
+      hooded: msg.hooded,
+      disguised: msg.disguised,
+      use: msg.use,
+    });
+    this.sendStatus(conn);
+  }
+
+  /**
+   * What a character is heard called when they speak (D-645), or nothing.
+   *
+   * Under a hood the hooded name, if one is set — and if none is, no name at
+   * all: a hooded stranger who says nothing about who they are stays a
+   * hooded stranger. Otherwise the disguise when it is in use, else the real
+   * name. Every spoken name is a declaration (D-218): the real one is true
+   * and lands without a contest; the others are lies and are contested.
+   */
+  private spokenNameFor(conn: ConnState, speaker: WorldEntity): string | undefined {
+    const c = conn.character;
+    if (!c) return undefined;
+    const id = c.identity;
+    if (speaker.presentation === 'hooded') return id?.hooded ?? undefined;
+    if (id?.use === 'disguised' && id.disguised) return id.disguised;
+    return c.name;
+  }
+
   /** Whether the player stands at the well — a placed object like any other. */
   private atWell(conn: ConnState): boolean {
     return this.stationWithinReach(conn, 'well');
@@ -2252,10 +2298,18 @@ export class GameServer {
    * before anybody else could. Witnessing is line of sight (D-217), and a
    * guard's beat is the place D-549 built for being seen: the square.
    */
+  /**
+   * Where the watch is posted: every settled area the round is played in,
+   * indoors included. D-636 had narrowed this to OUTDOOR settled areas, and
+   * the round has opened in the taproom since D-634 — so a round began with
+   * no guard anywhere the cast actually was, which the stakeholder reported
+   * as no guards spawning at the start. Outside a round, every settled area.
+   */
   private guardAreas(): string[] {
+    const inRound = this.scenario ? new Set(this.scenario.areas) : null;
     return this.world.areaIds().filter((id) => {
       const def = this.world.getAreaDef(id);
-      return def.zone === 'settled' && def.outdoor;
+      return def.zone === 'settled' && (!inRound || inRound.has(id));
     });
   }
 
@@ -2382,30 +2436,110 @@ export class GameServer {
         for (let i = 0; i < kind.perArea; i++) {
           const at = this.findRoamerTile(def, players);
           if (!at) continue;
-          const { entity } = this.world.spawn(areaId, {
-            characterId: null,
-            name: kind.descriptor,
-            npcDescriptor: kind.descriptor,
-            appearanceSeed: this.roamerRng.int(1, 1_000_000),
+          this.spawnRoamerAt(kind, areaId, at);
+        }
+      }
+    }
+  }
+
+  /** One roamer of a kind, standing at a tile — the night's, or the developer menu's (D-647). */
+  private spawnRoamerAt(kind: RoamerDef, areaId: string, at: { x: number; y: number }): number {
+    const { entity } = this.world.spawn(areaId, {
+      characterId: null,
+      name: kind.descriptor,
+      npcDescriptor: kind.descriptor,
+      appearanceSeed: this.roamerRng.int(1, 1_000_000),
       // What its content says it looks like (D-594). Absent falls back to the
       // seed, which is what every roamer did before any of them had a face.
       ...(kind.character ? { model: kind.character } : {}),
       ...(kind.heightMetres ? { appearance: { height: kind.heightMetres } } : {}),
-            pos: at,
-            hp: kind.hp,
-            // Visibly a thing that attacks people (D-550) — the switch the
-            // client's auto-attack reads.
-            hostile: true,
-          });
-          this.roamers.set(entity.id, kind);
-          this.broadcastPlane(areaId, false, {
-            t: 'delta',
-            tick: this.world.tick,
-            events: [{ type: 'entity_entered', entity: toWireEntity(entity, kind.descriptor) }],
-          });
-        }
-      }
+      pos: at,
+      hp: kind.hp,
+      // Visibly a thing that attacks people (D-550) — the switch the
+      // client's auto-attack reads. The watch is the exception (D-552).
+      hostile: kind.habitat !== 'guard',
+    });
+    this.roamers.set(entity.id, kind);
+    this.broadcastPlane(areaId, false, {
+      t: 'delta',
+      tick: this.world.tick,
+      events: [{ type: 'entity_entered', entity: toWireEntity(entity, kind.descriptor) }],
+    });
+    return entity.id;
+  }
+
+  // -------------------------------------------------------------------------
+  // The developer menu (D-647)
+  // -------------------------------------------------------------------------
+
+  private handleGetDevCatalogue(conn: ConnState): void {
+    if (!this.devMenu) return this.fail(conn, 'invalid_message', 'the developer menu is off on this server');
+    this.send(conn, {
+      t: 'dev_catalogue',
+      roamers: this.content.roamers.map((r) => ({ id: r.id, name: r.descriptor })),
+      npcs: [...this.content.npcs.values()].map((n) => ({ id: n.id, name: n.descriptor })),
+      characters: [...this.content.characters.values()].map((c) => ({ id: c.id, kind: c.kind })),
+      items: [...this.content.itemTemplates.values()]
+        .map((i) => ({ id: i.id, name: i.name, category: i.category }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    });
+  }
+
+  /**
+   * Stand something the tool defines on the floor where the player clicked.
+   * A roamer arrives as the night's would (hostile, hunting); a person from
+   * `content/npcs` or a model from `content/characters` stands there as an
+   * NPC. Logged, like every DM verb.
+   */
+  private async handleDevSpawn(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'dev_spawn' }>,
+  ): Promise<void> {
+    if (!this.devMenu) return this.fail(conn, 'invalid_message', 'the developer menu is off on this server');
+    if (!conn.areaId || !conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    const def = this.world.getAreaDef(conn.areaId);
+    const at = { x: Math.round(msg.x), y: Math.round(msg.y) };
+    if (!isTileWalkable(def, at) || !canStandAt(def, at)) {
+      return this.fail(conn, 'bad_target', 'nothing can stand there');
     }
+    let entityId: number;
+    let what: string;
+    if (msg.kind === 'roamer') {
+      const kind = this.content.roamers.find((r) => r.id === msg.id);
+      if (!kind) return this.fail(conn, 'invalid_message', `no roamer '${msg.id}'`);
+      entityId = this.spawnRoamerAt(kind, conn.areaId, at);
+      what = kind.descriptor;
+    } else if (msg.kind === 'npc') {
+      const npc = this.content.npcs.get(msg.id);
+      if (!npc) return this.fail(conn, 'invalid_message', `no npc '${msg.id}'`);
+      entityId = this.spawnNpc(conn.areaId, {
+        x: at.x, y: at.y, descriptor: npc.descriptor, ...(npc.character ? { character: npc.character } : {}),
+      });
+      what = npc.descriptor;
+    } else {
+      if (!this.content.characters.has(msg.id)) return this.fail(conn, 'invalid_message', `no character '${msg.id}'`);
+      what = msg.id.replace(/-/g, ' ');
+      entityId = this.spawnNpc(conn.areaId, { x: at.x, y: at.y, descriptor: what, character: msg.id });
+    }
+    await this.store.appendEvent('dev_spawn', {
+      characterId: conn.character.id, areaId: conn.areaId, kind: msg.kind, id: msg.id, x: at.x, y: at.y, entityId,
+    });
+    this.send(conn, { t: 'narrate', text: `[dev] ${what} stands at (${at.x}, ${at.y}).` });
+  }
+
+  /** Put an item the tool defines in the player's own pack, and tell them. */
+  private async handleDevGrant(
+    conn: ConnState,
+    msg: Extract<ClientMessage, { t: 'dev_grant' }>,
+  ): Promise<void> {
+    if (!this.devMenu) return this.fail(conn, 'invalid_message', 'the developer menu is off on this server');
+    if (!conn.character) return this.fail(conn, 'not_in_world', 'enter the world first');
+    const template = this.content.itemTemplates.get(msg.templateId);
+    if (!template) return this.fail(conn, 'no_such_item', `no item '${msg.templateId}'`);
+    await this.store.grantItem(conn.character.id, msg.templateId, msg.qty);
+    await this.store.appendEvent('dev_grant', { characterId: conn.character.id, templateId: msg.templateId, qty: msg.qty });
+    await this.sendInventory(conn);
+    this.send(conn, { t: 'narrate', text: `[dev] ${msg.qty} × ${template.name} in your pack.` });
   }
 
   /** A walkable tile far enough from every player to be fair. */
@@ -3414,7 +3548,7 @@ export class GameServer {
   private spawnPointFor(areaId: string): { x: number; y: number } {
     const def = this.world.getAreaDef(areaId);
     const spawn = def.spawn;
-    const doors = new Set(def.transitions.map((t) => `${t.x},${t.y}`));
+    const doors = new Set(this.transitionsFor(areaId).map((t) => `${t.x},${t.y}`));
     const bodies = this.world.entitiesIn(areaId).filter(
       (e) => !e.ghost && e.objectKind !== 'corpse' && e.objectKind !== 'pile'
         && e.objectKind !== 'node' && e.objectKind !== 'station',
@@ -3745,6 +3879,12 @@ export class GameServer {
         return this.handleCreateCharacter(conn, msg);
       case 'get_creation_content':
         return this.handleGetCreationContent(conn);
+      case 'get_dev_catalogue':
+        return this.handleGetDevCatalogue(conn);
+      case 'dev_spawn':
+        return this.handleDevSpawn(conn, msg);
+      case 'dev_grant':
+        return this.handleDevGrant(conn, msg);
       case 'enter_world':
         return this.handleEnterWorld(conn, msg);
       case 'move':
@@ -3801,6 +3941,8 @@ export class GameServer {
         return this.handleDropItem(conn, msg);
       case 'set_hotbar':
         return this.handleSetHotbar(conn, msg);
+      case 'set_identity':
+        return this.handleSetIdentity(conn, msg);
       case 'advance':
         return this.handleAdvance(conn, msg);
       case 'treat':
@@ -4132,6 +4274,9 @@ export class GameServer {
       reach: Math.max(ATTACK_RANGE, this.loadoutOf(conn).range),
       roundTicks: this.combatRoundTicks,
       hotbar: conn.character?.hotbar ?? null,
+      identity: conn.character
+        ? { real: conn.character.name, ...(conn.character.identity ?? { hooded: null, disguised: null, use: 'real' as const }) }
+        : null,
       unspent: advancementUnspent(
         sheet.level,
         cls?.spellcasting ?? false,
@@ -6340,7 +6485,7 @@ export class GameServer {
         height: def.height,
         legend: def.legend,
         tiles: def.tiles,
-        transitions: this.transitionsFor(areaId).map(({ x, y }) => ({ x, y })),
+        transitions: this.transitionsFor(areaId).map(({ x, y, name }) => ({ x, y, ...(name ? { name } : {}) })),
       },
       entities: entities.map((e) => toWireEntity(e, descriptors.get(e.id)!)),
       inventory: items.map(toWireItem),
@@ -6509,7 +6654,9 @@ export class GameServer {
       channel: msg.channel,
       text: msg.text,
       languageId,
-      declareAs: msg.declareAs,
+      // An explicit declaration (D-218, kept for scripts and bots) or,
+      // ordinarily, whichever identity the speaker is using (D-645).
+      declareAs: msg.declareAs ?? this.spokenNameFor(conn, speaker),
       introduce: msg.introduce && introTarget ? { target: introTarget, name: msg.introduce.name } : undefined,
     });
     this.countDeed(conn);
@@ -6645,16 +6792,26 @@ export class GameServer {
       const understands = isSelf || listener.character.languages.includes(languageId);
       const heardText = understands ? text : scrambleSpeech(text, languageId);
 
-      // Resolve the descriptor BEFORE any knowledge update: the line reads as
-      // the listener knew the speaker at the moment of hearing.
-      const descriptor = isSelf
+      // Resolve the descriptor before any knowledge update — and AGAIN after
+      // a name lands (D-645): the line that carries a name reads with it,
+      // "Gareth Hale says", rather than one line late.
+      let descriptor = isSelf
         ? speakerCharacter!.name
         : seen
           ? await this.descriptorFor(listener, speaker)
           : 'a voice from somewhere unseen';
 
       let impression: 'rings_false' | 'certain_false' | undefined;
-      if (declaring && !isSelf && seen && understands) {
+      // ⚠ Contested ONCE per name per listener (D-645). Every utterance now
+      // carries a name, and re-rolling Insight on each would let a listener
+      // simply wait a lie out; a name they already hold under this
+      // presentation is not news and is not rolled again. A CHANGE of name —
+      // the disguise coming on or off — is news, and is.
+      const alreadyKnown = declaring && !isSelf && seen && understands
+        ? (await this.store.getKnowledge(listener.character.id, [speakerCharacter!.id], speaker.presentation))
+          .get(speakerCharacter!.id)?.knownName?.toLowerCase() === opts.declareAs!.toLowerCase()
+        : false;
+      if (declaring && !isSelf && seen && understands && !alreadyKnown) {
         const result = resolveNameContest({
           truthful,
           speakerBluff: speakerCharacter!.bluff,
@@ -6672,6 +6829,7 @@ export class GameServer {
           provenance: 'self_claimed',
           impression: result,
         });
+        descriptor = await this.descriptorFor(listener, speaker);
       }
 
       // "This is X": attaches to the target's presented identity, provenance
@@ -7003,6 +7161,7 @@ export class GameServer {
   }
 
   reloadContent(next: Content): { applied: string[]; deferred: string[] } {
+    this.derivedDoorCache.clear();
     const prev = this.content;
     const applied: string[] = [];
     const deferred: string[] = [];
@@ -7174,10 +7333,24 @@ export class GameServer {
     return this.connsByArea.get(areaId)?.size ?? 0;
   }
 
-  private transitionsFor(areaId: string): AreaDef['transitions'] {
-    const def = this.world.getAreaDef(areaId);
+  /**
+   * Every door out of an area (D-641): the authored one-way transitions, the
+   * doors its linked markers make, and whatever the runtime overlaid (a DM's
+   * temporary area). Derived once per area and cached, because the movement
+   * tick asks on every step; the cache is dropped whenever the set of areas
+   * or the content changes.
+   */
+  private derivedDoorCache = new Map<string, Doorway[]>();
+
+  private transitionsFor(areaId: string): Doorway[] {
+    let doors = this.derivedDoorCache.get(areaId);
+    if (!doors) {
+      const def = this.world.getAreaDef(areaId);
+      doors = allTransitions(def, (id) => (this.world.hasArea(id) ? this.world.getAreaDef(id) : null));
+      this.derivedDoorCache.set(areaId, doors);
+    }
     const overlay = this.runtimeTransitions.get(areaId);
-    return overlay ? [...def.transitions, ...overlay] : def.transitions;
+    return overlay ? [...doors, ...overlay] : doors;
   }
 
   getAreaLightingOverride(areaId: string): AreaDef['lighting'] | null {
@@ -7232,6 +7405,7 @@ export class GameServer {
       scripts: [],
     };
     this.world.addArea(def);
+    this.derivedDoorCache.clear();
     this.tempAreaDefs.set(tempId, def);
     let overlay = this.runtimeTransitions.get(link.areaId);
     if (!overlay) this.runtimeTransitions.set(link.areaId, (overlay = []));
@@ -7251,6 +7425,7 @@ export class GameServer {
     this.connsByArea.delete(tempId);
     for (const entity of this.world.entitiesIn(tempId)) this.world.despawn(entity.id);
     this.world.removeArea(tempId);
+    this.derivedDoorCache.clear();
     this.tempAreaDefs.delete(tempId);
     this.lightingOverrides.delete(tempId);
     for (const [hostId, overlay] of this.runtimeTransitions) {
@@ -7498,6 +7673,8 @@ export class GameServer {
       // this time, and the test still had to find that the delta EVENT's
       // schema is a second copy of the shape that stripped it on the way in.
       && before.weaponVfx === look.weaponVfx
+      // And the off-hand (D-646): a shield picked up changes no flag above.
+      && before.offhandArt === look.offhandArt
       && sameGarments) {
       return;
     }

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { maxHpFor, resolveAttributes } from '@rc/shared';
-import type { CharacterAdvances, EquipSlot } from '@rc/shared';
+import type { CharacterAdvances, CharacterIdentity, EquipSlot } from '@rc/shared';
 import { startingBuild } from './types';
 import type {
   Account,
@@ -80,6 +80,7 @@ export class MemoryStore implements Store {
       look: c.look ?? null,
       advances: null,
       hotbar: null,
+      identity: null,
       kitGranted: false,
       id: randomUUID(),
       coin: 0,
@@ -140,6 +141,12 @@ export class MemoryStore implements Store {
     const c = this.characters.get(id);
     if (!c) throw new Error(`saveCharacterHotbar: no character ${id}`);
     c.hotbar = [...hotbar];
+  }
+
+  async saveCharacterIdentity(id: string, identity: CharacterIdentity): Promise<void> {
+    const c = this.characters.get(id);
+    if (!c) throw new Error(`saveCharacterIdentity: no character ${id}`);
+    c.identity = { ...identity };
   }
 
   async saveCharacterAdvances(id: string, advances: CharacterAdvances): Promise<void> {

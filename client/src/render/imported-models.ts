@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { CHARACTER_SLOTS, markingSwap, skinPalette } from '@rc/shared';
 import { assemble } from './assembly';
+import { parsePolygonPart } from '@rc/shared';
 import { HOOD_ID, hoodPack, hoodStem } from './hood';
 
 /** The order parts are fed to `assemble`. See `dressedParts`. */
@@ -449,6 +450,17 @@ export function dressedParts(
     worn.set(slot, { pack: outfit.parts.pack, stem });
   }
   for (const id of wearing) layer(worn, id, sex as 'male' | 'female', wardrobe);
+  // ⚠ Slots concealed by what is worn are DROPPED, not drawn under it. A
+  // `No_Hair` hood is cut to replace the hair and a closed helm to replace
+  // the whole head (D-558): assembling the hidden part as well drew the
+  // hair through the hood, which is what the stakeholder saw. Concealment
+  // is read off the PART (the same rule the studio warns with), so a hood
+  // cut around hair still shows it.
+  const hidden = new Set<string>();
+  for (const [slot, part] of worn) {
+    for (const c of parsePolygonPart(part.stem)?.conceals ?? []) if (c !== slot) hidden.add(c);
+  }
+  for (const slot of hidden) worn.delete(slot);
   return SLOT_ORDER.flatMap((slot) => {
     const part = worn.get(slot);
     return part ? [{ slot, pack: part.pack, stem: part.stem }] : [];

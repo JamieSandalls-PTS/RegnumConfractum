@@ -354,7 +354,7 @@ class PropPlacer:
 def reserved_tiles(doc):
     """Tiles that must stay clear: spawn, transitions, nodes, stations."""
     out = {(doc["spawn"]["x"], doc["spawn"]["y"])}
-    for tr in doc.get("transitions", []):
+    for tr in doc.get("transitions", []) + doc.get("markers", []):
         out.add((tr["x"], tr["y"]))
         # And the tile you arrive on, plus its neighbours, so an arrival is
         # never boxed in by scenery.
@@ -682,17 +682,27 @@ def edge_pair(side):
 
 
 links = [('n', 'round-farm'), ('e', 'round-mine'), ('w', 'round-wood'), ('s', 'round-south')]
+def link_markers(a, at, b, bt):
+    """A linked pair of named way-markers (D-641), one in each area."""
+    def add(doc, other, x, y):
+        n = 1 + sum(1 for m in doc.setdefault("markers", []) if m["id"].startswith("to-" + other["id"]))
+        m = {"id": "to-%s-%d" % (other["id"], n), "name": "To %s" % other["name"], "x": x, "y": y}
+        doc["markers"].append(m)
+        return m
+    ma = add(a, b, at[0], at[1])
+    mb = add(b, a, bt[0], bt[1])
+    ma["to"] = {"area": b["id"], "marker": mb["id"]}
+    mb["to"] = {"area": a["id"], "marker": ma["id"]}
+
 for side, spoke in links:
     town_tiles, spoke_tiles = edge_pair(side)
     for (tx, ty), (sx, sy) in zip(town_tiles, spoke_tiles):
         # Step one tile INSIDE the destination so you never land on the
         # return transition and bounce straight back.
         inset = {'n': (sx, sy - 1), 's': (sx, sy + 1), 'e': (sx + 1, sy), 'w': (sx - 1, sy)}[side]
-        areas['round-town']["transitions"].append(
-            {"x": tx, "y": ty, "toArea": spoke, "toX": inset[0], "toY": inset[1]})
-        back = {'n': (tx, ty + 1), 's': (tx, ty - 1), 'e': (tx - 1, ty), 'w': (tx + 1, ty)}[side]
-        areas[spoke]["transitions"].append(
-            {"x": sx, "y": sy, "toArea": "round-town", "toX": back[0], "toY": back[1]})
+        # Arrivals land BESIDE the partner marker, derived at load (D-641), so
+        # nothing here chooses an inset tile any more.
+        link_markers(areas['round-town'], (tx, ty), areas[spoke], (sx, sy))
 
 # The way down: the south approach's far edge opens on floor 1, then each
 # floor's south stair opens on the next. The GATING is server-side (D-535) -
@@ -702,16 +712,11 @@ south = [list(r) for r in areas['round-south']["tiles"]]
 south[H - 1][MID] = south[H - 1][MID - 1] = ','
 areas['round-south']["tiles"] = [''.join(r) for r in south]
 for x in (MID, MID - 1):
-    areas['round-south']["transitions"].append(
-        {"x": x, "y": H - 1, "toArea": "round-dungeon-1", "toX": x, "toY": 1})
-    areas['round-dungeon-1']["transitions"].append(
-        {"x": x, "y": 0, "toArea": "round-south", "toX": x, "toY": H - 2})
+    link_markers(areas['round-south'], (x, H - 1), areas['round-dungeon-1'], (x, 0))
 for floor in (1, 2):
     for x in (MID, MID - 1):
-        areas['round-dungeon-%d' % floor]["transitions"].append(
-            {"x": x, "y": H - 1, "toArea": "round-dungeon-%d" % (floor + 1), "toX": x, "toY": 1})
-        areas['round-dungeon-%d' % (floor + 1)]["transitions"].append(
-            {"x": x, "y": 0, "toArea": "round-dungeon-%d" % floor, "toX": x, "toY": H - 2})
+        link_markers(areas['round-dungeon-%d' % floor], (x, H - 1),
+                     areas['round-dungeon-%d' % (floor + 1)], (x, 0))
 
 # --- DRESS THE MAP (D-542) -------------------------------------------------
 # Each area gets the clutter its purpose implies: a town square that looks
@@ -891,7 +896,7 @@ PRESERVED = ('assets', 'roofs', 'live', 'groundPaint', 'groundMaterials')
 # that are finished: the shape is carried across, and only the fields above --
 # what stands on the map -- are the person's to keep everywhere else.
 SHAPE_IS_AUTHORED = {'round-town'}
-SHAPE = ('width', 'height', 'tiles', 'legend', 'spawn', 'transitions',
+SHAPE = ('width', 'height', 'tiles', 'legend', 'spawn', 'transitions', 'markers',
          'stations', 'nodes', 'collision')
 
 for aid, doc in areas.items():

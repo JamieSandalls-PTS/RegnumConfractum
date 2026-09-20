@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { AreaSchema, type AreaDef } from '@rc/shared';
 import { checkAreaForSave } from '../src/editor-check';
@@ -20,23 +20,31 @@ function load(id: string): AreaDef {
   return AreaSchema.parse(JSON.parse(readFileSync(`${contentDir}/areas/${id}.json`, 'utf8')));
 }
 
+/** Every other shipped area, as the routes pass them: a marker link is a fact about two files (D-641). */
+function everyAreaBut(id: string): AreaDef[] {
+  return readdirSync(`${contentDir}/areas`)
+    .filter((f) => f.endsWith('.json') && f !== `${id}.json`)
+    .map((f) => load(f.replace(/\.json$/, '')));
+}
+
 describe('the editor refuses to write content that would fail the build', () => {
   it('accepts the areas that are already in the repository', () => {
     for (const id of ['broken-yard', 'hanged-ferryman', 'round-town', 'sunken-crypt']) {
-      expect(checkAreaForSave(load(id)).errors, id).toEqual([]);
+      expect(checkAreaForSave(load(id), everyAreaBut(id)).errors, id).toEqual([]);
     }
   });
 
   it('⚠ refuses a placed effect nothing defines, when it is told what exists (D-639)', () => {
     const area = load('hanged-ferryman');
+    const others = everyAreaBut('hanged-ferryman');
     const doc = { ...area, vfx: [...area.vfx, { vfx: 'will-o-wisp', x: 4, y: 4, z: 0, scale: 1 }] };
     const known = new Set(area.vfx.map((v) => v.vfx));
-    const { errors } = checkAreaForSave(doc, [], known);
+    const { errors } = checkAreaForSave(doc, others, known);
     expect(errors.some((e) => e.includes("'will-o-wisp'"))).toBe(true);
     // And accepts the shipped placements against the shipped effects.
-    expect(checkAreaForSave(area, [], known).errors).toEqual([]);
+    expect(checkAreaForSave(area, others, known).errors).toEqual([]);
     // Without a known set the check is skipped, as CI's partial scans are.
-    expect(checkAreaForSave(doc).errors).toEqual([]);
+    expect(checkAreaForSave(doc, others).errors.filter((e) => e.includes('vfx'))).toEqual([]);
   });
 
   it('refuses a wall that seals a corner off', () => {
@@ -93,7 +101,8 @@ describe('the editor refuses to write content that would fail the build', () => 
 
   it('refuses something standing in a doorway', () => {
     const area = load('broken-yard');
-    const exit = area.transitions[0]!;
+    // A way-marker is a door (D-641); something standing on it is refused as one.
+    const exit = area.markers[0]!;
     const blocked: AreaDef = {
       ...area,
       assets: [
@@ -109,7 +118,7 @@ describe('the editor refuses to write content that would fail the build', () => 
         },
       ],
     };
-    expect(checkAreaForSave(blocked).errors.join(' ')).toMatch(/exit .* blocked by/);
+    expect(checkAreaForSave(blocked, everyAreaBut('broken-yard')).errors.join(' ')).toMatch(/exit .* blocked by/);
   });
 
   it('refuses a facility with nowhere to stand', () => {
@@ -147,6 +156,7 @@ describe('the editor refuses to write content that would fail the build', () => 
   it('returns the parsed area when it accepts one, defaults and all', () => {
     const { area, errors } = checkAreaForSave(
       JSON.parse(readFileSync(`${contentDir}/areas/sunken-crypt.json`, 'utf8')),
+      everyAreaBut('sunken-crypt'),
     );
     expect(errors).toEqual([]);
     // Defaults resolved: the editor and the game work on the same document.

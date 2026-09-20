@@ -1386,16 +1386,20 @@
   ],
   "stations": [],
   "zone": "wilderness",
-  "transitions": [
-    {
-      "x": 3,
-      "y": 27,
-      "toArea": "broken-yard",
-      "toX": 26,
-      "toY": 26
-    }
-  ],
+  "transitions": [],
   "roofs": [],
   "scripts": [],
-  "ambience": "ambience-forest"
+  "ambience": "ambience-forest",
+  "markers": [
+    {
+      "id": "to-the-broken-yard",
+      "name": "To The Broken Yard",
+      "x": 3,
+      "y": 27,
+      "to": {
+        "area": "broken-yard",
+        "marker": "to-the-proving-ground"
+      }
+    }
+  ]
 }

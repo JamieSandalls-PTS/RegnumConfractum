@@ -1,6 +1,15 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { AreaSchema, VfxDefSchema, canStandAt, tileProblems, vfxReferenceProblems, type AreaDef } from '@rc/shared';
+import {
+  AreaSchema,
+  VfxDefSchema,
+  allTransitions,
+  canStandAt,
+  markerProblems,
+  tileProblems,
+  vfxReferenceProblems,
+  type AreaDef,
+} from '@rc/shared';
 import { listJson, unreachableTiles } from './validate-content';
 
 /** The effects a map may place (D-639), read off `content/vfx`. */
@@ -66,8 +75,13 @@ export function checkAreaForSave(
     );
   }
 
+  // Way-markers (D-641): the same rule the build applies, with the other
+  // areas in hand so a link can be checked both ways.
+  const lookup = (id: string): AreaDef | null => others.find((o) => o.id === id) ?? null;
+  errors.push(...markerProblems(area, lookup));
+
   // A transition you cannot stand on is a door that does not open.
-  for (const tr of area.transitions) {
+  for (const tr of allTransitions(area, lookup)) {
     const ch = area.tiles[tr.y]?.[tr.x];
     if (ch === undefined || !area.legend[ch]!.walkable) {
       errors.push(`the exit at (${tr.x},${tr.y}) to '${tr.toArea}' is not on a walkable tile`);
@@ -104,6 +118,18 @@ export function checkAreaForSave(
   // Doors pointing INTO this area, from everywhere else.
   for (const other of others) {
     if (other.id === area.id) continue;
+    // A marker elsewhere that links to one of ours must still find it — a
+    // resize or a delete that dropped the marker leaves the other room with
+    // a door to nowhere.
+    for (const m of other.markers) {
+      if (!m.to || m.to.area !== area.id) continue;
+      if (!area.markers.some((ours) => ours.id === m.to!.marker)) {
+        errors.push(
+          `'${other.id}' has a marker '${m.name}' linked to '${m.to.marker}' here, which no longer exists. `
+          + 'Unlink it there, or keep the marker.',
+        );
+      }
+    }
     for (const tr of other.transitions) {
       if (tr.toArea !== area.id) continue;
       const ch = area.tiles[tr.toY]?.[tr.toX];

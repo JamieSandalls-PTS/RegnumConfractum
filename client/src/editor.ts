@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { API } from './authoring-api';
 import { AssetVisual } from './render/asset-visual';
 import {
+  type MarkerDef,
   type EnvironmentAsset,
   type PlacedAsset,
   type Volume,
@@ -79,7 +80,7 @@ const stage = $('stage');
 // code-built types were the tile system's scenery and they are gone, along
 // with the 1,916 of them that stood in the authored areas. A map is built from
 // pack meshes.
-type Tool = 'select' | 'asset' | 'station' | 'node' | 'npc' | 'spawn' | 'exit' | 'roof'
+type Tool = 'select' | 'asset' | 'station' | 'node' | 'npc' | 'spawn' | 'marker' | 'links' | 'roof'
   | 'paint'
   // Effects standing in the area (D-639): a fire in a fireplace.
   | 'vfx';
@@ -163,6 +164,13 @@ let assetSearch = '';
 let assetVisuals = new Map<PlacedAsset, AssetVisual>();
 /** The placed asset being manipulated, and the drawing of its collision. */
 let selected: PlacedAsset | null = null;
+/**
+ * A placed EFFECT under selection (D-642): an index into `area.vfx`. A light
+ * is not a mesh and a raycast cannot hit it, so the select tool falls back to
+ * the nearest effect marker when it hits nothing else — which is how the
+ * stakeholder asked to reposition the lights.
+ */
+let selectedVfx: number | null = null;
 let maskView: VolumeView | null = null;
 /** Which volume of the selected asset's mask the fields are editing. */
 let maskIndex = 0;
@@ -196,9 +204,12 @@ let nodeType = 'iron-vein';
 let brush = 1;
 /** Where a newly placed exit leads, and to which tile in that area. */
 let roofStyle: 'thatch' | 'tile' | 'slate' | 'plank' = 'thatch';
-let exitTarget = '';
-let exitToX = 1;
-let exitToY = 1;
+/**
+ * Way-markers (D-641): the name the next click places, and the index of every
+ * marker in every area for the Links panel.
+ */
+let markerName = '';
+let markerIndex: { area: string; name: string; markers: MarkerDef[] }[] = [];
 /** Every area, for the exit tool's target picker. */
 let areaIndex: { id: string; name: string; width: number; height: number }[] = [];
 
@@ -451,6 +462,23 @@ function rebuildMarkers(): void {
   };
   markerGroup.add(plate(area.spawn.x, area.spawn.y, 0x63c26a, 0.09));
   for (const t of area.transitions) markerGroup.add(plate(t.x, t.y, 0xc4703a, 0.08));
+  // Way-markers (D-641): a ring and a post, blue when linked and amber when
+  // not, so a door that goes nowhere is visible from across the map.
+  for (const m of area.markers) {
+    const colour = m.to ? 0x8fc4ff : 0xe0a040;
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.3, 0.46, 24),
+      new THREE.MeshBasicMaterial({ color: colour, transparent: true, opacity: 0.8, side: THREE.DoubleSide }),
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(m.x, 0.1, m.y);
+    const post = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.05, 1.6, 8),
+      new THREE.MeshBasicMaterial({ color: colour, transparent: true, opacity: 0.6 }),
+    );
+    post.position.set(m.x, 0.9, m.y);
+    markerGroup.add(ring, post);
+  }
   for (const n of area.nodes) {
     const m = new THREE.Mesh(
       new THREE.ConeGeometry(0.22, 0.5, 6),
@@ -808,6 +836,7 @@ function groundAtScreen(px: number, py: number): { x: number; y: number } | null
 
 function select(a: PlacedAsset | null): void {
   selected = a;
+  if (a) selectedVfx = null;
   maskIndex = 0;
   refreshMask();
   renderPanel();
@@ -845,6 +874,16 @@ function refreshMask(): void {
  * and hopeless per wheel notch — the same lesson D-565 recorded for weapon
  * offsets, in a place where it costs a network round trip.
  */
+/** Move or resize the selected effect; the live preview follows (D-642). */
+function editSelectedVfx(change: Partial<{ x: number; y: number; z: number; scale: number }>): void {
+  if (!area || selectedVfx === null) return;
+  const v = area.vfx[selectedVfx];
+  if (!v) return;
+  Object.assign(v, change);
+  rebuildMarkers();
+  setDirty(true);
+}
+
 function editSelected(change: Partial<PlacedAsset>): void {
   if (!selected || !area) return;
   Object.assign(selected, change);
@@ -932,11 +971,31 @@ function renderSelectTool(opts: HTMLElement): void {
     opts.appendChild(note);
   }
 
+  if (!selected && selectedVfx !== null && area?.vfx[selectedVfx]) {
+    const v = area.vfx[selectedVfx]!;
+    const h = document.createElement('h2');
+    h.textContent = `effect — ${v.vfx}`;
+    opts.appendChild(h);
+    const place = document.createElement('div');
+    place.className = 'fields';
+    place.append(
+      numField('east (m)', v.x, nudge, (x) => editSelectedVfx({ x })),
+      numField('south (m)', v.y, nudge, (y) => editSelectedVfx({ y })),
+      numField('height (m)', v.z, nudge, (z) => editSelectedVfx({ z })),
+      numField('scale', v.scale, 0.05, (sc) => editSelectedVfx({ scale: Math.max(0.1, sc) })),
+    );
+    opts.append(place);
+    const note = document.createElement('div');
+    note.className = 'hint';
+    note.textContent = 'Drag to move it; shift-wheel raises it; Delete removes it. It burns here as it will in the game.';
+    opts.appendChild(note);
+    return;
+  }
   if (!selected) {
     const hint = document.createElement('div');
     hint.className = 'hint';
     hint.innerHTML =
-      'Click something you have placed to select it. Then <b>drag</b> to move it, '
+      'Click something you have placed to select it — a mesh, or an effect (a light). Then <b>drag</b> to move it, '
       + '<b>R</b> to turn it, <b>Delete</b> to remove it — or scroll any field below.';
     opts.appendChild(hint);
     return;
@@ -1273,25 +1332,36 @@ function applyAt(x: number, y: number, erase: boolean): boolean {
       }
     }
   }
-  if (tool === 'exit') {
-    const existing = area.transitions.findIndex((t) => t.x === x && t.y === y);
+  if (tool === 'marker') {
+    const existing = area.markers.findIndex((m) => m.x === x && m.y === y);
     if (erase) {
       if (existing >= 0) {
-        area.transitions.splice(existing, 1);
+        const m = area.markers[existing]!;
+        // A linked marker is unlinked on the SERVER first, so the partner's
+        // file does not keep a door to a marker that is about to be gone.
+        if (m.to) void unlinkMarker(m);
+        area.markers.splice(existing, 1);
         rebuildMarkers();
+        changed = true;
+      }
+    } else if (existing >= 0) {
+      // Clicking a marker with the tool up renames it to the typed name.
+      if (markerName.trim() && area.markers[existing]!.name !== markerName.trim()) {
+        area.markers[existing]!.name = markerName.trim();
         changed = true;
       }
     } else {
-      const ch = area.tiles[y]?.[x];
-      if (ch !== undefined && area.legend[ch]!.walkable && exitTarget) {
-        const doorway = { x, y, toArea: exitTarget, toX: exitToX, toY: exitToY };
-        if (existing >= 0) area.transitions[existing] = doorway;
-        else area.transitions.push(doorway);
+      if (!markerName.trim()) {
+        setStatus(['name the marker first — what a player sees it called'], 'bad');
+      } else if (canStandAt(area, { x, y })) {
+        area.markers.push({ id: uniqueMarkerId(markerName), name: markerName.trim(), x, y });
         rebuildMarkers();
-        rebuildAll();
         changed = true;
+      } else {
+        setStatus(['a marker needs a tile a body can stand on'], 'bad');
       }
     }
+    renderPanel();
   }
   if (tool === 'spawn' && !erase) {
     const ch = area.tiles[y]?.[x];
@@ -1344,7 +1414,7 @@ function resizeArea(width: number, height: number, offsetX: number, offsetY: num
   const droppedAssets = area.assets.length;
   const droppedStations = area.stations.length;
   const droppedNodes = area.nodes.length;
-  const droppedExits = area.transitions.length;
+  const droppedExits = area.transitions.length + area.markers.length;
   const droppedRoofs = area.roofs.length;
 
   area.width = width;
@@ -1354,6 +1424,7 @@ function resizeArea(width: number, height: number, offsetX: number, offsetY: num
   area.stations = shift(area.stations);
   area.nodes = shift(area.nodes);
   area.transitions = shift(area.transitions);
+  area.markers = shift(area.markers);
   // Roofs are tiles too, and a roof tile off the edge of the map fails the
   // schema — the resize has to carry them like everything else.
   area.roofs = shift(area.roofs);
@@ -1558,7 +1629,7 @@ function chip(label: string, on: boolean, onClick: () => void, swatch?: string):
 function renderPanel(): void {
   const tools = $('tools');
   tools.innerHTML = '';
-  for (const t of ['select', 'asset', 'paint', 'vfx', 'station', 'node', 'npc', 'spawn', 'exit', 'roof'] as Tool[]) {
+  for (const t of ['select', 'asset', 'paint', 'vfx', 'station', 'node', 'npc', 'spawn', 'marker', 'links', 'roof'] as Tool[]) {
     tools.appendChild(chip(t, tool === t, () => { tool = t; }));
   }
 
@@ -1611,8 +1682,10 @@ function renderPanel(): void {
     note.className = 'hint';
     note.textContent = 'Click a walkable tile to move where characters arrive.';
     opts.appendChild(note);
-  } else if (tool === 'exit') {
-    renderExitTool(opts);
+  } else if (tool === 'marker') {
+    renderMarkerTool(opts);
+  } else if (tool === 'links') {
+    renderLinksTool(opts);
   } else if (tool === 'vfx') {
     renderVfxTool(opts);
   } else if (tool === 'roof') {
@@ -1808,6 +1881,7 @@ function renderMaterialEditor(opts: HTMLElement): void {
     // the promise the painter already makes for art that has not landed.
     groundMats = [...groundMats, {
       id, name: name.trim(), repeat: 1, tint: '#6b7a55', wash: '#ffffff', walkable: true,
+      variation: { rotate: 0, zoom: 0, patch: 6 },
     }].sort((a, b) => a.name.localeCompare(b.name));
     groundPick = id;
     void saveMaterial(id);
@@ -1892,6 +1966,23 @@ function renderMaterialEditor(opts: HTMLElement): void {
   wash.value = mat.wash;
   wash.onchange = () => { mat.wash = wash.value; commit(); };
   field('wash (over art)', wash);
+
+  // Breaking the tiling (D-642). Three numbers, all previewed live: the
+  // painted ground is rebuilt with the material as it now stands.
+  const vh = document.createElement('h2');
+  vh.textContent = 'Variation — breaks the repeat';
+  opts.appendChild(vh);
+  const variation = mat.variation ?? (mat.variation = { rotate: 0, zoom: 0, patch: 6 });
+  const live = (): void => { commit(); rebuildBrush(); };
+  slider(opts, 'rotate randomly', variation.rotate, 0, 1, 0.05, '', (v) => { variation.rotate = v; live(); });
+  slider(opts, 'zoom randomly', variation.zoom, 0, 1, 0.05, '', (v) => { variation.zoom = v; live(); });
+  slider(opts, 'patch size', variation.patch, 1, 32, 1, 'm', (v) => { variation.patch = v; live(); });
+  const vnote = document.createElement('div');
+  vnote.className = 'hint';
+  vnote.textContent = 'Each patch of ground shows the texture turned and zoomed by its own random amount, '
+    + 'blended into its neighbours, so mud and grass stop reading as a grid. Natural ground wants '
+    + 'rotate near 1 and a little zoom; cobbles and boards want none.';
+  opts.appendChild(vnote);
 
   const walk = document.createElement('input');
   walk.type = 'checkbox';
@@ -2275,69 +2366,178 @@ async function selectAssetPack(id: string): Promise<void> {
   renderPanel();
 }
 
-function renderExitTool(opts: HTMLElement): void {
+/** A slug of the name, made unique among this area's markers. */
+function uniqueMarkerId(name: string): string {
+  const base = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'marker';
+  const taken = new Set((area?.markers ?? []).map((m) => m.id));
+  let id = base;
+  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
+  return id;
+}
+
+async function loadMarkerIndex(): Promise<void> {
+  try {
+    const got = (await (await fetch(`${API}/markers`)).json()) as { areas: typeof markerIndex };
+    markerIndex = got.areas;
+  } catch {
+    markerIndex = [];
+  }
+}
+
+/**
+ * Link two markers, or unlink one, on the SERVER — it writes both files
+ * through the same check the save button uses (D-641). The area on screen
+ * is then patched to match, so the panel and the file agree.
+ */
+async function linkMarkers(a: { area: string; marker: string }, b: { area: string; marker: string }): Promise<void> {
+  const res = await fetch(`${API}/link`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ a, b }),
+  });
+  await afterLinkChange(res);
+}
+
+async function unlinkMarker(m: MarkerDef): Promise<void> {
+  if (!area) return;
+  const res = await fetch(`${API}/link`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ area: area.id, marker: m.id }),
+  });
+  await afterLinkChange(res);
+}
+
+async function afterLinkChange(res: Response): Promise<void> {
+  const got = (await res.json()) as { ok: boolean; errors?: string[]; areas?: { area: string; markers: MarkerDef[] }[] };
+  if (!got.ok) return setStatus(['the link was REFUSED:', ...(got.errors ?? [])], 'bad');
+  for (const changed of got.areas ?? []) {
+    if (area && changed.area === area.id) {
+      // Keep this area's own markers (positions, names) and take the links.
+      for (const m of area.markers) {
+        const theirs = changed.markers.find((x) => x.id === m.id);
+        if (theirs?.to) m.to = theirs.to;
+        else delete m.to;
+      }
+    }
+  }
+  await loadMarkerIndex();
+  rebuildMarkers();
+  setStatus(['links written to both areas'], 'good');
+  renderPanel();
+}
+
+/**
+ * The marker tool (D-641): name it, click to stand it there. A marker is a
+ * named place; linking it to another is the Links panel's job.
+ */
+function renderMarkerTool(opts: HTMLElement): void {
   if (!area) return;
   const h = document.createElement('h2');
-  h.textContent = 'Leads to';
+  h.textContent = 'Name';
   opts.appendChild(h);
-
-  const select = document.createElement('select');
-  if (!exitTarget && areaIndex.length > 0) {
-    exitTarget = areaIndex.find((a) => a.id !== area!.id)?.id ?? areaIndex[0]!.id;
-  }
-  select.innerHTML = areaIndex
-    .map((a) => `<option value="${a.id}"${a.id === exitTarget ? ' selected' : ''}>${a.name} — ${a.id}</option>`)
-    .join('');
-  select.value = exitTarget;
-  select.addEventListener('change', () => { exitTarget = select.value; });
-  opts.appendChild(select);
-
-  const coords = document.createElement('div');
-  coords.className = 'row';
-  const pair: [string, () => number, (v: number) => void][] = [
-    ['to x', () => exitToX, (v) => { exitToX = v; }],
-    ['to y', () => exitToY, (v) => { exitToY = v; }],
-  ];
-  for (const [label, get, set] of pair) {
-    const wrap = document.createElement('div');
-    wrap.style.flex = '1';
-    const lab = document.createElement('div');
-    lab.className = 'grouphead';
-    lab.textContent = label;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = String(get());
-    input.addEventListener('change', () => {
-      const n = Number(input.value);
-      if (Number.isFinite(n) && n >= 0) set(Math.floor(n));
-    });
-    wrap.append(lab, input);
-    coords.appendChild(wrap);
-  }
-  opts.appendChild(coords);
+  const name = document.createElement('input');
+  name.type = 'text';
+  name.placeholder = 'what a player sees — "the cellar stair"';
+  name.value = markerName;
+  name.style.width = '100%';
+  name.oninput = () => { markerName = name.value; };
+  opts.appendChild(name);
 
   const note = document.createElement('div');
   note.className = 'hint';
-  note.innerHTML = 'Click a walkable tile to put an exit there (clicking an '
-    + 'existing one repoints it); right-click removes. <b>Exits are one-way</b> — '
-    + 'the way back is a transition in the other area, so place that one too.';
+  note.innerHTML = 'Click a tile a body can stand on to place a marker with that name; '
+    + 'click a marker to rename it; right-click removes. A marker does nothing until it '
+    + 'is <b>linked</b> to another (the <b>links</b> tool) — walking onto one carries you to the other, '
+    + 'and you arrive beside it, never on it.';
   opts.appendChild(note);
 
   const h2 = document.createElement('h2');
-  h2.textContent = `Exits here (${area.transitions.length})`;
+  h2.textContent = `Markers here (${area.markers.length})`;
   opts.appendChild(h2);
-  for (const t of area.transitions) {
+  for (const m of area.markers) {
     const row = document.createElement('div');
     row.className = 'hint';
     row.style.marginTop = '3px';
-    row.innerHTML = `(${t.x},${t.y}) &rarr; <b>${t.toArea}</b> (${t.toX},${t.toY}) `;
+    const where = m.to ? `→ <b>${m.to.area}</b> / ${m.to.marker}` : '<i style="opacity:.6">unlinked</i>';
+    row.innerHTML = `<b>${m.name}</b> <span style="opacity:.6">(${m.id})</span> at (${m.x},${m.y}) ${where} `;
     const jump = document.createElement('button');
     jump.className = 'chip';
     jump.textContent = 'go';
-    jump.addEventListener('click', () => { camTarget.set(t.x, 0, t.y); });
+    jump.addEventListener('click', () => { camTarget.set(m.x, 0, m.y); });
     row.appendChild(jump);
     opts.appendChild(row);
   }
+}
+
+/**
+ * The Links panel (D-641): every marker in this area against every marker in
+ * every area. Choosing one writes the link on BOTH files at once.
+ *
+ * ⚠ Only for a SAVED map. The server links what is on disk; a marker placed a
+ * moment ago and not yet saved is not there to link, so the panel says save
+ * first rather than offering a list the server would refuse.
+ */
+function renderLinksTool(opts: HTMLElement): void {
+  if (!area) return;
+  const h = document.createElement('h2');
+  h.textContent = 'Links';
+  opts.appendChild(h);
+  if (dirty) {
+    const warn = document.createElement('div');
+    warn.className = 'hint bad';
+    warn.textContent = 'Save the map first (ctrl+S): links are written on disk, to both areas.';
+    opts.appendChild(warn);
+    return;
+  }
+  if (markerIndex.length === 0) {
+    void loadMarkerIndex().then(() => { if (tool === 'links') renderPanel(); });
+    const note = document.createElement('div');
+    note.className = 'hint';
+    note.textContent = 'Reading every area\'s markers…';
+    opts.appendChild(note);
+    return;
+  }
+  const options: { value: string; label: string }[] = [{ value: '', label: '— not linked —' }];
+  for (const entry of markerIndex) {
+    for (const m of entry.markers) {
+      if (entry.area === area.id) continue;
+      options.push({ value: `${entry.area}/${m.id}`, label: `${entry.name} — ${m.name}` });
+    }
+  }
+  if (area.markers.length === 0) {
+    const none = document.createElement('div');
+    none.className = 'hint';
+    none.textContent = 'No markers here yet. Place some with the marker tool, save, and come back.';
+    opts.appendChild(none);
+  }
+  for (const m of area.markers) {
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-top:8px';
+    const label = document.createElement('div');
+    label.className = 'grouphead';
+    label.textContent = `${m.name} (${m.x},${m.y})`;
+    const sel = document.createElement('select');
+    sel.style.width = '100%';
+    for (const o of options) sel.add(new Option(o.label, o.value));
+    sel.value = m.to ? `${m.to.area}/${m.to.marker}` : '';
+    sel.onchange = () => {
+      if (!sel.value) {
+        void unlinkMarker(m);
+        return;
+      }
+      const [otherArea, otherMarker] = sel.value.split('/') as [string, string];
+      void linkMarkers({ area: area!.id, marker: m.id }, { area: otherArea, marker: otherMarker });
+    };
+    row.append(label, sel);
+    opts.appendChild(row);
+  }
+  const note = document.createElement('div');
+  note.className = 'hint';
+  note.innerHTML = 'A link is written on <b>both</b> markers, so the way back exists the moment '
+    + 'the way there does. Choosing a marker that was linked elsewhere lets its old partner go. '
+    + 'The build refuses a link that only goes one way.';
+  opts.appendChild(note);
 }
 
 /**
@@ -2607,6 +2807,8 @@ let drag: {
   x: number; y: number; button: number; moved: boolean; panning: boolean;
   /** Shift-dragging to turn something, rather than to pan or orbit. */
   spinning: boolean;
+  /** Alt + left-drag: the camera turns and nothing else happens. */
+  orbiting: boolean;
 } | null = null;
 let painting = false;
 /** Where on the selected object the cursor took hold of it. */
@@ -2681,11 +2883,23 @@ stage.addEventListener('pointerdown', (e) => {
   // another had none but a 15-degree key, and lining two meshes up by eye is
   // the motion a map is actually built out of.
   const spinning = e.button === 0 && e.shiftKey;
+  // ORBIT: alt + left-drag turns the camera whatever tool is up. Every tool
+  // had claimed the plain left-drag for itself — a run of assets, a brush
+  // stroke, a grab — so with the tile tool gone (D-638) and `asset` the
+  // default, there was no tool left on which dragging orbited, which the
+  // stakeholder reported as orbiting having stopped working. One binding
+  // that always works beats remembering which tool lets go of the mouse.
+  const orbiting = e.button === 0 && e.altKey && !e.shiftKey;
   drag = {
     x: e.clientX, y: e.clientY, button: e.button, moved: false,
     panning: e.shiftKey && !spinning,
     spinning,
+    orbiting,
   };
+  if (orbiting) {
+    e.preventDefault();
+    return;
+  }
   // A spin takes the gesture before anything else looks at it: no run opens,
   // no tile is painted, the camera does not orbit.
   if (spinning) {
@@ -2705,7 +2919,18 @@ stage.addEventListener('pointerdown', (e) => {
       // the instant you touch it.
       if (g) grab = { dx: g.x - hit.x, dy: g.y - hit.y };
       snapshot();
+      return;
     }
+    // Nothing solid under the cursor: an effect, perhaps (D-642).
+    const g = groundAtScreen(e.clientX, e.clientY);
+    const near = g ? nearestVfx(g.x, g.y) : -1;
+    selectedVfx = near >= 0 ? near : null;
+    if (near >= 0 && g && area) {
+      const v = area.vfx[near]!;
+      grab = { dx: g.x - v.x, dy: g.y - v.y };
+      snapshot();
+    }
+    renderPanel();
     return;
   }
   if (tool === 'paint') {
@@ -2739,7 +2964,10 @@ stage.addEventListener('pointerdown', (e) => {
   // One snapshot per stroke, not per tile: undo should step back a brush
   // stroke, which is what a person thinks of as one action.
   snapshot();
-  painting = true;
+  // ⚠ An effect, a spawn or an exit is ONE thing per click. Treating them as
+  // a brush laid a hearth on every tile the cursor crossed while the button
+  // was down, and left nothing for a plain drag to do but that.
+  painting = tool !== 'vfx' && tool !== 'spawn' && tool !== 'marker' && tool !== 'links';
   applyAt(tile.x, tile.y, e.button === 2);
 });
 
@@ -2750,6 +2978,12 @@ window.addEventListener('pointermove', (e) => {
   hoverGround = hovered ? groundAtScreen(e.clientX, e.clientY) : null;
   $('hud-tile').textContent = hovered ? `(${hovered.x}, ${hovered.y})` : '';
   if (!drag) return;
+  if (drag.orbiting) {
+    scene.rotateBy((e.clientX - drag.x) * 0.008);
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+    return;
+  }
   if (drag.spinning) {
     // Horizontal travel turns it: right is clockwise, which is the way the
     // map's own rotation runs. 0.5 deg/px lands a half turn in a comfortable
@@ -2765,6 +2999,13 @@ window.addEventListener('pointermove', (e) => {
   if (grab && selected && drag.button === 0) {
     const g = groundAtScreen(e.clientX, e.clientY);
     if (g) editSelected({ x: g.x - grab.dx, y: g.y - grab.dy });
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+    return;
+  }
+  if (grab && selectedVfx !== null && drag.button === 0) {
+    const g = groundAtScreen(e.clientX, e.clientY);
+    if (g) editSelectedVfx({ x: snapped(g.x - grab.dx), y: snapped(g.y - grab.dy) });
     drag.x = e.clientX;
     drag.y = e.clientY;
     return;
@@ -2843,6 +3084,19 @@ window.addEventListener('keydown', (e) => {
   }
   if (e.key === 'Escape') {
     select(null);
+    selectedVfx = null;
+    renderPanel();
+    return;
+  }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedVfx !== null && area) {
+    if ((e.target as HTMLElement | null)?.tagName === 'INPUT') return;
+    e.preventDefault();
+    snapshot();
+    area.vfx.splice(selectedVfx, 1);
+    selectedVfx = null;
+    rebuildMarkers();
+    setDirty(true);
+    renderPanel();
     return;
   }
   if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
@@ -3064,7 +3318,8 @@ declare global {
         npcMarkers: number;
       };
       resize: (w: number, h: number, ox?: number, oy?: number) => string;
-      setExit: (toArea: string, toX: number, toY: number) => void;
+      /** Names the marker the next click places (D-641). */
+      setMarkerName: (name: string) => void;
       setRoof: (style: 'thatch' | 'tile' | 'slate' | 'plank') => void;
       /** Picks the effect the next click places (D-639). */
       setVfx: (id: string, z?: number, scale?: number) => void;
@@ -3114,15 +3369,13 @@ window.__editor = {
       (o) => (o as THREE.Mesh).geometry?.type === 'CapsuleGeometry',
     ).length,
     roofs: area?.roofs.length ?? 0,
-    exits: area?.transitions.length ?? 0,
+    exits: (area?.transitions.length ?? 0) + (area?.markers.length ?? 0),
     size: area ? `${area.width}x${area.height}` : '',
     lights: lightRig.sourceCount,
     dirty,
   }),
   resize: (w: number, h: number, ox = 0, oy = 0) => resizeArea(w, h, ox, oy),
-  setExit: (toArea: string, toX: number, toY: number) => {
-    exitTarget = toArea; exitToX = toX; exitToY = toY; renderPanel();
-  },
+  setMarkerName: (name: string) => { markerName = name; renderPanel(); },
   setRoof: (style: 'thatch' | 'tile' | 'slate' | 'plank') => { roofStyle = style; renderPanel(); },
   setVfx: (id: string, z = 0, scale = 1) => { vfxPick = id; vfxZ = z; vfxScale = scale; renderPanel(); },
   vfx: () => ({ ...vfxPreview.stats(), defs: vfxDefinitions().length }),

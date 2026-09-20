@@ -21,6 +21,7 @@ const gameServer = new GameServer({
   defaultAreaId: config.defaultAreaId,
   round: config.round.enabled ? config.round : undefined,
   allowBots: config.round.enabled && config.allowBots,
+  devMenu: config.devMenu,
   log: (msg) => console.log(`[server] ${msg}`),
 });
 if (config.round.enabled) {

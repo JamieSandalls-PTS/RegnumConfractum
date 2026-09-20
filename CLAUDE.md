@@ -1751,6 +1751,21 @@ weapon, as stance and art are. ⚠ Lights go through the eight-light pool
 Every magnitude is unratified; the built-in bolt and spray remain the
 fallback for a weapon with no effect.
 
+**Fourteen notes from playing (D-640 -> D-647).** Alt-drag orbits the map
+builder; the camera sits three times further out so nothing authored is behind
+its lens; the outline ignores a sheathed weapon; the hood hides the hair it
+conceals. **Doors are way-markers (D-641):** named, placed, linked in PAIRS
+through one endpoint that writes both files, derived into the door graph the
+server walks, landing BESIDE the partner, drawn with a ring and a label.
+Ground materials carry `variation` (rotate/zoom/patch) that breaks the repeat
+(D-642); the select tool picks lights. The watch is posted in every settled
+area of the round (D-643). The bar holds only what the calling knows, and
+double-click no longer clears it (D-644). **Identity (D-645):** real, hooded
+and disguised names on the sheet; speaking under one is a declaration, contested
+once per name per listener -- a stranger learns your real name when you speak.
+The off-hand draws its own thing (D-646). A developer menu spawns and grants
+in-game where `DEV_MENU` allows (D-647).
+
 **A cue is heard in the tool through the game's own player (D-635).** The
 cue editor's preview is `SoundBank` handed the form's copy of the cue, so
 trim, split and normalisation are heard as the game applies them, and the

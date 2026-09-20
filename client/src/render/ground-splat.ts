@@ -174,6 +174,15 @@ export function splatMaterial(
       ),
     },
   };
+  // Variation per material (D-642): rotate, zoom, patch size — packed three
+  // materials to a vector like the repeats above.
+  const v = (i: number) => layers[i]?.material.variation ?? { rotate: 0, zoom: 0, patch: 6 };
+  uniforms.uRotA = { value: new THREE.Vector3(v(0).rotate, v(1).rotate, v(2).rotate) };
+  uniforms.uRotB = { value: new THREE.Vector3(v(3).rotate, v(4).rotate, v(5).rotate) };
+  uniforms.uZoomA = { value: new THREE.Vector3(v(0).zoom, v(1).zoom, v(2).zoom) };
+  uniforms.uZoomB = { value: new THREE.Vector3(v(3).zoom, v(4).zoom, v(5).zoom) };
+  uniforms.uPatchA = { value: new THREE.Vector3(v(0).patch, v(1).patch, v(2).patch) };
+  uniforms.uPatchB = { value: new THREE.Vector3(v(3).patch, v(4).patch, v(5).patch) };
   for (let i = 0; i < SPLAT_CHANNELS; i++) {
     uniforms[`uTex${i}`] = { value: layers[i]?.texture ?? null };
     // ⚠ The TINT stands in for missing art and the WASH modifies art that is
@@ -204,7 +213,11 @@ export function splatMaterial(
       const comp = ['x', 'y', 'z'][i % WEIGHTS_PER_MASK]!;
       const has = first ? 'uHasA' : 'uHasB';
       const rep = first ? 'uRepeatA' : 'uRepeatB';
-      return `acc += (${has}.${comp} > 0.5 ? texture2D(uTex${i}, metres * ${rep}.${comp}).rgb`
+      const rot = first ? 'uRotA' : 'uRotB';
+      const zoom = first ? 'uZoomA' : 'uZoomB';
+      const patch = first ? 'uPatchA' : 'uPatchB';
+      return `acc += (${has}.${comp} > 0.5`
+        + ` ? sampleVaried(uTex${i}, metres, ${rep}.${comp}, ${rot}.${comp}, ${zoom}.${comp}, ${patch}.${comp})`
         + ` : vec3(1.0)) * uTint${i} * ${w}.${comp};`;
     }).join('\n         ');
 
@@ -219,7 +232,42 @@ export function splatMaterial(
          uniform vec3 uRepeatB;
          uniform vec3 uHasA;
          uniform vec3 uHasB;
-         ${decls}`,
+         uniform vec3 uRotA;
+         uniform vec3 uRotB;
+         uniform vec3 uZoomA;
+         uniform vec3 uZoomB;
+         uniform vec3 uPatchA;
+         uniform vec3 uPatchB;
+         ${decls}
+
+         float rcHash(vec2 c) {
+           return fract(sin(dot(c, vec2(127.1, 311.7))) * 43758.5453);
+         }
+         // One lattice: the cell this point is in, turned and zoomed by the
+         // cell's own random numbers, sampled about the cell's centre so the
+         // texture is continuous inside the cell.
+         vec3 rcCell(sampler2D tex, vec2 m, float rep, float rot, float zoom, float patch, vec2 shift) {
+           vec2 cell = floor(m / patch + shift);
+           vec2 centre = (cell - shift + 0.5) * patch;
+           float a = (rcHash(cell) - 0.5) * 6.2831853 * rot;
+           float z = 1.0 + (rcHash(cell + 17.0) - 0.5) * zoom;
+           vec2 d = m - centre;
+           vec2 r = vec2(d.x * cos(a) - d.y * sin(a), d.x * sin(a) + d.y * cos(a)) / z + centre;
+           return texture2D(tex, r * rep).rgb;
+         }
+         // ⚠ Two lattices half a cell apart, each faded out at its own cell
+         // edges by a tent, so the seam of one lies under the middle of the
+         // other. No variation at all is the plain sample, untouched.
+         vec3 sampleVaried(sampler2D tex, vec2 m, float rep, float rot, float zoom, float patch) {
+           if (rot <= 0.0 && zoom <= 0.0) return texture2D(tex, m * rep).rgb;
+           vec2 f0 = fract(m / patch);
+           vec2 f1 = fract(m / patch + 0.5);
+           float w0 = (1.0 - abs(f0.x * 2.0 - 1.0)) * (1.0 - abs(f0.y * 2.0 - 1.0));
+           float w1 = (1.0 - abs(f1.x * 2.0 - 1.0)) * (1.0 - abs(f1.y * 2.0 - 1.0));
+           vec3 c0 = rcCell(tex, m, rep, rot, zoom, patch, vec2(0.0));
+           vec3 c1 = rcCell(tex, m, rep, rot, zoom, patch, vec2(0.5));
+           return (c0 * w0 + c1 * w1) / max(w0 + w1, 0.0001);
+         }`,
       )
       .replace(
         '#include <map_fragment>',

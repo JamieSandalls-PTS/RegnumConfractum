@@ -2,6 +2,7 @@ import type {
   AppearanceOverride,
   CharacterAdvances,
   CharacterLook,
+  CharacterIdentity,
   EquipSlot,
 } from '@rc/shared';
 
@@ -88,6 +89,8 @@ export interface CharacterRecord {
    * before this had.
    */
   hotbar: (string | null)[] | null;
+  /** How they present themselves when they speak (D-645). Null: the real name. */
+  identity: CharacterIdentity | null;
   /**
    * Has this character had its starting kit for the current round (D-547)?
    *
@@ -290,6 +293,8 @@ export interface Store {
   saveCharacterAdvances(id: string, advances: CharacterAdvances): Promise<void>;
   /** The character's hotbar arrangement (D-553). */
   saveCharacterHotbar(id: string, hotbar: (string | null)[]): Promise<void>;
+  /** The names they speak under (D-645). */
+  saveCharacterIdentity(id: string, identity: CharacterIdentity): Promise<void>;
   /** Records that the kit has been handed over, or clears it at a round reset. */
   setKitGranted(id: string, granted: boolean): Promise<void>;
   /** Clears it for everybody — one statement at a reset, not one per player. */

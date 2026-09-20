@@ -1,6 +1,6 @@
 import pg from 'pg';
 import { maxHpFor, resolveAttributes } from '@rc/shared';
-import type { AppearanceOverride, CharacterAdvances, CharacterLook, EquipSlot } from '@rc/shared';
+import type { AppearanceOverride, CharacterAdvances, CharacterIdentity, CharacterLook, EquipSlot } from '@rc/shared';
 import { migrate } from '../db/migrate';
 import { startingBuild } from './types';
 import type {
@@ -99,7 +99,7 @@ export class PgStore implements Store {
         ...c, ...build, appearance: c.appearance ?? null,
         attributes: c.attributes ?? null, raceId: c.raceId ?? null,
         look: c.look ?? null,
-        advances: null, hotbar: null, kitGranted: false,
+        advances: null, hotbar: null, identity: null, kitGranted: false,
         id: rows[0]!.id, coin: 0, languages: ['common'],
         // Full health from the vigor just allocated (D-546), not a hardcoded
         // 20 — which spawned a vigor-14 character already wounded.
@@ -153,6 +153,13 @@ export class PgStore implements Store {
     await this.pool.query('update characters set hotbar = $2 where id = $1', [
       id,
       JSON.stringify(hotbar),
+    ]);
+  }
+
+  async saveCharacterIdentity(id: string, identity: CharacterIdentity): Promise<void> {
+    await this.pool.query('update characters set identity = $2 where id = $1', [
+      id,
+      JSON.stringify(identity),
     ]);
   }
 
@@ -813,6 +820,7 @@ function rowToCharacter(r: Record<string, unknown>): CharacterRecord {
     attributes: (r.attributes as Record<string, number> | null) ?? null,
     advances: (r.advances as CharacterAdvances | null) ?? null,
     hotbar: (r.hotbar as (string | null)[] | null) ?? null,
+    identity: (r.identity as CharacterIdentity | null) ?? null,
     kitGranted: r.kit_granted === true,
   };
 }

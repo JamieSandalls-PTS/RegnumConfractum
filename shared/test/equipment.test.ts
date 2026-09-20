@@ -200,6 +200,29 @@ describe('which weapon, not just that there is one (D-614)', () => {
     ]);
     expect(look.weapon).toBe('sword');
     expect(look.weaponArt, 'the better weapon is the one drawn').toBe('knights/wep-broadsword-01');
+    // ⚠ And the shield is the OTHER hand's thing (D-646), not lost to the
+    // choice above: it has no damage, so it was never the weapon and never
+    // drew at all.
+    expect(look.offhandArt).toBe('dungeon-pack/wep-shield-heater-01');
+  });
+
+  it('a shield alone is the thing in hand, and its grip still puts it on the arm (D-646)', () => {
+    // With nothing to be chosen over, the shield IS what the hand holds:
+    // `weaponArt`, mounted from its own fitted grip (the left forearm,
+    // D-564), so it draws exactly where a shield goes either way. The
+    // off-hand field is for the shield beside a sword, which is the case that
+    // never drew.
+    const look = lookOf([
+      { slot: 'off-hand', stats: stats({ damage: 0, slot: 'off-hand', armour: 2 }), art: 'dungeon-pack/wep-shield-heater-01' },
+    ]);
+    expect(look.weaponArt).toBe('dungeon-pack/wep-shield-heater-01');
+    expect(look.offhandArt).toBeUndefined();
+    // And a single weapon in the off-hand is the weapon, not an off-hand thing as well.
+    const dagger = lookOf([
+      { slot: 'off-hand', stats: stats({ damage: 2, slot: 'off-hand' }), art: 'knights/wep-dagger-01' },
+    ]);
+    expect(dagger.weaponArt).toBe('knights/wep-dagger-01');
+    expect(dagger.offhandArt).toBeUndefined();
   });
 
   it('is simply absent for a weapon nobody has fitted', () => {

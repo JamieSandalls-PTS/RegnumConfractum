@@ -342,6 +342,14 @@ export interface WornLook {
   stance?: Stance;
   /** The effect burning on the weapon in hand (D-639), a vfx id. */
   weaponVfx?: string;
+  /**
+   * What the OTHER hand holds, as `pack/asset` (D-646): a shield, a torch,
+   * an off-hand dagger. The silhouette above picks ONE weapon by damage, and
+   * a shield has none — so a man with a banded shield on his arm drew as a
+   * man with a sword and nothing else. Absent when the off-hand is empty or
+   * holds the weapon already drawn.
+   */
+  offhandArt?: string;
 }
 
 export const BARE_LOOK: WornLook = {
@@ -397,6 +405,10 @@ export function lookOf(worn: readonly EquippedItem[]): WornLook {
       look.stance = item.stance;
     }
   }
+  // The off-hand's own thing (D-646), whatever its damage: a shield is not
+  // a weapon and was never chosen above.
+  const off = worn.find((i) => i.slot === 'off-hand' && i.art !== undefined && i.art !== look.weaponArt);
+  if (off) look.offhandArt = off.art;
   return look;
 }
 

@@ -90,13 +90,17 @@ describe('strangers, speech, and false names (M2)', () => {
     expect(seen.descriptor).not.toContain('Crane');
   });
 
-  it('speech reaches everyone in earshot, attributed by description', async () => {
+  it('speech reaches everyone in earshot, attributed by name once spoken', async () => {
+    // Before a word is spoken, a stranger (D-201).
+    expect(sharp.entities.get(liarEntity)!.descriptor).toMatch(/figure/);
     liar.send({ t: 'say', channel: 'say', text: 'Cold night on the roads.' });
     await waitUntil(() => sharp.speeches.length >= 1, 'sharp hears');
     await waitUntil(() => dull.speeches.length >= 1, 'dull hears');
     const heard = sharp.speeches[0]!;
     expect(heard.text).toBe('Cold night on the roads.');
-    expect(heard.speakerDescriptor).toMatch(/figure/);
+    // Spoken under the real identity (D-645): the line carries the name, and
+    // a stranger learns it by hearing it.
+    expect(heard.speakerDescriptor).toBe('Aldous Crane');
     // The speaker hears their own line under their own name.
     expect(liar.speeches[0]!.speakerDescriptor).toBe('Aldous Crane');
   });
@@ -201,8 +205,11 @@ describe('strangers, speech, and false names (M2)', () => {
     const events = await store.listRecentEvents(100);
     const speech = events.filter((e) => e.type === 'speech');
     expect(speech.length).toBeGreaterThanOrEqual(5);
-    const declared = speech.find((e) => (e.data as { declaredAs?: string }).declaredAs);
-    expect(declared).toBeDefined();
-    expect((declared!.data as { truthful?: boolean }).truthful).toBe(false);
+    // Every line carries the name it was spoken under now (D-645), so the
+    // log holds truthful declarations as well as the lie; the lie is the one
+    // that must be there, marked as one.
+    const lie = speech.find((e) => (e.data as { truthful?: boolean }).truthful === false);
+    expect(lie).toBeDefined();
+    expect((lie!.data as { declaredAs?: string }).declaredAs).toBe('Marcus Hale');
   });
 });

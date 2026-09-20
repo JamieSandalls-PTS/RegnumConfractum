@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
+  allTransitions,
   canStandAt,
   DUNGEON_FLOOR_OPENS_ON_DAY,
   ROUND_DAY_TICKS,
@@ -28,6 +29,8 @@ const area = (id: string): AreaDef => {
   if (!a) throw new Error(`missing area ${id}`);
   return a;
 };
+/** The doors out of an area, as the server derives them from its linked markers (D-641). */
+const doors = (id: string) => allTransitions(area(id), (o) => content.areas.get(o) ?? null);
 const FLOORS = ['round-dungeon-1', 'round-dungeon-2', 'round-dungeon-3'] as const;
 
 describe('three floors, going down', () => {
@@ -43,14 +46,14 @@ describe('three floors, going down', () => {
   });
 
   it('chains them, with only the first reachable from the surface', () => {
-    expect(area('round-south').transitions.some((t) => t.toArea === 'round-dungeon-1')).toBe(true);
+    expect(doors('round-south').some((t) => t.toArea === 'round-dungeon-1')).toBe(true);
     for (const id of ['round-dungeon-2', 'round-dungeon-3']) {
-      expect(area('round-south').transitions.some((t) => t.toArea === id)).toBe(false);
+      expect(doors('round-south').some((t) => t.toArea === id)).toBe(false);
     }
-    expect(area('round-dungeon-1').transitions.some((t) => t.toArea === 'round-dungeon-2')).toBe(true);
-    expect(area('round-dungeon-2').transitions.some((t) => t.toArea === 'round-dungeon-3')).toBe(true);
+    expect(doors('round-dungeon-1').some((t) => t.toArea === 'round-dungeon-2')).toBe(true);
+    expect(doors('round-dungeon-2').some((t) => t.toArea === 'round-dungeon-3')).toBe(true);
     // And the bottom is the bottom.
-    expect(area('round-dungeon-3').transitions.every((t) => t.toArea === 'round-dungeon-2')).toBe(true);
+    expect(doors('round-dungeon-3').every((t) => t.toArea === 'round-dungeon-2')).toBe(true);
   });
 
   // ⚠ UN-SKIPPED (D-584). It was skipped when the machine-placed scenery came

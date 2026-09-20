@@ -29,15 +29,7 @@
   },
   "lighting": "underground",
   "zone": "endgame",
-  "transitions": [
-    {
-      "x": 1,
-      "y": 1,
-      "toArea": "broken-yard",
-      "toX": 2,
-      "toY": 28
-    }
-  ],
+  "transitions": [],
   "outdoor": false,
   "live": true,
   "assets": [
@@ -892,5 +884,17 @@
     "sand",
     "flag"
   ],
-  "ambience": "ambience-cave"
+  "ambience": "ambience-cave",
+  "markers": [
+    {
+      "id": "to-the-broken-yard",
+      "name": "To The Broken Yard",
+      "x": 1,
+      "y": 1,
+      "to": {
+        "area": "broken-yard",
+        "marker": "to-the-sunken-crypt"
+      }
+    }
+  ]
 }

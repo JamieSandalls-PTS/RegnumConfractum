@@ -308,6 +308,22 @@ export const GroundMaterialSchema = z.object({
    * the game by its own colour.
    */
   wash: HexColourSchema.default('#ffffff'),
+  /**
+   * Breaks the tiling (D-642). A photographed ground repeats visibly at
+   * three metres; the shader samples it twice on two overlapping lattices of
+   * `patch`-metre cells, each cell turned by up to `rotate` (0 none, 1 any
+   * angle) and zoomed by up to `zoom` (0 none, 1 half to double), and blends
+   * them, so no two patches show the same pixels the same way up. All zero
+   * is exactly the old single sample.
+   */
+  variation: z
+    .object({
+      rotate: z.number().min(0).max(1).default(0),
+      zoom: z.number().min(0).max(1).default(0),
+      /** Metres across one patch. */
+      patch: z.number().min(1).max(32).default(6),
+    })
+    .default({}),
   /** Walkable ground by default; set false for a material that is a barrier. */
   walkable: z.boolean().default(true),
   notes: z.string().optional(),
@@ -355,6 +371,18 @@ export function isTileOpaque(def: { kind: string; opaque?: boolean }): boolean {
 /** Per-area lighting profile (D-504, feeding D-305). */
 export const LightingProfileSchema = z.enum(['overcast', 'night', 'underground', 'interior']);
 export type LightingProfile = z.infer<typeof LightingProfileSchema>;
+
+/** A named way-marker in an area (D-641). */
+export const MarkerSchema = z.object({
+  id: ContentIdSchema,
+  /** What a player sees it called: "the cellar stair", "the north gate". */
+  name: z.string().min(1).max(60),
+  x: z.number().int().min(0),
+  y: z.number().int().min(0),
+  /** The marker this one carries you to. Written on both ends. */
+  to: z.object({ area: ContentIdSchema, marker: ContentIdSchema }).optional(),
+});
+export type MarkerDef = z.infer<typeof MarkerSchema>;
 
 export const AreaSchema = z
   .object({
@@ -555,6 +583,19 @@ export const AreaSchema = z
         }),
       )
       .default([]),
+    /**
+     * Named way-markers (D-641), and what each is linked to.
+     *
+     * The stakeholder's rework: place and NAME markers in the map builder,
+     * then link two of them so that walking onto one carries you to the
+     * other. A link is written on BOTH markers, so the door graph the server
+     * derives is symmetric by construction — the one-way `transitions` above
+     * needed the way back authored separately, and half of all door bugs were
+     * a door that only worked in one direction (D-544). `transitions` stays
+     * for what the runtime makes (a DM's temporary area, D-216); authored
+     * content uses markers.
+     */
+    markers: z.array(MarkerSchema).default([]),
     /**
      * Roofed tiles (D-545). A roof is PAINTED as a footprint and its shape is
      * derived: contiguous tiles form a region, and the region gets a pitch
@@ -1459,4 +1500,121 @@ export function validateAdvances(
     }
   }
   return errors;
+}
+
+/* ------------------------------------------------- way-markers (D-641) --- */
+
+/** A door as the server walks it: where it is, where it lands, what it is called. */
+export interface Doorway {
+  x: number;
+  y: number;
+  toArea: string;
+  toX: number;
+  toY: number;
+  name?: string;
+}
+
+/**
+ * Where somebody arriving THROUGH `marker` is stood: a tile beside it, never
+ * on it. A marker is a teleporter, and standing on the one you arrived by
+ * would send you straight back. Of the standable neighbours the one nearest
+ * the area's spawn is chosen, so an arrival at the map's edge steps INTO the
+ * map rather than off it. Null when the marker is boxed in.
+ */
+export function landingBeside(area: AreaDef, marker: { x: number; y: number }): Vec2 | null {
+  const taken = new Set([
+    ...area.markers.map((m) => `${m.x},${m.y}`),
+    ...area.transitions.map((t) => `${t.x},${t.y}`),
+  ]);
+  let best: Vec2 | null = null;
+  let bestD = Infinity;
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] as const) {
+    const p = { x: marker.x + dx, y: marker.y + dy };
+    if (p.x < 0 || p.y < 0 || p.x >= area.width || p.y >= area.height) continue;
+    if (taken.has(`${p.x},${p.y}`)) continue;
+    if (!isTileWalkable(area, p) || !canStandAt(area, p)) continue;
+    const d = Math.hypot(p.x - area.spawn.x, p.y - area.spawn.y);
+    if (d < bestD) {
+      bestD = d;
+      best = p;
+    }
+  }
+  return best;
+}
+
+/**
+ * The doors an area's LINKED markers make (D-641): each marker with a `to`
+ * that resolves becomes a doorway landing beside its partner. `lookup` says
+ * what the other areas are — the world's at runtime, the content tree's in
+ * the validator — because a link is a fact about two files.
+ */
+export function derivedTransitions(
+  area: AreaDef,
+  lookup: (areaId: string) => AreaDef | null,
+): Doorway[] {
+  const out: Doorway[] = [];
+  for (const m of area.markers) {
+    if (!m.to) continue;
+    const target = m.to.area === area.id ? area : lookup(m.to.area);
+    const partner = target?.markers.find((t) => t.id === m.to!.marker);
+    if (!target || !partner) continue;
+    const landing = landingBeside(target, partner);
+    if (!landing) continue;
+    out.push({ x: m.x, y: m.y, toArea: target.id, toX: landing.x, toY: landing.y, name: m.name });
+  }
+  return out;
+}
+
+/** Every door out of an area: the authored one-way ones plus the marker links. */
+export function allTransitions(
+  area: AreaDef,
+  lookup: (areaId: string) => AreaDef | null,
+): Doorway[] {
+  return [...area.transitions, ...derivedTransitions(area, lookup)];
+}
+
+/**
+ * Everything wrong with an area's markers (D-641). Run by the validator, the
+ * editor's save and the link endpoint, so the three cannot disagree.
+ *
+ * ⚠ A link must be RECIPROCAL: the partner's `to` names this marker back.
+ * A one-sided link is a door that opens from one room only, which is the
+ * exact defect the rework exists to remove; it is refused rather than
+ * silently honoured in one direction.
+ */
+export function markerProblems(
+  area: AreaDef,
+  lookup: (areaId: string) => AreaDef | null,
+): string[] {
+  const problems: string[] = [];
+  const seen = new Set<string>();
+  for (const m of area.markers) {
+    if (seen.has(m.id)) problems.push(`marker '${m.id}' appears twice`);
+    seen.add(m.id);
+    if (!isTileWalkable(area, m) || !canStandAt(area, m)) {
+      problems.push(`marker '${m.name}' (${m.id}) at (${m.x},${m.y}) is not somewhere a body can stand`);
+    }
+    if (!m.to) continue;
+    const target = m.to.area === area.id ? area : lookup(m.to.area);
+    if (!target) {
+      problems.push(`marker '${m.name}' links to unknown area '${m.to.area}'`);
+      continue;
+    }
+    const partner = target.markers.find((t) => t.id === m.to!.marker);
+    if (!partner) {
+      problems.push(`marker '${m.name}' links to '${m.to.marker}', which is not in '${target.id}'`);
+      continue;
+    }
+    if (!partner.to || partner.to.area !== area.id || partner.to.marker !== m.id) {
+      problems.push(
+        `marker '${m.name}' links to '${partner.name}' in '${target.id}', but that one does not link back`,
+      );
+    }
+    if (!landingBeside(target, partner)) {
+      problems.push(
+        `marker '${m.name}' leads to '${partner.name}' in '${target.id}', which has nowhere beside it to arrive`,
+      );
+    }
+  }
+  return problems;
 }

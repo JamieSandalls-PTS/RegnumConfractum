@@ -11801,3 +11801,172 @@ it lay on (`client/test/vfx.test.ts`); the wire -- the catalogue on
 `render_content`, `weaponVfx` on `worn` as the victim sees it, and `show`
 on a staff's blow resolved off the item (`sim/test/mr15-vfx-wire.test.ts`);
 the validator's refusals and the editor's (tools tests).
+
+
+
+## D-640 -- Fourteen notes from playing: the small ones
+
+**Status:** implemented. Each is a fix the stakeholder found by playing.
+
+- **Orbiting in the map builder** (note 1): every tool had claimed plain
+  left-drag -- a run of assets, a brush stroke, a grab -- and with the tile
+  tool gone (D-638) and `asset` the default there was no tool left on which
+  dragging orbited. **Alt + left-drag orbits whatever tool is up.** The
+  effect, spawn and marker tools are one-click tools now rather than brushes:
+  dragging with the effect tool laid a hearth on every tile the cursor crossed.
+- **The camera cut through assets** (note 2): an orthographic camera draws the
+  same frame from any distance along its axis, so where it SITS only decides
+  what is behind its near plane -- and at the orbit's own radius it sat inside
+  the world, with a wall or a tree between the player and the map's corner
+  behind the lens and cut open. `CAMERA_PUSH` puts it three times further out
+  on the same line; fog is measured from the camera and is shifted by the same
+  amount in `follow`. ⚠ The far plane went from 100 to 400 for the same reason.
+- **The hover outline drew a sheathed sword** (note 9): `traverse` walks into
+  hidden groups, and a sheathed weapon is a visible mesh inside a hidden holder
+  (D-620). Visibility is now checked up the chain to the outlined object.
+- **The stools** (note 10): `sm-prop-stool-01` is 62cm tall and the sitting
+  clip's hips are at 58cm (D-615); the 33 taproom stools are placed at 0.8.
+  ⚠ A content change, not a rule: another map's stools are its own.
+- **The hood drew over the hair** (note 12): the tagged hood is a `No_Hair`
+  cut (D-558), and its concealment was known to the studio's warnings and not
+  to the assembler. `dressedParts` now drops every slot a worn part conceals,
+  read off the part, so a hood cut around hair still shows it and a closed
+  helm hides the head.
+
+## D-641 -- Way-markers: doors are named, placed, and linked in pairs
+
+**Status:** implemented. Supersedes the authoring half of D-103's one-way
+`transitions` (which stay for what the runtime makes, D-216) and answers
+notes 5 and 6.
+
+The stakeholder's rework: place and NAME markers in the map builder, then link
+two so that walking onto one carries you to the other. And note 5, which was
+the same fault from the other side: D-638 deleted the tile renderer and the
+transition tile kinds it drew, so a door was an invisible spot on the floor
+that happened to work.
+
+**A marker is content** (`AreaSchema.markers`: id, name, x, y, `to?`). A link
+is written on BOTH markers -- by the tool's Links panel, through one endpoint
+that edits both files or neither -- so the door graph is symmetric by
+construction. The one-way `transitions` needed the way back authored
+separately, and half of all door bugs were a door that only worked one way
+(D-544). `markerProblems` refuses a one-sided link, a link to nothing, a
+marker nobody can stand on, and a partner with nowhere beside it to arrive; the
+validator, the editor's save and the link endpoint all call it.
+
+**The server derives the doors** (`derivedTransitions`): a marker with a
+`to` becomes a doorway landing BESIDE its partner -- the standable neighbour
+nearest the area's spawn, so an arrival at the map's edge steps into the map
+-- never on it, because a marker is a teleporter and arriving on one would send
+you straight back. Cached per area; dropped on reload or a temporary area.
+Bots read the derived doors off the snapshot exactly as before.
+
+**The game draws them:** a soft ring that breathes, a faint column, and the
+NAME on a label (`TransitionVisual`), plus a `waymark` effect from content if
+one is defined -- placed by the client, not the map. ⚠ The wire says where a
+door is and what it is called, never where it leads.
+
+Every authored transition was converted (`markers3.py`, 36 doors into 18
+linked pairs, all reciprocal); `build-round-map.py` writes linked markers for
+the cross and the stairs. The exit tool is gone.
+
+## D-642 -- The ground stops repeating, and a light can be picked up
+
+**Status:** implemented (notes 3 and 4). Every magnitude unratified.
+
+**Variation** on a ground material -- `rotate`, `zoom`, `patch` -- breaks the
+tiling: the shader samples the texture on two overlapping lattices of
+patch-metre cells, each cell turned and zoomed by its own random numbers about
+its centre, each faded out at its own edges by a tent so one lattice's seam
+lies under the other's middle. All zero is exactly the old single sample. The
+sliders in the paint tool preview live. ⚠ It is a per-MATERIAL setting, since
+a material is what repeats; natural ground wants rotate near 1, cobbles want
+none.
+
+**Selecting an effect:** a light is not a mesh and a raycast cannot hit it, so
+the select tool falls back to the nearest placed effect when it hits nothing
+else. Drag moves it, the inspector edits height and scale, Delete removes it,
+and the live preview follows.
+
+## D-643 -- The watch is posted indoors, and the companions survive a reset
+
+**Status:** implemented (notes 7 and 8).
+
+D-636 had narrowed the watch to OUTDOOR settled areas, and the round has
+opened in the taproom since D-634 -- so a round began with no guard anywhere
+the cast actually was. `guardAreas` is now every settled area the round is
+played in, indoors included. ⚠ The reset-invariants fixture found the
+consequence at once: a guard in the taproom answers a crime it sees, so "kill
+one of them" may kill the attacker; the fixture accepts either death.
+
+The companions: `mr16-bots-after-round` runs a round with two lobby bots to
+the end of its clock and asserts, from the PLAYER's own mirror after the reset,
+that both stand in the taproom again. It passes. ⚠ The stakeholder's report
+("just me alone") is therefore not reproduced by that path; the two things
+that differ in play are a round ending by objective rather than clock, and a
+companion that died. Both remain to be seen in play, and the resolution period
+(thirty seconds by default) is a window in which everyone stays where the
+round left them.
+
+## D-644 -- The bar holds what the calling knows
+
+**Status:** implemented (note 11).
+
+No double-click to clear a slot: a double-click is two uses a fraction apart,
+and losing the ability for the rest of the fight was the cost. Dragging a slot
+off the bar is the only way to clear it. The drawer lists the BOOK -- what this
+character can do (D-553) -- rather than every ability the client knows how to
+send, and a drop on the bar is judged the same way, so a man-at-arms cannot
+hold Animate Dead however it got there. Redrawn whenever `status` arrives.
+
+## D-645 -- Identity: real, hooded, disguised
+
+**Status:** implemented (note 13). Supersedes the "declare as" box; D-218's
+explicit `declareAs` stays on the wire for scripts and bots.
+
+Three names on the character sheet's Identity tab. The REAL one is the
+character's own and cannot be edited. The HOODED one is heard while the hood is
+up -- and if none is set, nothing is: a hooded stranger who says nothing about
+who they are stays a hooded stranger. The DISGUISED one is heard when its radio
+is chosen over the real one. Persisted on the character (migration 0018),
+because a disguise is a decision about who you are being, not about a session.
+
+**Speaking under whichever is in use is a declaration** (D-218). The real name
+is true and lands without a contest; the others are lies and are contested by
+each listener's Insight -- ONCE per name per listener under that presentation,
+because every utterance now carries a name and re-rolling on each would let a
+listener wait a lie out. A CHANGE of name -- the disguise coming on or off --
+is news and is rolled again, which is exactly the moment the stakeholder asked
+for: "if a player switches between real and disguised identity, another player
+with good insight should be able to determine they are not who they seem."
+
+⚠ **A consequence, stated:** a stranger now learns your real name the first
+time you speak, where before they learned it only when you declared. That is
+what "achieved more naturally" means, and it is the stakeholder's ruling; the
+hood and the disguise are how a name is withheld.
+
+## D-646 -- The other hand draws its own thing
+
+**Status:** implemented (note 14's shield).
+
+`lookOf` picks ONE weapon by damage, and a shield has none -- so a man with a
+banded shield on his arm drew as a man with a sword and nothing else.
+`offhandArt` carries what the off-hand holds when it is not the weapon already
+drawn; the imported cast mounts it from the grip the tool measured (a shield
+fits the left forearm, D-564), raised with the sword and put away with it.
+⚠ The `worn` comparison in `publishWorn` gained its FIFTH field. Both copies of
+the worn shape on the wire carry it.
+
+## D-647 -- The developer menu
+
+**Status:** implemented (note 14). Off in production (`DEV_MENU`, defaulting
+like `ALLOW_BOTS`).
+
+In Settings, when the server says the menu is on: **spawn** anything the tool
+defines -- a roamer (arrives hostile and hunting, as the night's do), a person
+from `content/npcs`, or a model from `content/characters` -- at the next floor
+click; and **give** any item template to your own pack, in a quantity. The
+server is the authority: the click sends a request, the spawn goes through the
+same code the night uses, the grant through the store, and every use is
+logged. ⚠ Refused wherever the flag is off, with a plain refusal rather than a
+hidden button: the catalogue is asked for on login and simply never answered.

@@ -127,36 +127,7 @@
   "zone": "wilderness",
   "outdoor": false,
   "dungeonFloor": 2,
-  "transitions": [
-    {
-      "x": 50,
-      "y": 0,
-      "toArea": "round-dungeon-1",
-      "toX": 50,
-      "toY": 98
-    },
-    {
-      "x": 49,
-      "y": 0,
-      "toArea": "round-dungeon-1",
-      "toX": 49,
-      "toY": 98
-    },
-    {
-      "x": 50,
-      "y": 99,
-      "toArea": "round-dungeon-3",
-      "toX": 50,
-      "toY": 1
-    },
-    {
-      "x": 49,
-      "y": 99,
-      "toArea": "round-dungeon-3",
-      "toX": 49,
-      "toY": 1
-    }
-  ],
+  "transitions": [],
   "ambience": "ambience-cave",
   "assets": [
     {
@@ -34349,5 +34320,47 @@
     "dirt",
     "sand",
     "leafmould"
+  ],
+  "markers": [
+    {
+      "id": "to-the-flooded-steps",
+      "name": "To The Flooded Steps",
+      "x": 50,
+      "y": 0,
+      "to": {
+        "area": "round-dungeon-1",
+        "marker": "to-the-drowned-gallery"
+      }
+    },
+    {
+      "id": "to-the-flooded-steps-2",
+      "name": "To The Flooded Steps",
+      "x": 49,
+      "y": 0,
+      "to": {
+        "area": "round-dungeon-1",
+        "marker": "to-the-drowned-gallery-2"
+      }
+    },
+    {
+      "id": "to-the-undercroft",
+      "name": "To The Undercroft",
+      "x": 50,
+      "y": 99,
+      "to": {
+        "area": "round-dungeon-3",
+        "marker": "to-the-drowned-gallery"
+      }
+    },
+    {
+      "id": "to-the-undercroft-2",
+      "name": "To The Undercroft",
+      "x": 49,
+      "y": 99,
+      "to": {
+        "area": "round-dungeon-3",
+        "marker": "to-the-drowned-gallery-2"
+      }
+    }
   ]
 }
