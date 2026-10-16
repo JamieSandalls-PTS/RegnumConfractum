@@ -181,6 +181,8 @@ export function blankAsset(kind: AssetKind, pack: string, mesh: string, scale: n
       collision: [],
       // Nothing is a seat until a person says so (D-605).
       seat: false,
+      // Placed at its own size until somebody fits it (D-648).
+      placeScale: 1,
     } satisfies EnvironmentAsset;
   }
   if (kind === 'projectile') {

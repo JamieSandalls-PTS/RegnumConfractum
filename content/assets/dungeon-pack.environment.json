@@ -14571,7 +14571,8 @@
         0.52
       ],
       "collision": [],
-      "seat": true
+      "seat": true,
+      "placeScale": 0.5
     },
     {
       "id": "sm-prop-stool-02",
@@ -14596,7 +14597,8 @@
         0.655
       ],
       "collision": [],
-      "seat": true
+      "seat": true,
+      "placeScale": 0.41
     },
     {
       "id": "sm-prop-stool-03",
@@ -14621,7 +14623,8 @@
         0.546
       ],
       "collision": [],
-      "seat": true
+      "seat": true,
+      "placeScale": 0.67
     },
     {
       "id": "sm-prop-table-01",

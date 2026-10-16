@@ -215,9 +215,9 @@ export function splatMaterial(
       const rep = first ? 'uRepeatA' : 'uRepeatB';
       const rot = first ? 'uRotA' : 'uRotB';
       const zoom = first ? 'uZoomA' : 'uZoomB';
-      const patch = first ? 'uPatchA' : 'uPatchB';
+      const cell = first ? 'uPatchA' : 'uPatchB';
       return `acc += (${has}.${comp} > 0.5`
-        + ` ? sampleVaried(uTex${i}, metres, ${rep}.${comp}, ${rot}.${comp}, ${zoom}.${comp}, ${patch}.${comp})`
+        + ` ? sampleVaried(uTex${i}, metres, ${rep}.${comp}, ${rot}.${comp}, ${zoom}.${comp}, ${cell}.${comp})`
         + ` : vec3(1.0)) * uTint${i} * ${w}.${comp};`;
     }).join('\n         ');
 
@@ -246,26 +246,30 @@ export function splatMaterial(
          // One lattice: the cell this point is in, turned and zoomed by the
          // cell's own random numbers, sampled about the cell's centre so the
          // texture is continuous inside the cell.
-         vec3 rcCell(sampler2D tex, vec2 m, float rep, float rot, float zoom, float patch, vec2 shift) {
-           vec2 cell = floor(m / patch + shift);
-           vec2 centre = (cell - shift + 0.5) * patch;
+         vec3 rcCell(sampler2D tex, vec2 m, float rep, float rot, float zoom, float cellSize, vec2 shift) {
+           vec2 cell = floor(m / cellSize + shift);
+           vec2 centre = (cell - shift + 0.5) * cellSize;
            float a = (rcHash(cell) - 0.5) * 6.2831853 * rot;
            float z = 1.0 + (rcHash(cell + 17.0) - 0.5) * zoom;
            vec2 d = m - centre;
            vec2 r = vec2(d.x * cos(a) - d.y * sin(a), d.x * sin(a) + d.y * cos(a)) / z + centre;
            return texture2D(tex, r * rep).rgb;
          }
+         // ⚠ cellSize, never the word p-a-t-c-h: that is a RESERVED WORD in WebGL 2's
+         // shading language (GLSL ES 3.00), and a parameter called that failed
+         // the whole ground shader — every painted floor in the game drew
+         // nothing (D-648). client/test/ground-shader.test.ts scans for it.
          // ⚠ Two lattices half a cell apart, each faded out at its own cell
          // edges by a tent, so the seam of one lies under the middle of the
          // other. No variation at all is the plain sample, untouched.
-         vec3 sampleVaried(sampler2D tex, vec2 m, float rep, float rot, float zoom, float patch) {
+         vec3 sampleVaried(sampler2D tex, vec2 m, float rep, float rot, float zoom, float cellSize) {
            if (rot <= 0.0 && zoom <= 0.0) return texture2D(tex, m * rep).rgb;
-           vec2 f0 = fract(m / patch);
-           vec2 f1 = fract(m / patch + 0.5);
+           vec2 f0 = fract(m / cellSize);
+           vec2 f1 = fract(m / cellSize + 0.5);
            float w0 = (1.0 - abs(f0.x * 2.0 - 1.0)) * (1.0 - abs(f0.y * 2.0 - 1.0));
            float w1 = (1.0 - abs(f1.x * 2.0 - 1.0)) * (1.0 - abs(f1.y * 2.0 - 1.0));
-           vec3 c0 = rcCell(tex, m, rep, rot, zoom, patch, vec2(0.0));
-           vec3 c1 = rcCell(tex, m, rep, rot, zoom, patch, vec2(0.5));
+           vec3 c0 = rcCell(tex, m, rep, rot, zoom, cellSize, vec2(0.0));
+           vec3 c1 = rcCell(tex, m, rep, rot, zoom, cellSize, vec2(0.5));
            return (c0 * w0 + c1 * w1) / max(w0 + w1, 0.0001);
          }`,
       )

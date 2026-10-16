@@ -604,7 +604,7 @@ function updateGhost(): void {
     if (want) {
       ghost = new AssetVisual(
         scene.scene,
-        { asset: want.id, pack: want.pack, x: 0, y: 0, z: 0, rotation: 0, scale: 1,
+        { asset: want.id, pack: want.pack, x: 0, y: 0, z: 0, rotation: 0, scale: want.placeScale ?? 1,
           collision: [], overrideCollision: false, dressed: false, fromTiles: false, seat: want.seat ?? false },
         { api: STUDIO, lookup: (pack, id) => assetIndex.get(`${pack}/${id}`) },
       );
@@ -629,7 +629,7 @@ function updateGhost(): void {
     // Snapped exactly as a real placement is, or the preview lies about
     // where the click will land by up to half a snap.
     x: snapped(hoverGround.x), y: snapped(hoverGround.y),
-    z: assetZ, rotation: assetRot, scale: 1,
+    z: assetZ, rotation: assetRot, scale: ghostFor!.placeScale ?? 1,
     collision: [], overrideCollision: false,
   });
 }
@@ -683,7 +683,9 @@ function placeAsset(x: number, y: number): boolean {
     y,
     z: assetZ,
     rotation: assetRot,
-    scale: 1,
+    // The size the catalogue says it is placed at (D-648): a stool comes in
+    // the height a body sits on, not the pack's 62cm.
+    scale: assetPick.placeScale ?? 1,
     // ⚠ The asset's mask, COPIED at placement (D-567) — a copy this placement
     // may then edit without forking the asset, which is the rule the
     // stakeholder chose. CI reports it when the copy and the catalogue part.

@@ -236,6 +236,7 @@ if (invokedDirectly) {
         // and a "chair rail". D-568 settled that English is not a classifier,
         // and the cost of guessing here is somebody sitting on a fence.
         seat: false,
+        placeScale: 1,
         clips: {},
         collision: [],
       };

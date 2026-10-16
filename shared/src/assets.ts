@@ -131,6 +131,14 @@ export const EnvironmentAssetSchema = AssetCoreSchema.extend({
    */
   size: z.tuple([z.number(), z.number(), z.number()]).optional(),
   /**
+   * The scale a NEW placement starts at (D-648). The pack's meshes are not
+   * all cut to the bodies that use them: its stool is 62cm tall, and the
+   * sitting clip rests a body's underside about 30cm off the floor, so a stool
+   * placed at 1 swallows whoever sits on it. Set once here, a stool is the
+   * right size wherever it is put; an existing placement keeps its own.
+   */
+  placeScale: z.number().positive().max(10).default(1),
+  /**
    * What this asset does to a body, in its OWN frame, metres about its origin
    * (D-567).
    *

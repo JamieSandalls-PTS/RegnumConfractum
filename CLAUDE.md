@@ -1766,6 +1766,12 @@ once per name per listener -- a stranger learns your real name when you speak.
 The off-hand draws its own thing (D-646). A developer menu spawns and grants
 in-game where `DEV_MENU` allows (D-647).
 
+**The ground draws again; stools are measured (D-648).** D-642's shader
+used `patch`, a GLSL ES 3.00 reserved word, and no painted floor compiled; a
+test now scans the injected GLSL. A seated body rests ~30cm off the floor
+(`npm run measure:seat`), so stools are fitted to that and an environment
+asset's `placeScale` sets the size a new placement starts at.
+
 **A cue is heard in the tool through the game's own player (D-635).** The
 cue editor's preview is `SoundBank` handed the form's copy of the cue, so
 trim, split and normalisation are heard as the game applies them, and the

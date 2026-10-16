@@ -209,7 +209,7 @@ function blankFor(kind: AssetKind, pack: string, mesh: string, taken: Set<string
     return { ...core, kind, attach: 'Hand_R', transform, stance: 'one-handed', clips: {} };
   }
   if (kind === 'environment') {
-    return { ...core, kind, solid: true, opaque: true, footprint: [1, 1], operable: false, seat: false, clips: {}, collision: [] };
+    return { ...core, kind, solid: true, opaque: true, footprint: [1, 1], operable: false, seat: false, placeScale: 1, clips: {}, collision: [] };
   }
   if (kind === 'projectile') return { ...core, kind, transform, speed: 30 };
   return { ...core, kind, transform };

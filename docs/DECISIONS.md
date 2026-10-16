@@ -11970,3 +11970,38 @@ server is the authority: the click sends a request, the spawn goes through the
 same code the night uses, the grant through the store, and every use is
 logged. ⚠ Refused wherever the flag is off, with a plain refusal rather than a
 hidden button: the catalogue is asked for on login and simply never answered.
+
+
+
+## D-648 -- The ground draws again, and a stool is the height a body sits on
+
+**Status:** implemented. Two notes from playing.
+
+**Every painted floor drew nothing.** D-642 named a GLSL parameter `patch`,
+which is a reserved word in WebGL 2's shading language (GLSL ES 3.00). The
+browser refused to compile the ground shader and the floor under every map was
+simply absent -- while every test passed, because nothing headless ever read
+the text the shader is built from. My own in-game screenshot at the end of
+D-647 showed the black floor and I did not see it. Renamed to `cellSize`, and
+`client/test/ground-shader.test.ts` now builds the material, runs the same
+injection three.js runs, and checks every identifier against the reserved list
+-- verified by putting the word back and watching it fail.
+
+**The stools, measured instead of guessed.** D-640 cut them to 0.8 by eye and
+the stakeholder found bodies still sitting inside them. `npm run measure:seat`
+poses a built character in the sitting clip and finds the lowest skin under
+the pelvis: a 1.7m body rests **about 30cm off the floor** with its feet flat,
+and the hips sit 3cm from the character's origin, so the seat's centre is
+right. The stool mesh is 62cm tall: at 0.8 its top was 50cm, 20cm into the
+body. A stool's top now sits at 31cm -- `sm-prop-stool-01` at 0.5, `-02` at
+0.41, `-03` at 0.67 -- and `tools/test/seat-fit.test.ts` holds every placed
+stool to the measured contact.
+
+**`placeScale` on an environment asset** is the scale a NEW placement starts
+at, so a stool placed tomorrow arrives the right size; an existing placement
+keeps its own scale.
+
+⚠ **Open, for the stakeholder:** the sitting clip is a low sit, and the
+taproom's tables are the pack's 96cm -- about 65cm above the new seat, where a
+real table is about 30cm above its seat. Scaling the tables to ~0.63 would put
+them at a sitter's waist; not done, because nobody asked for it.

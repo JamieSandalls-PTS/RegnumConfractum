@@ -37,6 +37,7 @@
     "map:tavern": "python tools/src/build-tavern.py",
     "map:walls": "python tools/src/walls-to-assets.py",
     "map:convert": "python tools/src/tiles-to-assets.py",
+    "measure:seat": "tsx tools/src/measure-seat.ts",
     "map:paint": "python tools/src/paint-areas.py",
     "map:dress": "python tools/src/dress-areas.py",
     "map:dress-town": "python tools/src/dress-ashfold.py",
